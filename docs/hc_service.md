@@ -22,7 +22,7 @@ requests by calling `LOGIN username, password`.
 
 ## Making Requests
 
-Requests can be make in plain text. The following requests are available:
+Requests can be made in plain text. The following requests are available:
 
 ```markdown
 BTN <button vid>

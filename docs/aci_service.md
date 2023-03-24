@@ -46,7 +46,7 @@ The server will then respond with
 
 ## Interfaces
 
-The following is a list of know interfaces and methods available on a Vantage InFusion Controller's ACI service.
+The following is a list of known interfaces and methods available on a Vantage InFusion Controller's ACI service.
 
 
 ### Introspection
