@@ -30,7 +30,7 @@ class Vantage:
         """Return Context manager."""
         await self.initialize()
         return self
-    
+
     async def __aexit__(self, exc_t, exc_v, exc_tb):
         """Exit context manager."""
         await self.close()
@@ -56,7 +56,7 @@ class Vantage:
             self._aci_client.close(),
             self._hc_client.close(),
         )
-    
+
     @property
     def areas(self) -> AreasController:
         return self._areas

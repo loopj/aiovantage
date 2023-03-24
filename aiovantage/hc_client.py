@@ -15,7 +15,7 @@ from collections import defaultdict
 # TODO: Automatically reconnect if connection is lost
 
 STATUS_TYPES = ("LOAD", "LED", "BTN", "TASK", "TEMP", "THERMFAN", "THERMOP",
-                "THERMDAY", "SLIDER", "TEXT", "VARIABLE", "BLIND", "PAGE", 
+                "THERMDAY", "SLIDER", "TEXT", "VARIABLE", "BLIND", "PAGE",
                 "LEDSTATE", "IMAGE", "WIND", "LIGHT", "CURRENT", "POWER")
 
 class HCClient:
@@ -29,7 +29,7 @@ class HCClient:
 
     My guess is that HC stands for "Home Control".
     """
-    
+
     def __init__(self, host, username=None, password=None, use_ssl=True, port=None):
         self._host = host
         self._username = username
@@ -51,7 +51,7 @@ class HCClient:
         """Return Context manager."""
         await self.initialize()
         return self
-    
+
     async def __aexit__(self, exc_t, exc_v, exc_tb):
         """Exit context manager."""
         await self.close()
@@ -73,11 +73,11 @@ class HCClient:
 
         # Start a background task to monitor incoming messages
         self._tasks.append(asyncio.create_task(self.__event_reader()))
-    
+
     async def close(self):
         for task in self._tasks:
             task.cancel()
-        
+
         self._tasks.clear()
 
     async def send(self, command):

@@ -1,22 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
 
-# All objects have:
-#   VID
-#   Name
-#   DName
-#   Note
-#   Model
-
-# Most objects have
-#   Parent
-
-# Bus
-#   WireLink
-#   EthernetLink
-#   RadioLink
-#   Others...
-
 @dataclass
 class VantageObject:
     id: int = None
@@ -40,11 +24,11 @@ class Area(VantageObject):
         obj = super().from_xml(el)
         obj.parent_id = int(el.find("Area").text)
         return obj
-    
+
     @property
     def parent(self):
-        return self._vantage._areas.get(self.parent_id)
-    
+        return self._vantage.areas.get(self.parent_id)
+
     @property
     def lineage(self):
         lineage = [self]
@@ -52,24 +36,24 @@ class Area(VantageObject):
         while area.parent:
             lineage.append(area.parent)
             area = area.parent
-        
+
         return lineage
 
     @property
     def areas(self):
-        return [obj for obj in self._vantage._areas if obj.parent_id == self.id]
+        return self._vantage.areas.filter(lambda obj: obj.parent_id == self.id)
 
     @property
     def stations(self):
-        return [obj for obj in self._vantage._stations if obj.area_id == self.id]
+        return self._vantage.stations.filter(lambda obj: obj.area_id == self.id)
 
     @property
     def loads(self):
-        return [obj for obj in self._vantage._loads if obj.area_id == self.id]
+        return self._vantage.loads.filter(lambda obj: obj.area_id == self.id)
 
     @property
     def dry_contacts(self):
-        return [obj for obj in self._vantage._dry_contacts if obj.area_id == self.id]
+        return self._vantage.dry_contacts.filter(lambda obj: obj.area_id == self.id)
 
 @dataclass
 class Load(VantageObject):
@@ -83,10 +67,10 @@ class Load(VantageObject):
         obj.load_type = el.find("LoadType").text
         obj.area_id = int(el.find("Area").text)
         return obj
-    
+
     @property
     def area(self):
-        return self._vantage._areas.get(self.area_id)
+        return self._vantage.areas.get(self.area_id)
 
 @dataclass
 class Station(VantageObject):
@@ -102,11 +86,15 @@ class Station(VantageObject):
 
     @property
     def area(self):
-        return self._vantage._areas.get(self.area_id)
-    
+        return self._vantage.areas.get(self.area_id)
+
     @property
     def buttons(self):
-        return [obj for obj in self._vantage._buttons if obj.station_id == self.id]
+        return self._vantage.buttons.filter(lambda obj: obj.station_id == self.id)
+
+    @property
+    def dry_contacts(self):
+        return self._vantage.dry_contacts.filter(lambda obj: obj.station_id == self.id)
 
 @dataclass
 class Button(VantageObject):
@@ -122,30 +110,31 @@ class Button(VantageObject):
 
     @property
     def station(self):
-        return self._vantage._stations.get(self.station_id)
+        return self._vantage.stations.get(self.station_id)
 
 @dataclass
 class DryContact(VantageObject):
     area_id: Optional[int] = None
-    pass
+    station_id: Optional[int] = None
 
     @classmethod
     def from_xml(cls, el):
         obj = super().from_xml(el)
+        obj.station_id = int(el.find("Parent").text)
         obj.area_id = int(el.find("Area").text)
         return obj
 
     @property
     def area(self):
-        return self._vantage._areas.get(self.area_id)
-
-@dataclass
-class Task(VantageObject):
-    pass
+        return self._vantage.areas.get(self.area_id)
 
 @dataclass
 class OmniSensor(VantageObject):
     level: Optional[float] = None
+
+@dataclass
+class Task(VantageObject):
+    pass
 
 @dataclass
 class Variable(VantageObject):

@@ -14,7 +14,7 @@ class ACIClient:
     controller, but it should be a fairly capable client for all RPC-like requests to the ACI
     service.
     """
-    
+
     def __init__(self, host, username=None, password=None, use_ssl=True, port=None):
         self._host = host
         self._username = username
@@ -32,7 +32,7 @@ class ACIClient:
         """Return Context manager."""
         await self.initialize()
         return self
-    
+
     async def __aexit__(self, exc_t, exc_v, exc_tb):
         """Exit context manager."""
         await self.close()
@@ -78,13 +78,13 @@ class ACIClient:
         method_el = ET.SubElement(request_el, method)
         params_el = ET.SubElement(method_el, "call")
         _params_to_xml(params, params_el)
-        
+
         # Send the request
         request = ET.tostring(request_el)
         # self._logger.debug(request.decode())
         self._writer.write(request)
         await self._writer.drain()
-        
+
         # Fetch the response
         data = await self._reader.readuntil(f"</{interface}>".encode())
         response = data.decode()

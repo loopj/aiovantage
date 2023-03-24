@@ -6,6 +6,17 @@ from .models import Load, Area, DryContact, OmniSensor, Button, Task, Station, V
 
 ItemType = TypeVar("ItemType")
 
+class FilterWrapper:
+    def __init__(self, iterable, func):
+        self.iterable = iterable
+        self.func = func
+
+    def __iter__(self):
+        return filter(self.func, self.iterable)
+
+    def __bool__(self):
+        return any(self)
+
 class BaseController(Generic[ItemType]):
     item_type: ItemType
     event_types = None
@@ -17,7 +28,7 @@ class BaseController(Generic[ItemType]):
         self._subscribers = []
         self._logger = logging.getLogger(__name__)
 
-    def __getitem__(self, id: str) -> ItemType:
+    def __getitem__(self, id: int) -> ItemType:
         """Get item by id."""
         return self._items[id]
 
@@ -48,7 +59,7 @@ class BaseController(Generic[ItemType]):
     def _handle_event(self, type: str, vid: int, args):
         if vid in self:
             self.handle_event(self[vid], args)
-        
+
         for callback in self._subscribers:
             callback(self[vid], args)
 
@@ -58,6 +69,9 @@ class BaseController(Generic[ItemType]):
     def get(self, id: int, default = None):
         """Get item by id of default if item does not exist."""
         return self._items.get(id, default)
+
+    def filter(self, filter):
+        return FilterWrapper(self, filter)
 
 class AreasController(BaseController[Type[Area]]):
     item_type = Area
