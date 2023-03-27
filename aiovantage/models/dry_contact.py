@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 from .base import Base
-from .utils import get_element_int
+from ..utils import get_element_int
 
 if TYPE_CHECKING:
     from .area import Area
@@ -12,15 +12,11 @@ if TYPE_CHECKING:
 
 @dataclass
 class DryContact(Base):
+    id: int
+    name: Optional[str] = None
+    display_name: Optional[str] = None
     area_id: Optional[int] = None
     station_id: Optional[int] = None
-
-    @classmethod
-    def from_xml(cls, el: ET.Element) -> "DryContact":
-        obj = super().from_xml(el)
-        obj.station_id = get_element_int(el, "Parent")
-        obj.area_id = get_element_int(el, "Area")
-        return obj
 
     @property
     def area(self) -> Optional["Area"]:

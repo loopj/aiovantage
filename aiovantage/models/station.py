@@ -1,10 +1,8 @@
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 from ..query import QuerySet
 from .base import Base
-from .utils import get_element_int
 
 if TYPE_CHECKING:
     from .area import Area
@@ -14,15 +12,11 @@ if TYPE_CHECKING:
 
 @dataclass
 class Station(Base):
+    id: int
+    name: Optional[str] = None
+    display_name: Optional[str] = None
     area_id: Optional[int] = None
     bus_id: Optional[int] = None
-
-    @classmethod
-    def from_xml(cls, el: ET.Element) -> "Station":
-        obj = super().from_xml(el)
-        obj.area_id = get_element_int(el, "Area")
-        obj.bus_id = get_element_int(el, "Bus")
-        return obj
 
     @property
     def area(self) -> Optional["Area"]:

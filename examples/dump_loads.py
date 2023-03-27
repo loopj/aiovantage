@@ -2,15 +2,19 @@
 
 from os.path import abspath, dirname
 from sys import path
+
 path.insert(1, dirname(dirname(abspath(__file__))))
 
 import asyncio
+
 from aiovantage import Vantage
 
-async def main():
+
+async def main() -> None:
     async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
         for load in vantage.loads:
-            print(f"{load.name} ({load.area.name})")
+            print(f"{load.name} ({load.area.name if load.area else 'Unknown Area'})")
+
 
 try:
     asyncio.run(main())
