@@ -2,12 +2,18 @@
 
 from os.path import abspath, dirname
 from sys import path
+
 path.insert(1, dirname(dirname(abspath(__file__))))
 
 import asyncio
+import logging
+
 from aiovantage import Vantage
 
-def event_callback(obj, args):
+logging.basicConfig(level=logging.INFO)
+
+
+def event_callback(obj, args) -> None:
     print(f"Load updated: {obj} {args}")
 
 async def main():
