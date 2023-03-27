@@ -66,3 +66,7 @@ include/
 
 .idea/
 
+# mypy
+dmypy.json
+.dmypy.json
+.mypy_cache/
