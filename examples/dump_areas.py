@@ -39,8 +39,9 @@ def print_area(area: Area, level: int=0) -> None:
 
 async def main() -> None:
     async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
-        root = next(iter(vantage.areas.filter(lambda a: a.parent_id == 0)))
-        print_area(root)
+        root = vantage.areas.get(parent_id=0)
+        if root is not None:
+            print_area(root)
 
 try:
     asyncio.run(main())

@@ -1,29 +1,48 @@
+import shlex
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
-from .base import Base
+from .base import Base, xml_attr, xml_tag
 
 if TYPE_CHECKING:
     from .area import Area
 
 
+def _parse_level(*args: str) -> float:
+    return float(args[0])
+
+
 @dataclass
 class Load(Base):
-    id: int
-    name: Optional[str] = None
-    display_name: Optional[str] = None
-    load_type: Optional[str] = None
-    area_id: Optional[int] = None
+    id: int = xml_attr("VID")
+    name: Optional[str] = xml_tag("Name")
+    display_name: Optional[str] = xml_tag("DName")
+    load_type: Optional[str] = xml_tag("LoadType")
+    area_id: Optional[int] = xml_tag("Area")
     _level: Optional[float] = None
 
     @property
     def area(self) -> Optional["Area"]:
+        if self._vantage is None:
+            raise Exception("Vantage client not set")
+
         return self._vantage.areas.get(id=self.area_id)
 
-    @property
-    def level(self) -> Optional[float]:
-        return self._level
+    async def get_level(self) -> float:
+        if self._vantage is None:
+            raise Exception("Vantage client not set")
+
+        message = await self._vantage._commands_client.send_sync(f"GETLOAD {self.id}")
+        status_type, vid, *args = shlex.split(message[2:])
+        level = _parse_level(*args)
+        self._level = level
+
+        return level
 
     async def set_level(self, value: float) -> None:
+        if self._vantage is None:
+            raise Exception("Vantage client not set")
+
+        value = max(min(value, 100), 0)
         await self._vantage._commands_client.send_sync(f"LOAD {self.id} {value}")
         self._level = value

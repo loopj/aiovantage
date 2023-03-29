@@ -119,7 +119,7 @@ class HCClient:
         self._writer.write((command + "\r\n").encode())
         await self._writer.drain()
 
-    async def send_sync(self, command: str) -> None:
+    async def send_sync(self, command: str) -> str:
         """Send a command and wait for a response."""
 
         await self.send(command)
@@ -129,6 +129,8 @@ class HCClient:
             raise Exception(error_message)
         elif not response.startswith(f"R:{command.split()[0]}"):
             raise Exception("Received out of order response")
+
+        return response
 
     async def readline(self) -> str:
         reply = await self._reader.readline()

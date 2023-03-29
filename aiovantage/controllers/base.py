@@ -38,9 +38,9 @@ class BaseController(Generic[T]):
         # Fetch initial object details
         objects = await self._vantage._aci_client.fetch_objects(self.vantage_types)
         for el in objects:
-            obj = self.from_xml(el)
-            obj._vantage = self._vantage
-            self._items[obj.id] = obj
+            item = self.item_cls.from_xml(el)
+            item._vantage = self._vantage
+            self._items[item.id] = item
 
         # Subscribe to object updates
         if self.event_types is not None:
