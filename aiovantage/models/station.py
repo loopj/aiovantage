@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 @dataclass
 class Station(VantageObject):
     id: int = xml_attr("VID")
-    name: Optional[str] = xml_tag("Name")
-    display_name: Optional[str] = xml_tag("DName")
-    area_id: Optional[int] = xml_tag("Area")
-    bus_id: Optional[int] = xml_tag("Bus")
+    name: Optional[str] = xml_tag("Name", default=None)
+    display_name: Optional[str] = xml_tag("DName", default=None)
+    area_id: Optional[int] = xml_tag("Area", default=None)
+    bus_id: Optional[int] = xml_tag("Bus", default=None)
 
     @property
     def area(self) -> Optional["Area"]:

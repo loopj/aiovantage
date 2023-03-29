@@ -9,10 +9,13 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Tuple,
     Type,
     TypeVar,
+    Union,
 )
 
+from ..clients.hc import StatusType
 from ..models.vantage_object import VantageObject
 from ..query import QuerySet
 
@@ -22,23 +25,26 @@ if TYPE_CHECKING:
     from aiovantage import Vantage
 
 
+EventCallBackType = Callable[[T, List[str]], None]
+
 class BaseController(Generic[T]):
     """Holds and manages all items for a specific Vantage object type."""
 
     item_cls: Type[T]
     vantage_types: Iterable[str]
-    event_types: Optional[Iterable[str]] = None
+    status_types: Union[Tuple[StatusType, ...], None] = None
 
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize the controller."""
         self._vantage = vantage
         self._items: Dict[int, T] = {}
         self._queryset: QuerySet[T] = QuerySet(self._items.values())
-        self._subscribers: List[Callable[[T, list], None]] = []
+        self._subscribers: List[EventCallBackType] = []
+        self._id_subscribers: Dict[int, List[EventCallBackType]] = {}
         self._logger = logging.getLogger(__package__)
         self._initialized = False
 
-    async def initialize(self) -> None:
+    async def fetch_objects(self, keep_updated: bool = True) -> None:
         """
         Initialize controller by fetching all items for this object  type.
 
@@ -52,43 +58,75 @@ class BaseController(Generic[T]):
             item._vantage = self._vantage
             self._items[item.id] = item
 
-        # Subscribe to object updates
-        if self.event_types is not None:
-            await self._vantage._events_client.subscribe(
-                self._handle_event, *self.event_types
-            )
+        self._logger.info(f"Loaded objects {self.__class__.__name__}")
 
-        self._logger.info(f"Initialized {self.__class__.__name__}")
+        # Subscribe to status updates
+        if keep_updated and self.status_types is not None:
+            await self._vantage._hc_client.subscribe(self._handle_status_event, self.status_types)
+            self._logger.info(f"Subscribed to object updates {self.__class__.__name__}")
 
         self._initialized = True
 
-    def subscribe(self, callback: Callable[[T, list], None]) -> None:
-        """Subscribe to object updates."""
-        self._subscribers.append(callback)
+    def subscribe(
+            self,
+            callback: EventCallBackType,
+            id_filter: Union[int, Tuple[int], None] = None,
+    ) -> None:
+        if id_filter is None:
+            self._subscribers.append(callback)
+        else:
+            if not isinstance(id_filter, (list, tuple)):
+                id_filter = (id_filter,)
+
+            for id in id_filter:
+                if id not in self._id_subscribers:
+                    self._id_subscribers[id] = []
+                self._id_subscribers[id].append(callback)
+
+    def _handle_status_event(self, type: StatusType, vid: int, args: list[str]) -> None:
+        """Handle object update event."""
+        if vid not in self._items:
+            return
+
+        # Update object state
+        self._items[vid].status_handler(args)
+
+        # Notify subscribers
+        subscribers = self._subscribers + self._id_subscribers.get(vid, [])
+        for callback in subscribers:
+            callback(self._items[vid], args)
 
     def get(self, *args: Optional[Callable[[T], bool]], **kwargs: Any) -> Optional[T]:
+        if not self._initialized:
+            self._logger.debug(f"{type(self).__name__} not yet initialized")
+
         return self._queryset.get(*args, **kwargs)
 
     def filter(
         self, *args: Optional[Callable[[T], bool]], **kwargs: Any
     ) -> QuerySet[T]:
-        return self._queryset.filter(*args, **kwargs)
+        if not self._initialized:
+            self._logger.debug(f"{type(self).__name__} not yet initialized")
 
-    def __getitem__(self, id: int) -> T:
-        """Get item by id."""
-        return self._items[id]
+        return self._queryset.filter(*args, **kwargs)
 
     def __iter__(self) -> Iterator[T]:
         """Iterate items."""
-        return iter(self._items.values())
+        if not self._initialized:
+            self._logger.debug(f"{type(self).__name__} not yet initialized")
+
+        return iter(self._queryset)
+
+    def __getitem__(self, id: int) -> T:
+        """Get item by id."""
+        if not self._initialized:
+            self._logger.debug(f"{type(self).__name__} not yet initialized")
+
+        return self._items[id]
 
     def __contains__(self, id: str) -> bool:
         """Return bool if id is in items."""
+        if not self._initialized:
+            self._logger.debug(f"{type(self).__name__} not yet initialized")
+
         return id in self._items
-
-    def _handle_event(self, type: str, vid: int, args: list) -> None:
-        if vid in self._items:
-            self._items[vid].status_handler(args)
-
-            for callback in self._subscribers:
-                callback(self._items[vid], args)

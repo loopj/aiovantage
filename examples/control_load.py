@@ -15,7 +15,8 @@ from aiovantage import Vantage
 
 async def main() -> None:
     vantage = Vantage("10.2.0.103", "administrator", "ZZuUw76CnL")
-    await vantage.initialize()
+    await vantage.connect()
+    await vantage.loads.fetch_objects()
 
     try:
         print("Available loads:")

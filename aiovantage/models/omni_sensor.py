@@ -8,8 +8,8 @@ from .xml_model import xml_attr, xml_tag
 @dataclass
 class OmniSensor(VantageObject):
     id: int = xml_attr("VID")
-    name: Optional[str] = xml_tag("Name")
-    display_name: Optional[str] = xml_tag("DName")
+    name: Optional[str] = xml_tag("Name", default=None)
+    display_name: Optional[str] = xml_tag("DName", default=None)
     _level: Optional[float] = None
 
     # S:TEMP {vid} {level}

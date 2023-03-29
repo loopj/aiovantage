@@ -2,40 +2,46 @@ import asyncio
 import logging
 import shlex
 import ssl
-from collections import defaultdict
-from types import TracebackType
-from typing import Any, Callable, Dict, List, Optional, Type
+from enum import Enum
+from types import NoneType, TracebackType
+from typing import Callable, List, Optional, Tuple, Type, Union
 
-# TODO: Error handling
-#   R:ERROR:4 "Invalid Parameter"
-#   R:ERROR:5 "Wrong Number of Parameters"
-#   R:ERROR:8 "Not Implemented"
-#   R:ERROR:21 "Requires Login"
-#   R:ERROR:23 "Login Failed"
 
-# TODO: Automatically reconnect if connection is lost
+class LoginRequiredError(Exception):
+    pass
 
-STATUS_TYPES = (
-    "LOAD",
-    "LED",
-    "BTN",
-    "TASK",
-    "TEMP",
-    "THERMFAN",
-    "THERMOP",
-    "THERMDAY",
-    "SLIDER",
-    "TEXT",
-    "VARIABLE",
-    "BLIND",
-    "PAGE",
-    "LEDSTATE",
-    "IMAGE",
-    "WIND",
-    "LIGHT",
-    "CURRENT",
-    "POWER",
-)
+
+class LoginFailedError(Exception):
+    pass
+
+
+class StatusType(Enum):
+    LOAD = "LOAD"
+    LED = "LED"
+    BTN = "BTN"
+    TASK = "TASK"
+    TEMP = "TEMP"
+    THERMFAN = "THERMFAN"
+    THERMOP = "THERMOP"
+    THERMDAY = "THERMDAY"
+    SLIDER = "SLIDER"
+    TEXT = "TEXT"
+    VARIABLE = "VARIABLE"
+    BLIND = "BLIND"
+    PAGE = "PAGE"
+    LEDSTATE = "LEDSTATE"
+    IMAGE = "IMAGE"
+    WIND = "WIND"
+    LIGHT = "LIGHT"
+    CURRENT = "CURRENT"
+    POWER = "POWER"
+
+
+EventCallBackType = Callable[[StatusType, int, List[str]], None]
+EventSubscriptionType = Tuple[
+    EventCallBackType,
+    "Optional[Tuple[StatusType, ...]]",
+]
 
 
 class HCClient:
@@ -50,9 +56,6 @@ class HCClient:
     My guess is that HC stands for "Home Control".
     """
 
-    _status_callbacks: Dict[str, List[Callable[[str, int, Any], None]]]
-    _message_task: Optional[asyncio.Task]
-
     def __init__(
         self,
         host: str,
@@ -65,10 +68,10 @@ class HCClient:
         self._username = username
         self._password = password
         self._use_ssl = use_ssl
-
-        self._status_callbacks = defaultdict(list)
-        self._message_task = None
-
+        self._tasks: List[asyncio.Task] = []
+        self._subscribers: List[EventSubscriptionType] = []
+        self._response_queue: asyncio.Queue[str] = asyncio.Queue()
+        self._status_queue: asyncio.Queue[str] = asyncio.Queue()
         self._logger = logging.getLogger(__name__)
 
         if port is None:
@@ -98,67 +101,115 @@ class HCClient:
         self._reader, self._writer = await asyncio.open_connection(
             self._host, self._port, ssl=self._ssl_context
         )
-
         self._logger.info("Connected")
+
+        # Start a task to handle incoming messages
+        self._tasks.append(asyncio.create_task(self._handle_messages()))
+        self._tasks.append(asyncio.create_task(self._status_processor()))
+        self._logger.info("Message processing started")
 
         # Login if we have a username and password
         if self._username is not None and self._password is not None:
-            await self.send_sync(f"LOGIN {self._username} {self._password}")
+            await self.send_command("LOGIN", self._username, self._password)
             self._logger.info("Login successful")
 
+    async def _handle_messages(self) -> None:
+        while True:
+            data = await self._reader.readline()
+            message = data.decode().strip()
+            if message.startswith("R:"):
+                self._response_queue.put_nowait(message[2:])
+            elif message.startswith("S:"):
+                self._status_queue.put_nowait(message[2:])
+            else:
+                self._logger.warning(f"Received unknown message: {message}")
+
+    async def _status_processor(self) -> None:
+        while True:
+            message = await self._status_queue.get()
+            self._status_queue.task_done()
+
+            type_str, vid_str, *args = shlex.split(message)
+            type = StatusType(type_str)
+            vid = int(vid_str)
+
+            self.emit(type, vid, args)
+
     async def close(self) -> None:
-        """Close the connection to the HC service."""
+        """Close the connection to the service and cancel any running tasks."""
+        for task in self._tasks:
+            task.cancel()
+        self._tasks = []
 
-        if self._message_task is not None:
-            self._message_task.cancel()
-            self._message_task = None
+        if self._writer is not None:
+            self._writer.close()
+            await self._writer.wait_closed()
 
-    async def send(self, command: str) -> None:
-        """Send a command without waiting for a response."""
+    async def send_command(self, command: str, *params: str) -> str:
+        # Join the command and parameters into a single string, escaping any
+        # parameters that contain spaces with quotes
+        params_str = " ".join(f'"{s}"' if " " in s else s for s in params)
+        message = f"{command} {params_str}\n"
 
-        self._writer.write((command + "\r\n").encode())
+        # Send the command
+        self._writer.write(message.encode())
         await self._writer.drain()
 
-    async def send_sync(self, command: str) -> str:
-        """Send a command and wait for a response."""
+        # Wait for a response
+        response = await self._response_queue.get()
+        self._response_queue.task_done()
 
-        await self.send(command)
-        response = await self.readline()
-        if response.startswith("R:ERROR"):
-            _, error_message = shlex.split(response[2:])
-            raise Exception(error_message)
-        elif not response.startswith(f"R:{command.split()[0]}"):
-            raise Exception("Received out of order response")
+        # Check for errors
+        if response.startswith("ERROR"):
+            error_code, error_message = shlex.split(response)
+            error_code = error_code.split(":")[1]
+            if error_code == "4":
+                raise TypeError(error_message)
+            elif error_code == "5":
+                raise TypeError(error_message)
+            elif error_code == "8":
+                raise NotImplementedError(error_message)
+            elif error_code == "21":
+                raise LoginRequiredError(error_message)
+            elif error_code == "23":
+                raise LoginFailedError(error_message)
+            else:
+                raise Exception(f"Unknown error code: {error_code}")
+        elif not response.startswith(command):
+            raise Exception(f"Received out of order response: {response}")
 
         return response
 
-    async def readline(self) -> str:
-        reply = await self._reader.readline()
-        return reply.decode().rstrip()
-
     async def subscribe(
-        self, callback: Callable[[str, int, Any], None], *status_types: str
-    ) -> None:
-        """Subscribe to status updates for the given status types."""
+        self,
+        callback: EventCallBackType,
+        status_filter: Union[StatusType, Tuple[StatusType, ...], None] = None,
+    ) -> Callable:
+        """Subscribe to status events."""
 
-        for status_type in status_types:
-            if status_type not in STATUS_TYPES:
-                raise Exception(f"Invalid status type '{status_type}'")
+        # Support passing a single status type instead of a tuple
+        if status_filter is not None and isinstance(status_filter, StatusType):
+            status_filter = (status_filter,)
 
-            # Start a background task to monitor incoming messages
-            if self._message_task is None:
-                self._message_task = asyncio.create_task(self.__event_reader())
+        # Tell the Vantage controller we are interested in status events
+        # We try to only subscribe to what we know we care about
+        if status_filter is None:
+            await self.send_command("STATUS", "ALL")
+        else:
+            for status_type in status_filter:
+                await self.send_command("STATUS", status_type.value)
 
-            await self.send(f"STATUS {status_type}")
-            self._status_callbacks[status_type].append(callback)
+        # Add the callback to the list of subscribers
+        subscription = (callback, status_filter)
+        self._subscribers.append(subscription)
 
-    async def __event_reader(self) -> None:
-        while True:
-            message = await self.readline()
-            if message.startswith("S:"):
-                # Parse status messages (eg. "S:LOAD 118 100.00")
-                status_type, vid, *args = shlex.split(message[2:])
-                for callback in self._status_callbacks[status_type]:
-                    callback(status_type, int(vid), args)
-            elif message.startswith("R:"):
-                pass
+        # Return a function that can be used to unsubscribe
+        def unsubscribe() -> None:
+            self._subscribers.remove(subscription)
+        return unsubscribe
+
+    def emit(self, type: StatusType, vid: int, args: List[str]) -> None:
+        """Fire a status update event to all matching subscribers."""
+        for callback, status_filter in self._subscribers:
+            if status_filter is None or type in status_filter:
+                callback(type, vid, args)

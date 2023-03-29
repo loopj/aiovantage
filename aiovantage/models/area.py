@@ -14,9 +14,9 @@ if TYPE_CHECKING:
 @dataclass
 class Area(VantageObject):
     id: int = xml_attr("VID")
-    name: Optional[str] = xml_tag("Name")
-    display_name: Optional[str] = xml_tag("DName")
-    parent_id: Optional[int] = xml_tag("Area")
+    name: Optional[str] = xml_tag("Name", default=None)
+    display_name: Optional[str] = xml_tag("DName", default=None)
+    parent_id: Optional[int] = xml_tag("Area", default=None)
 
     @property
     def parent(self) -> Optional["Area"]:

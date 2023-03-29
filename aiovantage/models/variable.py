@@ -8,8 +8,8 @@ from .xml_model import xml_attr, xml_tag
 @dataclass
 class Variable(VantageObject):
     id: int = xml_attr("VID")
-    name: Optional[str] = xml_tag("Name")
-    display_name: Optional[str] = xml_tag("DName")
+    name: Optional[str] = xml_tag("Name", default=None)
+    display_name: Optional[str] = xml_tag("DName", default=None)
 
     # TODO: STATUS ? ?
     def status_handler(self, args: Any) -> None:

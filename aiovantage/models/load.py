@@ -16,10 +16,10 @@ def _parse_level(*args: str) -> float:
 @dataclass
 class Load(VantageObject):
     id: int = xml_attr("VID")
-    name: Optional[str] = xml_tag("Name")
-    display_name: Optional[str] = xml_tag("DName")
-    load_type: Optional[str] = xml_tag("LoadType")
-    area_id: Optional[int] = xml_tag("Area")
+    name: Optional[str] = xml_tag("Name", default=None)
+    display_name: Optional[str] = xml_tag("DName", default=None)
+    load_type: Optional[str] = xml_tag("LoadType", default=None)
+    area_id: Optional[int] = xml_tag("Area", default=None)
     _level: Optional[float] = None
 
     # S:LOAD {vid} {level}
@@ -40,7 +40,7 @@ class Load(VantageObject):
         if self._vantage is None:
             raise Exception("Vantage client not set")
 
-        message = await self._vantage._commands_client.send_sync(f"GETLOAD {self.id}")
+        message = await self._vantage._hc_client.send_command("GETLOAD", f"{self.id}")
         status_type, vid, *args = shlex.split(message[2:])
         level = _parse_level(*args)
         self._level = level
@@ -52,5 +52,26 @@ class Load(VantageObject):
             raise Exception("Vantage client not set")
 
         value = max(min(value, 100), 0)
-        await self._vantage._commands_client.send_sync(f"LOAD {self.id} {value}")
+        await self._vantage._hc_client.send_command("LOAD", f"{self.id}", f"{value}")
         self._level = value
+
+    # Home assistant defines things like
+    #
+    # turn_on(
+    #   transition: int,
+    #   brightness: int,
+    #   hs_color: Tuple[float, float],
+    #   rgb_color: Tuple[int, int, int]
+    # )
+    #
+    # turn_off(
+    #   transition: int
+    # )
+    #
+    # toggle() # Same args as turn_on
+
+    # Google home defines things like
+    #
+    # OnOff trait
+    # Brightness trait
+    # ColorSetting trait

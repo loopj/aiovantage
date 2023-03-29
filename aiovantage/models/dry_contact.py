@@ -12,10 +12,10 @@ if TYPE_CHECKING:
 @dataclass
 class DryContact(VantageObject):
     id: int = xml_attr("VID")
-    name: Optional[str] = xml_tag("Name")
-    display_name: Optional[str] = xml_tag("DName")
-    area_id: Optional[int] = xml_tag("Area")
-    station_id: Optional[int] = xml_tag("Parent")
+    name: Optional[str] = xml_tag("Name", default=None)
+    display_name: Optional[str] = xml_tag("DName", default=None)
+    area_id: Optional[int] = xml_tag("Area", default=None)
+    station_id: Optional[int] = xml_tag("Parent", default=None)
 
     # S:BTN {vid} {PRESS|RELEASE}
     def status_handler(self, args: Any) -> None:

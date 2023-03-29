@@ -12,6 +12,9 @@ class QuerySet(Generic[T]):
     def __iter__(self) -> Iterator[T]:
         return iter(self._data)
 
+    def __bool__(self) -> bool:
+        return any(self._data)
+
     def filter(
         self, *args: Optional[Callable[[T], bool]], **kwargs: Any
     ) -> "QuerySet[T]":
@@ -29,4 +32,4 @@ class QuerySet(Generic[T]):
             raise TypeError("filter() expects lambda or kwargs")
 
     def get(self, *args: Optional[Callable[[T], bool]], **kwargs: Any) -> Optional[T]:
-        return next(iter(self.filter(*args, **kwargs)))
+        return next(iter(self.filter(*args, **kwargs)), None)

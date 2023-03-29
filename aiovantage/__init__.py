@@ -27,8 +27,7 @@ class Vantage:
     ) -> None:
         """Initialize the Vantage instance."""
         self._aci_client = ACIClient(host, username, password, use_ssl, aci_port)
-        self._events_client = HCClient(host, username, password, use_ssl, hc_port)
-        self._commands_client = HCClient(host, username, password, use_ssl, hc_port)
+        self._hc_client = HCClient(host, username, password, use_ssl, hc_port)
 
         self._areas = AreasController(self)
         self._loads = LoadsController(self)
@@ -75,7 +74,7 @@ class Vantage:
 
     async def __aenter__(self) -> "Vantage":
         """Return Context manager."""
-        await self.initialize()
+        await self.connect()
         return self
 
     async def __aexit__(
@@ -87,29 +86,26 @@ class Vantage:
         """Close context manager."""
         await self.close()
 
-    async def initialize(self) -> None:
+    async def connect(self) -> None:
         """Initialize the clients and fetch all data from the controllers."""
-
-        # Connect ACI and HC clients
         await asyncio.gather(
             self._aci_client.initialize(),
-            self._events_client.initialize(),
-            self._commands_client.initialize(),
+            self._hc_client.initialize(),
         )
 
+    async def fetch_objects(self) -> None:
         # TODO: Concurrency? Lazy loading?
-        await self._areas.initialize()
-        await self._loads.initialize()
-        await self._stations.initialize()
-        await self._buttons.initialize()
-        await self._dry_contacts.initialize()
-        await self._omni_sensors.initialize()
-        await self._tasks.initialize()
+        await self._areas.fetch_objects()
+        await self._loads.fetch_objects()
+        await self._stations.fetch_objects()
+        await self._buttons.fetch_objects()
+        await self._dry_contacts.fetch_objects()
+        await self._omni_sensors.fetch_objects()
+        await self._tasks.fetch_objects()
 
     async def close(self) -> None:
         """Close the clients."""
         await asyncio.gather(
             self._aci_client.close(),
-            self._events_client.close(),
-            self._commands_client.close(),
+            self._hc_client.close(),
         )
