@@ -1,8 +1,9 @@
 import shlex
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
-from .base import Base, xml_attr, xml_tag
+from .vantage_object import VantageObject
+from .xml_model import xml_attr, xml_tag
 
 if TYPE_CHECKING:
     from .area import Area
@@ -13,13 +14,20 @@ def _parse_level(*args: str) -> float:
 
 
 @dataclass
-class Load(Base):
+class Load(VantageObject):
     id: int = xml_attr("VID")
     name: Optional[str] = xml_tag("Name")
     display_name: Optional[str] = xml_tag("DName")
     load_type: Optional[str] = xml_tag("LoadType")
     area_id: Optional[int] = xml_tag("Area")
     _level: Optional[float] = None
+
+    # S:LOAD {vid} {level}
+    def status_handler(self, args: Any) -> None:
+        level = _parse_level(*args)
+        self._level = level
+
+        self._logger.debug(f"Load level changed for {self.name} ({self.id}) to {level}")
 
     @property
     def area(self) -> Optional["Area"]:

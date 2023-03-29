@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
 from ..query import QuerySet
-from .base import Base, xml_attr, xml_tag
+from .vantage_object import VantageObject
+from .xml_model import xml_attr, xml_tag
 
 if TYPE_CHECKING:
     from .area import Area
@@ -11,7 +12,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Station(Base):
+class Station(VantageObject):
     id: int = xml_attr("VID")
     name: Optional[str] = xml_tag("Name")
     display_name: Optional[str] = xml_tag("DName")

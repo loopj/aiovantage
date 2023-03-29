@@ -1,12 +1,22 @@
 import logging
-import xml.etree.ElementTree as ET
-from typing import (TYPE_CHECKING, Any, Callable, Dict, Generic, Iterable,
-                    Iterator, List, Optional, Type, TypeVar)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+)
 
-from ..models.base import Base
+from ..models.vantage_object import VantageObject
 from ..query import QuerySet
 
-T = TypeVar("T", bound="Base")
+T = TypeVar("T", bound="VantageObject")
 
 if TYPE_CHECKING:
     from aiovantage import Vantage
@@ -50,14 +60,11 @@ class BaseController(Generic[T]):
 
         self._logger.info(f"Initialized {self.__class__.__name__}")
 
+        self._initialized = True
+
     def subscribe(self, callback: Callable[[T, list], None]) -> None:
+        """Subscribe to object updates."""
         self._subscribers.append(callback)
-
-    def from_xml(self, el: ET.Element) -> T:
-        raise NotImplementedError()
-
-    def handle_event(self, obj: T, args: Any) -> None:
-        raise NotImplementedError()
 
     def get(self, *args: Optional[Callable[[T], bool]], **kwargs: Any) -> Optional[T]:
         return self._queryset.get(*args, **kwargs)
@@ -81,7 +88,7 @@ class BaseController(Generic[T]):
 
     def _handle_event(self, type: str, vid: int, args: list) -> None:
         if vid in self._items:
-            self.handle_event(self._items[vid], args)
+            self._items[vid].status_handler(args)
 
-        for callback in self._subscribers:
-            callback(self[vid], args)
+            for callback in self._subscribers:
+                callback(self._items[vid], args)

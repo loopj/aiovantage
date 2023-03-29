@@ -1,10 +1,6 @@
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field, fields
-from typing import TYPE_CHECKING, Any, Dict, Type, TypeVar, Optional, Union, get_args, get_origin
-
-if TYPE_CHECKING:
-    from aiovantage import Vantage
-
+from typing import Any, Dict, Type, TypeVar, Union, get_args, get_origin
 
 def xml_tag(name: str) -> Any:
     """Return a field that will be populated from the text of a tag with the given name when deserializing from XML."""
@@ -15,21 +11,21 @@ def xml_attr(name: str) -> Any:
     """Return a field that will be populated from an attribute with the given name when deserializing from XML."""
     return field(metadata={"xml_attr_name": name}, default=None)
 
+
 def get_base_type(t: Any) -> Any:
+    """Return the base type of a type, stripping off any Union (or Optional) types."""
     if get_origin(t) is Union:
         return get_args(t)[0]
     else:
         return t
 
 
-T = TypeVar("T", bound="Base")
+T = TypeVar("T", bound="XMLModel")
 
 
 @dataclass
-class Base:
-    id: int
-    _vantage: Optional["Vantage"] = field(kw_only=True, default=None)
-
+class XMLModel:
+    """Base class for models that can be deserialized from XML."""
     @classmethod
     def from_xml(cls: Type[T], el: ET.Element) -> T:
         """Deserialize an instance of this class from an XML element."""

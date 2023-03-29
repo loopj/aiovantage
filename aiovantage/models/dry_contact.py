@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
-from .base import Base, xml_attr, xml_tag
+from .vantage_object import VantageObject
+from .xml_model import xml_attr, xml_tag
 
 if TYPE_CHECKING:
     from .area import Area
@@ -9,12 +10,20 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class DryContact(Base):
+class DryContact(VantageObject):
     id: int = xml_attr("VID")
     name: Optional[str] = xml_tag("Name")
     display_name: Optional[str] = xml_tag("DName")
     area_id: Optional[int] = xml_tag("Area")
     station_id: Optional[int] = xml_tag("Parent")
+
+    # S:BTN {vid} {PRESS|RELEASE}
+    def status_handler(self, args: Any) -> None:
+        state = args[0]
+
+        self._logger.debug(
+            f"DryContact state changed for {self.name} ({self.id}) to {state}"
+        )
 
     @property
     def area(self) -> Optional["Area"]:
