@@ -10,42 +10,42 @@ import asyncio
 import logging
 
 from aiovantage.clients.aci import ACIClient
-from aiovantage.models.xml_model import XMLModel, xml_attr, xml_tag
+from aiovantage.models.xml_model import XMLModel
 
 logging.basicConfig(level=logging.INFO)
 
 
 @dataclass
 class GetVersion(XMLModel):
-    kernel: str = xml_tag("kernel")
-    rootfs: str = xml_tag("rootfs")
-    app: str = xml_tag("app")
+    kernel: str
+    rootfs: str
+    app: str
 
 
 @dataclass
 class Load(XMLModel):
-    id: int = xml_attr("VID")
-    name: str = xml_tag("Name")
+    VID: int
+    Name: str
 
 
 @dataclass
 class Area(XMLModel):
-    id: int = xml_attr("VID")
-    name: str = xml_tag("Name")
+    VID: int
+    Name: str
 
 
 async def main() -> None:
     async with ACIClient("10.2.0.103", "administrator", "ZZuUw76CnL") as client:
         # Raw RPC request example (IIIntrospection.GetVersion)
         resp = await client.request("IIntrospection", "GetVersion")
-        version = GetVersion.from_xml(resp)
+        version = GetVersion.from_xml(resp, autofill=True)
         print(version)
         print()
 
         # Fetch known loads using built-in fetch_objects method
         print("## Known Loads")
         objects = await client.fetch_objects(["Load"])
-        loads = (Load.from_xml(el) for el in objects)
+        loads = (Load.from_xml(el, autofill=True) for el in objects)
         for load in loads:
             print(load)
         print()
@@ -53,7 +53,7 @@ async def main() -> None:
         # Fetch known loads using built-in fetch_objects method
         print("## Known Areas")
         objects = await client.fetch_objects(["Area"])
-        areas = (Area.from_xml(el) for el in objects)
+        areas = (Area.from_xml(el, autofill=True) for el in objects)
         for area in areas:
             print(area)
         print()
