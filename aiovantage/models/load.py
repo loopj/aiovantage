@@ -1,9 +1,9 @@
 import shlex
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING
 
 from .vantage_object import VantageObject
-from .xml_model import xml_attr, xml_tag
+from .xml_model import attr, element
 
 if TYPE_CHECKING:
     from .area import Area
@@ -15,22 +15,22 @@ def _parse_level(*args: str) -> float:
 
 @dataclass
 class Load(VantageObject):
-    id: int = xml_attr("VID")
-    name: Optional[str] = xml_tag("Name", default=None)
-    display_name: Optional[str] = xml_tag("DName", default=None)
-    load_type: Optional[str] = xml_tag("LoadType", default=None)
-    area_id: Optional[int] = xml_tag("Area", default=None)
-    _level: Optional[float] = None
+    id: int = attr(alias="VID")
+    name: str | None = element(alias="Name", default=None)
+    display_name: str | None = element(alias="DName", default=None)
+    load_type: str | None = element(alias="LoadType", default=None)
+    area_id: int | None = element(alias="Area", default=None)
+    _level: float | None = None
 
     # S:LOAD {vid} {level}
-    def status_handler(self, args: Any) -> None:
+    def status_handler(self, args: list[str]) -> None:
         level = _parse_level(*args)
         self._level = level
 
         self._logger.debug(f"Load level changed for {self.name} ({self.id}) to {level}")
 
     @property
-    def area(self) -> Optional["Area"]:
+    def area(self) -> "Area | None":
         if self._vantage is None:
             raise Exception("Vantage client not set")
 

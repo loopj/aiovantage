@@ -15,7 +15,8 @@ logging.basicConfig(level=logging.INFO)
 
 async def main() -> None:
     async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
-        await vantage.fetch_objects()
+        await vantage.loads.fetch_objects()
+        await vantage.areas.fetch_objects()
 
         for load in vantage.loads:
             print(f"{load.name} ({load.area.name if load.area else 'Unknown Area'})")

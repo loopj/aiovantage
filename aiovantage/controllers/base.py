@@ -45,25 +45,20 @@ class BaseController(Generic[T]):
         self._initialized = False
 
     async def fetch_objects(self, keep_updated: bool = True) -> None:
-        """
-        Initialize controller by fetching all items for this object  type.
-
-        Must be called only once. Any updates will be retrieved by events.
-        """
-
         # Fetch initial object details
         objects = await self._vantage._aci_client.fetch_objects(self.vantage_types)
         for el in objects:
-            item = self.item_cls.from_xml(el)
+            item = self.item_cls.from_xml_el(el)
             item._vantage = self._vantage
             self._items[item.id] = item
 
-        self._logger.info(f"Loaded objects {self.__class__.__name__}")
+        self._logger.info(f"{self.__class__.__name__} loaded objects")
 
         # Subscribe to status updates
+        # TODO: should we await here or should this run in the background?
         if keep_updated and self.status_types is not None:
             await self._vantage._hc_client.subscribe(self._handle_status_event, self.status_types)
-            self._logger.info(f"Subscribed to object updates {self.__class__.__name__}")
+            self._logger.info(f"{self.__class__.__name__} subscribed to object updates")
 
         self._initialized = True
 

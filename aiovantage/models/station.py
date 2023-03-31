@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from ..query import QuerySet
 from .vantage_object import VantageObject
-from .xml_model import xml_attr, xml_tag
+from .xml_model import attr, element
 
 if TYPE_CHECKING:
     from .area import Area
@@ -13,14 +13,14 @@ if TYPE_CHECKING:
 
 @dataclass
 class Station(VantageObject):
-    id: int = xml_attr("VID")
-    name: Optional[str] = xml_tag("Name", default=None)
-    display_name: Optional[str] = xml_tag("DName", default=None)
-    area_id: Optional[int] = xml_tag("Area", default=None)
-    bus_id: Optional[int] = xml_tag("Bus", default=None)
+    id: int = attr(alias="VID")
+    name: str | None = element(alias="Name", default=None)
+    display_name: str | None = element(alias="DName", default=None)
+    area_id: int | None = element(alias="Area", default=None)
+    bus_id: int | None = element(alias="Bus", default=None)
 
     @property
-    def area(self) -> Optional["Area"]:
+    def area(self) -> "Area | None":
         if self._vantage is None:
             raise Exception("Vantage client not set")
 

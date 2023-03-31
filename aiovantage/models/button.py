@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING
 
 from .vantage_object import VantageObject
-from .xml_model import xml_attr, xml_tag
+from .xml_model import attr, element
 
 if TYPE_CHECKING:
     from .station import Station
@@ -10,14 +10,14 @@ if TYPE_CHECKING:
 
 @dataclass
 class Button(VantageObject):
-    id: int = xml_attr("VID")
-    name: Optional[str] = xml_tag("Name", default=None)
-    display_name: Optional[str] = xml_tag("DName", default=None)
-    text: Optional[str] = xml_tag("Text1", default=None)
-    station_id: Optional[int] = xml_tag("Parent", default=None)
+    id: int = attr(alias="VID")
+    name: str | None = element(alias="Name", default=None)
+    display_name: str | None = element(alias="DName", default=None)
+    text: str | None = element(alias="Text1", default=None)
+    station_id: int | None = element(alias="Parent", default=None)
 
     # S:BTN {vid} {PRESS|RELEASE}
-    def status_handler(self, args: Any) -> None:
+    def status_handler(self, args: list[str]) -> None:
         state = args[0]
 
         self._logger.debug(
@@ -25,7 +25,7 @@ class Button(VantageObject):
         )
 
     @property
-    def station(self) -> Optional["Station"]:
+    def station(self) -> "Station | None":
         if self._vantage is None:
             raise Exception("Vantage client not set")
 
