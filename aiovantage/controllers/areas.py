@@ -1,5 +1,3 @@
-from typing import Optional
-
 from ..models.area import Area
 from .base import BaseController
 
@@ -8,6 +6,6 @@ class AreasController(BaseController[Area]):
     item_cls = Area
     vantage_types = ("Area",)
 
-    def root(self) -> Optional[Area]:
+    def root(self) -> Area | None:
         """Return the root (top-most) area."""
         return self.get(parent_id=0)

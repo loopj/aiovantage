@@ -3,8 +3,9 @@ import datetime
 import logging
 import ssl
 import xml.etree.ElementTree as ET
+from collections.abc import Iterable
 from types import TracebackType
-from typing import Any, Iterable, Optional, Type
+from typing import Any, Type
 
 
 class ACIClient:
@@ -21,10 +22,10 @@ class ACIClient:
     def __init__(
         self,
         host: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
         use_ssl: bool = True,
-        port: Optional[int] = None,
+        port: int | None = None,
     ):
         self._host = host
         self._username = username
@@ -45,9 +46,9 @@ class ACIClient:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        exc_type: Type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         """Close context manager."""
         await self.close()
@@ -119,7 +120,7 @@ class ACIClient:
         return el
 
     async def fetch_objects(
-        self, object_types: Optional[Iterable[str]] = None, per_page: int = 50
+        self, object_types: Iterable[str] | None = None, per_page: int = 50
     ) -> Iterable[ET.Element]:
         # Build the weird "XPath" query
         xpath = None

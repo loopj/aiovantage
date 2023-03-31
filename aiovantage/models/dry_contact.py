@@ -1,6 +1,10 @@
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from typing_extensions import override
+
+from ..clients.hc import StatusType
 from .vantage_object import VantageObject
 from .xml_model import attr, element
 
@@ -17,8 +21,9 @@ class DryContact(VantageObject):
     area_id: int | None = element(alias="Area", default=None)
     station_id: int | None = element(alias="Parent", default=None)
 
-    # S:BTN {vid} {PRESS|RELEASE}
-    def status_handler(self, args: list[str]) -> None:
+    @override
+    def status_handler(self, type: StatusType, args: Sequence[str]) -> None:
+        # S:BTN {vid} {PRESS|RELEASE}
         state = args[0]
 
         self._logger.debug(
@@ -27,14 +32,8 @@ class DryContact(VantageObject):
 
     @property
     def area(self) -> "Area | None":
-        if self._vantage is None:
-            raise Exception("Vantage client not set")
-
-        return self._vantage.areas.get(id=self.area_id)
+        return self.vantage.areas.get(id=self.area_id)
 
     @property
     def station(self) -> "Station | None":
-        if self._vantage is None:
-            raise Exception("Vantage client not set")
-
-        return self._vantage.stations.get(id=self.station_id)
+        return self.vantage.stations.get(id=self.station_id)

@@ -21,21 +21,12 @@ class Station(VantageObject):
 
     @property
     def area(self) -> "Area | None":
-        if self._vantage is None:
-            raise Exception("Vantage client not set")
-
-        return self._vantage.areas.get(id=self.area_id)
+        return self.vantage.areas.get(id=self.area_id)
 
     @property
     def buttons(self) -> QuerySet["Button"]:
-        if self._vantage is None:
-            raise Exception("Vantage client not set")
-
-        return self._vantage.buttons.filter(station_id=self.id)
+        return self.vantage.buttons.filter(station_id=self.id)
 
     @property
     def dry_contacts(self) -> QuerySet["DryContact"]:
-        if self._vantage is None:
-            raise Exception("Vantage client not set")
-
-        return self._vantage.dry_contacts.filter(station_id=self.id)
+        return self.vantage.dry_contacts.filter(station_id=self.id)

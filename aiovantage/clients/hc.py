@@ -2,9 +2,10 @@ import asyncio
 import logging
 import shlex
 import ssl
+from collections.abc import Callable, Iterable, Sequence
 from enum import Enum
-from types import NoneType, TracebackType
-from typing import Callable, List, Optional, Tuple, Type, Union
+from types import TracebackType
+from typing import Tuple, Type
 
 
 class LoginRequiredError(Exception):
@@ -37,10 +38,10 @@ class StatusType(Enum):
     POWER = "POWER"
 
 
-EventCallBackType = Callable[[StatusType, int, List[str]], None]
+EventCallBackType = Callable[[StatusType, int, Sequence[str]], None]
 EventSubscriptionType = Tuple[
     EventCallBackType,
-    "Optional[Tuple[StatusType, ...]]",
+    "Iterable[StatusType] | None",
 ]
 
 
@@ -59,17 +60,17 @@ class HCClient:
     def __init__(
         self,
         host: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
         use_ssl: bool = True,
-        port: Optional[int] = None,
+        port: int | None = None,
     ) -> None:
         self._host = host
         self._username = username
         self._password = password
         self._use_ssl = use_ssl
-        self._tasks: List[asyncio.Task] = []
-        self._subscribers: List[EventSubscriptionType] = []
+        self._tasks: list[asyncio.Task] = []
+        self._subscribers: list[EventSubscriptionType] = []
         self._response_queue: asyncio.Queue[str] = asyncio.Queue()
         self._status_queue: asyncio.Queue[str] = asyncio.Queue()
         self._logger = logging.getLogger(__name__)
@@ -87,9 +88,9 @@ class HCClient:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        exc_type: Type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         """Close context manager."""
         await self.close()
@@ -133,7 +134,7 @@ class HCClient:
             type = StatusType(type_str)
             vid = int(vid_str)
 
-            self.emit(type, vid, args)
+            self.emit(type, vid, tuple(args))
 
     async def close(self) -> None:
         """Close the connection to the service and cancel any running tasks."""
@@ -183,7 +184,7 @@ class HCClient:
     async def subscribe(
         self,
         callback: EventCallBackType,
-        status_filter: Union[StatusType, Tuple[StatusType, ...], None] = None,
+        status_filter: StatusType | Iterable[StatusType] | None = None,
     ) -> Callable:
         """Subscribe to status events."""
 
@@ -206,9 +207,10 @@ class HCClient:
         # Return a function that can be used to unsubscribe
         def unsubscribe() -> None:
             self._subscribers.remove(subscription)
+
         return unsubscribe
 
-    def emit(self, type: StatusType, vid: int, args: List[str]) -> None:
+    def emit(self, type: StatusType, vid: int, args: Sequence[str]) -> None:
         """Fire a status update event to all matching subscribers."""
         for callback, status_filter in self._subscribers:
             if status_filter is None or type in status_filter:
