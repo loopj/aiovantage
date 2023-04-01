@@ -87,14 +87,15 @@ class Vantage:
         await self.close()
 
     async def connect(self) -> None:
-        """Initialize the clients and fetch all data from the controllers."""
+        """Initialize the clients."""
         await asyncio.gather(
-            self._aci_client.initialize(),
+            self._aci_client.connect(),
             self._hc_client.initialize(),
         )
 
     async def fetch_objects(self) -> None:
-        # TODO: Concurrency? Lazy loading?
+        """Fetch all objects from the controllers."""
+        # TODO: Connection pool and concurrency
         await self._areas.fetch_objects()
         await self._loads.fetch_objects()
         await self._stations.fetch_objects()
@@ -102,6 +103,13 @@ class Vantage:
         await self._dry_contacts.fetch_objects()
         await self._omni_sensors.fetch_objects()
         await self._tasks.fetch_objects()
+
+    async def fetch_state(self) -> None:
+        """Fetch the state of all objects."""
+        await asyncio.gather(
+            self._loads.fetch_state(),
+            # TODO: The rest
+        )
 
     async def close(self) -> None:
         """Close the clients."""

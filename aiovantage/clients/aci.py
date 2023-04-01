@@ -32,16 +32,19 @@ class ACIClient:
         self._password = password
         self._use_ssl = use_ssl
         self._logger = logging.getLogger(__name__)
+        self._connection: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None = None
 
         if port is None:
             self._port = 2010 if use_ssl else 2001
+        else:
+            self._port = port
 
         if use_ssl:
             self._ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
     async def __aenter__(self) -> "ACIClient":
         """Return Context manager."""
-        await self.initialize()
+        await self.connect()
         return self
 
     async def __aexit__(
@@ -53,27 +56,36 @@ class ACIClient:
         """Close context manager."""
         await self.close()
 
-    async def initialize(self) -> None:
+    async def connect(self) -> None:
         """Connect to the ACI service and authenticate if necessary."""
 
         # Connect
-        self._reader, self._writer = await asyncio.open_connection(
+        self._connection = await asyncio.open_connection(
             self._host, self._port, ssl=self._ssl_context, limit=1024 * 1024 * 10
         )
         self._logger.info("Connected")
 
         # Authenticate (if required)
-        if self._username is not None and self._password is not None:
-            await self._login()
+        await self._login()
 
     async def close(self) -> None:
-        # TODO: Anything to do here?
-        pass
+        """Close the connection."""
+        if self._connection is None:
+            return
+
+        _, writer = self._connection
+        writer.close()
+        await writer.wait_closed()
+
+        self._connection = None
 
     async def request(
         self, interface: str, method: str, params: Any = None
     ) -> ET.Element:
         """Build and send an RPC request."""
+
+        if self._connection is None:
+            raise RuntimeError("Not connected")
 
         def _params_to_xml(data: dict, parent: ET.Element) -> ET.Element:
             if isinstance(data, dict):
@@ -100,14 +112,16 @@ class ACIClient:
         params_el = ET.SubElement(method_el, "call")
         _params_to_xml(params, params_el)
 
+        reader, writer = self._connection
+
         # Send the request
         request = ET.tostring(request_el)
         # self._logger.debug(request.decode())
-        self._writer.write(request)
-        await self._writer.drain()
+        writer.write(request)
+        await writer.drain()
 
         # Fetch the response
-        data = await self._reader.readuntil(f"</{interface}>".encode())
+        data = await reader.readuntil(f"</{interface}>".encode())
         response = data.decode()
         # self._logger.debug(response)
 
@@ -164,6 +178,9 @@ class ACIClient:
         return results
 
     async def _login(self) -> None:
+        if self._username is None or self._password is None:
+            return
+
         # Send login command
         response = await self.request(
             "ILogin",

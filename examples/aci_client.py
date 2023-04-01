@@ -10,42 +10,42 @@ import asyncio
 import logging
 
 from aiovantage.clients.aci import ACIClient
-from aiovantage.models.xml_model import XMLModel, attr, element
+from aiovantage.xml_dataclass import attr_field, element_field, from_xml_el
 
 logging.basicConfig(level=logging.INFO)
 
 
 @dataclass
-class GetVersion(XMLModel):
-    kernel: str = element()
-    rootfs: str = element()
-    app: str = element()
+class GetVersion:
+    kernel: str = element_field()
+    rootfs: str = element_field()
+    app: str = element_field()
 
 
 @dataclass
-class Load(XMLModel):
-    id: int = attr(alias="VID")
-    name: str = element(alias="Name")
+class Load:
+    id: int = attr_field(name="VID")
+    name: str = element_field(name="Name")
 
 
 @dataclass
-class Area(XMLModel):
-    id: int = attr(alias="VID")
-    name: str = element(alias="Name")
+class Area:
+    id: int = attr_field(name="VID")
+    name: str = element_field(name="Name")
 
 
 async def main() -> None:
     async with ACIClient("10.2.0.103", "administrator", "ZZuUw76CnL") as client:
         # Raw RPC request example (IIIntrospection.GetVersion)
         resp = await client.request("IIntrospection", "GetVersion")
-        version = GetVersion.from_xml_el(resp)
+        version = from_xml_el(resp, GetVersion)
         print(version)
         print()
 
         # Fetch known loads using built-in fetch_objects method
         print("## Known Loads")
         objects = await client.fetch_objects(["Load"])
-        loads = (Load.from_xml_el(el) for el in objects)
+        loads = (from_xml_el(el, Load) for el in objects)
         for load in loads:
             print(load)
         print()
@@ -53,7 +53,7 @@ async def main() -> None:
         # Fetch known loads using built-in fetch_objects method
         print("## Known Areas")
         objects = await client.fetch_objects(["Area"])
-        areas = (Area.from_xml_el(el) for el in objects)
+        areas = (from_xml_el(el, Area) for el in objects)
         for area in areas:
             print(area)
         print()

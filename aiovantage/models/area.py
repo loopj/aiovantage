@@ -2,8 +2,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ..query import QuerySet
-from .vantage_object import VantageObject
-from .xml_model import attr, element
+from .location_object import LocationObject
 
 if TYPE_CHECKING:
     from .dry_contact import DryContact
@@ -12,19 +11,10 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Area(VantageObject):
-    id: int = attr(alias="VID")
-    name: str | None = element(alias="Name", default=None)
-    display_name: str | None = element(alias="DName", default=None)
-    parent_id: int | None = element(alias="Area", default=None)
-
-    @property
-    def parent(self) -> "Area | None":
-        return self.vantage.areas.get(id=self.parent_id)
-
+class Area(LocationObject):
     @property
     def areas(self) -> QuerySet["Area"]:
-        return self.vantage.areas.filter(parent_id=self.id)
+        return self.vantage.areas.filter(area_id=self.id)
 
     @property
     def stations(self) -> QuerySet["Station"]:

@@ -1,9 +1,9 @@
 import asyncio
 import logging
 import shlex
-import ssl
 from collections.abc import Callable, Iterable, Sequence
 from enum import Enum
+from ssl import PROTOCOL_TLS, SSLContext
 from types import TracebackType
 from typing import Tuple, Type
 
@@ -77,12 +77,15 @@ class HCClient:
 
         if port is None:
             self._port = 3010 if use_ssl else 3001
+        else:
+            self._port = port
 
         if use_ssl:
-            self._ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+            self._ssl_context = SSLContext(PROTOCOL_TLS)
 
     async def __aenter__(self) -> "HCClient":
         """Return Context manager."""
+
         await self.initialize()
         return self
 
@@ -93,10 +96,11 @@ class HCClient:
         traceback: TracebackType | None,
     ) -> None:
         """Close context manager."""
+
         await self.close()
 
     async def initialize(self) -> None:
-        """Connect to the HC service and authenticate if necessary."""
+        """Connect to the HC service, authenticate if necessary."""
 
         # Open a connection to the controller
         self._reader, self._writer = await asyncio.open_connection(
@@ -131,13 +135,16 @@ class HCClient:
             self._status_queue.task_done()
 
             type_str, vid_str, *args = shlex.split(message)
+
+            # TODO: Catch exceptions for unknown status types
             type = StatusType(type_str)
             vid = int(vid_str)
 
-            self.emit(type, vid, tuple(args))
+            self.emit(type, vid, args)
 
     async def close(self) -> None:
         """Close the connection to the service and cancel any running tasks."""
+
         for task in self._tasks:
             task.cancel()
         self._tasks = []
@@ -147,6 +154,10 @@ class HCClient:
             await self._writer.wait_closed()
 
     async def send_command(self, command: str, *params: str) -> str:
+        """Send a command to the HC service, and wait for a response."""
+
+        # TODO: Should we validate commands?
+
         # Join the command and parameters into a single string, escaping any
         # parameters that contain spaces with quotes
         params_str = " ".join(f'"{s}"' if " " in s else s for s in params)
@@ -176,7 +187,9 @@ class HCClient:
                 raise LoginFailedError(error_message)
             else:
                 raise Exception(f"Unknown error code: {error_code}")
-        elif not response.startswith(command):
+
+        # Check for out of order responses
+        if not response.startswith(command):
             raise Exception(f"Received out of order response: {response}")
 
         return response
@@ -186,7 +199,7 @@ class HCClient:
         callback: EventCallBackType,
         status_filter: StatusType | Iterable[StatusType] | None = None,
     ) -> Callable:
-        """Subscribe to status events."""
+        """Subscribe to status events, optionally filtering by status type."""
 
         # Support passing a single status type instead of a tuple
         if status_filter is not None and isinstance(status_filter, StatusType):
@@ -212,6 +225,7 @@ class HCClient:
 
     def emit(self, type: StatusType, vid: int, args: Sequence[str]) -> None:
         """Fire a status update event to all matching subscribers."""
+
         for callback, status_filter in self._subscribers:
             if status_filter is None or type in status_filter:
                 callback(type, vid, args)

@@ -20,7 +20,7 @@ requests by calling the `ILogin.Login(username, password)` RPC.
 
 Vantage RPC requests have the following structure:
 
-```xml        
+```xml
 <IInterface>
     <Method>
         <call>

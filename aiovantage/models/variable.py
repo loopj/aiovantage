@@ -4,16 +4,12 @@ from dataclasses import dataclass
 from typing_extensions import override
 
 from ..clients.hc import StatusType
-from .vantage_object import VantageObject
-from .xml_model import attr, element
+from .system_object import SystemObject
+from ..xml_dataclass import attr_field, element_field
 
 
 @dataclass
-class Variable(VantageObject):
-    id: int = attr(alias="VID")
-    name: str | None = element(alias="Name", default=None)
-    display_name: str | None = element(alias="DName", default=None)
-
+class Variable(SystemObject):
     @override
     def status_handler(self, type: StatusType, args: Sequence[str]) -> None:
         # TODO: STATUS ? ?

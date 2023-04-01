@@ -1,18 +1,23 @@
+from dataclasses import dataclass, field
 import logging
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from ..clients.hc import StatusType
-from .xml_model import XMLModel
+from ..xml_dataclass import attr_field, element_field
 
 if TYPE_CHECKING:
     from aiovantage import Vantage
 
 
-class VantageObject(XMLModel):
-    id: int
-    _logger: "logging.Logger"
-    _vantage: "Vantage | None" = None
+@dataclass
+class SystemObject:
+    _logger: "logging.Logger" = field(init=False)
+    _vantage: "Vantage | None" = field(init=False, default=None)
+
+    id: int | None = attr_field(name="VID", default=None)
+    name: str | None = element_field(name="Name", default=None)
+    display_name: str | None = element_field(name="DName", default=None)
 
     def __post_init__(self) -> None:
         self._logger = logging.getLogger(__package__)

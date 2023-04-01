@@ -8,4 +8,4 @@ class AreasController(BaseController[Area]):
 
     def root(self) -> Area | None:
         """Return the root (top-most) area."""
-        return self.get(parent_id=0)
+        return self.get(area_id=0)

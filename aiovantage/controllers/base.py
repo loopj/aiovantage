@@ -3,10 +3,11 @@ from collections.abc import Callable, Iterator, Sequence
 from typing import TYPE_CHECKING, Any, Generic, Type, TypeVar, overload
 
 from ..clients.hc import StatusType
-from ..models.vantage_object import VantageObject
+from ..models.system_object import SystemObject
+from ..xml_dataclass import from_xml_el
 from ..query import QuerySet
 
-T = TypeVar("T", bound="VantageObject")
+T = TypeVar("T", bound="SystemObject")
 
 if TYPE_CHECKING:
     from aiovantage import Vantage
@@ -18,6 +19,7 @@ EventCallBackType = Callable[[T, Sequence[str]], None]
 class BaseController(Generic[T]):
     """Holds and manages all items for a specific Vantage object type."""
 
+    # TODO: ClassVar for these?
     item_cls: Type[T]
     vantage_types: tuple[str, ...]
     status_types: tuple[StatusType, ...] | None = None
@@ -48,9 +50,10 @@ class BaseController(Generic[T]):
         # Fetch initial object details
         objects = await self._vantage._aci_client.fetch_objects(self.vantage_types)
         for el in objects:
-            item = self.item_cls.from_xml_el(el)
-            item._vantage = self._vantage
-            self._items[item.id] = item
+            item = from_xml_el(el, self.item_cls)
+            if item.id is not None:
+                item._vantage = self._vantage
+                self._items[item.id] = item
 
         self._logger.info(f"{self.__class__.__name__} loaded objects")
 
@@ -94,6 +97,10 @@ class BaseController(Generic[T]):
         subscribers = self._subscribers + self._id_subscribers.get(vid, [])
         for callback in subscribers:
             callback(self._items[vid], args)
+
+    def all(self) -> QuerySet[T]:
+        """Return a queryset of all items."""
+        return self._queryset
 
     @overload
     def filter(self, match: Callable[[T], Any]) -> "QuerySet[T]":

@@ -2,26 +2,17 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ..query import QuerySet
-from .vantage_object import VantageObject
-from .xml_model import attr, element
+from .location_object import LocationObject
+from ..xml_dataclass import element_field
 
 if TYPE_CHECKING:
-    from .area import Area
     from .button import Button
     from .dry_contact import DryContact
 
 
 @dataclass
-class Station(VantageObject):
-    id: int = attr(alias="VID")
-    name: str | None = element(alias="Name", default=None)
-    display_name: str | None = element(alias="DName", default=None)
-    area_id: int | None = element(alias="Area", default=None)
-    bus_id: int | None = element(alias="Bus", default=None)
-
-    @property
-    def area(self) -> "Area | None":
-        return self.vantage.areas.get(id=self.area_id)
+class Station(LocationObject):
+    bus_id: int | None = element_field(name="Bus", default=None)
 
     @property
     def buttons(self) -> QuerySet["Button"]:

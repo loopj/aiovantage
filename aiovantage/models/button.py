@@ -5,20 +5,17 @@ from typing import TYPE_CHECKING
 from typing_extensions import override
 
 from ..clients.hc import StatusType
-from .vantage_object import VantageObject
-from .xml_model import attr, element
+from .system_object import SystemObject
+from ..xml_dataclass import element_field
 
 if TYPE_CHECKING:
     from .station import Station
 
 
 @dataclass
-class Button(VantageObject):
-    id: int = attr(alias="VID")
-    name: str | None = element(alias="Name", default=None)
-    display_name: str | None = element(alias="DName", default=None)
-    text: str | None = element(alias="Text1", default=None)
-    station_id: int | None = element(alias="Parent", default=None)
+class Button(SystemObject):
+    text: str | None = element_field(name="Text1", default=None)
+    station_id: int | None = element_field(name="Parent", default=None)
 
     @override
     def status_handler(self, type: StatusType, args: Sequence[str]) -> None:
