@@ -3,9 +3,13 @@ import datetime
 import logging
 import ssl
 import xml.etree.ElementTree as ET
-from collections.abc import Iterable
 from types import TracebackType
 from typing import Any, Type
+
+from aiovantage.clients.aci.configuration import Configuration
+from aiovantage.clients.aci.introspection import Introspection
+from aiovantage.clients.aci.login import Login
+from aiovantage.xml_dataclass import to_xml_el, DataclassInstance
 
 
 class ACIClient:
@@ -57,6 +61,18 @@ class ACIClient:
         """Close context manager."""
         await self.close()
 
+    @property
+    def login(self) -> Login:
+        return Login(self)
+
+    @property
+    def introspection(self) -> Introspection:
+        return Introspection(self)
+
+    @property
+    def configuration(self) -> Configuration:
+        return Configuration(self)
+
     async def connect(self) -> None:
         """Connect to the ACI service and authenticate if necessary."""
 
@@ -67,7 +83,15 @@ class ACIClient:
         self._logger.info("Connected")
 
         # Authenticate (if required)
-        await self._login()
+        if self._username is None or self._password is None:
+            return
+
+        # Make the login request
+        response = await self.login.login(self._username, self._password)
+        if response.success:
+            self._logger.info("Login successful")
+        else:
+            raise Exception("Login failed")
 
     async def close(self) -> None:
         """Close the connection."""
@@ -81,37 +105,19 @@ class ACIClient:
         self._connection = None
 
     async def request(
-        self, interface: str, method: str, params: Any = None
+        self, interface: str, method: str, params: DataclassInstance | None = None
     ) -> ET.Element:
         """Build and send an RPC request."""
 
         if self._connection is None:
             raise RuntimeError("Not connected")
 
-        def _params_to_xml(data: dict, parent: ET.Element) -> ET.Element:
-            if isinstance(data, dict):
-                for key, value in data.items():
-                    if isinstance(value, list):
-                        for item in value:
-                            element = ET.SubElement(parent, key)
-                            _params_to_xml(item, element)
-                    else:
-                        element = ET.SubElement(parent, key)
-                        _params_to_xml(value, element)
-            elif isinstance(data, bool):
-                parent.text = str(data).lower()
-            elif isinstance(data, datetime.datetime):
-                parent.text = data.isoformat(timespec="seconds")
-            elif data is not None:
-                parent.text = str(data)
-
-            return parent
-
-        # Build the RPC request
         request_el = ET.Element(interface)
         method_el = ET.SubElement(request_el, method)
-        params_el = ET.SubElement(method_el, "call")
-        _params_to_xml(params, params_el)
+        if params is not None:
+            method_el.append(to_xml_el(params, "call"))
+        else:
+            ET.SubElement(method_el, "call")
 
         # Send the request
         reader, writer = self._connection
@@ -148,67 +154,3 @@ class ACIClient:
             raise Exception(f"RPC call failed, no <return> element in response: {response}")
 
         return el
-
-    async def fetch_objects(
-        self, object_types: Iterable[str] | None = None, per_page: int = 50
-    ) -> Iterable[ET.Element]:
-        # Build the weird "XPath" query
-        xpath = None
-        if object_types is not None:
-            xpath = " or ".join([f"/{str}" for str in object_types])
-
-        # Create a filter
-        response = await self.request(
-            "IConfiguration",
-            "OpenFilter",
-            {
-                "Objects": None,
-                "XPath": xpath,
-            },
-        )
-        handle = response.text
-
-        # Get results from filter handle
-        results = []
-        while True:
-            response = await self.request(
-                "IConfiguration",
-                "GetFilterResults",
-                {
-                    "Count": per_page,
-                    "WholeObject": True,
-                    "hFilter": handle,
-                },
-            )
-
-            objects = response.findall(f"Object/*")
-            if len(objects) > 0:
-                results.extend(objects)
-            else:
-                break
-
-        # Close filter handle
-        await self.request("IConfiguration", "CloseFilter", handle)
-
-        # Return objects we care about
-        return results
-
-    async def _login(self) -> None:
-        if self._username is None or self._password is None:
-            return
-
-        # Send login command
-        response = await self.request(
-            "ILogin",
-            "Login",
-            {
-                "User": self._username,
-                "Password": self._password,
-            },
-        )
-
-        # Validate response
-        if response.text == "true":
-            self._logger.info("Login successful")
-        else:
-            raise Exception("Login failed")

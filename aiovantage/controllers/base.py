@@ -48,8 +48,7 @@ class BaseController(Generic[T]):
 
     async def fetch_objects(self, keep_updated: bool = True) -> None:
         # Fetch initial object details
-        objects = await self._vantage._aci_client.fetch_objects(self.vantage_types)
-        for el in objects:
+        async for el in self._vantage._aci_client.configuration.get_objects(self.vantage_types):
             item = from_xml_el(el, self.item_cls)
             if item.id is not None:
                 item._vantage = self._vantage

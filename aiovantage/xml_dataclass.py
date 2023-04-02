@@ -78,12 +78,33 @@ def _parse_text(text: str | None, type: Any) -> Any:
     else:
         return text
 
-
 def _parse_element(el: ET.Element, type: Any) -> Any:
     if is_dataclass(type):
         return from_xml_el(el, type)
     else:
         return _parse_text(el.text, type)
+
+
+def _dump_text(value: Any, type: Any) -> str:
+    if value is None:
+        return ""
+
+    if issubclass(type, bool):
+        return str(value).lower()
+    elif issubclass(type, (int, float)):
+        return str(value)
+    else:
+        return str(value)
+
+
+def _dump_element(name: str, value: Any, type: Any) -> ET.Element:
+    el = ET.Element(name)
+    if is_dataclass(type):
+        el.append(to_xml_el(value))
+    else:
+        el.text = _dump_text(value, type)
+
+    return el
 
 
 def _get_field_value(f: Field, el: ET.Element) -> Any:
@@ -126,13 +147,6 @@ class DataclassInstance(Protocol):
 T = TypeVar("T", bound=DataclassInstance)
 
 
-def from_xml(xml: str, cls: Type[T]) -> T:
-    """Parse an XML string into a dataclass instance."""
-
-    el = ET.fromstring(xml)
-    return from_xml_el(el, cls)
-
-
 def from_xml_el(el: ET.Element, cls: Type[T]) -> T:
     """Parse an XML element into a dataclass instance."""
 
@@ -143,3 +157,57 @@ def from_xml_el(el: ET.Element, cls: Type[T]) -> T:
             kwargs[f.name] = value
 
     return cls(**kwargs)
+
+
+def from_xml(xml: str, cls: Type[T]) -> T:
+    """Parse an XML string into a dataclass instance."""
+
+    el = ET.fromstring(xml)
+    return from_xml_el(el, cls)
+
+
+def to_xml_el(obj: T, root_name: str | None = None) -> ET.Element:
+    """Serialize a dataclass instance to an XML element."""
+
+    cls = obj.__class__
+    el = ET.Element(root_name or cls.__name__)
+    for f in fields(cls):
+        value = getattr(obj, f.name)
+        if value is not None:
+            settings = f.metadata.get("xml_dataclass", {})
+            if "source" not in settings:
+                continue
+
+            if settings["source"] == "element":
+                if is_dataclass(f.type):
+                    child_el = to_xml_el(value)
+                    el.append(child_el)
+                else:
+                    base_type = _flatten_union(f.type)
+                    type = get_origin(base_type) or base_type
+                    if issubclass(type, (list, tuple)):
+                        for item in value:
+                            child_el = ET.Element(settings.get("name") or f.name)
+                            child_el.text = _dump_text(item, type)
+                            el.append(child_el)
+                    else:
+                        child_el = ET.Element(settings.get("name") or f.name)
+                        child_el.text = _dump_text(value, type)
+                        el.append(child_el)
+
+            elif settings["source"] == "attr":
+                base_type = _flatten_union(f.type)
+                type = get_origin(base_type) or base_type
+                el.set(settings.get("name") or f.name, _dump_text(value, type))
+
+            elif settings["source"] == "text":
+                el.text = str(value)
+
+    return el
+
+
+def to_xml(obj: T) -> str:
+    """Serialize a dataclass instance to an XML string."""
+
+    el = to_xml_el(obj)
+    return ET.tostring(el, encoding="unicode")
