@@ -87,8 +87,8 @@ class ACIClient:
             return
 
         # Make the login request
-        response = await self.login.login(self._username, self._password)
-        if response.success:
+        success = await self.login.login(self._username, self._password)
+        if success:
             self._logger.info("Login successful")
         else:
             raise Exception("Login failed")

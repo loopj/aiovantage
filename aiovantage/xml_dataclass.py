@@ -8,7 +8,6 @@ from dataclasses import Field, field, fields, is_dataclass
 from types import UnionType
 from typing import (
     Any,
-    Callable,
     ClassVar,
     Protocol,
     Type,
@@ -21,7 +20,6 @@ from typing import (
 
 def element_field(
     name: str | None = None,
-    factory: Callable[[ET.Element, Any], Any] | None = None,
     **kwargs: Any,
 ) -> Any:
     """
@@ -29,12 +27,7 @@ def element_field(
     element with the given name when deserializing from XML.
     """
 
-    return field(
-        metadata={
-            "xml_dataclass": {"source": "element", "name": name, "factory": factory}
-        },
-        **kwargs,
-    )
+    return field(metadata=dict(name=name), **kwargs)
 
 
 def attr_field(name: str | None = None, **kwargs: Any) -> Any:
@@ -43,16 +36,7 @@ def attr_field(name: str | None = None, **kwargs: Any) -> Any:
     attribute with the given name when deserializing from XML.
     """
 
-    return field(metadata={"xml_dataclass": {"source": "attr", "name": name}}, **kwargs)
-
-
-def text_field(**kwargs: Any) -> Any:
-    """
-    Return an object to identify a dataclass field, which will be populated from the
-    text of the element when deserializing from XML.
-    """
-
-    return field(metadata={"xml_dataclass": {"source": "text"}}, **kwargs)
+    return field(metadata=dict(name=name, type="Attribute"), **kwargs)
 
 
 def _flatten_union(t: Any) -> Any:
@@ -65,8 +49,9 @@ def _flatten_union(t: Any) -> Any:
     else:
         return t
 
+T = TypeVar("T")
 
-def _parse_text(text: str | None, type: Any) -> Any:
+def _parse_text(text: str | None, type: Type[T]) -> Any:
     if text is None:
         return None
 
@@ -74,15 +59,11 @@ def _parse_text(text: str | None, type: Any) -> Any:
     if issubclass(type, bool):
         return text.lower() == "true"
     elif issubclass(type, (int, float)):
-        return type(text.strip())
-    else:
+        return type(text)
+    elif issubclass(type, str):
         return text
 
-def _parse_element(el: ET.Element, type: Any) -> Any:
-    if is_dataclass(type):
-        return from_xml_el(el, type)
-    else:
-        return _parse_text(el.text, type)
+    return None
 
 
 def _dump_text(value: Any, type: Any) -> str:
@@ -97,69 +78,79 @@ def _dump_text(value: Any, type: Any) -> str:
         return str(value)
 
 
-def _dump_element(name: str, value: Any, type: Any) -> ET.Element:
-    el = ET.Element(name)
-    if is_dataclass(type):
-        el.append(to_xml_el(value))
-    else:
-        el.text = _dump_text(value, type)
-
-    return el
-
-
 def _get_field_value(f: Field, el: ET.Element) -> Any:
-    settings = f.metadata.get("xml_dataclass", {})
-    if "source" not in settings:
-        return None
-
     # Get the value from the XML element or attribute
-    if settings["source"] == "element":
-        tag_els = el.findall(settings.get("name") or f.name)
+    tag_type = f.metadata.get("type", "Element")
+    tag_name = f.metadata.get("name", f.name)
+    if tag_type == "Element":
+        tag_els = el.findall(tag_name)
         if tag_els:
             base_type = _flatten_union(f.type)
             type = get_origin(base_type) or base_type
-            factory = settings.get("factory") or _parse_element
             if issubclass(type, (list, tuple)):
                 return type(
-                    factory(tag_el, get_args(base_type)[0]) for tag_el in tag_els
+                    from_xml_el(tag_el, get_args(base_type)[0]) for tag_el in tag_els
                 )
             else:
-                return factory(tag_els[0], type)
+                return from_xml_el(tag_els[0], type)
 
-    elif settings["source"] == "attr":
-        field_value = el.get(settings.get("name") or f.name)
+    elif tag_type == "Attribute":
+        field_value = el.get(tag_name)
         if field_value is not None:
             base_type = _flatten_union(f.type)
             type = get_origin(base_type) or base_type
-            if issubclass(type, (list, tuple)):
-                raise TypeError("XML Attributes cannot be lists")
-            else:
-                return _parse_text(field_value, type)
+            return _parse_text(field_value, type)
 
-    elif settings["source"] == "text":
-        return _parse_text(el.text, f.type)
+
+def _get_field_element(f: Field, obj: Any) -> ET.Element | None:
+    tag_type = f.metadata.get("type", "Element")
+    tag_name = f.metadata.get("name", f.name)
+    if tag_type == "Element":
+        value = getattr(obj, f.name)
+        if value is not None:
+            base_type = _flatten_union(f.type)
+            type = get_origin(base_type) or base_type
+            if issubclass(type, (list, tuple)):
+                el = ET.Element(tag_name)
+                for item in value:
+                    el.append(to_xml_el(item, tag_name))
+                return el
+            else:
+                return to_xml_el(value, tag_name)
+
+    elif tag_type == "Attribute":
+        value = getattr(obj, f.name)
+        if value is not None:
+            base_type = _flatten_union(f.type)
+            type = get_origin(base_type) or base_type
+            el = ET.Element(tag_name)
+            el.text = _dump_text(value, type)
+            return el
+
+    return None
 
 
 class DataclassInstance(Protocol):
     __dataclass_fields__: ClassVar[dict[str, Field[Any]]]
 
 
-T = TypeVar("T", bound=DataclassInstance)
 
-
-def from_xml_el(el: ET.Element, cls: Type[T]) -> T:
+def from_xml_el(el: ET.Element, cls: Type[T]) -> Any:
     """Parse an XML element into a dataclass instance."""
 
-    kwargs = {}
-    for f in fields(cls):
-        value = _get_field_value(f, el)
-        if value is not None:
-            kwargs[f.name] = value
+    if is_dataclass(cls):
+        kwargs = {}
+        for f in fields(cls):
+            value = _get_field_value(f, el)
+            if value is not None:
+                kwargs[f.name] = value
 
-    return cls(**kwargs)
+        return cls(**kwargs)
+    else:
+        return _parse_text(el.text, cls)
 
 
-def from_xml(xml: str, cls: Type[T]) -> T:
+def from_xml(xml: str, cls: Type[T]) -> Any:
     """Parse an XML string into a dataclass instance."""
 
     el = ET.fromstring(xml)
@@ -171,37 +162,15 @@ def to_xml_el(obj: T, root_name: str | None = None) -> ET.Element:
 
     cls = obj.__class__
     el = ET.Element(root_name or cls.__name__)
-    for f in fields(cls):
-        value = getattr(obj, f.name)
-        if value is not None:
-            settings = f.metadata.get("xml_dataclass", {})
-            if "source" not in settings:
-                continue
-
-            if settings["source"] == "element":
-                if is_dataclass(f.type):
-                    child_el = to_xml_el(value)
+    if is_dataclass(cls):
+        for f in fields(cls):
+            value = getattr(obj, f.name)
+            if value is not None:
+                child_el = _get_field_element(f, obj)
+                if child_el is not None:
                     el.append(child_el)
-                else:
-                    base_type = _flatten_union(f.type)
-                    type = get_origin(base_type) or base_type
-                    if issubclass(type, (list, tuple)):
-                        for item in value:
-                            child_el = ET.Element(settings.get("name") or f.name)
-                            child_el.text = _dump_text(item, type)
-                            el.append(child_el)
-                    else:
-                        child_el = ET.Element(settings.get("name") or f.name)
-                        child_el.text = _dump_text(value, type)
-                        el.append(child_el)
-
-            elif settings["source"] == "attr":
-                base_type = _flatten_union(f.type)
-                type = get_origin(base_type) or base_type
-                el.set(settings.get("name") or f.name, _dump_text(value, type))
-
-            elif settings["source"] == "text":
-                el.text = str(value)
+    else:
+        el.text = _dump_text(obj, cls)
 
     return el
 
