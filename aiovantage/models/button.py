@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 from typing_extensions import override
 
 from ..clients.hc import StatusType
-from .system_object import SystemObject
 from ..xml_dataclass import element_field
+from .system_object import SystemObject
 
 if TYPE_CHECKING:
     from .station import Station

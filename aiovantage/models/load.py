@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from typing_extensions import override
 
 from ..clients.hc import StatusType
-from .location_object import LocationObject
 from ..xml_dataclass import element_field
+from .location_object import LocationObject
 
 
 def _parse_level(*args: str) -> float:
@@ -15,8 +15,9 @@ def _parse_level(*args: str) -> float:
 
 @dataclass
 class Load(LocationObject):
-    load_type: str | None = element_field(name="LoadType", default=None)
     _level: float | None = None
+
+    load_type: str | None = element_field(name="LoadType", default=None)
 
     @override
     def status_handler(self, type: StatusType, args: Sequence[str]) -> None:

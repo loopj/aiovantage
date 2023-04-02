@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .system_object import SystemObject
 from ..xml_dataclass import element_field
+from .system_object import SystemObject
 
 if TYPE_CHECKING:
     from .area import Area
@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 
 @dataclass
 class LocationObject(SystemObject):
+    """Base class for objects that have an Area."""
+
     area_id: int | None = element_field(name="Area", default=None)
 
     @property

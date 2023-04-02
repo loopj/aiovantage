@@ -46,15 +46,13 @@ EventSubscriptionType = Tuple[
 
 
 class HCClient:
-    """Communicate with a Vantage InFusion HC service.
+    """Communicate with a Vantage InFusion Host Command service.
 
-    The HC service is a text-based service that allows interaction with devices
+    The Host Command service is a text-based service that allows interaction with devices
     controlled by a Vantage InFusion Controller.
 
     Among other things, this service allows you to change the state of devices
     (eg. turn on/off a light) as well as subscribe to status changes for devices.
-
-    My guess is that HC stands for "Home Control".
     """
 
     def __init__(

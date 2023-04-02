@@ -5,7 +5,6 @@ from typing_extensions import override
 
 from ..clients.hc import StatusType
 from .system_object import SystemObject
-from ..xml_dataclass import attr_field, element_field
 
 
 @dataclass

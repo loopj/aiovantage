@@ -58,7 +58,6 @@ class BaseController(Generic[T]):
         self._logger.info(f"{self.__class__.__name__} loaded objects")
 
         # Subscribe to status updates
-        # TODO: should we await here or should this run in the background?
         if keep_updated and self.status_types is not None:
             await self._vantage._hc_client.subscribe(
                 self._handle_status_event, self.status_types

@@ -1,6 +1,6 @@
-from dataclasses import dataclass, field
 import logging
 from collections.abc import Sequence
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from ..clients.hc import StatusType
@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 @dataclass
 class SystemObject:
+    """Base class for all Vantage objects."""
+
     _logger: "logging.Logger" = field(init=False)
     _vantage: "Vantage | None" = field(init=False, default=None)
 

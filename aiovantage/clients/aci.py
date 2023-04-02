@@ -9,7 +9,7 @@ from typing import Any, Type
 
 
 class ACIClient:
-    """Communicate with a Vantage InFusion ACI (Application Communication Interface) service.
+    """Communicate with a Vantage InFusion Application Communication Interface service.
 
     The ACI service is an XML-based RPC service that Design Center uses to communicate with
     Vantage Controllers. There are a number of interfaces exposed, each with one or more methods.
@@ -33,6 +33,7 @@ class ACIClient:
         self._use_ssl = use_ssl
         self._logger = logging.getLogger(__name__)
         self._connection: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None = None
+        self._timeout = 5
 
         if port is None:
             self._port = 2010 if use_ssl else 2001
@@ -112,24 +113,39 @@ class ACIClient:
         params_el = ET.SubElement(method_el, "call")
         _params_to_xml(params, params_el)
 
-        reader, writer = self._connection
-
         # Send the request
+        reader, writer = self._connection
         request = ET.tostring(request_el)
-        # self._logger.debug(request.decode())
         writer.write(request)
         await writer.drain()
 
         # Fetch the response
-        data = await reader.readuntil(f"</{interface}>".encode())
-        response = data.decode()
-        # self._logger.debug(response)
+        buffer = bytearray()
+        while True:
+            try:
+                chunk = await asyncio.wait_for(reader.read(100), self._timeout)
+            except asyncio.TimeoutError:
+                raise Exception("RPC call failed, timed out waiting for response")
+
+            if chunk == b'':
+                break
+
+            if chunk == b'\x18':
+                raise RuntimeError(f"RPC call failed, received CAN (0x18) byte. Malformed request to '{interface}.{method}'?")
+
+            buffer.extend(chunk)
+
+            if f"</{interface}>".encode() in buffer or f"<{interface}/>".encode() in buffer:
+                break
 
         # Parse the response
+        response = buffer.decode()
         response_el = ET.fromstring(response)
+
+        # Make sure the response is valid
         el = response_el.find(f"{method}/return")
         if el is None:
-            raise Exception("RPC call failed (unknown response)")
+            raise Exception(f"RPC call failed, no <return> element in response: {response}")
 
         return el
 
@@ -192,7 +208,7 @@ class ACIClient:
         )
 
         # Validate response
-        if response.text == "false":
-            raise Exception("Login failed")
-        else:
+        if response.text == "true":
             self._logger.info("Login successful")
+        else:
+            raise Exception("Login failed")

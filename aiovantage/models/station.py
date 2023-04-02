@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ..query import QuerySet
-from .location_object import LocationObject
 from ..xml_dataclass import element_field
+from .location_object import LocationObject
 
 if TYPE_CHECKING:
     from .button import Button

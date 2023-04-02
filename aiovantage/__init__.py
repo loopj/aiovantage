@@ -95,14 +95,20 @@ class Vantage:
 
     async def fetch_objects(self) -> None:
         """Fetch all objects from the controllers."""
-        # TODO: Connection pool and concurrency
-        await self._areas.fetch_objects()
-        await self._loads.fetch_objects()
-        await self._stations.fetch_objects()
-        await self._buttons.fetch_objects()
-        await self._dry_contacts.fetch_objects()
-        await self._omni_sensors.fetch_objects()
-        await self._tasks.fetch_objects()
+
+        coros = [
+            self._areas.fetch_objects(),
+            self._loads.fetch_objects(),
+            self._stations.fetch_objects(),
+            self._buttons.fetch_objects(),
+            self._dry_contacts.fetch_objects(),
+            self._omni_sensors.fetch_objects(),
+            self._tasks.fetch_objects(),
+        ]
+
+        # TODO: Connection pool? asyncio.gather?
+        for coro in coros:
+            await coro
 
     async def fetch_state(self) -> None:
         """Fetch the state of all objects."""
