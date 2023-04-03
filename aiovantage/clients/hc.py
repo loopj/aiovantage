@@ -5,7 +5,7 @@ from collections.abc import Callable, Iterable, Sequence
 from enum import Enum
 from ssl import PROTOCOL_TLS, SSLContext
 from types import TracebackType
-from typing import Tuple, Type
+from typing import Optional, Tuple, Type, Union
 
 
 class LoginRequiredError(Exception):
@@ -58,10 +58,10 @@ class HCClient:
     def __init__(
         self,
         host: str,
-        username: str | None = None,
-        password: str | None = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
         use_ssl: bool = True,
-        port: int | None = None,
+        port: Optional[int] = None,
     ) -> None:
         self._host = host
         self._username = username
@@ -89,9 +89,9 @@ class HCClient:
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
     ) -> None:
         """Close context manager."""
 
@@ -195,7 +195,7 @@ class HCClient:
     async def subscribe(
         self,
         callback: EventCallBackType,
-        status_filter: StatusType | Iterable[StatusType] | None = None,
+        status_filter: Union[StatusType, Iterable[StatusType], None] = None,
     ) -> Callable:
         """Subscribe to status events, optionally filtering by status type."""
 

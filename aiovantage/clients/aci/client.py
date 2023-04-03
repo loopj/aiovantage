@@ -4,7 +4,7 @@ import logging
 import ssl
 import xml.etree.ElementTree as ET
 from types import TracebackType
-from typing import Any, Type
+from typing import Any, Optional, Type
 
 from aiovantage.clients.aci.configuration import Configuration
 from aiovantage.clients.aci.introspection import Introspection
@@ -26,17 +26,17 @@ class ACIClient:
     def __init__(
         self,
         host: str,
-        username: str | None = None,
-        password: str | None = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
         use_ssl: bool = True,
-        port: int | None = None,
+        port: Optional[int] = None,
     ):
         self._host = host
         self._username = username
         self._password = password
         self._use_ssl = use_ssl
         self._logger = logging.getLogger(__name__)
-        self._connection: tuple[asyncio.StreamReader, asyncio.StreamWriter] | None = None
+        self._connection: Optional[tuple[asyncio.StreamReader, asyncio.StreamWriter]] = None
         self._timeout = 5
 
         if port is None:
@@ -54,9 +54,9 @@ class ACIClient:
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
     ) -> None:
         """Close context manager."""
         await self.close()
@@ -87,8 +87,8 @@ class ACIClient:
             return
 
         # Make the login request
-        success = await self.login.login(self._username, self._password)
-        if success:
+        response = await self.login.login(self._username, self._password)
+        if response.success:
             self._logger.info("Login successful")
         else:
             raise Exception("Login failed")
@@ -105,7 +105,7 @@ class ACIClient:
         self._connection = None
 
     async def request(
-        self, interface: str, method: str, params: DataclassInstance | None = None
+        self, interface: str, method: str, params: Optional[DataclassInstance] = None
     ) -> ET.Element:
         """Build and send an RPC request."""
 

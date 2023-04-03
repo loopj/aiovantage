@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Callable, Iterator, Sequence
-from typing import TYPE_CHECKING, Any, Generic, Type, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Generic, Optional, Type, TypeVar, Union, overload
 
 from ..clients.hc import StatusType
 from ..models.system_object import SystemObject
@@ -22,7 +22,7 @@ class BaseController(Generic[T]):
     # TODO: ClassVar for these?
     item_cls: Type[T]
     vantage_types: tuple[str, ...]
-    status_types: tuple[StatusType, ...] | None = None
+    status_types: Optional[tuple[StatusType, ...]] = None
 
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize the controller."""
@@ -68,7 +68,7 @@ class BaseController(Generic[T]):
     def subscribe(
         self,
         callback: EventCallBackType,
-        id_filter: int | tuple[int, ...] | None = None,
+        id_filter: Union[int, tuple[int, ...], None] = None,
     ) -> None:
         if id_filter is None:
             self._subscribers.append(callback)
@@ -112,18 +112,18 @@ class BaseController(Generic[T]):
         return self._queryset.filter(*args, **kwargs)
 
     @overload
-    def get(self, id: int, default: T | None = None) -> T | None:
+    def get(self, id: int, default: Optional[T] = None) -> Optional[T]:
         ...
 
     @overload
-    def get(self, match: Callable[[T], Any]) -> T | None:
+    def get(self, match: Callable[[T], Any]) -> Optional[T]:
         ...
 
     @overload
-    def get(self, **kwargs: Any) -> T | None:
+    def get(self, **kwargs: Any) -> Optional[T]:
         ...
 
-    def get(self, *args: Callable[[T], Any] | None, **kwargs: Any) -> T | None:
+    def get(self, *args: Optional[Callable[[T], Any]], **kwargs: Any) -> Optional[T]:
         if len(args) == 1 and isinstance(args[0], int):
             return self._items.get(args[0], kwargs.get("default", None))
 

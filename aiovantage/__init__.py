@@ -1,6 +1,6 @@
 import asyncio
 from types import TracebackType
-from typing import Type
+from typing import Optional, Type
 
 from .clients.aci.client import ACIClient
 from .clients.hc import HCClient
@@ -19,11 +19,11 @@ class Vantage:
     def __init__(
         self,
         host: str,
-        username: str | None = None,
-        password: str | None = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
         use_ssl: bool = True,
-        aci_port: int | None = None,
-        hc_port: int | None = None,
+        aci_port: Optional[int] = None,
+        hc_port: Optional[int] = None,
     ) -> None:
         """Initialize the Vantage instance."""
         self._aci_client = ACIClient(host, username, password, use_ssl, aci_port)
@@ -79,9 +79,9 @@ class Vantage:
 
     async def __aexit__(
         self,
-        exc_type: Type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: TracebackType | None,
+        exc_type: Optional[Type[BaseException]] ,
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
     ) -> None:
         """Close context manager."""
         await self.close()

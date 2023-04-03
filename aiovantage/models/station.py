@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..query import QuerySet
 from ..xml_dataclass import element_field
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @dataclass
 class Station(LocationObject):
-    bus_id: int | None = element_field(name="Bus", default=None)
+    bus_id: Optional[int] = element_field(name="Bus", default=None)
 
     @property
     def buttons(self) -> QuerySet["Button"]:

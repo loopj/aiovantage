@@ -1,5 +1,5 @@
 from collections.abc import Callable, Collection, Iterator
-from typing import Any, Generic, TypeVar, overload
+from typing import Any, Generic, Optional, TypeVar, overload
 
 T = TypeVar("T")
 
@@ -40,12 +40,12 @@ class QuerySet(Generic[T]):
         raise TypeError("filter() and get() expect either a callable or **kwargs")
 
     @overload
-    def get(self, match: Callable[[T], Any]) -> T | None:
+    def get(self, match: Callable[[T], Any]) -> Optional[T]:
         ...
 
     @overload
-    def get(self, **kwargs: Any) -> T | None:
+    def get(self, **kwargs: Any) -> Optional[T]:
         ...
 
-    def get(self, *args: Callable[[T], Any], **kwargs: Any) -> T | None:
+    def get(self, *args: Callable[[T], Any], **kwargs: Any) -> Optional[T]:
         return next(iter(self.filter(*args, **kwargs)), None)

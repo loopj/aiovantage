@@ -1,5 +1,6 @@
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 from typing_extensions import override
 
@@ -9,7 +10,8 @@ from .system_object import SystemObject
 
 @dataclass
 class OmniSensor(SystemObject):
-    _level: float | None = None
+    def __post_init__(self) -> None:
+        self._level: Optional[float] = None
 
     @override
     def status_handler(self, type: StatusType, args: Sequence[str]) -> None:

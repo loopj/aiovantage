@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from typing_extensions import override
 
@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 
 @dataclass
 class Button(SystemObject):
-    text: str | None = element_field(name="Text1", default=None)
-    station_id: int | None = element_field(name="Parent", default=None)
+    text: Optional[str] = element_field(name="Text1", default=None)
+    station_id: Optional[int] = element_field(name="Parent", default=None)
 
     @override
     def status_handler(self, type: StatusType, args: Sequence[str]) -> None:

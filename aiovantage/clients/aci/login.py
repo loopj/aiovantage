@@ -16,8 +16,13 @@ class Login:
         username: str = element_field("User")
         password: str = element_field("Password")
 
-    async def login(self, username: str, password: str) -> bool:
+    @dataclass
+    class LoginResponse:
+        success: bool
+
+    async def login(self, username: str, password: str) -> LoginResponse:
         response = await self.client.request(
             "ILogin", "Login", self.LoginRequest(username=username, password=password)
         )
-        return from_xml_el(response, bool)
+
+        return from_xml_el(response, self.LoginResponse)

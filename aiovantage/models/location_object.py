@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..xml_dataclass import element_field
 from .system_object import SystemObject
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class LocationObject(SystemObject):
     """Base class for objects that have an Area."""
 
-    area_id: int | None = element_field(name="Area", default=None)
+    area_id: Optional[int] = element_field(name="Area", default=None)
 
     @property
     def area(self) -> "Area | None":

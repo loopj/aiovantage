@@ -1,6 +1,7 @@
 import shlex
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 from typing_extensions import override
 
@@ -15,9 +16,10 @@ def _parse_level(*args: str) -> float:
 
 @dataclass
 class Load(LocationObject):
-    _level: float | None = None
+    load_type: Optional[str] = element_field(name="LoadType", default=None)
 
-    load_type: str | None = element_field(name="LoadType", default=None)
+    def __post_init__(self) -> None:
+        self._level: Optional[float] = None
 
     @override
     def status_handler(self, type: StatusType, args: Sequence[str]) -> None:
@@ -28,7 +30,7 @@ class Load(LocationObject):
         self._logger.debug(f"Load level changed for {self.name} ({self.id}) to {level}")
 
     @property
-    def level(self) -> float | None:
+    def level(self) -> Optional[float]:
         return self._level
 
     async def get_level(self) -> float:

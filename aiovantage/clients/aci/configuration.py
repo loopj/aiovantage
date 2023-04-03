@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, AsyncIterator, Iterable
+from typing import TYPE_CHECKING, AsyncIterator, Iterable, Optional, Union
 
 from aiovantage.xml_dataclass import element_field, from_xml_el
 
@@ -15,16 +15,20 @@ class Configuration:
     # IConfiguration.OpenFilter
     @dataclass
     class OpenFilterRequest:
-        objects: str | None = element_field(name="Objects")
-        xpath: str | None = element_field(name="XPath")
+        objects: Optional[str] = element_field(name="Objects")
+        xpath: Optional[str] = element_field(name="XPath")
 
-    async def open_filter(self, xpath: str | None = None) -> int:
+    @dataclass
+    class OpenFilterResponse:
+        handle: int
+
+    async def open_filter(self, xpath: Optional[str] = None) -> OpenFilterResponse:
         response = await self.client.request(
             "IConfiguration",
             "OpenFilter",
             self.OpenFilterRequest(objects=None, xpath=xpath),
         )
-        return from_xml_el(response, int)
+        return from_xml_el(response, self.OpenFilterResponse)
 
     # IConfiguration.GetFilterResults
     @dataclass
@@ -50,25 +54,28 @@ class Configuration:
             ),
         )
         return response
-        # return from_xml_el(response, self.GetFilterResultsResponse)
 
     # IConfiguration.CloseFilter
     @dataclass
     class CloseFilterRequest:
         handle: int = element_field(name="hFilter")
 
-    async def close_filter(self, handle: int) -> bool:
+    @dataclass
+    class CloseFilterResponse:
+        success: bool
+
+    async def close_filter(self, handle: int) -> CloseFilterResponse:
         response = await self.client.request(
             "IConfiguration",
             "CloseFilter",
             self.CloseFilterRequest(handle=handle),
         )
-        return from_xml_el(response, bool)
+        return from_xml_el(response, self.CloseFilterResponse)
 
     # Convenience method that combines OpenFilter, GetFilterResults, and CloseFilter
     async def get_objects(
         self,
-        object_types: Iterable[str] | str | None = None,
+        object_types: Union[Iterable[str], str, None] = None,
         per_page: int = 50,
         whole_object: bool = True,
     ) -> AsyncIterator[ET.Element]:
@@ -80,17 +87,18 @@ class Configuration:
             xpath = " or ".join([f"/{str}" for str in object_types])
 
         # Get the handle
-        handle = await self.open_filter(xpath)
+        open_response = await self.open_filter(xpath)
 
         # Get the paginated results, yielding each object
         while True:
-            response = await self.get_filter_results(handle, per_page, whole_object)
+            response = await self.get_filter_results(open_response.handle, per_page, whole_object)
             if not response:
                 break
 
             for object in response:
                 if len(object) == 1:
+                    # TODO: Have xsdata parse known objects
                     yield object[0]
 
         # Close the filter
-        await self.close_filter(handle)
+        await self.close_filter(open_response.handle)

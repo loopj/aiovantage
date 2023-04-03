@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from ..clients.hc import StatusType
 from ..xml_dataclass import attr_field, element_field
@@ -14,14 +14,12 @@ if TYPE_CHECKING:
 class SystemObject:
     """Base class for all Vantage objects."""
 
-    _logger: "logging.Logger" = field(init=False)
-    _vantage: "Vantage | None" = field(init=False, default=None)
-
-    id: int | None = attr_field(name="VID", default=None)
-    name: str | None = element_field(name="Name", default=None)
-    display_name: str | None = element_field(name="DName", default=None)
+    id: Optional[int] = attr_field(name="VID", default=None)
+    name: Optional[str] = element_field(name="Name", default=None)
+    display_name: Optional[str] = element_field(name="DName", default=None)
 
     def __post_init__(self) -> None:
+        self._vantage: Optional["Vantage"] = None
         self._logger = logging.getLogger(__package__)
 
     @property
