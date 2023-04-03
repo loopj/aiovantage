@@ -2,10 +2,10 @@ import logging
 from collections.abc import Callable, Iterator, Sequence
 from typing import TYPE_CHECKING, Any, Generic, Optional, Type, TypeVar, Union, overload
 
-from ..clients.hc import StatusType
-from ..models.system_object import SystemObject
-from ..xml_dataclass import from_xml_el
-from ..query import QuerySet
+from aiovantage.clients.hc import StatusType
+from aiovantage.models.system_object import SystemObject
+from aiovantage.query import QuerySet
+from aiovantage.xml_dataclass import from_xml_el
 
 T = TypeVar("T", bound="SystemObject")
 
@@ -48,7 +48,9 @@ class BaseController(Generic[T]):
 
     async def fetch_objects(self, keep_updated: bool = True) -> None:
         # Fetch initial object details
-        async for el in self._vantage._aci_client.configuration.get_objects(self.vantage_types):
+        async for el in self._vantage._aci_client.configuration.get_objects(
+            self.vantage_types
+        ):
             item = from_xml_el(el, self.item_cls)
             if item.id is not None:
                 item._vantage = self._vantage

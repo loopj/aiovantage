@@ -1,10 +1,10 @@
 import logging
 from collections.abc import Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
-from ..clients.hc import StatusType
-from ..xml_dataclass import attr_field, element_field
+from aiovantage.clients.hc import StatusType
+from aiovantage.xml_dataclass import attr_field, element_field
 
 if TYPE_CHECKING:
     from aiovantage import Vantage

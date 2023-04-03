@@ -1,6 +1,6 @@
-from ..clients.hc import StatusType
-from ..models.dry_contact import DryContact
-from .base import BaseController
+from aiovantage.clients.hc import StatusType
+from aiovantage.controllers.base import BaseController
+from aiovantage.models.dry_contact import DryContact
 
 
 class DryContactsController(BaseController[DryContact]):

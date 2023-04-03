@@ -1,10 +1,9 @@
 import asyncio
 
+from aiovantage.clients.hc import StatusType
+from aiovantage.controllers.base import BaseController
+from aiovantage.models.load import Load
 from aiovantage.query import QuerySet
-
-from ..clients.hc import StatusType
-from ..models.load import Load
-from .base import BaseController
 
 
 class LoadsController(BaseController[Load]):

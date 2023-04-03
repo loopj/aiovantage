@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING, Optional
 
 from typing_extensions import override
 
-from ..clients.hc import StatusType
-from ..xml_dataclass import element_field
-from .system_object import SystemObject
+from aiovantage.clients.hc import StatusType
+from aiovantage.models.system_object import SystemObject
+from aiovantage.xml_dataclass import element_field
 
 if TYPE_CHECKING:
-    from .station import Station
+    from aiovantage.models.station import Station
 
 
 @dataclass

@@ -1,6 +1,6 @@
-from ..clients.hc import StatusType
-from ..models.button import Button
-from .base import BaseController
+from aiovantage.clients.hc import StatusType
+from aiovantage.controllers.base import BaseController
+from aiovantage.models.button import Button
 
 
 class ButtonsController(BaseController[Button]):

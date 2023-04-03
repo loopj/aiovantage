@@ -1,5 +1,5 @@
-from ..models.station import Station
-from .base import BaseController
+from aiovantage.controllers.base import BaseController
+from aiovantage.models.station import Station
 
 
 class StationsController(BaseController[Station]):

@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
-from ..query import QuerySet
-from ..xml_dataclass import element_field
-from .location_object import LocationObject
+from aiovantage.models.location_object import LocationObject
+from aiovantage.query import QuerySet
+from aiovantage.xml_dataclass import element_field
 
 if TYPE_CHECKING:
-    from .button import Button
-    from .dry_contact import DryContact
+    from aiovantage.models.button import Button
+    from aiovantage.models.dry_contact import DryContact
 
 
 @dataclass

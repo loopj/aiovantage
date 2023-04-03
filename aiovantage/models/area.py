@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from ..query import QuerySet
-from .location_object import LocationObject
+from aiovantage.models.location_object import LocationObject
+from aiovantage.query import QuerySet
 
 if TYPE_CHECKING:
-    from .dry_contact import DryContact
-    from .load import Load
-    from .station import Station
+    from aiovantage.models.dry_contact import DryContact
+    from aiovantage.models.load import Load
+    from aiovantage.models.station import Station
 
 
 @dataclass

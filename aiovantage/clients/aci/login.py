@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from aiovantage.xml_dataclass import from_xml_el, element_field
+from aiovantage.xml_dataclass import element_field, from_xml_el
 
 if TYPE_CHECKING:
     from aiovantage.clients.aci.client import ACIClient

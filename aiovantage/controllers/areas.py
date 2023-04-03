@@ -1,7 +1,7 @@
 from typing import Optional
 
-from ..models.area import Area
-from .base import BaseController
+from aiovantage.controllers.base import BaseController
+from aiovantage.models.area import Area
 
 
 class AreasController(BaseController[Area]):

@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Optional
 
-from ..xml_dataclass import element_field
-from .system_object import SystemObject
+from aiovantage.models.system_object import SystemObject
+from aiovantage.xml_dataclass import element_field
 
 if TYPE_CHECKING:
-    from .area import Area
+    from aiovantage.models.area import Area
 
 
 @dataclass

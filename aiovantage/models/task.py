@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 from typing_extensions import override
 
-from ..clients.hc import StatusType
-from .system_object import SystemObject
+from aiovantage.clients.hc import StatusType
+from aiovantage.models.system_object import SystemObject
 
 
 @dataclass

@@ -5,9 +5,9 @@ from typing import Optional
 
 from typing_extensions import override
 
-from ..clients.hc import StatusType
-from ..xml_dataclass import element_field
-from .location_object import LocationObject
+from aiovantage.clients.hc import StatusType
+from aiovantage.models.location_object import LocationObject
+from aiovantage.xml_dataclass import element_field
 
 
 def _parse_level(*args: str) -> float:

@@ -4,12 +4,12 @@ import logging
 import ssl
 import xml.etree.ElementTree as ET
 from types import TracebackType
-from typing import Any, Optional, Type
+from typing import Optional, Type
 
 from aiovantage.clients.aci.configuration import Configuration
 from aiovantage.clients.aci.introspection import Introspection
 from aiovantage.clients.aci.login import Login
-from aiovantage.xml_dataclass import to_xml_el, DataclassInstance
+from aiovantage.xml_dataclass import DataclassInstance, to_xml_el
 
 
 class ACIClient:
