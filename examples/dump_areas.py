@@ -44,7 +44,7 @@ def print_area(area: Area, level: int = 0) -> None:
 
 async def main() -> None:
     async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
-        await vantage.fetch_objects()
+        await vantage.initialize()
 
         root = vantage.areas.root()
         if root is not None:

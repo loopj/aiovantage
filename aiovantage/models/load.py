@@ -7,7 +7,6 @@ from typing_extensions import override
 
 from aiovantage.clients.hc import StatusType
 from aiovantage.models.location_object import LocationObject
-from aiovantage.xml_dataclass import element_field
 
 
 def _parse_level(*args: str) -> float:
@@ -16,7 +15,13 @@ def _parse_level(*args: str) -> float:
 
 @dataclass
 class Load(LocationObject):
-    load_type: Optional[str] = element_field(name="LoadType", default=None)
+    load_type: Optional[str] = field(
+        default=None,
+        metadata=dict(
+            type="Element",
+            name="LoadType",
+        ),
+    )
 
     def __post_init__(self) -> None:
         self._level: Optional[float] = None

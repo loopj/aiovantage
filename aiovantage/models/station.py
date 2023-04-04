@@ -1,9 +1,8 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
 from aiovantage.models.location_object import LocationObject
 from aiovantage.query import QuerySet
-from aiovantage.xml_dataclass import element_field
 
 if TYPE_CHECKING:
     from aiovantage.models.button import Button
@@ -12,7 +11,13 @@ if TYPE_CHECKING:
 
 @dataclass
 class Station(LocationObject):
-    bus_id: Optional[int] = element_field(name="Bus", default=None)
+    bus_id: Optional[int] = field(
+        default=None,
+        metadata=dict(
+            type="Element",
+            name="Bus",
+        ),
+    )
 
     @property
     def buttons(self) -> QuerySet["Button"]:

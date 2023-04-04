@@ -1,15 +1,19 @@
 import asyncio
-import datetime
 import logging
 import ssl
 import xml.etree.ElementTree as ET
+from dataclasses import is_dataclass
+from io import StringIO
 from types import TracebackType
-from typing import Optional, Type
+from typing import Any, Optional, Type, TypeVar
 
-from aiovantage.clients.aci.configuration import Configuration
-from aiovantage.clients.aci.introspection import Introspection
-from aiovantage.clients.aci.login import Login
-from aiovantage.xml_dataclass import DataclassInstance, to_xml_el
+from xsdata.formats.dataclass.parsers import XmlParser
+from xsdata.formats.dataclass.parsers.config import ParserConfig
+from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
+from xsdata.formats.dataclass.serializers import XmlSerializer
+from xsdata.formats.dataclass.serializers.config import SerializerConfig
+
+from aiovantage.clients.aci.interfaces.login import login
 
 
 class ACIClient:
@@ -39,6 +43,15 @@ class ACIClient:
         self._connection: Optional[tuple[asyncio.StreamReader, asyncio.StreamWriter]] = None
         self._timeout = 5
 
+        self._serializer = XmlSerializer(config=SerializerConfig(
+            xml_declaration=False
+        ))
+
+        self._parser = XmlParser(handler=XmlEventHandler, config=ParserConfig(
+            fail_on_unknown_properties=False,
+            fail_on_unknown_attributes=False,
+        ))
+
         if port is None:
             self._port = 2010 if use_ssl else 2001
         else:
@@ -61,18 +74,6 @@ class ACIClient:
         """Close context manager."""
         await self.close()
 
-    @property
-    def login(self) -> Login:
-        return Login(self)
-
-    @property
-    def introspection(self) -> Introspection:
-        return Introspection(self)
-
-    @property
-    def configuration(self) -> Configuration:
-        return Configuration(self)
-
     async def connect(self) -> None:
         """Connect to the ACI service and authenticate if necessary."""
 
@@ -87,7 +88,7 @@ class ACIClient:
             return
 
         # Make the login request
-        response = await self.login.login(self._username, self._password)
+        response = await login(self, self._username, self._password)
         if response.success:
             self._logger.info("Login successful")
         else:
@@ -104,32 +105,43 @@ class ACIClient:
 
         self._connection = None
 
+    def _build_request(self, interface: str, method: str, params: Any) -> str:
+        output = StringIO()
+        output.write(f"<{interface}><{method}>")
+        if is_dataclass(params):
+            self._serializer.write(output, params)
+        elif params is None:
+            output.write("<call/>")
+        output.write(f"</{method}></{interface}>")
+
+        return output.getvalue()
+
+    T = TypeVar("T")
+
+    def _parse_object(self, el: ET.Element, cls: type[T]) -> T:
+        return self._parser.parse(el, cls)
+
     async def request(
-        self, interface: str, method: str, params: Optional[DataclassInstance] = None
-    ) -> ET.Element:
+        self, interface: str, method: str, response_cls: type[T], params: Optional[Any] = None,
+    ) -> T:
         """Build and send an RPC request."""
 
         if self._connection is None:
             raise RuntimeError("Not connected")
 
-        request_el = ET.Element(interface)
-        method_el = ET.SubElement(request_el, method)
-        if params is not None:
-            method_el.append(to_xml_el(params, "call"))
-        else:
-            ET.SubElement(method_el, "call")
+        # Build the request
+        request = self._build_request(interface, method, params)
 
         # Send the request
         reader, writer = self._connection
-        request = ET.tostring(request_el)
-        writer.write(request)
+        writer.write(request.encode())
         await writer.drain()
 
         # Fetch the response
         buffer = bytearray()
         while True:
             try:
-                chunk = await asyncio.wait_for(reader.read(100), self._timeout)
+                chunk = await asyncio.wait_for(reader.read(1024), self._timeout)
             except asyncio.TimeoutError:
                 raise Exception("RPC call failed, timed out waiting for response")
 
@@ -144,13 +156,17 @@ class ACIClient:
             if f"</{interface}>".encode() in buffer or f"<{interface}/>".encode() in buffer:
                 break
 
-        # Parse the response
+        # Parse the response text
         response = buffer.decode()
         response_el = ET.fromstring(response)
 
-        # Make sure the response is valid
+        # Make sure the response is valid, and grab the <return> element
         el = response_el.find(f"{method}/return")
         if el is None:
             raise Exception(f"RPC call failed, no <return> element in response: {response}")
 
-        return el
+        # Parse the response element
+        if response_cls is ET.Element:
+            return el # type: ignore
+        else:
+            return self._parse_object(el, response_cls)

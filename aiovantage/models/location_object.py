@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
 from aiovantage.models.system_object import SystemObject
-from aiovantage.xml_dataclass import element_field
 
 if TYPE_CHECKING:
     from aiovantage.models.area import Area
@@ -12,7 +11,13 @@ if TYPE_CHECKING:
 class LocationObject(SystemObject):
     """Base class for objects that have an Area."""
 
-    area_id: Optional[int] = element_field(name="Area", default=None)
+    area_id: Optional[int] = field(
+        default=None,
+        metadata=dict(
+            type="Element",
+            name="Area",
+        ),
+    )
 
     @property
     def area(self) -> "Area | None":

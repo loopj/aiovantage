@@ -1,11 +1,23 @@
 import logging
-from collections.abc import Callable, Iterator, Sequence
-from typing import TYPE_CHECKING, Any, Generic, Optional, Type, TypeVar, Union, overload
+from collections.abc import AsyncIterator, Callable, Iterator, Sequence
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Generic,
+    Optional,
+    TypeVar,
+    Union,
+    overload,
+)
 
+from aiovantage.clients.aci.interfaces.configuration import (
+    open_filter,
+    get_filter_results,
+    close_filter,
+)
 from aiovantage.clients.hc import StatusType
 from aiovantage.models.system_object import SystemObject
 from aiovantage.query import QuerySet
-from aiovantage.xml_dataclass import from_xml_el
 
 T = TypeVar("T", bound="SystemObject")
 
@@ -20,7 +32,7 @@ class BaseController(Generic[T]):
     """Holds and manages all items for a specific Vantage object type."""
 
     # TODO: ClassVar for these?
-    item_cls: Type[T]
+    item_cls: type[T]
     vantage_types: tuple[str, ...]
     status_types: Optional[tuple[StatusType, ...]] = None
 
@@ -46,25 +58,46 @@ class BaseController(Generic[T]):
         """Return bool if id is in items."""
         return id in self._items
 
-    async def fetch_objects(self, keep_updated: bool = True) -> None:
-        # Fetch initial object details
-        async for el in self._vantage._aci_client.configuration.get_objects(
-            self.vantage_types
-        ):
-            item = from_xml_el(el, self.item_cls)
-            if item.id is not None:
-                item._vantage = self._vantage
-                self._items[item.id] = item
+    async def _fetch_objects(self) -> AsyncIterator:
+        # Build the "xpath" filter
+        xpath = None
+        if self.vantage_types is not None:
+            xpath = " or ".join([f"/{str}" for str in self.vantage_types])
 
-        self._logger.info(f"{self.__class__.__name__} loaded objects")
+        # Open the filter
+        response = await open_filter(self._vantage._aci_client, xpath)
+        handle = response.handle
 
-        # Subscribe to status updates
-        if keep_updated and self.status_types is not None:
+        # Get the results
+        while True:
+            reponse = await get_filter_results(self._vantage._aci_client, handle)
+            if not reponse:
+                break
+
+            for object in reponse:
+                yield self._vantage._aci_client._parse_object(object[0], self.item_cls)
+
+        # Close the filter
+        await close_filter(self._vantage._aci_client, handle)
+
+    async def subscribe_to_object_updates(self) -> None:
+        if self.status_types is not None:
             await self._vantage._hc_client.subscribe(
                 self._handle_status_event, self.status_types
             )
             self._logger.info(f"{self.__class__.__name__} subscribed to object updates")
 
+    async def initialize(self) -> None:
+        async for obj in self._fetch_objects():
+            obj._vantage = self._vantage
+            self._items[obj.id] = obj
+
+        if self.status_types is not None:
+            await self._vantage._hc_client.subscribe(
+                self._handle_status_event, self.status_types
+            )
+
+        self._logger.info(f"{self.__class__.__name__} initialized")
         self._initialized = True
 
     def subscribe(

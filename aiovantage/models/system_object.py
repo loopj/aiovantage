@@ -1,10 +1,9 @@
 import logging
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
 from aiovantage.clients.hc import StatusType
-from aiovantage.xml_dataclass import attr_field, element_field
 
 if TYPE_CHECKING:
     from aiovantage import Vantage
@@ -14,9 +13,28 @@ if TYPE_CHECKING:
 class SystemObject:
     """Base class for all Vantage objects."""
 
-    id: Optional[int] = attr_field(name="VID", default=None)
-    name: Optional[str] = element_field(name="Name", default=None)
-    display_name: Optional[str] = element_field(name="DName", default=None)
+    id: int = field(
+        metadata=dict(
+            type="Attribute",
+            name="VID",
+        ),
+    )
+
+    name: Optional[str] = field(
+        default=None,
+        metadata=dict(
+            type="Element",
+            name="Name",
+        ),
+    )
+
+    display_name: Optional[str] = field(
+        default=None,
+        metadata=dict(
+            type="Element",
+            name="DName",
+        ),
+    )
 
     def __post_init__(self) -> None:
         self._vantage: Optional["Vantage"] = None

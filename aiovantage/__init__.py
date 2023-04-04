@@ -93,25 +93,23 @@ class Vantage:
             self._hc_client.initialize(),
         )
 
-    async def fetch_objects(self) -> None:
+    async def initialize(self) -> None:
         """Fetch all objects from the controllers."""
 
         coros = [
-            self._areas.fetch_objects(),
-            self._loads.fetch_objects(),
-            self._stations.fetch_objects(),
-            self._buttons.fetch_objects(),
-            self._dry_contacts.fetch_objects(),
-            self._omni_sensors.fetch_objects(),
-            self._tasks.fetch_objects(),
+            self._areas.initialize(),
+            self._loads.initialize(),
+            self._stations.initialize(),
+            self._buttons.initialize(),
+            self._dry_contacts.initialize(),
+            self._omni_sensors.initialize(),
+            self._tasks.initialize(),
         ]
 
         # TODO: Connection pool? asyncio.gather?
         for coro in coros:
             await coro
 
-    async def fetch_state(self) -> None:
-        """Fetch the state of all objects."""
         await asyncio.gather(
             self._loads.fetch_state(),
             # TODO: The rest

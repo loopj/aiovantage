@@ -1,12 +1,11 @@
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
 from typing_extensions import override
 
 from aiovantage.clients.hc import StatusType
 from aiovantage.models.location_object import LocationObject
-from aiovantage.xml_dataclass import element_field
 
 if TYPE_CHECKING:
     from aiovantage.models.station import Station
@@ -14,7 +13,13 @@ if TYPE_CHECKING:
 
 @dataclass
 class DryContact(LocationObject):
-    station_id: Optional[int] = element_field(name="Parent", default=None)
+    station_id: Optional[int] = field(
+        default=None,
+        metadata=dict(
+            type="Element",
+            name="Parent",
+        ),
+    )
 
     @override
     def status_handler(self, type: StatusType, args: Sequence[str]) -> None:

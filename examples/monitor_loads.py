@@ -23,7 +23,7 @@ def event_callback(obj: Load, args: Any) -> None:
 async def main() -> None:
     async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
         # Fetch all known loads from the controller
-        await vantage.loads.fetch_objects()
+        await vantage.loads.initialize()
 
         # Subscribe to status updates for all loads
         vantage.loads.subscribe(event_callback)
