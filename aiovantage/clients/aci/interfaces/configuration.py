@@ -2,17 +2,23 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
-from aiovantage.clients.aci.interfaces import params_dataclass
-
 if TYPE_CHECKING:
     from aiovantage.clients.aci.client import ACIClient
 
 
 # IConfiguration.OpenFilter
-@params_dataclass
+@dataclass
 class OpenFilterParams:
-    objects: Optional[str] = field(metadata=dict(name="Objects"))
-    xpath: Optional[str] = field(metadata=dict(name="XPath"))
+    objects: Optional[str] = field(
+        metadata=dict(
+            name="Objects",
+        ),
+    )
+    xpath: Optional[str] = field(
+        metadata=dict(
+            name="XPath",
+        ),
+    )
 
 
 @dataclass
@@ -26,13 +32,13 @@ async def open_filter(
     return await client.request(
         "IConfiguration",
         "OpenFilter",
-        OpenFilterResponse,
-        OpenFilterParams(objects=None, xpath=xpath),
+        params=OpenFilterParams(objects=None, xpath=xpath),
+        response_type=OpenFilterResponse,
     )
 
 
 # IConfiguration.GetFilterResults
-@params_dataclass
+@dataclass
 class GetFilterResultsParams:
     count: int = field(metadata=dict(name="Count"))
     whole_object: bool = field(metadata=dict(name="WholeObject"))
@@ -46,13 +52,14 @@ async def get_filter_results(
     return await client.request(
         "IConfiguration",
         "GetFilterResults",
-        ET.Element,
-        GetFilterResultsParams(count=count, whole_object=whole_object, handle=handle),
+        params=GetFilterResultsParams(
+            count=count, whole_object=whole_object, handle=handle
+        ),
     )
 
 
 # IConfiguration.CloseFilter
-@params_dataclass
+@dataclass
 class CloseFilterParams:
     handle: int = field(metadata=dict(name="hFilter"))
 
@@ -66,6 +73,6 @@ async def close_filter(client: "ACIClient", handle: int) -> CloseFilterResponse:
     return await client.request(
         "IConfiguration",
         "CloseFilter",
-        CloseFilterResponse,
-        CloseFilterParams(handle=handle),
+        params=CloseFilterParams(handle=handle),
+        response_type=CloseFilterResponse,
     )

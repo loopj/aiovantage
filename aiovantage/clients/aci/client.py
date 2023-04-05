@@ -2,18 +2,21 @@ import asyncio
 import logging
 import ssl
 import xml.etree.ElementTree as ET
-from dataclasses import is_dataclass
+from collections.abc import Generator
 from io import StringIO
 from types import TracebackType
-from typing import Any, Optional, Type, TypeVar
+from typing import Any, Optional, Type, TypeVar, Union, overload
 
 from xsdata.formats.dataclass.parsers import XmlParser
-from xsdata.formats.dataclass.parsers.config import ParserConfig
 from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
+from xsdata.formats.dataclass.serializers.mixins import XmlWriterEvent
 
 from aiovantage.clients.aci.interfaces.login import login
+
+
+T = TypeVar("T")
 
 
 class ACIClient:
@@ -40,17 +43,10 @@ class ACIClient:
         self._password = password
         self._use_ssl = use_ssl
         self._logger = logging.getLogger(__name__)
-        self._connection: Optional[tuple[asyncio.StreamReader, asyncio.StreamWriter]] = None
+        self._connection: Optional[
+            tuple[asyncio.StreamReader, asyncio.StreamWriter]
+        ] = None
         self._timeout = 5
-
-        self._serializer = XmlSerializer(config=SerializerConfig(
-            xml_declaration=False
-        ))
-
-        self._parser = XmlParser(handler=XmlEventHandler, config=ParserConfig(
-            fail_on_unknown_properties=False,
-            fail_on_unknown_attributes=False,
-        ))
 
         if port is None:
             self._port = 2010 if use_ssl else 2001
@@ -59,6 +55,10 @@ class ACIClient:
 
         if use_ssl:
             self._ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+
+        # XML parsing and serialization
+        self._parser = XmlParser(handler=XmlEventHandler)
+        self._serializer = XmlSerializer(config=SerializerConfig(xml_declaration=False))
 
     async def __aenter__(self) -> "ACIClient":
         """Return Context manager."""
@@ -106,34 +106,53 @@ class ACIClient:
         self._connection = None
 
     def _build_request(self, interface: str, method: str, params: Any) -> str:
-        output = StringIO()
-        output.write(f"<{interface}><{method}>")
-        if is_dataclass(params):
-            self._serializer.write(output, params)
-        elif params is None:
-            output.write("<call/>")
-        output.write(f"</{method}></{interface}>")
+        def wrapped_params() -> Generator:
+            yield XmlWriterEvent.START, interface
+            yield XmlWriterEvent.START, method
+            if params is None:
+                yield XmlWriterEvent.START, "call"
+                yield XmlWriterEvent.END, "call"
+            else:
+                yield from self._serializer.write_dataclass(params, qname="call")
+            yield XmlWriterEvent.END, method
+            yield XmlWriterEvent.END, interface
 
-        return output.getvalue()
+        out = StringIO()
+        xml_writer = self._serializer.writer(
+            config=self._serializer.config, ns_map={}, output=out
+        )
+        xml_writer.write(wrapped_params())
+        return out.getvalue()
 
-    T = TypeVar("T")
+    @overload
+    async def request(
+        self, interface: str, method: str, *, params: Any = None
+    ) -> ET.Element:
+        ...
 
-    def _parse_object(self, el: ET.Element, cls: type[T]) -> T:
-        return self._parser.parse(el, cls)
+    @overload
+    async def request(
+        self, interface: str, method: str, *, response_type: Type[T], params: Any = None
+    ) -> T:
+        ...
 
     async def request(
-        self, interface: str, method: str, response_cls: type[T], params: Optional[Any] = None,
-    ) -> T:
+        self,
+        interface: str,
+        method: str,
+        params: Any = None,
+        response_type: Optional[type[T]] = None,
+    ) -> Union[T, ET.Element]:
         """Build and send an RPC request."""
 
         if self._connection is None:
-            raise RuntimeError("Not connected")
+            await self.connect()
 
         # Build the request
         request = self._build_request(interface, method, params)
 
         # Send the request
-        reader, writer = self._connection
+        reader, writer = self._connection  # type: ignore
         writer.write(request.encode())
         await writer.drain()
 
@@ -145,28 +164,33 @@ class ACIClient:
             except asyncio.TimeoutError:
                 raise Exception("RPC call failed, timed out waiting for response")
 
-            if chunk == b'':
+            if chunk == b"":
                 break
 
-            if chunk == b'\x18':
-                raise RuntimeError(f"RPC call failed, received CAN (0x18) byte. Malformed request to '{interface}.{method}'?")
+            if chunk == b"\x18":
+                raise RuntimeError(
+                    f"RPC call failed, received CAN (0x18) byte. Malformed request to '{interface}.{method}'?"
+                )
 
             buffer.extend(chunk)
 
-            if f"</{interface}>".encode() in buffer or f"<{interface}/>".encode() in buffer:
+            if (
+                f"</{interface}>".encode() in buffer
+                or f"<{interface}/>".encode() in buffer
+            ):
                 break
 
-        # Parse the response text
+        # Make sure the response is valid, and grab the contents of <return> element
         response = buffer.decode()
         response_el = ET.fromstring(response)
-
-        # Make sure the response is valid, and grab the <return> element
         el = response_el.find(f"{method}/return")
         if el is None:
-            raise Exception(f"RPC call failed, no <return> element in response: {response}")
+            raise Exception(
+                f"RPC call failed, no <return> element in response: {response}"
+            )
 
-        # Parse the response element
-        if response_cls is ET.Element:
-            return el # type: ignore
+        # Return the response, either as an ElementTree element or as a parsed object
+        if response_type is None:
+            return el
         else:
-            return self._parse_object(el, response_cls)
+            return self._parser.parse(el, response_type)

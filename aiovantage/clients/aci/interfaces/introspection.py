@@ -7,14 +7,26 @@ if TYPE_CHECKING:
 
 @dataclass
 class GetVersionResponse:
-    kernel: str = field(metadata=dict(type="Element"))
-    rootfs: str = field(metadata=dict(type="Element"))
-    app: str = field(metadata=dict(type="Element"))
+    kernel: str = field(
+        metadata={
+            "type": "Element",
+        },
+    )
+    rootfs: str = field(
+        metadata={
+            "type": "Element",
+        },
+    )
+    app: str = field(
+        metadata={
+            "type": "Element",
+        },
+    )
 
 
 async def get_version(client: "ACIClient") -> GetVersionResponse:
     return await client.request(
         "IIntrospection",
         "GetVersion",
-        GetVersionResponse,
+        response_type=GetVersionResponse,
     )

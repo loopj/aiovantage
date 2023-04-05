@@ -10,6 +10,10 @@ from typing import (
     overload,
 )
 
+from xsdata.formats.dataclass.parsers import XmlParser
+from xsdata.formats.dataclass.parsers.config import ParserConfig
+from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
+
 from aiovantage.clients.aci.interfaces.configuration import (
     open_filter,
     get_filter_results,
@@ -45,6 +49,13 @@ class BaseController(Generic[T]):
         self._id_subscribers: dict[int, list[EventCallBackType]] = {}
         self._logger = logging.getLogger(__package__)
         self._initialized = False
+        self._parser = XmlParser(
+            handler=XmlEventHandler,
+            config=ParserConfig(
+                fail_on_unknown_properties=False,
+                fail_on_unknown_attributes=False,
+            ),
+        )
 
     def __iter__(self) -> Iterator[T]:
         """Iterate items."""
@@ -65,17 +76,16 @@ class BaseController(Generic[T]):
             xpath = " or ".join([f"/{str}" for str in self.vantage_types])
 
         # Open the filter
-        response = await open_filter(self._vantage._aci_client, xpath)
-        handle = response.handle
+        handle = (await open_filter(self._vantage._aci_client, xpath)).handle
 
         # Get the results
         while True:
-            reponse = await get_filter_results(self._vantage._aci_client, handle)
-            if not reponse:
+            response = await get_filter_results(self._vantage._aci_client, handle)
+            if not response:
                 break
 
-            for object in reponse:
-                yield self._vantage._aci_client._parse_object(object[0], self.item_cls)
+            for object in response:
+                yield self._parser.parse(object[0], self.item_cls)
 
         # Close the filter
         await close_filter(self._vantage._aci_client, handle)
