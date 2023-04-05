@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
-from aiovantage.clients.hc import StatusType
+from aiovantage.hc_client import StatusType
 
 if TYPE_CHECKING:
     from aiovantage import Vantage

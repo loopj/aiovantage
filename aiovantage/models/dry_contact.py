@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 
 from typing_extensions import override
 
-from aiovantage.clients.hc import StatusType
+from aiovantage.hc_client import StatusType
 from aiovantage.models.location_object import LocationObject
 
 if TYPE_CHECKING:

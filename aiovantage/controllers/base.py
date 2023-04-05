@@ -19,7 +19,7 @@ from aiovantage.aci_client.interfaces.configuration import (
     get_filter_results,
     close_filter,
 )
-from aiovantage.clients.hc import StatusType
+from aiovantage.hc_client import StatusType
 from aiovantage.models.system_object import SystemObject
 from aiovantage.query import QuerySet
 

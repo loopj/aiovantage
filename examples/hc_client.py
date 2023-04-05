@@ -9,7 +9,7 @@ import asyncio
 import logging
 from typing import Any
 
-from aiovantage.clients.hc import HCClient, StatusType
+from aiovantage.hc_client import HCClient, StatusType
 
 logging.basicConfig(level=logging.INFO)
 

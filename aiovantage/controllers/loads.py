@@ -1,6 +1,6 @@
 import asyncio
 
-from aiovantage.clients.hc import StatusType
+from aiovantage.hc_client import StatusType
 from aiovantage.controllers.base import BaseController
 from aiovantage.models.load import Load
 from aiovantage.query import QuerySet

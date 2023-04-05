@@ -4,7 +4,7 @@ from typing import Optional
 
 from typing_extensions import override
 
-from aiovantage.clients.hc import StatusType
+from aiovantage.hc_client import StatusType
 from aiovantage.models.system_object import SystemObject
 
 
