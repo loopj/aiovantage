@@ -2,7 +2,7 @@ import asyncio
 from types import TracebackType
 from typing import Optional, Type
 
-from aiovantage.clients.aci.client import ACIClient
+from aiovantage.aci_client import ACIClient
 from aiovantage.clients.hc import HCClient
 from aiovantage.controllers.areas import AreasController
 from aiovantage.controllers.buttons import ButtonsController

@@ -13,7 +13,7 @@ from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.formats.dataclass.serializers.mixins import XmlWriterEvent
 
-from aiovantage.clients.aci.interfaces.login import login
+from aiovantage.aci_client.interfaces.login import login
 
 
 T = TypeVar("T")

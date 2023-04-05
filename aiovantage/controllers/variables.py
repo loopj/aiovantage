@@ -1,6 +1,6 @@
 from aiovantage.clients.hc import StatusType
-from aiovantage.models.variable import Variable
 from aiovantage.controllers.base import BaseController
+from aiovantage.models.variable import Variable
 
 
 class VariablesController(BaseController[Variable]):

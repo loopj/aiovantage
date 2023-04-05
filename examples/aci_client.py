@@ -11,13 +11,17 @@ import logging
 import xml.etree.ElementTree as ET
 from typing import AsyncIterator
 
-from aiovantage.clients.aci.client import ACIClient
-from aiovantage.clients.aci.interfaces.configuration import (
+from xsdata.formats.dataclass.parsers import XmlParser
+from xsdata.formats.dataclass.parsers.config import ParserConfig
+from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
+
+from aiovantage.aci_client import ACIClient
+from aiovantage.aci_client.interfaces.configuration import (
     close_filter,
     get_filter_results,
     open_filter,
 )
-from aiovantage.clients.aci.interfaces.introspection import get_version
+from aiovantage.aci_client.interfaces.introspection import get_version
 
 logging.basicConfig(level=logging.INFO)
 
@@ -49,6 +53,15 @@ async def get_objects(client: ACIClient, type: str) -> AsyncIterator[ET.Element]
     await close_filter(client, handle)
 
 
+parser = XmlParser(
+    handler=XmlEventHandler,
+    config=ParserConfig(
+        fail_on_unknown_properties=False,
+        fail_on_unknown_attributes=False,
+    ),
+)
+
+
 async def main() -> None:
     async with ACIClient("10.2.0.103", "administrator", "ZZuUw76CnL") as client:
         # Get version
@@ -60,13 +73,13 @@ async def main() -> None:
         # Dump all areas
         print("# Vantage Areas")
         async for obj in get_objects(client, "Area"):
-            print(client._parse_object(obj, Area))
+            print(parser.parse(obj, Area))
         print()
 
         # Dump all loads
         print("# Vantage Loads")
         async for obj in get_objects(client, "Load"):
-            print(client._parse_object(obj, Load))
+            print(parser.parse(obj, Load))
         print()
 
 

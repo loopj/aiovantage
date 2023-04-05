@@ -14,7 +14,7 @@ from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
 from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 
-from aiovantage.clients.aci.interfaces.configuration import (
+from aiovantage.aci_client.interfaces.configuration import (
     open_filter,
     get_filter_results,
     close_filter,

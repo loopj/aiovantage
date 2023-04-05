@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from aiovantage.clients.aci.client import ACIClient
+    from aiovantage.aci_client import ACIClient
 
 
 # IConfiguration.OpenFilter
