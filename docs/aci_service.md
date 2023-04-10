@@ -52,9 +52,12 @@ The following is a list of known interfaces and methods available on a Vantage I
 ### Introspection
 
 ```python
-IIntrospection.GetSysInfo()
-IIntrospection.GetVersion()
-IIntrospection.GetInterfaces()
+IIntrospection.GetSysInfo() -> SysInfo_T
+IIntrospection.GetVersion() -> (kernel, rootfs, app)
+IIntrospection.GetInterfaces() -> List[Interface_T]
+IIntrospection.GetInterfaceInfo(Interface: List[str]) -> List[InterfaceInfo_T]
+IIntrospection.GetTypes() -> List[Type_T]
+IIntrospection.GetTypeInfo(Type: List[str]) -> List[TypeInfo_T]
 ```
 
 
@@ -62,14 +65,14 @@ IIntrospection.GetInterfaces()
 
 ```python
 IConfiguration.Clear()
-IConfiguration.GetObject(VID: int)
-IConfiguration.SetObject(?)
-IConfiguration.GetTime() -> str
-IConfiguration.SetTime(str)
-IConfiguration.GetNTPServer() -> str
-IConfiguration.SetNTPServer(str)
+IConfiguration.GetObject(VID: List[int]) -> List[Object_T]
+IConfiguration.SetObject(Object: List[Object_T]) -> List[VID]
+IConfiguration.GetTime() -> xs:dateTime
+IConfiguration.SetTime(xs:dateTime)
+IConfiguration.GetNTPServer() -> xs:anyURI
+IConfiguration.SetNTPServer(xs:anyURI) -> bool
 IConfiguration.GetBuffers()
-IConfiguration.OpenFilter(Objects: ?, XPath: str) -> int
+IConfiguration.OpenFilter(Objects: ?, XPath: str) -> int (<Objects><ObjectType>Area</ObjectType></Objects>)
 IConfiguration.GetFilterResults(Count: int, WholeObject: bool, hFilter: int)
 IConfiguration.CloseFilter(int)
 IConfiguration.GetZeroCross()
