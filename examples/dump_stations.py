@@ -15,15 +15,13 @@ async def main() -> None:
         for station in vantage.stations:
             print(f"{station.name}")
 
-            # if station.buttons:
-            #     print("    Buttons:")
-            #     for button in station.buttons:
-            #         print(f"        {button.name}")
+            print("    Buttons:")
+            for button in vantage.buttons.filter(parent=station.id):
+                print(f"        {button.name}")
 
-            # if station.dry_contacts:
-            #     print("    Dry Contacts:")
-            #     for dry_contact in station.dry_contacts:
-            #         print(f"        {dry_contact.name}")
+            print("    Dry Contacts:")
+            for dry_contact in vantage.dry_contacts.filter(parent=station.id):
+                print(f"        {dry_contact.name}")
 
 
 try:
