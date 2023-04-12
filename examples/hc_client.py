@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 
-from os.path import abspath, dirname
-from sys import path
-
-path.insert(1, dirname(dirname(abspath(__file__))))
-
 import asyncio
 import logging
 from typing import Any

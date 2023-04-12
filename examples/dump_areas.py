@@ -1,15 +1,10 @@
 #!/usr/bin/env python3
 
-from os.path import abspath, dirname
-from sys import path
-
-path.insert(1, dirname(dirname(abspath(__file__))))
-
 import asyncio
 import logging
 
 from aiovantage import Vantage
-from aiovantage.models.area import Area
+from aiovantage.aci_client.system_objects.area import Area
 
 logging.basicConfig(level=logging.INFO)
 
@@ -19,27 +14,23 @@ def print_indented(text: str, indent_level: int) -> None:
     print(indent + text)
 
 
-def print_area(area: Area, level: int = 0) -> None:
+def print_area(vantage: Vantage, area: Area, level: int = 0) -> None:
     print_indented(f"{area.name}", level)
 
-    if area.areas:
-        for child_area in area.areas:
-            print_area(child_area, level=level + 1)
+    for child_area in vantage.areas.filter(area=area.id):
+        print_area(vantage, child_area, level=level + 1)
 
-    if area.stations:
-        print_indented("Stations:", level + 1)
-        for station in area.stations:
-            print_indented(f"{station.name}", level + 2)
+    print_indented("Stations:", level + 1)
+    for station in vantage.stations.filter(area=area.id):
+        print_indented(f"{station.name}", level + 2)
 
-    if area.loads:
-        print_indented("Loads:", level + 1)
-        for load in area.loads:
-            print_indented(f"{load.name}", level + 2)
+    print_indented("Loads:", level + 1)
+    for load in vantage.loads.filter(area=area.id):
+        print_indented(f"{load.name}", level + 2)
 
-    if area.dry_contacts:
-        print_indented("Dry Contacts:", level + 1)
-        for dry_contact in area.dry_contacts:
-            print_indented(f"{dry_contact.name}", level + 2)
+    print_indented("Dry Contacts:", level + 1)
+    for dry_contact in vantage.dry_contacts.filter(area=area.id):
+        print_indented(f"{dry_contact.name}", level + 2)
 
 
 async def main() -> None:
@@ -48,7 +39,7 @@ async def main() -> None:
 
         root = vantage.areas.root()
         if root is not None:
-            print_area(root)
+            print_area(vantage, root)
 
 
 try:

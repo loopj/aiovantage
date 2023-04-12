@@ -1,9 +1,4 @@
-# !/usr/bin/env python3
-
-from os.path import abspath, dirname
-from sys import path
-
-path.insert(1, dirname(dirname(abspath(__file__))))
+#!/usr/bin/env python3
 
 import asyncio
 import logging
@@ -20,15 +15,15 @@ async def main() -> None:
         for station in vantage.stations:
             print(f"{station.name}")
 
-            if station.buttons:
-                print("    Buttons:")
-                for button in station.buttons:
-                    print(f"        {button.name}")
+            # if station.buttons:
+            #     print("    Buttons:")
+            #     for button in station.buttons:
+            #         print(f"        {button.name}")
 
-            if station.dry_contacts:
-                print("    Dry Contacts:")
-                for dry_contact in station.dry_contacts:
-                    print(f"        {dry_contact.name}")
+            # if station.dry_contacts:
+            #     print("    Dry Contacts:")
+            #     for dry_contact in station.dry_contacts:
+            #         print(f"        {dry_contact.name}")
 
 
 try:

@@ -1,17 +1,14 @@
-# !/usr/bin/env python3
-
-from os.path import abspath, dirname
-from sys import path
-
-path.insert(1, dirname(dirname(abspath(__file__))))
+#!/usr/bin/env python3
 
 import asyncio
+import logging
 import sys
 import termios
 import tty
 
 from aiovantage import Vantage
 
+logging.basicConfig(level=logging.DEBUG)
 
 async def main() -> None:
     vantage = Vantage("10.2.0.103", "administrator", "ZZuUw76CnL")
@@ -50,19 +47,19 @@ async def main() -> None:
                 seq = sys.stdin.read(2)
                 if seq == "[A":  # Up arrow
                     # Increase the load's brightness
-                    level = await load.get_level()
-                    await load.set_level(level + 10)
+                    level = await vantage.loads.get_level(load_id)
+                    await vantage.loads.set_level(load_id, level + 10)
                 elif seq == "[B":  # Down arrow
                     # Decrease the load's brightness
-                    level = await load.get_level()
-                    await load.set_level(level - 10)
+                    level = await vantage.loads.get_level(load_id)
+                    await vantage.loads.set_level(load_id, level - 10)
             elif c == " ":
                 # Toggle load
-                level = await load.get_level()
+                level = await vantage.loads.get_level(load_id)
                 if level > 0:
-                    await load.set_level(0)
+                    await vantage.loads.set_level(load_id, 0)
                 else:
-                    await load.set_level(100)
+                    await vantage.loads.set_level(load_id, 100)
             elif c == "q":
                 break
 

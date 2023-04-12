@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aiovantage"
+version = "0.1.0"
+authors = [
+    {name = "James Smith", email = "james@loopj.com"},
+]
+description = "Python module to talk to Vantage InFusion controllers."
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "xsdata",
+]
+
+[tool.mypy]
+files = "src"
+mypy_path = "src"
+python_version = "3.8"
+namespace_packages = true
+explicit_package_bases = true
+implicit_reexport = true
+show_error_codes = true
+strict = true
+enable_error_code = [
+    "ignore-without-code",
+    "redundant-expr",
+    "truthy-bool",
+]

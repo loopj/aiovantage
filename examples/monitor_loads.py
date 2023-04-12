@@ -1,23 +1,18 @@
 #!/usr/bin/env python3
 
-from os.path import abspath, dirname
-from sys import path
-
-path.insert(1, dirname(dirname(abspath(__file__))))
-
 import asyncio
 import logging
 from typing import Any
 
 from aiovantage import Vantage
-from aiovantage.models.load import Load
+from aiovantage.aci_client.system_objects import Load
 
 logging.basicConfig(level=logging.INFO)
 
 
 # This callback will be called whenever a load is updated
 def event_callback(obj: Load, args: Any) -> None:
-    print(f"Load updated: {obj} {args}")
+    print(f"Load updated: {obj} {obj.level} {args}")
 
 
 async def main() -> None:

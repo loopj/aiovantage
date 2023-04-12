@@ -1,16 +1,11 @@
-# !/usr/bin/env python3
-
-from os.path import abspath, dirname
-from sys import path
-
-path.insert(1, dirname(dirname(abspath(__file__))))
+#!/usr/bin/env python3
 
 import asyncio
 import logging
 
 from aiovantage import Vantage
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 async def main() -> None:
@@ -19,7 +14,7 @@ async def main() -> None:
         await vantage.areas.initialize()
 
         for load in vantage.loads:
-            print(f"{load.name} ({load.area.name if load.area else 'Unknown Area'})")
+            print(f"{load.name}")
 
 
 try:
