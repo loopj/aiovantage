@@ -2,8 +2,6 @@ import asyncio
 import shlex
 from typing import Sequence
 
-from typing_extensions import override
-
 from aiovantage.aci_client.system_objects import Load
 from aiovantage.controllers.base import BaseController
 from aiovantage.hc_client import StatusType
@@ -15,40 +13,43 @@ class LoadsController(BaseController[Load]):
     vantage_types = ("Load",)
     status_types = (StatusType.LOAD,)
 
+    async def _fetch_initial_states(self) -> None:
+        """Fetch initial state of all Loads."""
+
+        await asyncio.gather(*[self._fetch_state(load.id) for load in self])
+
+    def _update_object(self, vid: int, args: Sequence[str]) -> None:
+        level = float(args[0])
+        if vid in self:
+            self[vid].level = level
+
+    async def _fetch_state(self, vid: int) -> None:
+        """Fetch initial state of a single Load."""
+
+        response = await self._vantage._hc_client.send_command(f"GETLOAD {vid}")
+        _, _, *args = shlex.split(response)
+
+        self._update_object(vid, args)
+
     def on(self) -> QuerySet[Load]:
         """Return a queryset of all loads that are on."""
 
         return self._queryset.filter(lambda load: load.level)
 
-    async def fetch_state(self) -> None:
-        """Fetch initial state of all loads."""
+    def off(self) -> QuerySet[Load]:
+        """Return a queryset of all loads that are off."""
 
-        await asyncio.gather(*(self.get_level(load.id) for load in self))
+        return self._queryset.filter(lambda load: not load.level)
 
-    @override
-    def status_handler(self, type: StatusType, id: int, args: Sequence[str]) -> None:
-        # S:LOAD {vid} {level}
-        level = float(args[0])
+    async def turn_on(self, id: int) -> None:
+        """Turn on a load."""
 
-        # Update local level
-        if id in self:
-            self[id].level = level
+        await self.set_level(id, 100)
 
-    async def get_level(self, id: int) -> float:
-        """Get the level of a load from the controller."""
+    async def turn_off(self, id: int) -> None:
+        """Turn off a load."""
 
-        # Send command to controller
-        response = await self._vantage._hc_client.send_command(f"GETLOAD {id}")
-
-        # Parse response
-        status_type, vid, *args = shlex.split(response)
-        level = float(args[0])
-
-        # Update local level
-        if id in self:
-            self[id].level = level
-
-        return level
+        await self.set_level(id, 0)
 
     async def set_level(self, id: int, level: float) -> None:
         """Set the level of a load."""

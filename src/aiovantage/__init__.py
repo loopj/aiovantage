@@ -110,10 +110,6 @@ class Vantage:
         for coro in coros:
             await coro
 
-        await asyncio.gather(
-            self._loads.fetch_state(),
-        )
-
     async def close(self) -> None:
         """Close the clients."""
         await asyncio.gather(

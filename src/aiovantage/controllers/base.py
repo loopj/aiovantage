@@ -2,11 +2,9 @@ import logging
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncIterator,
     Callable,
     Dict,
     Generic,
-    Iterable,
     Iterator,
     List,
     Optional,
@@ -21,13 +19,7 @@ from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
 from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 
-from aiovantage.aci_client.interfaces import IConfiguration
-from aiovantage.aci_client.methods.configuration import (
-    CloseFilter,
-    GetFilterResults,
-    ObjectFilter,
-    OpenFilter,
-)
+from aiovantage.aci_client.helpers import get_objects_by_type
 from aiovantage.aci_client.system_objects import SystemObject
 from aiovantage.hc_client import StatusType
 from aiovantage.query import QuerySet
@@ -45,15 +37,15 @@ class BaseController(Generic[T]):
     """Holds and manages all items for a specific Vantage object type."""
 
     item_cls: Type[T]
-    vantage_types: Iterable[str]
+    vantage_types: Sequence[str]
     status_types: Optional[Sequence[StatusType]] = None
 
     def __init__(self, vantage: "Vantage") -> None:
         """
-        Initialize the controller.
+        Create a new controller instance.
 
         Args:
-            vantage: The Vantage client instance to use.
+            vantage: The Vantage client instance
         """
 
         self._vantage = vantage
@@ -62,13 +54,9 @@ class BaseController(Generic[T]):
         self._subscribers: List[EventCallBackType[T]] = []
         self._id_subscribers: Dict[int, List[EventCallBackType[T]]] = {}
         self._logger = logging.getLogger(__package__)
-
         self._parser = XmlParser(
             handler=XmlEventHandler,
-            config=ParserConfig(
-                fail_on_unknown_properties=False,
-                fail_on_unknown_attributes=False,
-            ),
+            config=ParserConfig(fail_on_unknown_properties=False),
         )
 
     def __iter__(self) -> Iterator[T]:
@@ -80,36 +68,6 @@ class BaseController(Generic[T]):
     def __contains__(self, id: int) -> bool:
         return id in self._items
 
-    async def _fetch_objects(self) -> AsyncIterator[T]:
-        # Open the filter
-        handle = await self._vantage._aci_client.request(
-            IConfiguration,
-            OpenFilter,
-            OpenFilter.Params(
-                objects=ObjectFilter(object_type=list(self.vantage_types))
-            ),
-        )
-
-        # Get the results
-        while True:
-            response = await self._vantage._aci_client.request(
-                IConfiguration,
-                GetFilterResults,
-                GetFilterResults.Params(h_filter=handle),
-            )
-
-            if not response.object_value:
-                break
-
-            for object in response.object_value:
-                if object.choice and isinstance(object.choice, self.item_cls):
-                    yield object.choice
-                else:
-                    self._logger.warning(f"Couldnt parse object with vid {object.id}")
-
-        # Close the filter
-        await self._vantage._aci_client.request(IConfiguration, CloseFilter, handle)
-
     async def initialize(self) -> None:
         """
         Initialize the controller by fetching all objects from the ACI service, and
@@ -117,8 +75,13 @@ class BaseController(Generic[T]):
         """
 
         # Populate the objects
-        async for obj in self._fetch_objects():
+        async for obj in get_objects_by_type(
+            self._vantage._aci_client, list(self.vantage_types), self.item_cls
+        ):
             self._items[obj.id] = obj
+
+        # Fetch initial states
+        await self._fetch_initial_states()
 
         # Subscribe to status events
         if self.status_types is not None:
@@ -131,7 +94,7 @@ class BaseController(Generic[T]):
     def subscribe(
         self,
         callback: EventCallBackType[T],
-        id_filter: Union[int, Iterable[int], None] = None,
+        id_filter: Union[int, Sequence[int], None] = None,
     ) -> None:
         """
         Subscribe to status changes for objects managed by this controller.
@@ -152,36 +115,35 @@ class BaseController(Generic[T]):
                     self._id_subscribers[id] = []
                 self._id_subscribers[id].append(callback)
 
-    def _handle_status_event(
-        self, type: StatusType, vid: int, args: Sequence[str]
-    ) -> None:
-        """Handle a status event from the Host Command client"""
-
-        # Ignore events for objects we don't know about
-        if vid not in self._items:
-            return
-
-        # Update object state
-        self.status_handler(type, vid, args)
-
-        # Notify subscribers
-        subscribers = self._subscribers + self._id_subscribers.get(vid, [])
-        for callback in subscribers:
-            callback(self._items[vid], args)
-
-    def status_handler(self, type: StatusType, id: int, args: Sequence[str]) -> None:
-        pass
-
     def all(self) -> QuerySet[T]:
-        """Return a queryset of all items."""
+        """Return a queryset of all objects."""
+
         return self._queryset
 
     @overload
     def filter(self, match: Callable[[T], Any]) -> "QuerySet[T]":
+        """
+        Return a queryset of objects that match the given predicate.
+
+        Args:
+            match: The predicate to match.
+
+        Returns:
+            A queryset of matching objects
+        """
         ...
 
     @overload
     def filter(self, **kwargs: Any) -> "QuerySet[T]":
+        """
+        Return a queryset of items that match the given keyword arguments.
+
+        Args:
+            **kwargs: The keyword arguments to match.
+
+        Returns:
+            A queryset of matching objects
+        """
         ...
 
     def filter(self, *args: Callable[[T], Any], **kwargs: Any) -> QuerySet[T]:
@@ -204,3 +166,28 @@ class BaseController(Generic[T]):
             return self._items.get(args[0], kwargs.get("default", None))
 
         return self._queryset.get(*args, **kwargs)
+
+    def _handle_status_event(
+        self, type: StatusType, vid: int, args: Sequence[str]
+    ) -> None:
+        """Handle a status event from the Host Command client"""
+
+        # Ignore events for objects we don't know about
+        obj = self._items.get(vid)
+        if obj is None:
+            self._logger.warning(f"Received status event for unknown object {vid}")
+            return
+
+        # Delegate to subclasses to update the existing object
+        self._update_object(vid, args)
+
+        # Notify subscribers
+        subscribers = self._subscribers + self._id_subscribers.get(vid, [])
+        for callback in subscribers:
+            callback(self._items[vid], args)
+
+    def _update_object(self, vid: int, args: Sequence[str]) -> None:
+        pass
+
+    async def _fetch_initial_states(self) -> None:
+        pass

@@ -5,7 +5,7 @@ from aiovantage.hc_client import StatusType
 
 class SensorsController(BaseController[Sensor]):
     item_cls = Sensor
-    vantage_types = (type.__name__ for type in SENSOR_TYPES)
+    vantage_types = tuple(type.__name__ for type in SENSOR_TYPES)
     status_types = (
         StatusType.TEMP,
         StatusType.POWER,

@@ -4,6 +4,7 @@ from typing import Optional
 
 @dataclass
 class GetVersion:
+    call: Optional[object] = None
     return_value: Optional["GetVersion.Return"] = field(
         default=None,
         metadata={

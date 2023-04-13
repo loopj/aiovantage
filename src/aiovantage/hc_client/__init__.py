@@ -119,6 +119,9 @@ class HCClient:
         while True:
             data = await self._reader.readline()
             message = data.decode().strip()
+
+            self._logger.debug(f"Received message: {message}")
+
             if message.startswith("R:"):
                 self._response_queue.put_nowait(message[2:])
             elif message.startswith("S:"):

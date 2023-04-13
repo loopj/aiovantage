@@ -33,6 +33,8 @@ class Method(Protocol[T]):
 
 
 class ACIClient:
+    """Communicate with a Vantage InFusion ACI service."""
+
     def __init__(
         self,
         host: str,
@@ -80,55 +82,8 @@ class ACIClient:
     ) -> None:
         await self.close()
 
-    def _marshall(
-        self,
-        interface_cls: Type[Any],
-        method_cls: Type[Method[T]],
-        params: Any,
-    ) -> str:
-        # Wrap a method object in an interface object and marshall it to a string.
-
-        method = method_cls()
-        method.call = params
-
-        interface = interface_cls()
-        setattr(interface, snake_case(method_cls.__name__), method)
-
-        return self._serializer.render(interface)
-
-    def _unmarshall(
-        self,
-        interface_cls: Type[Any],
-        method_cls: Type[Method[T]],
-        response_str: str,
-    ) -> T:
-        # Unmarshall a response string and unwrap the return value
-
-        interface = self._parser.from_string(response_str, interface_cls)
-        method: Method[T] = getattr(interface, snake_case(method_cls.__name__))
-
-        if method.return_value is None:
-            raise TypeError(
-                f"Response from {interface_cls.__name__}.{method_cls.__name__} did not contain a return value"
-            )
-
-        return method.return_value
-
-    async def _login(self) -> None:
-        # Login to the ACI service.
-
-        if self._username is None or self._password is None:
-            return
-
-        params = Login.Params(user=self._username, password=self._password)
-        success = await self.request(ILogin, Login, params)
-        if not success:
-            raise PermissionError("Authentication failed, bad username or password")
-
-        self._logger.debug("Login successful")
-
     async def connect(self) -> None:
-        """Connect to the ACI service."""
+        """Connect to the ACI service, and authenticate if necessary."""
 
         self._connection = await asyncio.wait_for(
             asyncio.open_connection(
@@ -208,3 +163,44 @@ class ACIClient:
         self._logger.debug(response)
 
         return self._unmarshall(interface, method, response)
+
+    def _marshall(
+        self,
+        interface_cls: Type[Any],
+        method_cls: Type[Method[T]],
+        params: Any,
+    ) -> str:
+        method = method_cls()
+        method.call = params
+
+        interface = interface_cls()
+        setattr(interface, snake_case(method_cls.__name__), method)
+
+        return self._serializer.render(interface)
+
+    def _unmarshall(
+        self,
+        interface_cls: Type[Any],
+        method_cls: Type[Method[T]],
+        response_str: str,
+    ) -> T:
+        interface = self._parser.from_string(response_str, interface_cls)
+        method: Method[T] = getattr(interface, snake_case(method_cls.__name__))
+
+        if method.return_value is None:
+            raise TypeError(
+                f"Response from {interface_cls.__name__}.{method_cls.__name__} did not contain a return value"
+            )
+
+        return method.return_value
+
+    async def _login(self) -> None:
+        if self._username is None or self._password is None:
+            return
+
+        params = Login.Params(user=self._username, password=self._password)
+        success = await self.request(ILogin, Login, params)
+        if not success:
+            raise PermissionError("Authentication failed, bad username or password")
+
+        self._logger.debug("Login successful")

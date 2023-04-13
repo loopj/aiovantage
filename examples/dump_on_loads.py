@@ -12,7 +12,7 @@ async def main() -> None:
     async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
         await vantage.loads.initialize()
 
-        for load in vantage.loads:
+        for load in vantage.loads.on():
             print(f"{load.name}")
 
 

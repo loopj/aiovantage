@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 
 # This callback will be called whenever a load is updated
 def event_callback(obj: Load, args: Any) -> None:
-    print(f"Load updated: {obj} {obj.level} {args}")
+    print(f"{obj.name} changed level to {obj.level}%")
 
 
 async def main() -> None:
