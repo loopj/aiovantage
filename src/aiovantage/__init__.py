@@ -3,7 +3,9 @@ from types import TracebackType
 from typing import Optional, Type
 
 from aiovantage.aci_client import ACIClient
+from aiovantage.aci_client.system_objects import SystemObject
 from aiovantage.hc_client import HCClient
+from aiovantage.controllers.base import EventCallBackType
 from aiovantage.controllers.areas import AreasController
 from aiovantage.controllers.buttons import ButtonsController
 from aiovantage.controllers.dry_contacts import DryContactsController
@@ -26,6 +28,7 @@ class Vantage:
         hc_port: Optional[int] = None,
     ) -> None:
         """Initialize the Vantage instance."""
+
         self._aci_client = ACIClient(host, username, password, use_ssl=use_ssl, port=aci_port)
         self._hc_client = HCClient(host, username, password, use_ssl, hc_port)
 
@@ -36,6 +39,18 @@ class Vantage:
         self._sensors = SensorsController(self)
         self._tasks = TasksController(self)
         self._stations = StationsController(self)
+
+    async def __aenter__(self) -> "Vantage":
+        await self.connect()
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
+        await self.close()
 
     @property
     def areas(self) -> AreasController:
@@ -72,25 +87,20 @@ class Vantage:
         """Return the Tasks controller for managing tasks."""
         return self._tasks
 
-    async def __aenter__(self) -> "Vantage":
-        """Return Context manager."""
-        await self.connect()
-        return self
-
-    async def __aexit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
-        traceback: Optional[TracebackType],
-    ) -> None:
-        """Close context manager."""
-        await self.close()
-
     async def connect(self) -> None:
         """Initialize the clients."""
+
         await asyncio.gather(
             self._aci_client.connect(),
             self._hc_client.initialize(),
+        )
+
+    async def close(self) -> None:
+        """Close the clients."""
+
+        await asyncio.gather(
+            self._aci_client.close(),
+            self._hc_client.close(),
         )
 
     async def initialize(self) -> None:
@@ -110,9 +120,13 @@ class Vantage:
         for coro in coros:
             await coro
 
-    async def close(self) -> None:
-        """Close the clients."""
-        await asyncio.gather(
-            self._aci_client.close(),
-            self._hc_client.close(),
-        )
+    def subscribe(self, callback: EventCallBackType[SystemObject]) -> None:
+        """Subscribe to all controller events."""
+
+        self.areas.subscribe(callback)
+        self.loads.subscribe(callback)
+        self.stations.subscribe(callback)
+        self.buttons.subscribe(callback)
+        self.dry_contacts.subscribe(callback)
+        self.sensors.subscribe(callback)
+        self.tasks.subscribe(callback)

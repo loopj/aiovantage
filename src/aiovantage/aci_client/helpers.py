@@ -49,7 +49,7 @@ async def get_objects_by_type(
             if object.choice and isinstance(object.choice, base_type):
                 yield object.choice
             else:
-                print(f"Couldnt parse object with vid {object.id}")
+                client._logger.warning(f"Couldnt parse object with vid {object.id}")
 
     # Close the filter
     await client.request(IConfiguration, CloseFilter, handle)

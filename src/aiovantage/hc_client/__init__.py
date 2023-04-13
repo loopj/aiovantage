@@ -153,10 +153,8 @@ class HCClient:
             self._writer.close()
             await self._writer.wait_closed()
 
-    async def send_command(self, command: str, *params: str) -> str:
+    async def send_command(self, command: str, *params: str, response_lines: int = 1) -> str:
         """Send a command to the HC service, and wait for a response."""
-
-        # TODO: Should we validate commands?
 
         # Join the command and parameters into a single string, escaping any
         # parameters that contain spaces with quotes
@@ -167,7 +165,7 @@ class HCClient:
         self._writer.write(message.encode())
         await self._writer.drain()
 
-        # Wait for a response
+        # Grab the first line of the response
         response = await self._response_queue.get()
         self._response_queue.task_done()
 
@@ -193,6 +191,12 @@ class HCClient:
         # Check for out of order responses
         if not response.startswith(command):
             raise Exception(f"Received out of order response: {response}")
+
+        # If we expected a multiple line response, pop the additional lines off the queue
+        if response_lines > 1:
+            for _ in range(response_lines - 1):
+                await self._response_queue.get()
+                self._response_queue.task_done()
 
         return response
 

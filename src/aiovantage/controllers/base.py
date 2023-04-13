@@ -179,15 +179,17 @@ class BaseController(Generic[T]):
             return
 
         # Delegate to subclasses to update the existing object
-        self._update_object(vid, args)
+        self._update_object_state(vid, args)
 
         # Notify subscribers
         subscribers = self._subscribers + self._id_subscribers.get(vid, [])
         for callback in subscribers:
             callback(self._items[vid], args)
 
-    def _update_object(self, vid: int, args: Sequence[str]) -> None:
-        pass
+    def _update_object_state(self, vid: int, args: Sequence[str]) -> None:
+        # Subclasses should override this method to update the object state based on the args
+        self._logger.warning(f"Received status event for controller with no event handler {type(self).__name__}")
 
     async def _fetch_initial_states(self) -> None:
+        # Subclasses should override this method to fetch the initial state of all objects
         pass
