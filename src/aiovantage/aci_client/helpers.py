@@ -16,11 +16,11 @@ async def get_objects_by_type(
     client: ACIClient, vantage_types: List[str], base_type: Type[T]
 ) -> AsyncIterator[T]:
     """
-    Helper function to get all objects of the specified types
+    Helper function to get all vantage system objects of the specified types
 
     Args:
         client: The ACI client instance
-        vantage_types: A list of Vantage object types to fetch
+        vantage_types: A list of string names of the Vantage system object types to fetch
         base_type: The base type to cast the objects to
 
     Yields:

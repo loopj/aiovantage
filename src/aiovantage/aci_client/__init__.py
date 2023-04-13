@@ -33,7 +33,9 @@ class Method(Protocol[T]):
 
 
 class ACIClient:
-    """Communicate with a Vantage InFusion ACI service."""
+    """
+    Communicate with a Vantage InFusion ACI service.
+    """
 
     def __init__(
         self,
@@ -46,6 +48,19 @@ class ACIClient:
         conn_timeout: float = 5,
         request_timeout: float = 60,
     ):
+        """
+        Initialize the ACIClient instance.
+
+        Args:
+            - host: The hostname or IP address of the ACI service.
+            - username: The username to use when authenticating with the ACI service.
+            - password: The password to use when authenticating with the ACI service.
+            - use_ssl: Whether to use SSL when connecting to the ACI service.
+            - port: The port to use when connecting to the ACI service.
+            - conn_timeout: The timeout to use when connecting to the ACI service.
+            - request_timeout: The timeout to use when waiting for a response from the ACI service.
+        """
+
         self._host = host
         self._username = username
         self._password = password
@@ -70,20 +85,10 @@ class ACIClient:
         self._parser = XmlParser(config=ParserConfig(fail_on_unknown_properties=False))
         self._serializer = XmlSerializer(config=SerializerConfig(xml_declaration=False))
 
-    async def __aenter__(self) -> "ACIClient":
-        await self.connect()
-        return self
-
-    async def __aexit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
-    ) -> None:
-        await self.close()
-
     async def connect(self) -> None:
-        """Connect to the ACI service, and authenticate if necessary."""
+        """
+        Connect to the ACI service, and authenticate if necessary.
+        """
 
         self._connection = await asyncio.wait_for(
             asyncio.open_connection(
@@ -98,7 +103,9 @@ class ACIClient:
         await self._login()
 
     async def close(self) -> None:
-        """Close the connection to the ACI service."""
+        """
+        Close the connection to the ACI service.
+        """
 
         if self._connection is None:
             return
@@ -111,7 +118,16 @@ class ACIClient:
         self._logger.debug("Connection closed")
 
     async def raw_request(self, request_payload: str, end_token: str) -> str:
-        """Send a plaintext request to the ACI service"""
+        """
+        Send a plaintext request to the ACI service.
+
+        Args:
+            request_payload: The request payload string to send
+            end_token: The token to look for to indicate the end of the response
+
+        Returns:
+            The response payload string
+        """
 
         if self._connection is None:
             raise RuntimeError("Not connected to the ACI service")
@@ -149,12 +165,19 @@ class ACIClient:
         return buffer.decode()
 
     async def request(
-        self,
-        interface: Type[Any],
-        method: Type[Method[T]],
-        params: Any = None,
+        self, interface: Type[Any], method: Type[Method[T]], params: Any = None
     ) -> T:
-        """Marshall a request, send it to the ACI service, and yield a parsed object."""
+        """
+        Marshall a request, send it to the ACI service, and yield a parsed object.
+
+        Args:
+            interface: The interface class to use
+            method: The method class to use
+            params: The parameters instance to pass to the method
+
+        Returns:
+            The parsed response object
+        """
 
         request = self._marshall(interface, method, params)
         self._logger.debug(request)
@@ -164,12 +187,27 @@ class ACIClient:
 
         return self._unmarshall(interface, method, response)
 
-    def _marshall(
+    async def __aenter__(self) -> "ACIClient":
+        # Async context manager entry
+
+        await self.connect()
+        return self
+
+    async def __aexit__(
         self,
-        interface_cls: Type[Any],
-        method_cls: Type[Method[T]],
-        params: Any,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        # Async context manager exit
+
+        await self.close()
+
+    def _marshall(
+        self, interface_cls: Type[Any], method_cls: Type[Method[T]], params: Any
     ) -> str:
+        # Serialize the request to XML using xsdata
+
         method = method_cls()
         method.call = params
 
@@ -179,11 +217,10 @@ class ACIClient:
         return self._serializer.render(interface)
 
     def _unmarshall(
-        self,
-        interface_cls: Type[Any],
-        method_cls: Type[Method[T]],
-        response_str: str,
+        self, interface_cls: Type[Any], method_cls: Type[Method[T]], response_str: str
     ) -> T:
+        # Deserialize the response from XML using xsdata
+
         interface = self._parser.from_string(response_str, interface_cls)
         method: Method[T] = getattr(interface, snake_case(method_cls.__name__))
 
@@ -195,6 +232,8 @@ class ACIClient:
         return method.return_value
 
     async def _login(self) -> None:
+        # Authenticate if necessary
+
         if self._username is None or self._password is None:
             return
 
