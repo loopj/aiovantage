@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
-
 import asyncio
 import logging
 
 from aiovantage import Vantage
+
 
 logging.basicConfig(level=logging.INFO)
 

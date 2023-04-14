@@ -23,6 +23,9 @@ dependencies = [
     "xsdata",
 ]
 
+[tool.isort]
+profile = "black"
+
 [tool.mypy]
 files = "src"
 mypy_path = "src"
