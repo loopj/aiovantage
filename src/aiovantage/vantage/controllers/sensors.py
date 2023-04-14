@@ -2,8 +2,8 @@ import asyncio
 from typing import Sequence
 
 from aiovantage.aci_client.system_objects import SENSOR_TYPES, Sensor
-from aiovantage.controllers.base import BaseController
 from aiovantage.hc_client import StatusType
+from aiovantage.vantage.controllers.base import BaseController
 
 
 class SensorsController(BaseController[Sensor]):

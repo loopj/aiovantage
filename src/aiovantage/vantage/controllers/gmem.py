@@ -1,6 +1,6 @@
 from aiovantage.aci_client.system_objects import GMem
-from aiovantage.controllers.base import BaseController
 from aiovantage.hc_client import StatusType
+from aiovantage.vantage.controllers.base import BaseController
 
 
 class GMemController(BaseController[GMem]):

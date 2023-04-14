@@ -3,9 +3,9 @@ import shlex
 from typing import Sequence
 
 from aiovantage.aci_client.system_objects import Load
-from aiovantage.controllers.base import BaseController
 from aiovantage.hc_client import StatusType
-from aiovantage.query import QuerySet
+from aiovantage.vantage.controllers.base import BaseController
+from aiovantage.vantage.query import QuerySet
 
 # LOAD <load vid> <level (0-100)>
 #   -> R:LOAD <load vid> <level (0-100)>
@@ -67,15 +67,15 @@ class LoadsController(BaseController[Load]):
 
         await self.set_level(id, 0)
 
-    async def set_level(self, id: int, level: float) -> None:
+    async def set_level(self, vid: int, level: float) -> None:
         """Set the level of a load."""
 
         # Normalize level
         level = max(min(level, 100), 0)
 
         # Send command to controller
-        await self._vantage._hc_client.send_command("LOAD", f"{id}", f"{level}")
+        await self._vantage._hc_client.send_command("LOAD", f"{vid}", f"{level}")
 
         # Update local level
-        if id in self:
-            self[id].level = level
+        if vid in self:
+            self[vid].level = level

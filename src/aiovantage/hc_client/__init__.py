@@ -2,6 +2,7 @@ import asyncio
 import logging
 import shlex
 from enum import Enum
+from inspect import iscoroutinefunction
 from ssl import PROTOCOL_TLS, SSLContext
 from types import TracebackType
 from typing import Callable, Iterable, List, Optional, Sequence, Tuple, Type, Union
@@ -153,7 +154,9 @@ class HCClient:
             self._writer.close()
             await self._writer.wait_closed()
 
-    async def send_command(self, command: str, *params: str, response_lines: int = 1) -> str:
+    async def send_command(
+        self, command: str, *params: str, response_lines: int = 1
+    ) -> str:
         """Send a command to the HC service, and wait for a response."""
 
         # Join the command and parameters into a single string, escaping any
@@ -186,7 +189,9 @@ class HCClient:
             elif error_code == "23":
                 raise LoginFailedError(error_message)
             else:
-                raise Exception(f"Unknown error code: {error_code}. Full response was {response}")
+                raise Exception(
+                    f"Unknown error code: {error_code}. Full response was {response}"
+                )
 
         # Check for out of order responses
         if not response.startswith(command):
@@ -234,4 +239,7 @@ class HCClient:
 
         for callback, status_filter in self._subscribers:
             if status_filter is None or type in status_filter:
-                callback(type, vid, args)
+                if iscoroutinefunction(callback):
+                    asyncio.create_task(callback(type, vid, args))
+                else:
+                    callback(type, vid, args)

@@ -47,13 +47,13 @@ async def main() -> None:
                 seq = sys.stdin.read(2)
                 if seq == "[A":  # Up arrow
                     # Increase the load's brightness
-                    await vantage.loads.set_level(load_id, load.level + 10)
+                    await vantage.loads.set_level(load_id, load.level + 10) # type: ignore[operator]
                 elif seq == "[B":  # Down arrow
                     # Decrease the load's brightness
-                    await vantage.loads.set_level(load_id, load.level - 10)
+                    await vantage.loads.set_level(load_id, load.level - 10) # type: ignore[operator]
             elif c == " ":
                 # Toggle load
-                if load.level > 0:
+                if load.level > 0: # type: ignore[operator]
                     await vantage.loads.set_level(load_id, 0)
                 else:
                     await vantage.loads.set_level(load_id, 100)
