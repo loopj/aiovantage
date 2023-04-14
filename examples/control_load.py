@@ -10,6 +10,7 @@ from aiovantage import Vantage
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 async def main() -> None:
     vantage = Vantage("10.2.0.103", "administrator", "ZZuUw76CnL")
     await vantage.connect()
@@ -47,13 +48,16 @@ async def main() -> None:
                 seq = sys.stdin.read(2)
                 if seq == "[A":  # Up arrow
                     # Increase the load's brightness
-                    await vantage.loads.set_level(load_id, load.level + 10) # type: ignore[operator]
+                    level = load.level or 0
+                    await vantage.loads.set_level(load_id, level + 10)
                 elif seq == "[B":  # Down arrow
                     # Decrease the load's brightness
-                    await vantage.loads.set_level(load_id, load.level - 10) # type: ignore[operator]
+                    level = load.level or 0
+                    await vantage.loads.set_level(load_id, level - 10)
             elif c == " ":
                 # Toggle load
-                if load.level > 0: # type: ignore[operator]
+                level = load.level or 0
+                if level > 0:
                     await vantage.loads.set_level(load_id, 0)
                 else:
                     await vantage.loads.set_level(load_id, 100)

@@ -20,7 +20,7 @@ async def get_objects_by_type(
 
     Args:
         client: The ACI client instance
-        vantage_types: A list of string names of the Vantage system object types to fetch
+        vantage_types: A list of strings of the Vantage object types to fetch
         base_type: The base type to cast the objects to
 
     Yields:

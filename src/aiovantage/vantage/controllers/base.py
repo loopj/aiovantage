@@ -1,20 +1,17 @@
 import asyncio
-from inspect import iscoroutinefunction
 import logging
+from inspect import iscoroutinefunction
 from typing import (
     TYPE_CHECKING,
-    Any,
     Callable,
     Dict,
     Generic,
-    Iterator,
     List,
     Optional,
     Sequence,
     Type,
     TypeVar,
     Union,
-    overload,
 )
 
 from aiovantage.aci_client.helpers import get_objects_by_type
@@ -31,7 +28,7 @@ if TYPE_CHECKING:
 EventCallBackType = Callable[[T, Sequence[str]], None]
 
 
-class BaseController(Generic[T]):
+class BaseController(Generic[T], QuerySet[T]):
     """Holds and manages all items for a specific Vantage object type."""
 
     item_cls: Type[T]
@@ -48,13 +45,11 @@ class BaseController(Generic[T]):
 
         self._vantage = vantage
         self._items: Dict[int, T] = {}
-        self._queryset: QuerySet[T] = QuerySet(self._items.values())
         self._subscribers: List[EventCallBackType[T]] = []
         self._id_subscribers: Dict[int, List[EventCallBackType[T]]] = {}
         self._logger = logging.getLogger(__package__)
 
-    def __iter__(self) -> Iterator[T]:
-        return iter(self._items.values())
+        QuerySet.__init__(self, self._items)
 
     def __getitem__(self, id: int) -> T:
         return self._items[id]
@@ -95,7 +90,7 @@ class BaseController(Generic[T]):
 
         Args:
             callback: The callback to call when an object changes.
-            id_filter: The object IDs to subscribe to. If None, subscribe to all objects.
+            id_filter: The object IDs to subscribe to. Subscribe to all objects if None.
         """
 
         if isinstance(id_filter, int):
@@ -113,64 +108,12 @@ class BaseController(Generic[T]):
             if id_filter is None:
                 self._subscribers.remove(callback)
             else:
-                for id in id_filter: # type: ignore[union-attr]
+                for id in id_filter:  # type: ignore[union-attr]
                     if id not in self._id_subscribers:
                         continue
                     self._id_subscribers[id].remove(callback)
 
         return unsubscribe
-
-    def all(self) -> QuerySet[T]:
-        """Return a queryset of all objects."""
-
-        return self._queryset
-
-    @overload
-    def filter(self, match: Callable[[T], Any]) -> "QuerySet[T]":
-        """
-        Return a queryset of objects that match the given predicate.
-
-        Args:
-            match: The predicate to match.
-
-        Returns:
-            A queryset of matching objects
-        """
-        ...
-
-    @overload
-    def filter(self, **kwargs: Any) -> "QuerySet[T]":
-        """
-        Return a queryset of items that match the given keyword arguments.
-
-        Args:
-            **kwargs: The keyword arguments to match.
-
-        Returns:
-            A queryset of matching objects
-        """
-        ...
-
-    def filter(self, *args: Callable[[T], Any], **kwargs: Any) -> QuerySet[T]:
-        return self._queryset.filter(*args, **kwargs)
-
-    @overload
-    def get(self, id: int, default: Optional[T] = None) -> Optional[T]:
-        ...
-
-    @overload
-    def get(self, match: Callable[[T], Any]) -> Optional[T]:
-        ...
-
-    @overload
-    def get(self, **kwargs: Any) -> Optional[T]:
-        ...
-
-    def get(self, *args: Optional[Callable[[T], Any]], **kwargs: Any) -> Optional[T]:
-        if len(args) == 1 and isinstance(args[0], int):
-            return self._items.get(args[0], kwargs.get("default", None))
-
-        return self._queryset.get(*args, **kwargs)
 
     def _handle_status_event(
         self, type: StatusType, vid: int, args: Sequence[str]
@@ -195,11 +138,11 @@ class BaseController(Generic[T]):
                 callback(obj, args)
 
     def _update_object_state(self, vid: int, args: Sequence[str]) -> None:
-        # Subclasses should override this method to update the object state based on the args
+        # Subclasses should override this method to update object state based on args
         self._logger.warning(
-            f"Received status event for controller with no event handler {type(self).__name__}"
+            f"Received event for controller with no event handler {type(self).__name__}"
         )
 
     async def _fetch_initial_states(self) -> None:
-        # Subclasses should override this method to fetch the initial state of all objects
+        # Subclasses should override this method to fetch initial state of all objects
         pass

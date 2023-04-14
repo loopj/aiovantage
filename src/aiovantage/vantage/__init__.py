@@ -76,7 +76,7 @@ class Vantage:
 
     @property
     def dry_contacts(self) -> DryContactsController:
-        """Return the DryContacts controller for managing dry contacts (motion sensors, etc)."""
+        """Return the DryContacts controller for managing dry contacts."""
         return self._dry_contacts
 
     @property

@@ -50,12 +50,12 @@ class LoadsController(BaseController[Load]):
     def on(self) -> QuerySet[Load]:
         """Return a queryset of all loads that are on."""
 
-        return self._queryset.filter(lambda load: load.level)
+        return self.filter(lambda load: load.level)
 
     def off(self) -> QuerySet[Load]:
         """Return a queryset of all loads that are off."""
 
-        return self._queryset.filter(lambda load: not load.level)
+        return self.filter(lambda load: not load.level)
 
     async def turn_on(self, id: int) -> None:
         """Turn on a load."""

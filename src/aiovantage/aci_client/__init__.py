@@ -57,8 +57,8 @@ class ACIClient:
             - password: The password to use when authenticating with the ACI service.
             - use_ssl: Whether to use SSL when connecting to the ACI service.
             - port: The port to use when connecting to the ACI service.
-            - conn_timeout: The timeout to use when connecting to the ACI service.
-            - request_timeout: The timeout to use when waiting for a response from the ACI service.
+            - conn_timeout: The timeout to use when connecting
+            - request_timeout: The timeout to use when making requests
         """
 
         self._host = host
@@ -72,7 +72,7 @@ class ACIClient:
         self._conn_timeout = conn_timeout
         self._request_timeout = request_timeout
 
-        if use_ssl == True:
+        if use_ssl is True:
             self._ssl_context = _default_ssl_context()
         elif isinstance(ssl, ssl.SSLContext):
             self._ssl_context = ssl
@@ -226,7 +226,8 @@ class ACIClient:
 
         if method.return_value is None:
             raise TypeError(
-                f"Response from {interface_cls.__name__}.{method_cls.__name__} did not contain a return value"
+                f"Response from {interface_cls.__name__}.{method_cls.__name__}"
+                f"did not contain a return value"
             )
 
         return method.return_value

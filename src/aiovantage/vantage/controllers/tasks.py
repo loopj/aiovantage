@@ -2,7 +2,7 @@ from aiovantage.aci_client.system_objects import Task
 from aiovantage.hc_client import StatusType
 from aiovantage.vantage.controllers.base import BaseController
 
-# TASK <task vid> <eventType (PRESS/RELEASE/HOLD/TIMER/DATA/POSITION/INRANGE/OUTOFRANGE/TEMPERATURE/DAYMODE/FANMODE/OPERATIONMODE/CONNECT/DISCONNECT/BOOT/LEARN/CANCEL/NONE)>
+# TASK <task vid> <eventType>
 #   -> R:TASK <task vid> <eventType>
 
 # GETTASK <task vid>

@@ -34,7 +34,9 @@ async def main() -> None:
 
         # Dump some StationObjects using the get_objects_by_type helper
         print("# Vantage Stations")
-        async for station in get_objects_by_type(client, ["Keypad", "EqCtrl"], StationObject):
+        async for station in get_objects_by_type(
+            client, ["Keypad", "EqCtrl"], StationObject
+        ):
             print(station)
         print()
 
