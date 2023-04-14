@@ -3,6 +3,7 @@ from typing import List, Optional
 
 from aiovantage.aci_client.system_objects import ALL_TYPES
 
+
 @dataclass
 class ObjectChoice:
     id: Optional[int] = field(
@@ -16,9 +17,7 @@ class ObjectChoice:
         default=None,
         metadata={
             "type": "Wildcard",
-            "choices": tuple(
-                {"name": obj.__name__, "type": obj} for obj in ALL_TYPES
-            ),
+            "choices": tuple({"name": obj.__name__, "type": obj} for obj in ALL_TYPES),
         },
     )
 

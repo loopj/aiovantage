@@ -21,7 +21,7 @@ class GetVersion:
                 "type": "Element",
                 "namespace": "",
                 "required": True,
-            }
+            },
         )
         rootfs: Optional[str] = field(
             default=None,
@@ -29,7 +29,7 @@ class GetVersion:
                 "type": "Element",
                 "namespace": "",
                 "required": True,
-            }
+            },
         )
         app: Optional[str] = field(
             default=None,
@@ -37,5 +37,5 @@ class GetVersion:
                 "type": "Element",
                 "namespace": "",
                 "required": True,
-            }
+            },
         )

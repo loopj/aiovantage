@@ -23,6 +23,7 @@ from aiovantage.vantage.controllers.base import BaseController
 #   -> S:STATUS <button vid> LED.GetState <a b c d>
 #   -> S:STATUS <button vid> Adjust.GetLevel <x>
 
+
 class ButtonsController(BaseController[Button]):
     item_cls = Button
     vantage_types = ("Button",)

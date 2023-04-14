@@ -8,14 +8,14 @@ class Login:
         default=None,
         metadata={
             "type": "Element",
-        }
+        },
     )
     return_value: Optional[bool] = field(
         default=None,
         metadata={
             "name": "return",
             "type": "Element",
-        }
+        },
     )
 
     @dataclass
@@ -26,7 +26,7 @@ class Login:
                 "name": "User",
                 "type": "Element",
                 "required": True,
-            }
+            },
         )
         password: Optional[str] = field(
             default=None,
@@ -34,5 +34,5 @@ class Login:
                 "name": "Password",
                 "type": "Element",
                 "required": True,
-            }
+            },
         )

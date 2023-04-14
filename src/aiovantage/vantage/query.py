@@ -6,7 +6,7 @@ T = TypeVar("T")
 
 class QuerySet(Generic[T]):
     def __init__(self, data: Dict[int, T]) -> None:
-        self._data:Dict[int, T] = data
+        self._data: Dict[int, T] = data
         self._filters: List[Callable[[T], Any]] = []
 
     def __iter__(self) -> Iterator[T]:
@@ -47,9 +47,11 @@ class QuerySet(Generic[T]):
         if len(args) == 1:
             qs._filters.append(args[0])
         elif len(args) == 0 and len(kwargs) > 0:
-            qs._filters.append(lambda obj: all(
-                getattr(obj, key) == value for key, value in kwargs.items()
-            ))
+            qs._filters.append(
+                lambda obj: all(
+                    getattr(obj, key) == value for key, value in kwargs.items()
+                )
+            )
         else:
             raise TypeError("filter() and get() expect either a callable or **kwargs")
 
