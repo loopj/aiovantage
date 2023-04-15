@@ -60,9 +60,23 @@ class HCClient:
         host: str,
         username: Optional[str] = None,
         password: Optional[str] = None,
+        *,
         use_ssl: bool = True,
         port: Optional[int] = None,
+        conn_timeout: float = 5,
     ) -> None:
+        """
+        Initialize the HCClient instance.
+
+        Args:
+            host: The hostname or IP address of the Host Command service.
+            username: The username to use to authenticate.
+            password: The password to use to authenticate.
+            use_ssl: Whether to use SSL when connecting.
+            port: The port to use when connecting.
+            conn_timeout: The timeout to use when connecting.
+        """
+
         self._host = host
         self._username = username
         self._password = password
@@ -72,6 +86,9 @@ class HCClient:
         self._response_queue: asyncio.Queue[str] = asyncio.Queue()
         self._status_queue: asyncio.Queue[str] = asyncio.Queue()
         self._logger = logging.getLogger(__name__)
+        self._reader: Optional[asyncio.StreamReader] = None
+        self._writer: Optional[asyncio.StreamWriter] = None
+        self._conn_timeout = conn_timeout
 
         if port is None:
             self._port = 3010 if use_ssl else 3001
@@ -84,7 +101,7 @@ class HCClient:
     async def __aenter__(self) -> "HCClient":
         """Return Context manager."""
 
-        await self.initialize()
+        await self.connect()
         return self
 
     async def __aexit__(
@@ -97,13 +114,19 @@ class HCClient:
 
         await self.close()
 
-    async def initialize(self) -> None:
+    async def connect(self) -> None:
         """Connect to the HC service, authenticate if necessary."""
 
         # Open a connection to the controller
-        self._reader, self._writer = await asyncio.open_connection(
-            self._host, self._port, ssl=self._ssl_context
+        self._reader, self._writer = await asyncio.wait_for(
+            asyncio.open_connection(
+                self._host,
+                self._port,
+                ssl=self._ssl_context,
+            ),
+            timeout=self._conn_timeout,
         )
+
         self._logger.info("Connected")
 
         # Start a task to handle incoming messages
@@ -112,22 +135,11 @@ class HCClient:
         self._logger.info("Message processing started")
 
         # Login if we have a username and password
-        if self._username is not None and self._password is not None:
-            await self.send_command("LOGIN", self._username, self._password)
-            self._logger.info("Login successful")
-
-    async def authenticated(self) -> bool:
-        """Check if we are currently authenticated."""
-
-        try:
-            await self.send_command("VERSION")
-            return True
-        except LoginRequiredError:
-            return False
+        await self._login()
 
     async def _handle_messages(self) -> None:
         while True:
-            data = await self._reader.readline()
+            data = await self._reader.readline() # type: ignore[union-attr]
             message = data.decode().strip()
 
             self._logger.debug(f"Received message: {message}")
@@ -159,9 +171,13 @@ class HCClient:
             task.cancel()
         self._tasks = []
 
-        if self._writer is not None:
-            self._writer.close()
-            await self._writer.wait_closed()
+        if self._writer is None or self._writer.is_closing():
+            return
+
+        self._writer.close()
+        await self._writer.wait_closed()
+
+        self._logger.debug("Connection closed")
 
     async def send_command(
         self, command: str, *params: str, response_lines: int = 1
@@ -175,8 +191,8 @@ class HCClient:
         message = f"{command} {params_str}\n"
 
         # Send the command
-        self._writer.write(message.encode())
-        await self._writer.drain()
+        self._writer.write(message.encode())  # type: ignore[union-attr]
+        await self._writer.drain()  # type: ignore[union-attr]
 
         # Grab the first line of the response
         response = await self._response_queue.get()
@@ -254,3 +270,13 @@ class HCClient:
                     asyncio.create_task(callback(type, vid, args))
                 else:
                     callback(type, vid, args)
+
+    async def _login(self) -> None:
+        """Login to the Vantage controller."""
+
+        if not self._username or not self._password:
+            return
+
+        await self.send_command("LOGIN", self._username, self._password)
+
+        self._logger.info("Login successful")

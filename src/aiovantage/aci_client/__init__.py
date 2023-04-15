@@ -2,7 +2,7 @@ import asyncio
 import logging
 import ssl
 from types import TracebackType
-from typing import Any, Optional, Protocol, Type, TypeVar, Union
+from typing import Any, Optional, Protocol, Tuple, Type, TypeVar, Union
 
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -10,8 +10,7 @@ from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.utils.text import snake_case
 
-from .interfaces import ILogin, IIntrospection
-from .methods.introspection import GetVersion
+from .interfaces import ILogin
 from .methods.login import Login
 
 
@@ -58,8 +57,8 @@ class ACIClient:
             password: The password to use when authenticating with the ACI service.
             use_ssl: Whether to use SSL when connecting to the ACI service.
             port: The port to use when connecting to the ACI service.
-            conn_timeout: The timeout to use when connecting
-            request_timeout: The timeout to use when making requests
+            conn_timeout: The timeout to use when connecting.
+            request_timeout: The timeout to use when making requests.
         """
 
         self._host = host
@@ -67,8 +66,9 @@ class ACIClient:
         self._password = password
         self._ssl_context = None
         self._logger = logging.getLogger(__name__)
-        self._reader: Optional[asyncio.StreamReader] = None
-        self._writer: Optional[asyncio.StreamWriter] = None
+        self._connection: Optional[
+            Tuple[asyncio.StreamReader, asyncio.StreamWriter]
+        ] = None
         self._conn_timeout = conn_timeout
         self._request_timeout = request_timeout
 
@@ -85,12 +85,17 @@ class ACIClient:
         self._parser = XmlParser(config=ParserConfig(fail_on_unknown_properties=False))
         self._serializer = XmlSerializer(config=SerializerConfig(xml_declaration=False))
 
-    async def connect(self) -> None:
+    async def get_connection(self) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """
-        Connect to the ACI service, and authenticate if necessary.
+        Get a connection to the ACI service, authenticating if necessary.
         """
 
-        self._reader, self._writer = await asyncio.wait_for(
+        # If we already have a connection, return it
+        if self._connection is not None and not self._connection[1].is_closing():
+            return self._connection
+
+        # Otherwise, open a new connection
+        connection = await asyncio.wait_for(
             asyncio.open_connection(
                 self._host,
                 self._port,
@@ -98,26 +103,26 @@ class ACIClient:
             ),
             timeout=self._conn_timeout,
         )
-        self._logger.debug("Connection opened")
+        self._connection = connection
 
+        # Authenticate
         await self._login()
 
-    async def authenticated(self) -> bool:
-        """Check if we are currently authenticated."""
-
-        r = await self.request(IIntrospection, GetVersion)
-        return r.app is not None
+        return connection
 
     async def close(self) -> None:
         """
-        Close the connection to the ACI service.
+        Close any open connections to the ACI service.
         """
 
-        if self._writer is None or self._writer.is_closing():
+        # Check if connection is already closed
+        if self._connection is None or self._connection[1].is_closing():
             return
 
-        self._writer.close()
-        await self._writer.wait_closed()
+        # Close the connection
+        _, writer = self._connection
+        writer.close()
+        await writer.wait_closed()
 
         self._logger.debug("Connection closed")
 
@@ -133,17 +138,16 @@ class ACIClient:
             The response payload string
         """
 
-        # Connect if we're not already connected
-        if self._writer is None or self._writer.is_closing():
-            await self.connect()
+        # Get a connection
+        reader, writer = await self.get_connection()
 
         # Send the request
-        self._writer.write(request_payload.encode()) # type: ignore[union-attr]
-        await self._writer.drain() # type: ignore[union-attr]
+        writer.write(request_payload.encode())
+        await writer.drain()
 
         # Fetch the response
         end_bytes = end_token.encode()
-        data = await self._reader.readuntil(end_bytes) # type: ignore[union-attr]
+        data = await reader.readuntil(end_bytes)
 
         return data.decode()
 
@@ -173,7 +177,6 @@ class ACIClient:
     async def __aenter__(self) -> "ACIClient":
         # Async context manager entry
 
-        await self.connect()
         return self
 
     async def __aexit__(

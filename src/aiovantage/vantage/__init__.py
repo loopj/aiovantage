@@ -32,7 +32,10 @@ class Vantage:
         self._aci_client = ACIClient(
             host, username, password, use_ssl=use_ssl, port=aci_port
         )
-        self._hc_client = HCClient(host, username, password, use_ssl, hc_port)
+
+        self._hc_client = HCClient(
+            host, username, password, use_ssl=use_ssl, port=hc_port
+        )
 
         self._areas = AreasController(self)
         self._loads = LoadsController(self)
@@ -93,8 +96,7 @@ class Vantage:
         """Initialize the clients."""
 
         await asyncio.gather(
-            self._aci_client.connect(),
-            self._hc_client.initialize(),
+            self._hc_client.connect(),
         )
 
     async def close(self) -> None:

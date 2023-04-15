@@ -27,15 +27,13 @@ async with ACIClient("host", "username", "password") as client:
 ```
 
 
-If you'd prefer not to use the async context manager, just make sure to call `connect`
-and `close` yourself:
+If you'd prefer not to use the async context manager, just make sure to call `close` yourself:
 
 
 ```python
 from aiovantage.aci_client import ACIClient
 
 client = ACIClient("host", "username", "password")
-await client.connect()
 response = await client.request(Interface, Method, Params())
 await client.close()
 ```
