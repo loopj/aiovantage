@@ -1,48 +1,20 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
+
+from aiovantage.aci_client.xml_dataclass import xml_element
 
 
 @dataclass
 class ObjectFilter:
-    object_type: List[str] = field(
-        default_factory=list,
-        metadata={
-            "name": "ObjectType",
-            "type": "Element",
-            "min_occurs": 1,
-        },
-    )
+    object_type: List[str] = xml_element("ObjectType")
 
 
 @dataclass
 class OpenFilter:
-    call: Optional["OpenFilter.Params"] = field(
-        default=None,
-        metadata={
-            "type": "Element",
-        },
-    )
-    return_value: Optional[int] = field(
-        default=None,
-        metadata={
-            "name": "return",
-            "type": "Element",
-        },
-    )
+    call: Optional["OpenFilter.Params"] = xml_element("call", default=None)
+    return_value: Optional[int] = xml_element("return", default=None)
 
     @dataclass
     class Params:
-        objects: Optional[ObjectFilter] = field(
-            default=None,
-            metadata={
-                "name": "Objects",
-                "type": "Element",
-            },
-        )
-        xpath: Optional[str] = field(
-            default=None,
-            metadata={
-                "name": "XPath",
-                "type": "Element",
-            },
-        )
+        objects: Optional[ObjectFilter] = xml_element("Objects", default=None)
+        xpath: Optional[str] = xml_element("XPath", default=None)

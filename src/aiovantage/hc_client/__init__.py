@@ -48,8 +48,8 @@ EventSubscriptionType = Tuple[
 class HCClient:
     """Communicate with a Vantage InFusion Host Command service.
 
-    The Host Command service is a text-based service that allows interaction with devices
-    controlled by a Vantage InFusion Controller.
+    The Host Command service is a text-based service that allows interaction with
+    devices controlled by a Vantage InFusion Controller.
 
     Among other things, this service allows you to change the state of devices
     (eg. turn on/off a light) as well as subscribe to status changes for devices.
@@ -116,6 +116,15 @@ class HCClient:
             await self.send_command("LOGIN", self._username, self._password)
             self._logger.info("Login successful")
 
+    async def authenticated(self) -> bool:
+        """Check if we are currently authenticated."""
+
+        try:
+            await self.send_command("VERSION")
+            return True
+        except LoginRequiredError:
+            return False
+
     async def _handle_messages(self) -> None:
         while True:
             data = await self._reader.readline()
@@ -161,6 +170,7 @@ class HCClient:
 
         # Join the command and parameters into a single string, escaping any
         # parameters that contain spaces with quotes
+        command = command.upper()
         params_str = " ".join(f'"{s}"' if " " in s else s for s in params)
         message = f"{command} {params_str}\n"
 
@@ -197,7 +207,8 @@ class HCClient:
         if not response.startswith(command):
             raise Exception(f"Received out of order response: {response}")
 
-        # If we expected a multiple line response, pop the additional lines off the queue
+        # If we expected a multiple line response, pop the extra lines off the queue
+        # We don't currently do anything with these lines
         if response_lines > 1:
             for _ in range(response_lines - 1):
                 await self._response_queue.get()

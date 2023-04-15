@@ -2,7 +2,7 @@ import asyncio
 import logging
 import ssl
 from types import TracebackType
-from typing import Any, Optional, Protocol, Tuple, Type, TypeVar, Union
+from typing import Any, Optional, Protocol, Type, TypeVar, Union
 
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -10,7 +10,8 @@ from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.utils.text import snake_case
 
-from .interfaces import ILogin
+from .interfaces import ILogin, IIntrospection
+from .methods.introspection import GetVersion
 from .methods.login import Login
 
 
@@ -52,13 +53,13 @@ class ACIClient:
         Initialize the ACIClient instance.
 
         Args:
-            - host: The hostname or IP address of the ACI service.
-            - username: The username to use when authenticating with the ACI service.
-            - password: The password to use when authenticating with the ACI service.
-            - use_ssl: Whether to use SSL when connecting to the ACI service.
-            - port: The port to use when connecting to the ACI service.
-            - conn_timeout: The timeout to use when connecting
-            - request_timeout: The timeout to use when making requests
+            host: The hostname or IP address of the ACI service.
+            username: The username to use when authenticating with the ACI service.
+            password: The password to use when authenticating with the ACI service.
+            use_ssl: Whether to use SSL when connecting to the ACI service.
+            port: The port to use when connecting to the ACI service.
+            conn_timeout: The timeout to use when connecting
+            request_timeout: The timeout to use when making requests
         """
 
         self._host = host
@@ -66,9 +67,8 @@ class ACIClient:
         self._password = password
         self._ssl_context = None
         self._logger = logging.getLogger(__name__)
-        self._connection: Optional[
-            Tuple[asyncio.StreamReader, asyncio.StreamWriter]
-        ] = None
+        self._reader: Optional[asyncio.StreamReader] = None
+        self._writer: Optional[asyncio.StreamWriter] = None
         self._conn_timeout = conn_timeout
         self._request_timeout = request_timeout
 
@@ -90,7 +90,7 @@ class ACIClient:
         Connect to the ACI service, and authenticate if necessary.
         """
 
-        self._connection = await asyncio.wait_for(
+        self._reader, self._writer = await asyncio.wait_for(
             asyncio.open_connection(
                 self._host,
                 self._port,
@@ -102,19 +102,23 @@ class ACIClient:
 
         await self._login()
 
+    async def authenticated(self) -> bool:
+        """Check if we are currently authenticated."""
+
+        r = await self.request(IIntrospection, GetVersion)
+        return r.app is not None
+
     async def close(self) -> None:
         """
         Close the connection to the ACI service.
         """
 
-        if self._connection is None:
+        if self._writer is None or self._writer.is_closing():
             return
 
-        _, writer = self._connection
-        writer.close()
-        await writer.wait_closed()
+        self._writer.close()
+        await self._writer.wait_closed()
 
-        self._connection = None
         self._logger.debug("Connection closed")
 
     async def raw_request(self, request_payload: str, end_token: str) -> str:
@@ -129,40 +133,19 @@ class ACIClient:
             The response payload string
         """
 
-        if self._connection is None:
-            raise RuntimeError("Not connected to the ACI service")
+        # Connect if we're not already connected
+        if self._writer is None or self._writer.is_closing():
+            await self.connect()
 
         # Send the request
-        reader, writer = self._connection
-        writer.write(request_payload.encode())
-        await writer.drain()
+        self._writer.write(request_payload.encode()) # type: ignore[union-attr]
+        await self._writer.drain() # type: ignore[union-attr]
 
         # Fetch the response
-        buffer = bytearray()
         end_bytes = end_token.encode()
-        while True:
-            # Read a chunk of data from the socket
-            chunk = await asyncio.wait_for(
-                reader.read(1024),
-                timeout=self._request_timeout,
-            )
+        data = await self._reader.readuntil(end_bytes) # type: ignore[union-attr]
 
-            # Check for no data
-            if not chunk:
-                break
-
-            # Check for a closed connection
-            if chunk == b"\x18":
-                raise EOFError(
-                    "Connection closed by remote host, likely due to malformed request."
-                )
-
-            # Add chunk to buffer and check for end token
-            buffer.extend(chunk)
-            if end_bytes in buffer:
-                break
-
-        return buffer.decode()
+        return data.decode()
 
     async def request(
         self, interface: Type[Any], method: Type[Method[T]], params: Any = None
@@ -182,7 +165,7 @@ class ACIClient:
         request = self._marshall(interface, method, params)
         self._logger.debug(request)
 
-        response = await self.raw_request(request, f"</{interface.__name__}>")
+        response = await self.raw_request(request, f"</{interface.__name__}>\n")
         self._logger.debug(response)
 
         return self._unmarshall(interface, method, response)
@@ -224,7 +207,7 @@ class ACIClient:
         interface = self._parser.from_string(response_str, interface_cls)
         method: Method[T] = getattr(interface, snake_case(method_cls.__name__))
 
-        if method.return_value is None:
+        if method.return_value is None or method.return_value == "":
             raise TypeError(
                 f"Response from {interface_cls.__name__}.{method_cls.__name__}"
                 f"did not contain a return value"

@@ -2,17 +2,12 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from aiovantage.aci_client.system_objects import ALL_TYPES
+from aiovantage.aci_client.xml_dataclass import xml_attribute, xml_element
 
 
 @dataclass
 class ObjectChoice:
-    id: Optional[int] = field(
-        default=None,
-        metadata={
-            "name": "VID",
-            "type": "Attribute",
-        },
-    )
+    id: Optional[int] = xml_attribute("VID", default=None)
     choice: Optional[object] = field(
         default=None,
         metadata={
@@ -24,53 +19,17 @@ class ObjectChoice:
 
 @dataclass
 class GetFilterResults:
-    call: Optional["GetFilterResults.Params"] = field(
-        default=None,
-        metadata={
-            "type": "Element",
-        },
-    )
-    return_value: Optional["GetFilterResults.Return"] = field(
-        default=None,
-        metadata={
-            "name": "return",
-            "type": "Element",
-        },
+    call: Optional["GetFilterResults.Params"] = xml_element("call", default=None)
+    return_value: Optional["GetFilterResults.Return"] = xml_element(
+        "return", default=None
     )
 
     @dataclass
     class Params:
-        count: Optional[int] = field(
-            default=50,
-            metadata={
-                "name": "Count",
-                "type": "Element",
-                "required": True,
-            },
-        )
-        whole_object: Optional[bool] = field(
-            default=True,
-            metadata={
-                "name": "WholeObject",
-                "type": "Element",
-                "required": True,
-            },
-        )
-        h_filter: Optional[int] = field(
-            default=None,
-            metadata={
-                "name": "hFilter",
-                "type": "Element",
-                "required": True,
-            },
-        )
+        h_filter: int = xml_element("hFilter")
+        count: int = xml_element("Count", default=50)
+        whole_object: bool = xml_element("WholeObject", default=True)
 
     @dataclass
     class Return:
-        object_value: List[ObjectChoice] = field(
-            default_factory=list,
-            metadata={
-                "name": "Object",
-                "type": "Element",
-            },
-        )
+        object_value: List[ObjectChoice] = xml_element("Object", default_factory=list)

@@ -1,19 +1,9 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
+from aiovantage.aci_client.xml_dataclass import xml_element
 
 @dataclass
 class CloseFilter:
-    call: Optional[int] = field(
-        default=None,
-        metadata={
-            "type": "Element",
-        },
-    )
-    return_value: Optional[bool] = field(
-        default=None,
-        metadata={
-            "name": "return",
-            "type": "Element",
-        },
-    )
+    call: Optional[int] = xml_element("call", default=None)
+    return_value: Optional[bool] = xml_element("return", default=None)

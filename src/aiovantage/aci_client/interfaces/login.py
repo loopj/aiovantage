@@ -1,15 +1,11 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
+
+from aiovantage.aci_client.xml_dataclass import xml_element
 
 from ..methods.login.login import Login
 
 
 @dataclass
 class ILogin:
-    login: Optional[Login] = field(
-        default=None,
-        metadata={
-            "name": "Login",
-            "type": "Element",
-        },
-    )
+    login: Optional[Login] = xml_element("Login", default=None)
