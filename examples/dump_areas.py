@@ -15,19 +15,19 @@ def print_indented(text: str, indent_level: int) -> None:
 def print_area(vantage: Vantage, area: Area, level: int = 0) -> None:
     print_indented(f"{area.name}", level)
 
-    for child_area in vantage.areas.filter(area=area.id):
+    for child_area in vantage.areas.filter(area_id=area.id):
         print_area(vantage, child_area, level=level + 1)
 
     print_indented("Stations:", level + 1)
-    for station in vantage.stations.filter(area=area.id):
+    for station in vantage.stations.filter(area_id=area.id):
         print_indented(f"{station.name}", level + 2)
 
     print_indented("Loads:", level + 1)
-    for load in vantage.loads.filter(area=area.id):
+    for load in vantage.loads.filter(area_id=area.id):
         print_indented(f"{load.name}", level + 2)
 
     print_indented("Dry Contacts:", level + 1)
-    for dry_contact in vantage.dry_contacts.filter(area=area.id):
+    for dry_contact in vantage.dry_contacts.filter(area_id=area.id):
         print_indented(f"{dry_contact.name}", level + 2)
 
 

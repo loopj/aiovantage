@@ -48,6 +48,7 @@ class BaseController(Generic[T], QuerySet[T]):
         self._subscribers: List[EventCallBackType[T]] = []
         self._id_subscribers: Dict[int, List[EventCallBackType[T]]] = {}
         self._logger = logging.getLogger(__package__)
+        self._initialized = False
 
         QuerySet.__init__(self, self._items)
 
@@ -62,6 +63,9 @@ class BaseController(Generic[T], QuerySet[T]):
         Initialize the controller by fetching all objects from the ACI service, and
         subscribing to status updates from the HC service.
         """
+
+        if self._initialized:
+            return
 
         # Populate the objects
         async for obj in get_objects_by_type(
@@ -78,6 +82,7 @@ class BaseController(Generic[T], QuerySet[T]):
                 self._handle_status_event, self.status_types
             )
 
+        self._initialized = True
         self._logger.info(f"{self.__class__.__name__} initialized")
 
     def subscribe(

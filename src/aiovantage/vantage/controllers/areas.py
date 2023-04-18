@@ -11,4 +11,4 @@ class AreasController(BaseController[Area]):
     def root(self) -> Optional[Area]:
         """Return the root (top-most) area."""
 
-        return self.get(area=0)
+        return self.get(area_id=0)

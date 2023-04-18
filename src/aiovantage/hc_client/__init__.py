@@ -127,12 +127,11 @@ class HCClient:
             timeout=self._conn_timeout,
         )
 
-        self._logger.info("Connected")
-
-        # Start a task to handle incoming messages
+        # Start tasks to handle incoming messages
         self._tasks.append(asyncio.create_task(self._handle_messages()))
         self._tasks.append(asyncio.create_task(self._status_processor()))
-        self._logger.info("Message processing started")
+
+        self._logger.info("Connected")
 
         # Login if we have a username and password
         await self._login()
@@ -272,7 +271,7 @@ class HCClient:
                     callback(type, vid, args)
 
     async def _login(self) -> None:
-        """Login to the Vantage controller."""
+        # Login to the HC service.
 
         if not self._username or not self._password:
             return

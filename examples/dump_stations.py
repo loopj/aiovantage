@@ -14,11 +14,11 @@ async def main() -> None:
             print(f"{station.name}")
 
             print("    Buttons:")
-            for button in vantage.buttons.filter(parent=station.id):
+            for button in vantage.buttons.filter(parent_id=station.id):
                 print(f"        {button.name}")
 
             print("    Dry Contacts:")
-            for dry_contact in vantage.dry_contacts.filter(parent=station.id):
+            for dry_contact in vantage.dry_contacts.filter(parent_id=station.id):
                 print(f"        {dry_contact.name}")
 
 

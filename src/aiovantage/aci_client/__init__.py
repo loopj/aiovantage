@@ -104,8 +104,9 @@ class ACIClient:
             timeout=self._conn_timeout,
         )
         self._connection = connection
+        self._logger.info("Connected")
 
-        # Authenticate
+        # Login if we have a username and password
         await self._login()
 
         return connection
@@ -229,4 +230,4 @@ class ACIClient:
         if not success:
             raise PermissionError("Authentication failed, bad username or password")
 
-        self._logger.debug("Login successful")
+        self._logger.info("Login successful")

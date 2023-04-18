@@ -4,6 +4,14 @@ from typing import List, Optional
 from aiovantage.aci_client.system_objects import ALL_TYPES
 from aiovantage.aci_client.xml_dataclass import xml_attribute, xml_element
 
+choices = [
+    {
+        "name": obj.Meta.name if "Meta" in obj.__dict__ else obj.__name__,  # type: ignore[attr-defined]
+        "type": obj,
+    }
+    for obj in ALL_TYPES
+]
+
 
 @dataclass
 class ObjectChoice:
@@ -12,7 +20,7 @@ class ObjectChoice:
         default=None,
         metadata={
             "type": "Wildcard",
-            "choices": tuple({"name": obj.__name__, "type": obj} for obj in ALL_TYPES),
+            "choices": choices,
         },
     )
 
