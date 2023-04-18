@@ -38,7 +38,9 @@ class LoadsController(BaseController[Load]):
 
     async def _fetch_object_state(self, vid: int) -> None:
         # Fetch initial state of a single Load.
-        response = await self._vantage._hc_client.send_command(f"GETLOAD {vid}")
+        response = await self._vantage._hc_client.send_command("GETLOAD", f"{vid}")
+
+        # GETLOAD <load vid> <level (0-100)>
         _, _, *args = shlex.split(response)
 
         self._update_object_state(vid, args)
@@ -47,28 +49,46 @@ class LoadsController(BaseController[Load]):
         # Fetch initial state of all Loads.
         await asyncio.gather(*[self._fetch_object_state(load.id) for load in self])
 
+    @property
     def on(self) -> QuerySet[Load]:
-        """Return a queryset of all loads that are on."""
+        """Return a queryset of all loads that are turned on."""
 
         return self.filter(lambda load: load.level)
 
+    @property
     def off(self) -> QuerySet[Load]:
-        """Return a queryset of all loads that are off."""
+        """Return a queryset of all loads that are turned off."""
 
         return self.filter(lambda load: not load.level)
 
     async def turn_on(self, id: int) -> None:
-        """Turn on a load."""
+        """
+        Turn on a load.
+
+        Args:
+            id: The ID of the load.
+        """
 
         await self.set_level(id, 100)
 
     async def turn_off(self, id: int) -> None:
-        """Turn off a load."""
+        """
+        Turn off a load.
+
+        Args:
+            id: The ID of the load.
+        """
 
         await self.set_level(id, 0)
 
     async def set_level(self, vid: int, level: float) -> None:
-        """Set the level of a load."""
+        """
+        Set the level of a load.
+
+        Args:
+            vid: The ID of the load.
+            level: The level to set the load to (0-100).
+        """
 
         # Normalize level
         level = max(min(level, 100), 0)

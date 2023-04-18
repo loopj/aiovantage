@@ -138,7 +138,7 @@ class HCClient:
 
     async def _handle_messages(self) -> None:
         while True:
-            data = await self._reader.readline() # type: ignore[union-attr]
+            data = await self._reader.readline()  # type: ignore[union-attr]
             message = data.decode().strip()
 
             self._logger.debug(f"Received message: {message}")
@@ -220,7 +220,11 @@ class HCClient:
 
         # Check for out of order responses
         if not response.startswith(command):
-            raise Exception(f"Received out of order response: {response}")
+            raise Exception(
+                f"Received out of order response."
+                f"\tExpected: {command}"
+                f"\tReceived: {response}"
+            )
 
         # If we expected a multiple line response, pop the extra lines off the queue
         # We don't currently do anything with these lines

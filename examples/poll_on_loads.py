@@ -12,8 +12,8 @@ async def main() -> None:
         await vantage.loads.initialize()
 
         while True:
-            for load in vantage.loads.on():
-                area = vantage.areas.get(load.area) if load.area else None
+            for load in vantage.loads.on:
+                area = vantage.areas.get(load.area_id)
                 print(f"{load.name} ({area.name if area else 'Unknown Area'})")
             print()
 

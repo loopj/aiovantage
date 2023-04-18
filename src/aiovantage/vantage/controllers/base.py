@@ -121,14 +121,13 @@ class BaseController(Generic[T], QuerySet[T]):
         return unsubscribe
 
     def _handle_status_event(
-        self, type: StatusType, vid: int, args: Sequence[str]
+        self, status_type: StatusType, vid: int, args: Sequence[str]
     ) -> None:
         """Handle a status event from the Host Command client"""
 
-        # Ignore events for objects we don't know about
+        # Ignore events for objects we don't own
         obj = self._items.get(vid)
         if obj is None:
-            self._logger.warning(f"Received status event for unknown object {vid}")
             return
 
         # Delegate to subclasses to update the existing object

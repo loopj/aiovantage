@@ -1,3 +1,4 @@
+from typing import Any, Type
 from .area import Area
 from .button import Button
 from .dry_contact import DryContact
@@ -20,6 +21,16 @@ from .station_object import (
 from .system_object import SystemObject
 from .task import Task
 
+
+def xml_tag_from_class(cls: Type[Any]) -> str:
+    """Get the XML tag name for a class."""
+
+    meta = cls.Meta if "Meta" in cls.__dict__ else None
+    name = getattr(meta, "name", cls.__name__)
+
+    return name
+
+
 # Concrete Sensor classes
 SENSOR_TYPES = [
     AnemoSensor,
@@ -39,37 +50,34 @@ STATION_TYPES = [
 ]
 
 # Concrete PowerProfile classes
-POWER_PROFILES = [
+POWER_PROFILE_TYPES = [
     PowerProfile,
     DCPowerProfile,
     PWMPowerProfile,
 ]
 
 # Concrete RGBLoad classes
-COLOR_LOADS = [
+RGB_LOAD_TYPES = [
     DGColorLoad,
     DDGColorLoad,
 ]
 
-ALL_TYPES = (
-    [
-        Area,
-        Button,
-        DryContact,
-        GMem,
-        Load,
-        LocationObject,
-        RGBLoad,
-        Sensor,
-        StationBus,
-        StationObject,
-        SystemObject,
-        Task,
-    ]
-    + COLOR_LOADS
-    + POWER_PROFILES
-    + STATION_TYPES
+# All concrete types (types that can appear in XML)
+CONCRETE_TYPES = (
+    [Area, Button, DryContact, GMem, Load, StationBus, Task]
+    + POWER_PROFILE_TYPES
+    + RGB_LOAD_TYPES
     + SENSOR_TYPES
+    + STATION_TYPES
 )
+
+# All types for export
+ALL_TYPES = [
+    LocationObject,
+    RGBLoad,
+    Sensor,
+    StationObject,
+    SystemObject,
+] + CONCRETE_TYPES
 
 __all__ = [obj.__name__ for obj in ALL_TYPES]

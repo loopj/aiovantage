@@ -1,16 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from aiovantage.aci_client.system_objects import ALL_TYPES
+from aiovantage.aci_client.system_objects import CONCRETE_TYPES, xml_tag_from_class
 from aiovantage.aci_client.xml_dataclass import xml_attribute, xml_element
-
-choices = [
-    {
-        "name": obj.Meta.name if "Meta" in obj.__dict__ else obj.__name__,  # type: ignore[attr-defined]
-        "type": obj,
-    }
-    for obj in ALL_TYPES
-]
 
 
 @dataclass
@@ -20,7 +12,13 @@ class ObjectChoice:
         default=None,
         metadata={
             "type": "Wildcard",
-            "choices": choices,
+            "choices": [
+                {
+                    "name": xml_tag_from_class(cls),
+                    "type": cls,
+                }
+                for cls in CONCRETE_TYPES
+            ],
         },
     )
 
