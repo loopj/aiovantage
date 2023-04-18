@@ -20,5 +20,5 @@ from aiovantage.vantage.controllers.base import BaseController
 
 class TasksController(BaseController[Task]):
     item_cls = Task
-    vantage_types = ("Task",)
+    vantage_types = (Task,)
     status_types = (StatusType.TASK,)

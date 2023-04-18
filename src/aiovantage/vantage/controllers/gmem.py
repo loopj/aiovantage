@@ -5,5 +5,5 @@ from aiovantage.vantage.controllers.base import BaseController
 
 class GMemController(BaseController[GMem]):
     item_cls = GMem
-    vantage_types = ("GMem",)
+    vantage_types = (GMem,)
     status_types = (StatusType.VARIABLE,)

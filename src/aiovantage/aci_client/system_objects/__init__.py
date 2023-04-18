@@ -31,45 +31,36 @@ def xml_tag_from_class(cls: Type[Any]) -> str:
     return name
 
 
-# Concrete Sensor classes
-SENSOR_TYPES = [
+# All concrete types (types that can appear in XML)
+CONCRETE_TYPES = [
+    # General
+    Area,
+    Button,
+    DryContact,
+    GMem,
+    Load,
+    StationBus,
+    Task,
+    # Sensors
     AnemoSensor,
     LightSensor,
     OmniSensor,
     Temperature,
-]
-
-# Concrete StationObject classes
-STATION_TYPES = [
+    # Stations
     Dimmer,
     DualRelayStation,
     EqCtrl,
     EqUX,
     Keypad,
     ScenePointRelay,
-]
-
-# Concrete PowerProfile classes
-POWER_PROFILE_TYPES = [
+    # Power Profiles
     PowerProfile,
     DCPowerProfile,
     PWMPowerProfile,
-]
-
-# Concrete RGBLoad classes
-RGB_LOAD_TYPES = [
+    # RGB Loads
     DGColorLoad,
     DDGColorLoad,
 ]
-
-# All concrete types (types that can appear in XML)
-CONCRETE_TYPES = (
-    [Area, Button, DryContact, GMem, Load, StationBus, Task]
-    + POWER_PROFILE_TYPES
-    + RGB_LOAD_TYPES
-    + SENSOR_TYPES
-    + STATION_TYPES
-)
 
 # All types for export
 ALL_TYPES = [

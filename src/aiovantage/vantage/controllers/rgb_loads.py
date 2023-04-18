@@ -3,18 +3,14 @@ import shlex
 import struct
 from typing import Sequence
 
-from aiovantage.aci_client.system_objects import (
-    RGB_LOAD_TYPES,
-    RGBLoad,
-    xml_tag_from_class,
-)
+from aiovantage.aci_client.system_objects import DDGColorLoad, DGColorLoad, RGBLoad
 from aiovantage.hc_client import StatusType
 from aiovantage.vantage.controllers.base import BaseController
 
 
 class RGBLoadsController(BaseController[RGBLoad]):
     item_cls = RGBLoad
-    vantage_types = tuple(xml_tag_from_class(cls) for cls in RGB_LOAD_TYPES)
+    vantage_types = (DGColorLoad, DDGColorLoad)
     status_types = (StatusType.LOAD,)
 
     def _update_object_state(self, vid: int, args: Sequence[str]) -> None:

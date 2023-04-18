@@ -3,19 +3,21 @@ import logging
 from inspect import iscoroutinefunction
 from typing import (
     TYPE_CHECKING,
+    Any,
     Callable,
     Dict,
     Generic,
     List,
     Optional,
     Sequence,
+    Tuple,
     Type,
     TypeVar,
     Union,
 )
 
 from aiovantage.aci_client.helpers import get_objects_by_type
-from aiovantage.aci_client.system_objects import SystemObject
+from aiovantage.aci_client.system_objects import SystemObject, xml_tag_from_class
 from aiovantage.hc_client import StatusType
 from aiovantage.vantage.query import QuerySet
 
@@ -32,7 +34,7 @@ class BaseController(Generic[T], QuerySet[T]):
     """Holds and manages all items for a specific Vantage object type."""
 
     item_cls: Type[T]
-    vantage_types: Sequence[str]
+    vantage_types: Tuple[Type[Any], ...]
     status_types: Optional[Sequence[StatusType]] = None
 
     def __init__(self, vantage: "Vantage") -> None:
@@ -68,8 +70,9 @@ class BaseController(Generic[T], QuerySet[T]):
             return
 
         # Populate the objects
+        vantage_types = [xml_tag_from_class(cls) for cls in self.vantage_types]
         async for obj in get_objects_by_type(
-            self._vantage._aci_client, list(self.vantage_types), self.item_cls
+            self._vantage._aci_client, vantage_types, self.item_cls
         ):
             self._items[obj.id] = obj
 

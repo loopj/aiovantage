@@ -2,9 +2,11 @@ import asyncio
 from typing import Sequence
 
 from aiovantage.aci_client.system_objects import (
-    SENSOR_TYPES,
+    AnemoSensor,
+    LightSensor,
+    OmniSensor,
     Sensor,
-    xml_tag_from_class,
+    Temperature,
 )
 from aiovantage.hc_client import StatusType
 from aiovantage.vantage.controllers.base import BaseController
@@ -12,7 +14,7 @@ from aiovantage.vantage.controllers.base import BaseController
 
 class SensorsController(BaseController[Sensor]):
     item_cls = Sensor
-    vantage_types = tuple(xml_tag_from_class(cls) for cls in SENSOR_TYPES)
+    vantage_types = (AnemoSensor, LightSensor, OmniSensor, Temperature)
     status_types = (
         StatusType.TEMP,
         StatusType.POWER,

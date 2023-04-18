@@ -27,7 +27,7 @@ from aiovantage.vantage.query import QuerySet
 
 class LoadsController(BaseController[Load]):
     item_cls = Load
-    vantage_types = ("Load",)
+    vantage_types = (Load,)
     status_types = (StatusType.LOAD,)
 
     def _update_object_state(self, vid: int, args: Sequence[str]) -> None:
