@@ -8,9 +8,13 @@ from .location_object import LocationObject
 @dataclass
 class RGBLoad(LocationObject):
     color_type: str = xml_element("ColorType")
+    min_temp: int = xml_element("MinTemp")
+    max_temp: int = xml_element("MaxTemp")
 
     def __post_init__(self) -> None:
+        self.level: Optional[float] = None
         self.rgb: Optional[Tuple[int, int, int]] = None
+        self.color_temp: Optional[int] = None
 
 
 @dataclass

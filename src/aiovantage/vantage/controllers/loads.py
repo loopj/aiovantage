@@ -31,10 +31,11 @@ class LoadsController(BaseController[Load]):
     status_types = (StatusType.LOAD,)
 
     def _update_object_state(self, vid: int, args: Sequence[str]) -> None:
+        if vid not in self:
+            return
+
         # Update the state of a single Load.
-        level = float(args[0])
-        if vid in self:
-            self[vid].level = level
+        self[vid].level = float(args[0])
 
     async def _fetch_object_state(self, vid: int) -> None:
         # Fetch initial state of a single Load.
@@ -90,6 +91,9 @@ class LoadsController(BaseController[Load]):
             level: The level to set the load to (0-100).
         """
 
+        if vid not in self:
+            return
+
         # Normalize level
         level = max(min(level, 100), 0)
 
@@ -97,5 +101,4 @@ class LoadsController(BaseController[Load]):
         await self._vantage._hc_client.send_command("LOAD", f"{vid}", f"{level}")
 
         # Update local level
-        if vid in self:
-            self[vid].level = level
+        self[vid].level = level
