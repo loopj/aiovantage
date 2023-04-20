@@ -50,7 +50,7 @@ class LoadsController(BaseController[Load]):
 
         # GETLOAD <load vid>
         # -> R:GETLOAD <load vid> <level (0-100)>
-        response = await self._vantage._hc_client.send_command("GETLOAD", id)
+        response = await self.command_client.send_command("GETLOAD", id)
         level = float(response[1])
 
         return level
@@ -63,13 +63,19 @@ class LoadsController(BaseController[Load]):
             level: The level to set the load to (0-100).
         """
 
+        # Clamp level to 0-100
+        level = max(min(level, 100), 0)
+
+        # Don't send a command if the level isn't changing
+        if self[id].level == level:
+            return
+
         # LOAD <id> <level>
         # -> R:LOAD <id> <level>
-        level = max(min(level, 100), 0)
-        await self._vantage._hc_client.send_command("LOAD", id, level)
+        await self.command_client.send_command("LOAD", id, level)
 
         # Update local state
-        self[id].level = level
+        self._update_state(id, level=level)
 
     async def _fetch_initial_state(self) -> None:
         # Fetch initial state of all Loads.
@@ -79,9 +85,8 @@ class LoadsController(BaseController[Load]):
 
     def _handle_category_status(
         self, category: StatusCategory, id: int, args: Sequence[str]
-    ) -> bool:
+    ) -> None:
         # Handle "STATUS" category status messages
 
         # S:LOAD <id> <level (0-100)>
-        self[id].level = float(args[0])
-        return True
+        self._update_state(id, level=float(args[0]))

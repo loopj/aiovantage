@@ -18,7 +18,7 @@ from typing import (
 
 from aiovantage.aci_client.helpers import get_objects_by_type
 from aiovantage.aci_client.system_objects import SystemObject, xml_tag_from_class
-from aiovantage.hc_client import StatusCategory
+from aiovantage.hc_client import HCClient, StatusCategory
 from aiovantage.vantage.query import QuerySet
 
 T = TypeVar("T", bound="SystemObject")
@@ -60,6 +60,10 @@ class BaseController(Generic[T], QuerySet[T]):
 
     def __contains__(self, id: int) -> bool:
         return id in self._items
+
+    @property
+    def command_client(self) -> "HCClient":
+        return self._vantage._hc_client
 
     async def initialize(self) -> None:
         """
@@ -140,11 +144,7 @@ class BaseController(Generic[T], QuerySet[T]):
             return
 
         # Delegate to subclasses to update the existing object
-        updated = self._handle_category_status(status_category, vid, args)
-
-        # Notify subscribers
-        if updated:
-            self._notify_subscribers(self._items[vid], args)
+        self._handle_category_status(status_category, vid, args)
 
     def _handle_object_status_event(
         self, vid: int, method: str, args: Sequence[str]
@@ -154,11 +154,28 @@ class BaseController(Generic[T], QuerySet[T]):
             return
 
         # Delegate to subclasses to update the existing object
-        updated = self._handle_object_status(vid, method, args)
+        self._handle_object_status(vid, method, args)
 
-        # Notify subscribers
-        if updated:
-            self._notify_subscribers(self._items[vid], args)
+    def _update_state(self, id: int, **kwargs: Any) -> None:
+        # Update the state of an object and notify subscribers if it changed
+
+        obj = self.get(id)
+        if obj is None:
+            return
+
+        dirty = False
+        for key, value in kwargs.items():
+            if getattr(obj, key) != value:
+                print(f"Updating {obj.id} {key} from {getattr(obj, key)} to {value}")
+                setattr(obj, key, value)
+                dirty = True
+
+        if dirty:
+            self._notify_subscribers(obj, [key])
+
+        # if any(getattr(obj, key) != value for key, value in kwargs.items()):
+        #     obj.__dict__.update(kwargs)
+        #     self._notify_subscribers(obj, [])
 
     def _notify_subscribers(self, obj: T, args: Sequence[str]) -> None:
         subscribers = self._subscribers + self._id_subscribers.get(obj.id, [])
@@ -174,8 +191,8 @@ class BaseController(Generic[T], QuerySet[T]):
 
     def _handle_category_status(
         self, category: StatusCategory, vid: int, args: Sequence[str]
-    ) -> bool:
-        return False
+    ) -> None:
+        pass
 
-    def _handle_object_status(self, vid: int, method: str, args: Sequence[str]) -> bool:
-        return False
+    def _handle_object_status(self, vid: int, method: str, args: Sequence[str]) -> None:
+        pass
