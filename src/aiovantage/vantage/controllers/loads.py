@@ -1,54 +1,15 @@
-import asyncio
-import shlex
 from typing import Sequence
 
 from aiovantage.aci_client.system_objects import Load
-from aiovantage.hc_client import StatusType
+from aiovantage.hc_client import StatusCategory
 from aiovantage.vantage.controllers.base import BaseController
 from aiovantage.vantage.query import QuerySet
-
-# LOAD <load vid> <level (0-100)>
-#   -> R:LOAD <load vid> <level (0-100)>
-
-# RAMPLOAD <load vid> <level (0-100)> <seconds>
-#   -> R:RAMPLOAD <load vid> <level (0-100)> <seconds>
-
-# GETLOAD <load vid>
-#   -> R:GETLOAD <load vid> <level (0-100)>
-
-# STATUS LOAD
-#   -> R:STATUS LOAD
-#   -> S:LOAD <load vid> <level (0-100)>
-
-# ADDSTATUS <load vid>
-#   -> R:ADDSTATUS <load vid>
-#   -> S:STATUS <load vid> Load.GetLevel <level (0-100000)>
 
 
 class LoadsController(BaseController[Load]):
     item_cls = Load
     vantage_types = (Load,)
-    status_types = (StatusType.LOAD,)
-
-    def _update_object_state(self, vid: int, args: Sequence[str]) -> None:
-        if vid not in self:
-            return
-
-        # Update the state of a single Load.
-        self[vid].level = float(args[0])
-
-    async def _fetch_object_state(self, vid: int) -> None:
-        # Fetch initial state of a single Load.
-        response = await self._vantage._hc_client.send_command("GETLOAD", f"{vid}")
-
-        # GETLOAD <load vid> <level (0-100)>
-        _, _, *args = shlex.split(response)
-
-        self._update_object_state(vid, args)
-
-    async def _fetch_initial_states(self) -> None:
-        # Fetch initial state of all Loads.
-        await asyncio.gather(*[self._fetch_object_state(load.id) for load in self])
+    status_categories = (StatusCategory.LOAD,)
 
     @property
     def on(self) -> QuerySet[Load]:
@@ -63,8 +24,7 @@ class LoadsController(BaseController[Load]):
         return self.filter(lambda load: not load.level)
 
     async def turn_on(self, id: int) -> None:
-        """
-        Turn on a load.
+        """Turn on a load.
 
         Args:
             id: The ID of the load.
@@ -73,8 +33,7 @@ class LoadsController(BaseController[Load]):
         await self.set_level(id, 100)
 
     async def turn_off(self, id: int) -> None:
-        """
-        Turn off a load.
+        """Turn off a load.
 
         Args:
             id: The ID of the load.
@@ -82,23 +41,47 @@ class LoadsController(BaseController[Load]):
 
         await self.set_level(id, 0)
 
-    async def set_level(self, vid: int, level: float) -> None:
-        """
-        Set the level of a load.
+    async def get_level(self, id: int) -> float:
+        """Get the level of a load.
 
         Args:
-            vid: The ID of the load.
+            id: The ID of the load.
+        """
+
+        # GETLOAD <load vid>
+        # -> R:GETLOAD <load vid> <level (0-100)>
+        response = await self._vantage._hc_client.send_command("GETLOAD", id)
+        level = float(response[1])
+
+        return level
+
+    async def set_level(self, id: int, level: float) -> None:
+        """Set the level of a load.
+
+        Args:
+            id: The ID of the load.
             level: The level to set the load to (0-100).
         """
 
-        if vid not in self:
-            return
-
-        # Normalize level
+        # LOAD <id> <level>
+        # -> R:LOAD <id> <level>
         level = max(min(level, 100), 0)
+        await self._vantage._hc_client.send_command("LOAD", id, level)
 
-        # Send command to controller
-        await self._vantage._hc_client.send_command("LOAD", f"{vid}", f"{level}")
+        # Update local state
+        self[id].level = level
 
-        # Update local level
-        self[vid].level = level
+    async def _fetch_initial_state(self) -> None:
+        # Fetch initial state of all Loads.
+
+        for obj in self:
+            obj.level = await self.get_level(obj.id)
+
+    def _handle_category_status(
+        self, category: StatusCategory, id: int, args: Sequence[str]
+    ) -> bool:
+        # Handle "STATUS" category status messages
+
+        # S:LOAD <id> <level (0-100)>
+        self[id].level = float(args[0])
+        return True

@@ -1,5 +1,5 @@
 from aiovantage.aci_client.system_objects import Button
-from aiovantage.hc_client import StatusType
+from aiovantage.hc_client import StatusCategory
 from aiovantage.vantage.controllers.base import BaseController
 
 # BTN <button vid>
@@ -27,4 +27,4 @@ from aiovantage.vantage.controllers.base import BaseController
 class ButtonsController(BaseController[Button]):
     item_cls = Button
     vantage_types = (Button,)
-    status_types = (StatusType.BTN,)
+    status_categories = (StatusCategory.BTN,)

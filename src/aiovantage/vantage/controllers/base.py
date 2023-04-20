@@ -18,7 +18,7 @@ from typing import (
 
 from aiovantage.aci_client.helpers import get_objects_by_type
 from aiovantage.aci_client.system_objects import SystemObject, xml_tag_from_class
-from aiovantage.hc_client import StatusType
+from aiovantage.hc_client import StatusCategory
 from aiovantage.vantage.query import QuerySet
 
 T = TypeVar("T", bound="SystemObject")
@@ -35,7 +35,8 @@ class BaseController(Generic[T], QuerySet[T]):
 
     item_cls: Type[T]
     vantage_types: Tuple[Type[Any], ...]
-    status_types: Optional[Sequence[StatusType]] = None
+    status_categories: Optional[Sequence[StatusCategory]] = None
+    object_status: bool = False
 
     def __init__(self, vantage: "Vantage") -> None:
         """
@@ -77,12 +78,18 @@ class BaseController(Generic[T], QuerySet[T]):
             self._items[obj.id] = obj
 
         # Fetch initial state of known objects
-        await self._fetch_initial_states()
+        await self._fetch_initial_state()
 
-        # Subscribe to status events
-        if self.status_types is not None:
-            await self._vantage._hc_client.subscribe(
-                self._handle_status_event, self.status_types
+        # Subscribe to category status events (STATUS {category} -> S:{category})
+        if self.status_categories is not None:
+            await self._vantage._hc_client.subscribe_category(
+                self._handle_category_status_event, self.status_categories
+            )
+
+        # Subscribe to object status events (ADDSTATUS {vid} -> S:STATUS {vid})
+        if self.object_status:
+            await self._vantage._hc_client.subscribe_objects(
+                self._handle_object_status_event, self._items.keys()
             )
 
         self._initialized = True
@@ -123,33 +130,52 @@ class BaseController(Generic[T], QuerySet[T]):
 
         return unsubscribe
 
-    def _handle_status_event(
-        self, status_type: StatusType, vid: int, args: Sequence[str]
+    def _handle_category_status_event(
+        self, status_category: StatusCategory, vid: int, args: Sequence[str]
     ) -> None:
         """Handle a status event from the Host Command client"""
 
         # Ignore events for objects we don't own
-        obj = self._items.get(vid)
-        if obj is None:
+        if vid not in self._items:
             return
 
         # Delegate to subclasses to update the existing object
-        self._update_object_state(vid, args)
+        updated = self._handle_category_status(status_category, vid, args)
 
         # Notify subscribers
-        subscribers = self._subscribers + self._id_subscribers.get(vid, [])
+        if updated:
+            self._notify_subscribers(self._items[vid], args)
+
+    def _handle_object_status_event(
+        self, vid: int, method: str, args: Sequence[str]
+    ) -> None:
+        # Ignore events for objects we don't own
+        if vid not in self._items:
+            return
+
+        # Delegate to subclasses to update the existing object
+        updated = self._handle_object_status(vid, method, args)
+
+        # Notify subscribers
+        if updated:
+            self._notify_subscribers(self._items[vid], args)
+
+    def _notify_subscribers(self, obj: T, args: Sequence[str]) -> None:
+        subscribers = self._subscribers + self._id_subscribers.get(obj.id, [])
         for callback in subscribers:
             if iscoroutinefunction(callback):
                 asyncio.create_task(callback(obj, args))
             else:
                 callback(obj, args)
 
-    def _update_object_state(self, vid: int, args: Sequence[str]) -> None:
-        # Subclasses should override this method to update object state based on args
-        self._logger.warning(
-            f"Received event for controller with no event handler {type(self).__name__}"
-        )
-
-    async def _fetch_initial_states(self) -> None:
-        # Subclasses should override this method to fetch initial state of all objects
+    # Subclasses should override these methods
+    async def _fetch_initial_state(self) -> None:
         pass
+
+    def _handle_category_status(
+        self, category: StatusCategory, vid: int, args: Sequence[str]
+    ) -> bool:
+        return False
+
+    def _handle_object_status(self, vid: int, method: str, args: Sequence[str]) -> bool:
+        return False

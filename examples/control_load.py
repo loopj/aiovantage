@@ -6,7 +6,7 @@ import tty
 
 from aiovantage import Vantage
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 async def main() -> None:

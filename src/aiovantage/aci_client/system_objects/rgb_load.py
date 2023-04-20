@@ -13,7 +13,7 @@ class RGBLoad(LocationObject):
 
     def __post_init__(self) -> None:
         self.level: Optional[float] = None
-        self.rgb: Optional[Tuple[int, int, int]] = None
+        self.color: Optional[Tuple[int, int, int, int]] = None
         self.color_temp: Optional[int] = None
 
 

@@ -2,12 +2,12 @@ import asyncio
 import logging
 from typing import Any
 
-from aiovantage.hc_client import HCClient, StatusType
+from aiovantage.hc_client import HCClient, StatusCategory
 
 logging.basicConfig(level=logging.INFO)
 
 
-def status_callback(status_type: StatusType, vid: int, args: Any) -> None:
+def status_callback(status_type: StatusCategory, vid: int, args: Any) -> None:
     print(f"{status_type} vid: {vid}, args: {args}")
 
 
