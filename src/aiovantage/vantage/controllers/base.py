@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from aiovantage.vantage import Vantage
 
 
-EventCallBackType = Callable[[T], None]
+EventCallBackType = Callable[[T, List[str]], None]
 
 
 class BaseController(Generic[T], QuerySet[T]):
@@ -165,26 +165,26 @@ class BaseController(Generic[T], QuerySet[T]):
             return
 
         # Check if any of the attributes changed
-        dirty = False
+        attrs_changed = []
         for key, value in kwargs.items():
             try:
                 if getattr(obj, key) != value:
                     setattr(obj, key, value)
-                    dirty = True
+                    attrs_changed.append(key)
             except AttributeError:
                 self._logger.warn(f"Object '{obj.id}' has no attribute '{key}'")
 
         # Update the object and notify subscribers
-        if dirty:
-            self._notify_subscribers(obj)
+        if len(attrs_changed) > 0:
+            self._notify_subscribers(obj, attrs_changed)
 
-    def _notify_subscribers(self, obj: T) -> None:
+    def _notify_subscribers(self, obj: T, attrs_changed: List[str]) -> None:
         subscribers = self._subscribers + self._id_subscribers.get(obj.id, [])
         for callback in subscribers:
             if iscoroutinefunction(callback):
-                asyncio.create_task(callback(obj))
+                asyncio.create_task(callback(obj, attrs_changed))
             else:
-                callback(obj)
+                callback(obj, attrs_changed)
 
     # Subclasses should override these methods
     async def _fetch_initial_state(self, id: int) -> None:

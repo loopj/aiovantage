@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Any
+from typing import List
 
 from aiovantage import Vantage
 from aiovantage.aci_client.system_objects import SystemObject
@@ -9,9 +9,10 @@ logging.basicConfig(level=logging.INFO)
 
 
 # This callback will be called whenever an object is updated
-def event_callback(obj: SystemObject) -> None:
-    print(f"[{type(obj).__name__}] {obj.name} changed state")
-
+def event_callback(obj: SystemObject, attrs_changed: List[str]) -> None:
+    print(f"[{type(obj).__name__}] {obj.name} updated:")
+    for attr in attrs_changed:
+        print(f"    {attr} = {getattr(obj, attr)}")
 
 async def main() -> None:
     async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
