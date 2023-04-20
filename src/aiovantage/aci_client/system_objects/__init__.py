@@ -5,6 +5,7 @@ from .dry_contact import DryContact
 from .gmem import GMem
 from .load import Load
 from .location_object import LocationObject
+from .master import Master
 from .power_profile import PowerProfile, DCPowerProfile, PWMPowerProfile
 from .rgb_load import RGBLoad, DGColorLoad, DDGColorLoad
 from .sensor import AnemoSensor, LightSensor, OmniSensor, Sensor, Temperature
@@ -39,6 +40,7 @@ CONCRETE_TYPES = [
     DryContact,
     GMem,
     Load,
+    Master,
     StationBus,
     Task,
     # Sensors

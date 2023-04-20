@@ -1,26 +1,9 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
-from aiovantage.aci_client.system_objects import CONCRETE_TYPES, xml_tag_from_class
-from aiovantage.aci_client.xml_dataclass import xml_attribute, xml_element
+from aiovantage.aci_client.xml_dataclass import xml_element
 
-
-@dataclass
-class ObjectChoice:
-    id: Optional[int] = xml_attribute("VID", default=None)
-    choice: Optional[object] = field(
-        default=None,
-        metadata={
-            "type": "Wildcard",
-            "choices": [
-                {
-                    "name": xml_tag_from_class(cls),
-                    "type": cls,
-                }
-                for cls in CONCRETE_TYPES
-            ],
-        },
-    )
+from .object_choice import ObjectChoice
 
 
 @dataclass
@@ -38,4 +21,4 @@ class GetFilterResults:
 
     @dataclass
     class Return:
-        object_value: List[ObjectChoice] = xml_element("Object", default_factory=list)
+        objects: List[ObjectChoice] = xml_element("Object", default_factory=list)

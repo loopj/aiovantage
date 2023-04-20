@@ -6,6 +6,7 @@ from aiovantage.aci_client.xml_dataclass import xml_element
 from ..methods.configuration.close_filter import CloseFilter
 from ..methods.configuration.get_filter_results import GetFilterResults
 from ..methods.configuration.open_filter import OpenFilter
+from ..methods.configuration.get_object import GetObject
 
 
 @dataclass
@@ -15,3 +16,4 @@ class IConfiguration:
         "GetFilterResults", default=None
     )
     close_filter: Optional[CloseFilter] = xml_element("CloseFilter", default=None)
+    get_object: Optional[GetObject] = xml_element("GetObject", default=None)

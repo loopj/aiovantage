@@ -1,4 +1,4 @@
-from typing import AsyncIterator, List, Type, TypeVar
+from typing import Any, AsyncIterator, List, Optional, Type, TypeVar, Union, overload
 
 from aiovantage.aci_client import ACIClient
 from aiovantage.aci_client.interfaces import IConfiguration
@@ -7,31 +7,53 @@ from aiovantage.aci_client.methods.configuration import (
     GetFilterResults,
     ObjectFilter,
     OpenFilter,
+    GetObject,
 )
 
 T = TypeVar("T")
 
 
-async def get_objects_by_type(
-    client: ACIClient, vantage_types: List[str], base_type: Type[T]
+@overload
+def get_objects_by_type(
+    client: ACIClient, types: List[str], base: Type[T]
 ) -> AsyncIterator[T]:
     """
     Helper function to get all vantage system objects of the specified types
 
     Args:
         client: The ACI client instance
-        vantage_types: A list of strings of the Vantage object types to fetch
-        base_type: The base type to cast the objects to
+        types: A list of Vantage object types to fetch
+        base: The base class to validate the objects against
 
     Yields:
         The objects of the specified types
     """
+    ...
 
+
+@overload
+def get_objects_by_type(client: ACIClient, types: List[str]) -> AsyncIterator[Any]:
+    """
+    Helper function to get all vantage system objects of the specified types
+
+    Args:
+        client: The ACI client instance
+        types: A list of strings of the Vantage object types to fetch
+
+    Yields:
+        The objects of the specified types
+    """
+    ...
+
+
+async def get_objects_by_type(
+    client: ACIClient, types: List[str], base: Optional[Type[T]] = None
+) -> AsyncIterator[Union[T, Any]]:
     # Open the filter
     handle = await client.request(
         IConfiguration,
         OpenFilter,
-        OpenFilter.Params(objects=ObjectFilter(object_type=vantage_types)),
+        OpenFilter.Params(objects=ObjectFilter(object_type=types)),
     )
 
     # Get the results
@@ -42,14 +64,101 @@ async def get_objects_by_type(
             GetFilterResults.Params(h_filter=handle),
         )
 
-        if not response.object_value:
+        if not response.objects:
             break
 
-        for object in response.object_value:
-            if object.choice and isinstance(object.choice, base_type):
+        for object in response.objects:
+            if object.choice is None:
+                continue
+
+            if base is None:
+                yield object.choice
+            elif isinstance(object.choice, base):
                 yield object.choice
             else:
-                client._logger.warning(f"Couldnt parse object with vid {object.id}")
+                client._logger.warning(
+                    f"Object {object.id} is not expected type. Expected "
+                    f"{base.__name__} but got {type(object.choice).__name__}"
+                )
 
     # Close the filter
     await client.request(IConfiguration, CloseFilter, handle)
+
+
+@overload
+def get_objects_by_id(
+    client: ACIClient, ids: List[int], base: Type[T]
+) -> AsyncIterator[T]:
+    """
+    Helper function to get all vantage system objects of the specified ids
+
+    Args:
+        client: The ACI client instance
+        ids: A list of Vantage object ids to fetch
+        base: The base class to validate the objects against
+
+    Yields:
+        The objects of the specified ids
+    """
+    ...
+
+
+@overload
+def get_objects_by_id(client: ACIClient, ids: List[int]) -> AsyncIterator[Any]:
+    """
+    Helper function to get all vantage system objects of the specified ids
+
+    Args:
+        client: The ACI client instance
+        ids: A list of integers of the Vantage object ids to fetch
+
+    Yields:
+        The objects of the specified ids
+    """
+    ...
+
+
+async def get_objects_by_id(
+    client: ACIClient, ids: List[int], base: Optional[Type[T]] = None
+) -> AsyncIterator[Union[T, Any]]:
+    # Open the filter
+    response = await client.request(
+        IConfiguration,
+        GetObject,
+        GetObject.Params(vids=ids),
+    )
+
+    if not response.objects:
+        return
+
+    for object in response.objects:
+        if object.choice is None:
+            continue
+
+        if base is None:
+            yield object.choice
+        elif isinstance(object.choice, base):
+            yield object.choice
+        else:
+            client._logger.warning(
+                f"Object {object.id} is not expected type. Expected "
+                f"{base.__name__} but got {type(object.choice).__name__}"
+            )
+
+
+async def get_object_by_id(client: ACIClient, id: int, base: Type[T]) -> Optional[T]:
+    """
+    Helper function to get a single Vantage system object by id
+
+    Args:
+        client: The ACI client instance
+        id: The id of the Vantage object to fetch
+        base: The base class to validate the object against
+
+    Returns:
+        The object matching the specified id, or None if not found
+    """
+    try:
+        return await get_objects_by_id(client, [id], base).__anext__()
+    except StopAsyncIteration:
+        return None
