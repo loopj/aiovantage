@@ -75,18 +75,17 @@ class LoadsController(BaseController[Load]):
         await self.command_client.send_command("LOAD", id, level)
 
         # Update local state
-        self._update_state(id, level=level)
+        self._update_and_notify(id, level=level)
 
-    async def _fetch_initial_state(self) -> None:
+    async def _fetch_initial_state(self, id: int) -> None:
         # Fetch initial state of all Loads.
 
-        for obj in self:
-            obj.level = await self.get_level(obj.id)
+        self._update_and_notify(id, level=await self.get_level(id))
 
     def _handle_category_status(
-        self, category: StatusCategory, id: int, args: Sequence[str]
+        self, id: int, category: StatusCategory, args: Sequence[str]
     ) -> None:
         # Handle "STATUS" category status messages
 
         # S:LOAD <id> <level (0-100)>
-        self._update_state(id, level=float(args[0]))
+        self._update_and_notify(id, level=float(args[0]))

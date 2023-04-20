@@ -1,10 +1,13 @@
 import colorsys
 import struct
-from typing import Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Sequence, Tuple
 
 from aiovantage.aci_client.system_objects import DDGColorLoad, DGColorLoad, RGBLoad
 from aiovantage.hc_client import StatusCategory
 from aiovantage.vantage.controllers.base import BaseController
+
+if TYPE_CHECKING:
+    from aiovantage import Vantage
 
 
 def _unpack_color(color: int) -> Tuple[int, int, int, int]:
@@ -22,6 +25,11 @@ class RGBLoadsController(BaseController[RGBLoad]):
     vantage_types = (DGColorLoad, DDGColorLoad)
     status_categories = (StatusCategory.LOAD,)
     object_status = True
+
+    def __init__(self, vantage: "Vantage") -> None:
+        super().__init__(vantage)
+
+        self._temp_color_map: Dict[int, List[int]] = {}
 
     async def get_level(self, id: int) -> float:
         """Get the level of a load.
@@ -63,7 +71,7 @@ class RGBLoadsController(BaseController[RGBLoad]):
             response = await self.command_client.invoke(id, "RGBLoad.GetRGBW", i)
             tmp_color.append(int(response[1]))
 
-        return tuple(tmp_color) # type: ignore[return-value]
+        return tuple(tmp_color)  # type: ignore[return-value]
 
     async def get_color_temp(self, id: int) -> int:
         """Get the color temperature of a load.
@@ -102,7 +110,7 @@ class RGBLoadsController(BaseController[RGBLoad]):
         await self.command_client.invoke(id, "Load.SetLevel", level)
 
         # Update local state
-        self._update_state(id, level=level)
+        self._update_and_notify(id, level=level)
 
     async def set_rgb(self, id: int, red: int, green: int, blue: int) -> None:
         """Set the color of an RGB load.
@@ -128,7 +136,7 @@ class RGBLoadsController(BaseController[RGBLoad]):
         await self.command_client.invoke(id, "RGBLoad.SetRGB", red, green, blue)
 
         # Update local state
-        self._update_state(id, color=(red, green, blue, 0))
+        self._update_and_notify(id, color=(red, green, blue, 0))
 
     async def set_rgbw(
         self, id: int, red: int, green: int, blue: int, white: int
@@ -158,8 +166,7 @@ class RGBLoadsController(BaseController[RGBLoad]):
         await self.command_client.invoke(id, "RGBLoad.SetRGBW", red, green, blue, white)
 
         # Update local state
-        print("in set_rgbw")
-        self._update_state(id, color=(red, green, blue, white))
+        self._update_and_notify(id, color=(red, green, blue, white))
 
     async def set_hsl(self, id: int, hue: int, saturation: int, level: int) -> None:
         """Set the color of an HSL load.
@@ -188,7 +195,7 @@ class RGBLoadsController(BaseController[RGBLoad]):
         await self.command_client.invoke(id, "RGBLoad.SetHSL", hue, saturation, level)
 
         # Update local state
-        self._update_state(id, color=rgb)
+        self._update_and_notify(id, color=rgb)
 
     async def set_color_temp(self, id: int, temp: int) -> None:
         """Set the color temperature of a load.
@@ -207,48 +214,74 @@ class RGBLoadsController(BaseController[RGBLoad]):
         await self.command_client.invoke(id, "ColorTemperature.Set", temp)
 
         # Update local state
-        self._update_state(id, color_temp=temp)
+        self._update_and_notify(id, color_temp=temp)
 
-    async def _fetch_initial_state(self) -> None:
-        # Fetch initial state of all RGBLoads.
+    async def _fetch_initial_state(self, id: int) -> None:
+        # Populate the initial state of an RGBLoad.
 
-        for obj in self:
-            obj.level = await self.get_level(obj.id)
-            if obj.color_type == "CCT":
-                obj.color_temp = await self.get_color_temp(obj.id)
-            elif obj.color_type == "RGBW":
-                obj.color = await self.get_color_rgbw(obj.id)
-            else:
-                obj.color = await self.get_color(obj.id)
+        # Get initial level
+        state: Dict[str, Any] = {}
+        state["level"] = await self.get_level(id)
+
+        # Get initial color
+        color_type = self[id].color_type
+        if color_type == "RGB" or color_type == "HSL":
+            state["color"] = await self.get_color(id)
+        elif color_type == "CCT":
+            state["color_temp"] = await self.get_color_temp(id)
+        elif color_type == "RGBW":
+            state["color"] = await self.get_color_rgbw(id)
+        else:
+            self._logger.warning(f"Unsupported color type: {color_type}")
+
+        self._update_and_notify(id, **state)
 
     def _handle_category_status(
-        self, category: StatusCategory, id: int, args: Sequence[str]
+        self, id: int, category: StatusCategory, args: Sequence[str]
     ) -> None:
         # Update object state based on a "STATUS" events.
 
         # S:LOAD <id> <level>
-        self._update_state(id, level=float(args[0]))
+        self._update_and_notify(id, level=float(args[0]))
 
     def _handle_object_status(self, id: int, method: str, args: Sequence[str]) -> None:
         # Update object state based on "ADDSTATUS" events.
 
-        if method == "RGBLoad.GetColor" and self[id].color_type == "RGB" or self[id].color_type == "HSL":
+        color_type = self[id].color_type
+        if method == "RGBLoad.GetColor":
             # S:STATUS <id> RGBLoad.GetColor <color>
-            self._update_state(id, color=_unpack_color(int(args[0])))
-        elif method == "RGBLoad.GetRGBW" and self[id].color_type == "RGBW":
+
+            # RGBLoad.GetColor works great for both RGB and HSL loads.
+            if color_type != "RGB" and color_type != "HSL":
+                return
+
+            self._update_and_notify(id, color=_unpack_color(int(args[0])))
+
+        elif method == "RGBLoad.GetRGBW":
             # S:STATUS <id> RGBLoad.GetRBGW <value> <channel>
-            if self[id]._temp_color is None:
-                self[id]._temp_color = [0,0,0,0]
 
-            val = int(args[0])
+            # For some annoying reason RGBLoad.GetColor doesn't contain the white
+            # value, so we have to grab each channel individually from RGBLoad.GetRGBW.
+
+            # Apply only to RGBW loads
+            if color_type != "RGBW":
+                return
+
+            if id not in self._temp_color_map:
+                self._temp_color_map[id] = [0, 0, 0, 0]
+
             channel = int(args[1])
-
-            self[id]._temp_color[channel] = val
+            self._temp_color_map[id][channel] = int(args[0])
 
             if channel == 3:
-                self._update_state(id, color=tuple(self[id]._temp_color))
-                self[id]._temp_color = None
+                self._update_and_notify(id, color=tuple(self._temp_color_map[id]))
+                del self._temp_color_map[id]
 
-        elif method == "ColorTemperature.Get" and self[id].color_type == "CCT":
+        elif method == "ColorTemperature.Get":
             # S:STATUS <id> ColorTemperature.Get <temp>
-            self._update_state(id, color_temp=int(args[0]))
+
+            # Apply only to CCT loads
+            if color_type != "CCT":
+                return
+
+            self._update_and_notify(id, color_temp=int(args[0]))

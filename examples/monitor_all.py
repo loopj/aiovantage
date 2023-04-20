@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO)
 
 
 # This callback will be called whenever an object is updated
-def event_callback(obj: SystemObject, args: Any) -> None:
-    print(f"[{type(obj).__name__}] {obj.name} changed status {args}")
+def event_callback(obj: SystemObject) -> None:
+    print(f"[{type(obj).__name__}] {obj.name} changed state")
 
 
 async def main() -> None:

@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 # This callback will be called whenever a load is updated
-def event_callback(obj: Union[Load, RGBLoad], args: Any) -> None:
+def event_callback(obj: Union[Load, RGBLoad]) -> None:
     print(f"{obj.name} changed level to {obj.level}%")
 
 

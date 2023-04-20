@@ -14,7 +14,7 @@ def status_callback(status_type: StatusCategory, vid: int, args: Any) -> None:
 async def main() -> None:
     client = HCClient("10.2.0.103", "administrator", "ZZuUw76CnL")
     await client.connect()
-    await client.subscribe(status_callback)
+    await client.subscribe_category(status_callback)
 
     await asyncio.sleep(3600)
 

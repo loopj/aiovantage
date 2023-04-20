@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from aiovantage.vantage import Vantage
 
 
-EventCallBackType = Callable[[T, Sequence[str]], None]
+EventCallBackType = Callable[[T], None]
 
 
 class BaseController(Generic[T], QuerySet[T]):
@@ -81,8 +81,9 @@ class BaseController(Generic[T], QuerySet[T]):
         ):
             self._items[obj.id] = obj
 
-        # Fetch initial state of known objects
-        await self._fetch_initial_state()
+        # Fetch initial state for all objects
+        for obj in self._items.values():
+            await self._fetch_initial_state(obj.id)
 
         # Subscribe to category status events (STATUS {category} -> S:{category})
         if self.status_categories is not None:
@@ -144,7 +145,7 @@ class BaseController(Generic[T], QuerySet[T]):
             return
 
         # Delegate to subclasses to update the existing object
-        self._handle_category_status(status_category, vid, args)
+        self._handle_category_status(vid, status_category, args)
 
     def _handle_object_status_event(
         self, vid: int, method: str, args: Sequence[str]
@@ -156,43 +157,43 @@ class BaseController(Generic[T], QuerySet[T]):
         # Delegate to subclasses to update the existing object
         self._handle_object_status(vid, method, args)
 
-    def _update_state(self, id: int, **kwargs: Any) -> None:
+    def _update_and_notify(self, id: int, **kwargs: Any) -> None:
         # Update the state of an object and notify subscribers if it changed
 
         obj = self.get(id)
         if obj is None:
             return
 
+        # Check if any of the attributes changed
         dirty = False
         for key, value in kwargs.items():
-            if getattr(obj, key) != value:
-                print(f"Updating {obj.id} {key} from {getattr(obj, key)} to {value}")
-                setattr(obj, key, value)
-                dirty = True
+            try:
+                if getattr(obj, key) != value:
+                    setattr(obj, key, value)
+                    dirty = True
+            except AttributeError:
+                self._logger.warn(f"Object '{obj.id}' has no attribute '{key}'")
 
+        # Update the object and notify subscribers
         if dirty:
-            self._notify_subscribers(obj, [key])
+            self._notify_subscribers(obj)
 
-        # if any(getattr(obj, key) != value for key, value in kwargs.items()):
-        #     obj.__dict__.update(kwargs)
-        #     self._notify_subscribers(obj, [])
-
-    def _notify_subscribers(self, obj: T, args: Sequence[str]) -> None:
+    def _notify_subscribers(self, obj: T) -> None:
         subscribers = self._subscribers + self._id_subscribers.get(obj.id, [])
         for callback in subscribers:
             if iscoroutinefunction(callback):
-                asyncio.create_task(callback(obj, args))
+                asyncio.create_task(callback(obj))
             else:
-                callback(obj, args)
+                callback(obj)
 
     # Subclasses should override these methods
-    async def _fetch_initial_state(self) -> None:
-        pass
+    async def _fetch_initial_state(self, id: int) -> None:
+        ...
 
     def _handle_category_status(
-        self, category: StatusCategory, vid: int, args: Sequence[str]
+        self, id: int, category: StatusCategory, args: Sequence[str]
     ) -> None:
-        pass
+        ...
 
-    def _handle_object_status(self, vid: int, method: str, args: Sequence[str]) -> None:
-        pass
+    def _handle_object_status(self, id: int, method: str, args: Sequence[str]) -> None:
+        ...
