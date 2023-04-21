@@ -5,12 +5,11 @@ from typing import Callable, Optional, Type
 from aiovantage.aci_client import ACIClient
 from aiovantage.aci_client.system_objects import SystemObject
 from aiovantage.hc_client import HCClient
-from aiovantage.vantage.controllers.base import EventCallBackType
+from aiovantage.vantage.controllers.base import EventCallback
 from aiovantage.vantage.controllers.areas import AreasController
 from aiovantage.vantage.controllers.buttons import ButtonsController
 from aiovantage.vantage.controllers.dry_contacts import DryContactsController
 from aiovantage.vantage.controllers.loads import LoadsController
-from aiovantage.vantage.controllers.power_profiles import PowerProfilesController
 from aiovantage.vantage.controllers.rgb_loads import RGBLoadsController
 from aiovantage.vantage.controllers.sensors import SensorsController
 from aiovantage.vantage.controllers.stations import StationsController
@@ -40,15 +39,14 @@ class Vantage:
             host, username, password, use_ssl=use_ssl, port=hc_port
         )
 
-        self._areas = AreasController(self)
-        self._loads = LoadsController(self)
-        self._buttons = ButtonsController(self)
-        self._dry_contacts = DryContactsController(self)
-        self._power_profiles = PowerProfilesController(self)
-        self._rgb_loads = RGBLoadsController(self)
-        self._sensors = SensorsController(self)
-        self._tasks = TasksController(self)
-        self._stations = StationsController(self)
+        self._areas = AreasController(self._aci_client, self._hc_client)
+        self._loads = LoadsController(self._aci_client, self._hc_client)
+        self._buttons = ButtonsController(self._aci_client, self._hc_client)
+        self._dry_contacts = DryContactsController(self._aci_client, self._hc_client)
+        self._rgb_loads = RGBLoadsController(self._aci_client, self._hc_client)
+        self._sensors = SensorsController(self._aci_client, self._hc_client)
+        self._tasks = TasksController(self._aci_client, self._hc_client)
+        self._stations = StationsController(self._aci_client, self._hc_client)
 
     async def __aenter__(self) -> "Vantage":
         await self.connect()
@@ -81,11 +79,6 @@ class Vantage:
     def loads(self) -> LoadsController:
         """Return the Loads controller for managing loads (lights, fans, etc)."""
         return self._loads
-
-    @property
-    def power_profiles(self) -> PowerProfilesController:
-        """Return the PowerProfiles controller for managing power profiles."""
-        return self._power_profiles
 
     @property
     def rgb_loads(self) -> RGBLoadsController:
@@ -130,7 +123,6 @@ class Vantage:
             self._buttons.initialize(),
             self._dry_contacts.initialize(),
             self._loads.initialize(),
-            self._power_profiles.initialize(),
             self._rgb_loads.initialize(),
             self._sensors.initialize(),
             self._stations.initialize(),
@@ -141,9 +133,7 @@ class Vantage:
         for coro in coros:
             await coro
 
-    def subscribe(
-        self, callback: EventCallBackType[SystemObject]
-    ) -> Callable[[], None]:
+    def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
         """
         Subscribe to state changes for all objects.
 
@@ -156,7 +146,6 @@ class Vantage:
             self.buttons.subscribe(callback),
             self.dry_contacts.subscribe(callback),
             self.loads.subscribe(callback),
-            self.power_profiles.subscribe(callback),
             self.rgb_loads.subscribe(callback),
             self.sensors.subscribe(callback),
             self.stations.subscribe(callback),

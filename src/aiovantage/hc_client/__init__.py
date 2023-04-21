@@ -1,46 +1,24 @@
 import asyncio
+from itertools import islice
 import logging
 import shlex
-from enum import Enum
 from inspect import iscoroutinefunction
 from ssl import PROTOCOL_TLS, SSLContext
 from types import TracebackType
-from typing import Callable, Iterable, List, Optional, Sequence, Tuple, Type, Union
+from typing import Callable, Iterable, List, Optional, Tuple, Type, Union, overload
 
-from .errors import LoginFailedError, LoginRequiredError
+from .errors import CommandExecutionError, LoginFailedError, LoginRequiredError
 
-
-class StatusCategory(Enum):
-    LOAD = "LOAD"
-    LED = "LED"
-    BTN = "BTN"
-    TASK = "TASK"
-    TEMP = "TEMP"
-    THERMFAN = "THERMFAN"
-    THERMOP = "THERMOP"
-    THERMDAY = "THERMDAY"
-    SLIDER = "SLIDER"
-    TEXT = "TEXT"
-    VARIABLE = "VARIABLE"
-    BLIND = "BLIND"
-    PAGE = "PAGE"
-    LEDSTATE = "LEDSTATE"
-    IMAGE = "IMAGE"
-    WIND = "WIND"
-    LIGHT = "LIGHT"
-    CURRENT = "CURRENT"
-    POWER = "POWER"
+# Type aliases
+StatusCallback = Callable[[str, int, List[str]], None]
+StatusSubscription = Tuple[StatusCallback, "Iterable[str] | None"]
+CommandParam = Union[int, float, str]
 
 
-CategoryEventCallback = Callable[[StatusCategory, int, Sequence[str]], None]
-ObjectEventCallback = Callable[[int, str, Sequence[str]], None]
-CategoryEventSubscription = Tuple[
-    CategoryEventCallback,
-    "Iterable[StatusCategory] | None",
-]
+def _encode_params(params: Iterable[CommandParam]) -> Optional[str]:
+    if not params:
+        return None
 
-
-def _encode_params(params: Sequence[Union[int, float, str]]) -> str:
     string_params = [str(p) for p in params]
     return " ".join(f'"{s}"' if " " in s else s for s in string_params)
 
@@ -82,8 +60,7 @@ class HCClient:
         self._password = password
         self._use_ssl = use_ssl
         self._tasks: List[asyncio.Task[None]] = []
-        self._category_subscribers: List[CategoryEventSubscription] = []
-        self._object_subscribers: List[ObjectEventCallback] = []
+        self._subscriptions: List[StatusSubscription] = []
         self._response_queue: asyncio.Queue[str] = asyncio.Queue()
         self._status_queue: asyncio.Queue[str] = asyncio.Queue()
         self._logger = logging.getLogger(__name__)
@@ -100,8 +77,6 @@ class HCClient:
             self._ssl_context = SSLContext(PROTOCOL_TLS)
 
     async def __aenter__(self) -> "HCClient":
-        """Return Context manager."""
-
         await self.connect()
         return self
 
@@ -111,12 +86,10 @@ class HCClient:
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
-        """Close context manager."""
-
         await self.close()
 
     async def connect(self) -> None:
-        """Connect to the HC service, authenticate if necessary."""
+        """Connect to the Host Command service, authenticating if necessary."""
 
         # Open a connection to the controller
         self._reader, self._writer = await asyncio.wait_for(
@@ -135,49 +108,8 @@ class HCClient:
         self._logger.info("Connected")
 
         # Login if we have a username and password
-        await self._login()
-
-    async def _handle_messages(self) -> None:
-        while True:
-            data = await self._reader.readline()  # type: ignore[union-attr]
-            message = data.decode().strip()
-
-            self._logger.debug(f"Received message: {message}")
-
-            if message.startswith("R:"):
-                self._response_queue.put_nowait(message[2:])
-            elif message.startswith("S:"):
-                self._status_queue.put_nowait(message[2:])
-            else:
-                self._logger.warning(f"Received unknown message: {message}")
-
-    async def _status_processor(self) -> None:
-        while True:
-            message = await self._status_queue.get()
-            self._status_queue.task_done()
-
-            type_str, vid_str, *args = shlex.split(message)
-            vid = int(vid_str)
-
-            if type_str in StatusCategory.__members__:
-                # Handle a category status message
-                type = StatusCategory(type_str)
-
-                for category_callback, category_filter in self._category_subscribers:
-                    if category_filter is None or type in category_filter:
-                        if iscoroutinefunction(category_callback):
-                            asyncio.create_task(category_callback(type, vid, args))
-                        else:
-                            category_callback(type, vid, args)
-            elif type_str == "STATUS":
-                # Handle an object status message
-                for obj_callback in self._object_subscribers:
-                    if iscoroutinefunction(obj_callback):
-                        asyncio.create_task(obj_callback(vid, args[0], args[1:]))
-                    else:
-                        obj_callback(vid, args[0], args[1:])
-            else:
-                self._logger.warning(f"Received unknown status message: {message}")
+        if self._username and self._password:
+            await self.login(self._username, self._password)
 
     async def close(self) -> None:
         """Close the connection to the service and cancel any running tasks."""
@@ -194,132 +126,251 @@ class HCClient:
 
         self._logger.debug("Connection closed")
 
-    async def send_raw_command(self, command: str, response_lines: int = 1) -> str:
-        # Send the command
-        self._writer.write(command.encode())  # type: ignore[union-attr]
+    async def raw_request(self, request: str) -> List[str]:
+        """
+        Send a raw string request to the Host Command service, returning all lines of
+        the response, until the "R:" line is received.
+
+        Args:
+            request: The request string to send.
+
+        Returns:
+            A list of response lines.
+        """
+
+        # TODO: Connect if not connected, or at least raise an error
+        # TODO: Add a timeout
+
+        # Send the request
+        self._logger.debug(f"Sending request: {request}")
+        self._writer.write(f"{request}\n".encode())  # type: ignore[union-attr]
         await self._writer.drain()  # type: ignore[union-attr]
 
-        # Grab the first line of the response
-        response = await self._response_queue.get()
-        self._response_queue.task_done()
-
-        # If we expected a multiple line response, pop the extra lines off the queue
-        # We don't currently do anything with these lines
-        if response_lines > 1:
-            for _ in range(response_lines - 1):
-                await self._response_queue.get()
-                self._response_queue.task_done()
+        # Grab every line of the response, until we get a "return" line
+        response = []
+        while True:
+            line = await self._response_queue.get()
+            self._response_queue.task_done()
+            response.append(line)
+            if line.startswith("R:"):
+                break
 
         return response
 
-    async def send_command(
-        self, command: str, *params: Union[int, float, str], response_lines: int = 1
-    ) -> List[str]:
-        """Send a command to the HC service, and wait for a response."""
+    async def command(self, command: str, *params: CommandParam) -> List[str]:
+        """
+        Send a command with parameters to the Host Command service, and return the
+        arguments of the "R:" line of the response. Handles "R:ERROR" errors and
+        raises the appropriate exception.
 
-        # Send the command and wait for a response
-        message = f"{command} {_encode_params(params)}\n"
-        response = await self.send_raw_command(message, response_lines)
+        Args:
+            command: The command to send.
+            params: The parameters to send with the command.
+
+        Returns:
+            A list of response arguments.
+        """
+
+        # Encode the parameters and send the request
+        request = f"{command} {_encode_params(params)}" if params else command
+        response_lines = await self.raw_request(request)
+
+        # Get the "R:" return line and split it into parts
+        response = response_lines[-1]
+        reply, *args = shlex.split(response)
 
         # Check for errors
-        if response.startswith("ERROR"):
-            error_code, error_message = shlex.split(response)
-            error_code = error_code.split(":")[1]
-            if error_code == "4":
-                raise TypeError(error_message)
-            elif error_code == "5":
-                raise TypeError(error_message)
-            elif error_code == "7":
-                raise ValueError(error_message)
-            elif error_code == "8":
-                raise NotImplementedError(error_message)
-            elif error_code == "21":
+        if reply.startswith("R:ERROR"):
+            _, _, error_code_str = reply.split(":")
+            error_code = int(error_code_str)
+            error_message = args[0]
+            if error_code == 21:
                 raise LoginRequiredError(error_message)
-            elif error_code == "23":
+            elif error_code == 23:
                 raise LoginFailedError(error_message)
             else:
-                raise Exception(f"Unknown error: {error_code} {error_message}")
-
-        # Split the response into tokens
-        rcommand, *rval = shlex.split(response)
+                raise CommandExecutionError(
+                    f"{error_message} (Error code {error_code})"
+                )
 
         # Check for out of order responses
-        if not rcommand.upper() == command.upper():
+        if not reply == f"R:{command.upper()}":
             raise Exception(
                 f"Received out of order response."
                 f"\tExpected: {command}"
                 f"\tReceived: {response}"
             )
 
-        return rval
+        return args
 
-    async def invoke(
-        self, vid: int, method: str, *params: Union[int, float, str]
-    ) -> List[str]:
-        """Invoke a method on a Vantage object."""
+    async def invoke(self, id: int, method: str, *params: CommandParam) -> List[str]:
+        """Send an INVOKE command to invoke a method on an Vantage object.
 
-        return await self.send_command("INVOKE", vid, method, *params)
+        Args:
+            id: The id of the object to invoke the method on.
+            method: The name of the method to invoke.
+            params: The parameters to pass to the method.
 
-    async def subscribe_category(
-        self,
-        callback: CategoryEventCallback,
-        status_filter: Union[None, StatusCategory, Iterable[StatusCategory]] = None,
+        Returns:
+            A list of response arguments.
+        """
+
+        return await self.command("INVOKE", id, method, *params)
+
+    async def login(self, username: str, password: str) -> None:
+        """Send a LOGIN command to authenticate with the Host Command service.
+
+        Args:
+            username: The username to authenticate with.
+            password: The password to authenticate with.
+        """
+
+        await self.command("LOGIN", username, password)
+
+    async def addstatus(self, ids: Iterable[int]) -> None:
+        """Send an ADDSTATUS command to subscribe to status events for the given ids.
+
+        Args:
+            ids: The ids to subscribe to status events for.
+        """
+
+        # ADDSTATUS accepts up to 16 ids at a time, so chunk the requests.
+        id_iter = iter(ids)
+        while (id_chunk := tuple(islice(id_iter, 16))):
+            await self.command("ADDSTATUS", *id_chunk)
+
+    async def delstatus(self, ids: Iterable[int]) -> None:
+        """Send a DELSTATUS command to unsubscribe from status events for the given ids.
+
+        Args:
+            ids: The ids to unsubscribe from status events for.
+        """
+
+        # DELSTATUS accepts up to 16 ids at a time, so chunk the requests.
+        id_iter = iter(ids)
+        while (id_chunk := tuple(islice(id_iter, 16))):
+            await self.command("DELSTATUS", *id_chunk)
+
+    @overload
+    async def subscribe(self, callback: StatusCallback) -> Callable[[], None]:
+        """
+        Subscribe to all status events.
+
+        Args:
+            callback: The callback to call when a status event is received.
+
+        Returns:
+            A function to unsubscribe from status events.
+        """
+        ...
+
+    @overload
+    async def subscribe(
+        self, callback: StatusCallback, *, object_ids: Iterable[int]
     ) -> Callable[[], None]:
         """
-        Subscribe to category status events, optionally filtering by status category.
+        Subscribe to status events for the given object ids.
+
+        Args:
+            callback: The callback to call when a status event is received.
+            object_ids: The ids to subscribe to status events for.
+
+        Returns:
+            A function to unsubscribe from status events.
         """
+        ...
 
-        # Support passing a single status type instead of a tuple
-        if status_filter is not None and isinstance(status_filter, StatusCategory):
-            status_filter = (status_filter,)
+    @overload
+    async def subscribe(
+        self, callback: StatusCallback, *, status_types: Iterable[str]
+    ) -> Callable[[], None]:
+        """
+        Subscribe to status events for the given status types.
 
-        # Tell the Vantage controller we are interested in status events
-        # We try to only subscribe to what we know we care about
-        if status_filter is None:
-            await self.send_command("STATUS", "ALL")
+        Args:
+            callback: The callback to call when a status event is received.
+            status_types: The status types to subscribe to status events for.
+
+        Returns:
+            A function to unsubscribe from status events.
+        """
+        ...
+
+    async def subscribe(
+        self,
+        callback: StatusCallback,
+        *,
+        object_ids: Optional[Iterable[int]] = None,
+        status_types: Optional[Iterable[str]] = None,
+    ) -> Callable[[], None]:
+        if object_ids is not None and status_types is not None:
+            raise ValueError("Cannot specify both object_ids and status_types.")
+
+        subscription: StatusSubscription
+        if object_ids is not None:
+            # Subscribe to status events for these object ids
+            subscription = (callback, ("STATUS"))
+            await self.addstatus(object_ids)
+        elif status_types is not None:
+            # Subscribe to status events of these types
+            subscription = (callback, status_types)
+            for status_type in status_types:
+                await self.command("STATUS", status_type)
         else:
-            for status_type in status_filter:
-                await self.send_command("STATUS", status_type.value)
+            # Subscribe to all status events
+            subscription = (callback, None)
+            await self.command("STATUS", "ALL")
 
-        # Add the callback to the list of subscribers
-        subscription = (callback, status_filter)
-        self._category_subscribers.append(subscription)
+        self._subscriptions.append(subscription)
 
-        # Return a function that can be used to unsubscribe
+        # Return a function to unsubscribe
         def unsubscribe() -> None:
-            self._category_subscribers.remove(subscription)
+            if object_ids is not None:
+                loop = asyncio.get_event_loop()
+                loop.run_until_complete(self.delstatus(object_ids))
+            elif status_types is not None:
+                # TODO: Unsubscribe from specific status types if we were the last
+                # subscriber for that type
+                pass
+            else:
+                # TODO: ??? (STATUS NONE?)
+                pass
+
+            self._subscriptions.remove(subscription)
 
         return unsubscribe
 
-    async def subscribe_objects(
-        self,
-        callback: ObjectEventCallback,
-        vids: Iterable[int],
-    ) -> Callable[[], None]:
-        """Subscribe to status events for a specific object."""
+    async def _handle_messages(self) -> None:
+        # Fetch new messages from the reader and enqueue them for processing
 
-        # TODO: ADDSTATUS accepts multiple vids (up to 16?)
-        # TODO: only 64 vids can be tracked by ADDSTATUS per connection
-        for vid in vids:
-            await self.send_command("ADDSTATUS", f"{vid}")
+        # TODO: Handle lost connection, auto-reconnect
+        # - ConnectionResetError from the reader
+        # - what else?
 
-        self._object_subscribers.append(callback)
+        while True:
+            data = await self._reader.readline()  # type: ignore[union-attr]
+            message = data.decode().rstrip()
 
-        def unsubscribe() -> None:
-            # TODO: Run this in a background task?
-            # for vid in vids:
-            #     await self.send_command("DELSTATUS", f"{vid}")
+            self._logger.debug(f"Received message: {message}")
 
-            self._object_subscribers.remove(callback)
+            if message.startswith("S:"):
+                self._status_queue.put_nowait(message[2:])
+            else:
+                self._response_queue.put_nowait(message)
 
-        return unsubscribe
+    async def _status_processor(self) -> None:
+        # Process status messages from the status queue and dispatch to subscribers
 
-    async def _login(self) -> None:
-        # Login to the HC service.
+        while True:
+            message = await self._status_queue.get()
+            self._status_queue.task_done()
 
-        if not self._username or not self._password:
-            return
+            status_type, vid_str, *args = shlex.split(message)
+            vid = int(vid_str)
 
-        await self.send_command("LOGIN", self._username, self._password)
-
-        self._logger.info("Login successful")
+            for callback, filters in self._subscriptions:
+                if filters is None or status_type in filters:
+                    if iscoroutinefunction(callback):
+                        asyncio.create_task(callback(status_type, vid, args))
+                    else:
+                        callback(status_type, vid, args)

@@ -1,16 +1,16 @@
 import asyncio
 import logging
-from typing import List, Union
+from typing import List
 
 from aiovantage import Vantage
-from aiovantage.aci_client.system_objects import Load, RGBLoad
+from aiovantage.aci_client.system_objects import SystemObject
 
 logging.basicConfig(level=logging.INFO)
 
 
 # This callback will be called whenever a load is updated
-def event_callback(obj: Union[Load, RGBLoad], attrs_changed: List[str]) -> None:
-    print(f"{obj.name} updated:")
+def event_callback(obj: SystemObject, attrs_changed: List[str]) -> None:
+    print(f"[{type(obj).__name__}] '{obj.name}' ({obj.id}) updated:")
     for attr in attrs_changed:
         print(f"    {attr} = {getattr(obj, attr)}")
 

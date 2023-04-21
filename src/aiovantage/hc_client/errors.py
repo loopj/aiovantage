@@ -1,6 +1,10 @@
-class LoginRequiredError(Exception):
+class CommandExecutionError(Exception):
     pass
 
 
-class LoginFailedError(Exception):
+class LoginRequiredError(CommandExecutionError):
+    pass
+
+
+class LoginFailedError(CommandExecutionError):
     pass

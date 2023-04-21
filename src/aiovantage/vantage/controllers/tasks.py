@@ -1,5 +1,4 @@
 from aiovantage.aci_client.system_objects import Task
-from aiovantage.hc_client import StatusCategory
 from aiovantage.vantage.controllers.base import BaseController
 
 # TASK <task vid> <eventType>
@@ -21,4 +20,4 @@ from aiovantage.vantage.controllers.base import BaseController
 class TasksController(BaseController[Task]):
     item_cls = Task
     vantage_types = (Task,)
-    status_categories = (StatusCategory.TASK,)
+    status_types = ("TASK",)

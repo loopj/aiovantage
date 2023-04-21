@@ -1,7 +1,6 @@
-from typing import Optional, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 from aiovantage.aci_client.system_objects import Load
-from aiovantage.hc_client import StatusCategory
 from aiovantage.vantage.controllers.base import BaseController
 from aiovantage.vantage.query import QuerySet
 
@@ -9,7 +8,7 @@ from aiovantage.vantage.query import QuerySet
 class LoadsController(BaseController[Load]):
     item_cls = Load
     vantage_types = (Load,)
-    status_categories = (StatusCategory.LOAD,)
+    status_types = ("LOAD",)
 
     @property
     def on(self) -> QuerySet[Load]:
@@ -50,7 +49,7 @@ class LoadsController(BaseController[Load]):
 
         # GETLOAD <load vid>
         # -> R:GETLOAD <load vid> <level (0-100)>
-        response = await self.command_client.send_command("GETLOAD", id)
+        response = await self._hc_client.command("GETLOAD", id)
         level = float(response[1])
 
         return level
@@ -75,9 +74,9 @@ class LoadsController(BaseController[Load]):
         # LOAD <id> <level>
         # -> R:LOAD <id> <level>
         if transition is not None:
-            await self.command_client.send_command("RAMPLOAD", id, level, transition)
+            await self._hc_client.command("RAMPLOAD", id, level, transition)
         else:
-            await self.command_client.send_command("LOAD", id, level)
+            await self._hc_client.command("LOAD", id, level)
 
         # Update local state
         self._update_and_notify(id, level=level)
@@ -87,10 +86,13 @@ class LoadsController(BaseController[Load]):
 
         self._update_and_notify(id, level=await self.get_level(id))
 
-    def _handle_category_status(
-        self, id: int, category: StatusCategory, args: Sequence[str]
-    ) -> None:
-        # Handle "STATUS" category status messages
+    def _handle_status(self, id: int, status_type: str, args: Sequence[str]) -> None:
+        # Handle a status update for a Load.
 
-        # S:LOAD <id> <level (0-100)>
-        self._update_and_notify(id, level=float(args[0]))
+        state: Dict[str, Any] = {}
+
+        if status_type == "LOAD":
+            # S:LOAD <id> <level (0-100)>
+            state["level"] = float(args[0])
+
+        self._update_and_notify(id, **state)

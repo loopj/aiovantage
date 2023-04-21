@@ -2,19 +2,19 @@ import asyncio
 import logging
 from typing import Any
 
-from aiovantage.hc_client import HCClient, StatusCategory
+from aiovantage import HCClient
 
 logging.basicConfig(level=logging.INFO)
 
 
-def status_callback(status_type: StatusCategory, vid: int, args: Any) -> None:
-    print(f"{status_type} vid: {vid}, args: {args}")
+def status_callback(status_type: str, object_id: int, args: Any) -> None:
+    print(f"[{status_type}] object id: {object_id}, args: {args}")
 
 
 async def main() -> None:
     client = HCClient("10.2.0.103", "administrator", "ZZuUw76CnL")
     await client.connect()
-    await client.subscribe_category(status_callback)
+    await client.subscribe(status_callback)
 
     await asyncio.sleep(3600)
 

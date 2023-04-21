@@ -1,5 +1,4 @@
 from aiovantage.aci_client.system_objects import DryContact
-from aiovantage.hc_client import StatusCategory
 from aiovantage.vantage.controllers.base import BaseController
 
 # BTN <button vid>
@@ -25,4 +24,4 @@ from aiovantage.vantage.controllers.base import BaseController
 class DryContactsController(BaseController[DryContact]):
     item_cls = DryContact
     vantage_types = (DryContact,)
-    status_categories = (StatusCategory.BTN,)
+    status_types = ("BTN",)

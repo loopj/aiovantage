@@ -2,7 +2,6 @@ import asyncio
 import logging
 from inspect import iscoroutinefunction
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -13,21 +12,18 @@ from typing import (
     Tuple,
     Type,
     TypeVar,
-    Union,
 )
 
+from aiovantage.aci_client import ACIClient
 from aiovantage.aci_client.helpers import get_objects_by_type
 from aiovantage.aci_client.system_objects import SystemObject, xml_tag_from_class
-from aiovantage.hc_client import HCClient, StatusCategory
+from aiovantage.hc_client import HCClient
 from aiovantage.vantage.query import QuerySet
 
 T = TypeVar("T", bound="SystemObject")
 
-if TYPE_CHECKING:
-    from aiovantage.vantage import Vantage
 
-
-EventCallBackType = Callable[[T, List[str]], None]
+EventCallback = Callable[[T, List[str]], None]
 
 
 class BaseController(Generic[T], QuerySet[T]):
@@ -35,10 +31,10 @@ class BaseController(Generic[T], QuerySet[T]):
 
     item_cls: Type[T]
     vantage_types: Tuple[Type[Any], ...]
-    status_categories: Optional[Sequence[StatusCategory]] = None
+    status_types: Optional[Sequence[str]] = None
     object_status: bool = False
 
-    def __init__(self, vantage: "Vantage") -> None:
+    def __init__(self, aci_client: ACIClient, hc_client: HCClient) -> None:
         """
         Create a new controller instance.
 
@@ -46,10 +42,11 @@ class BaseController(Generic[T], QuerySet[T]):
             vantage: The Vantage client instance
         """
 
-        self._vantage = vantage
+        self._aci_client = aci_client
+        self._hc_client = hc_client
         self._items: Dict[int, T] = {}
-        self._subscribers: List[EventCallBackType[T]] = []
-        self._id_subscribers: Dict[int, List[EventCallBackType[T]]] = {}
+        self._subscribers: List[EventCallback[T]] = []
+        self._id_subscribers: Dict[int, List[EventCallback[T]]] = {}
         self._logger = logging.getLogger(__package__)
         self._initialized = False
 
@@ -60,10 +57,6 @@ class BaseController(Generic[T], QuerySet[T]):
 
     def __contains__(self, id: int) -> bool:
         return id in self._items
-
-    @property
-    def command_client(self) -> "HCClient":
-        return self._vantage._hc_client
 
     async def initialize(self) -> None:
         """
@@ -77,7 +70,7 @@ class BaseController(Generic[T], QuerySet[T]):
         # Populate the objects
         vantage_types = [xml_tag_from_class(cls) for cls in self.vantage_types]
         async for obj in get_objects_by_type(
-            self._vantage._aci_client, vantage_types, self.item_cls
+            self._aci_client, vantage_types, self.item_cls
         ):
             self._items[obj.id] = obj
 
@@ -85,16 +78,16 @@ class BaseController(Generic[T], QuerySet[T]):
         for obj in self._items.values():
             await self._fetch_initial_state(obj.id)
 
-        # Subscribe to category status events (STATUS {category} -> S:{category})
-        if self.status_categories is not None:
-            await self._vantage._hc_client.subscribe_category(
-                self._handle_category_status_event, self.status_categories
+        # Subscribe to "category" events (STATUS {category} -> S:{category})
+        if self.status_types:
+            await self._hc_client.subscribe(
+                self._handle_status_event, status_types=self.status_types
             )
 
-        # Subscribe to object status events (ADDSTATUS {vid} -> S:STATUS {vid})
+        # Subscribe to object events (ADDSTATUS {id} -> S:STATUS {id})
         if self.object_status:
-            await self._vantage._hc_client.subscribe_objects(
-                self._handle_object_status_event, self._items.keys()
+            await self._hc_client.subscribe(
+                self._handle_status_event, object_ids=self._items.keys()
             )
 
         self._initialized = True
@@ -102,8 +95,8 @@ class BaseController(Generic[T], QuerySet[T]):
 
     def subscribe(
         self,
-        callback: EventCallBackType[T],
-        id_filter: Union[int, Sequence[int], None] = None,
+        callback: EventCallback[T],
+        id_filter: Optional[Sequence[int]] = None,
     ) -> Callable[[], None]:
         """
         Subscribe to status changes for objects managed by this controller.
@@ -111,10 +104,10 @@ class BaseController(Generic[T], QuerySet[T]):
         Args:
             callback: The callback to call when an object changes.
             id_filter: The object IDs to subscribe to. Subscribe to all objects if None.
-        """
 
-        if isinstance(id_filter, int):
-            id_filter = (id_filter,)
+        Returns:
+            A function to unsubscribe from the callback.
+        """
 
         if id_filter is None:
             self._subscribers.append(callback)
@@ -128,15 +121,15 @@ class BaseController(Generic[T], QuerySet[T]):
             if id_filter is None:
                 self._subscribers.remove(callback)
             else:
-                for id in id_filter:  # type: ignore[union-attr]
+                for id in id_filter:
                     if id not in self._id_subscribers:
                         continue
                     self._id_subscribers[id].remove(callback)
 
         return unsubscribe
 
-    def _handle_category_status_event(
-        self, status_category: StatusCategory, vid: int, args: Sequence[str]
+    def _handle_status_event(
+        self, status_type: str, vid: int, args: Sequence[str]
     ) -> None:
         """Handle a status event from the Host Command client"""
 
@@ -145,17 +138,7 @@ class BaseController(Generic[T], QuerySet[T]):
             return
 
         # Delegate to subclasses to update the existing object
-        self._handle_category_status(vid, status_category, args)
-
-    def _handle_object_status_event(
-        self, vid: int, method: str, args: Sequence[str]
-    ) -> None:
-        # Ignore events for objects we don't own
-        if vid not in self._items:
-            return
-
-        # Delegate to subclasses to update the existing object
-        self._handle_object_status(vid, method, args)
+        self._handle_status(vid, status_type, args)
 
     def _update_and_notify(self, id: int, **kwargs: Any) -> None:
         # Update the state of an object and notify subscribers if it changed
@@ -190,10 +173,5 @@ class BaseController(Generic[T], QuerySet[T]):
     async def _fetch_initial_state(self, id: int) -> None:
         ...
 
-    def _handle_category_status(
-        self, id: int, category: StatusCategory, args: Sequence[str]
-    ) -> None:
-        ...
-
-    def _handle_object_status(self, id: int, method: str, args: Sequence[str]) -> None:
+    def _handle_status(self, id: int, status_type: str, args: Sequence[str]) -> None:
         ...
