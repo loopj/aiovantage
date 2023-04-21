@@ -184,10 +184,10 @@ class RGBLoadsController(BaseController[RGBLoad]):
         level = max(min(level, 100), 0)
 
         # Get the rgb equivalent of the hsl values
-        rgb = _hs_to_rgb(hue, saturation)
+        rgb = _hs_to_rgb(hue, saturation) + (0,)
 
         # Don't send a command if the color isn't changing
-        if self[id].color == rgb + (0,):
+        if self[id].color == rgb:
             return
 
         # INVOKE <id> RGBLoad.SetHSL <hue> <saturation> <level>

@@ -1,4 +1,4 @@
-from typing import Sequence
+from typing import Optional, Sequence
 
 from aiovantage.aci_client.system_objects import Load
 from aiovantage.hc_client import StatusCategory
@@ -23,23 +23,23 @@ class LoadsController(BaseController[Load]):
 
         return self.filter(lambda load: not load.level)
 
-    async def turn_on(self, id: int) -> None:
+    async def turn_on(self, id: int, transition: Optional[float] = None) -> None:
         """Turn on a load.
 
         Args:
             id: The ID of the load.
         """
 
-        await self.set_level(id, 100)
+        await self.set_level(id, 100, transition)
 
-    async def turn_off(self, id: int) -> None:
+    async def turn_off(self, id: int, transition: Optional[float] = None) -> None:
         """Turn off a load.
 
         Args:
             id: The ID of the load.
         """
 
-        await self.set_level(id, 0)
+        await self.set_level(id, 0, transition)
 
     async def get_level(self, id: int) -> float:
         """Get the level of a load.
@@ -55,7 +55,9 @@ class LoadsController(BaseController[Load]):
 
         return level
 
-    async def set_level(self, id: int, level: float) -> None:
+    async def set_level(
+        self, id: int, level: float, transition: Optional[float] = None
+    ) -> None:
         """Set the level of a load.
 
         Args:
@@ -72,7 +74,10 @@ class LoadsController(BaseController[Load]):
 
         # LOAD <id> <level>
         # -> R:LOAD <id> <level>
-        await self.command_client.send_command("LOAD", id, level)
+        if transition is not None:
+            await self.command_client.send_command("RAMPLOAD", id, level, transition)
+        else:
+            await self.command_client.send_command("LOAD", id, level)
 
         # Update local state
         self._update_and_notify(id, level=level)
