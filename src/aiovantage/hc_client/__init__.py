@@ -16,16 +16,6 @@ StatusCallback = Callable[[str, int, List[str]], None]
 # Type for a status subscription (a callback with an optional type filter)
 StatusSubscription = Tuple[StatusCallback, Optional[Iterable[str]]]
 
-# Allowed parameter types for commands, will be converted to strings
-CommandParam = Union[int, float, str]
-
-
-def _encode_params(params: Iterable[CommandParam]) -> Optional[str]:
-    if not params:
-        return None
-
-    return " ".join([str(p) for p in params])
-
 
 class HCClient:
     """Communicate with a Vantage InFusion Host Command service.
@@ -166,7 +156,7 @@ class HCClient:
 
         return response
 
-    async def command(self, command: str, *params: CommandParam) -> List[str]:
+    async def command(self, command: str, *params: Union[int, float, str]) -> List[str]:
         """
         Send a command with parameters to the Host Command service, and return the
         arguments of the "R:" line of the response.
@@ -182,8 +172,16 @@ class HCClient:
             A list of response arguments.
         """
 
-        # Encode the parameters and send the request
-        request = f"{command} {_encode_params(params)}" if params else command
+        if not all(isinstance(param, (int, float, str)) for param in params):
+            raise TypeError("Command parameters must be int, float, or str")
+
+        # Build the request string, encoding the parameters if necessary
+        if params:
+            request = f"{command} {' '.join([str(p) for p in params])}"
+        else:
+            request = command
+
+        # Send the request
         response_lines = await self.raw_request(request)
 
         # Get the "R:" return line and split it into parts
@@ -214,7 +212,9 @@ class HCClient:
 
         return args
 
-    async def invoke(self, id: int, method: str, *params: CommandParam) -> List[str]:
+    async def invoke(
+        self, id: int, method: str, *params: Union[int, float, str]
+    ) -> List[str]:
         """Send an INVOKE command to invoke a method on an Vantage object.
 
         Args:

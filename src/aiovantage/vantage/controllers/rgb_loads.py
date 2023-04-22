@@ -26,7 +26,8 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         self._temp_color_map: Dict[int, List[int]] = {}
 
     async def get_level(self, id: int) -> float:
-        """Get the level of a load.
+        """
+        Get the level of a load.
 
         Args:
             id: The ID of the load.
@@ -42,8 +43,9 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         return level
 
-    async def get_color_rgb(self, id: int) -> Tuple[int, int, int]:
-        """Get the color of a load.
+    async def get_rgb(self, id: int) -> Tuple[int, int, int]:
+        """
+        Get the RGB color of a load from the controller.
 
         Args:
             id: The ID of the load.
@@ -59,24 +61,50 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         return _unpack_color(color)[:3]
 
-    async def get_color_rgbw(self, id: int) -> Tuple[int, int, int, int]:
-        tmp_color = []
+    async def get_rgbw(self, id: int) -> Tuple[int, int, int, int]:
+        """
+        Get the RGBW color of a load from the controller.
+
+        Args:
+            id: The ID of the load.
+
+        Returns:
+            The color of the load, as a tuple of values between 0-255.
+        """
+
+        # INVOKE <id> RGBLoad.GetRGBW <index>
+        # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <index>
+        rgbw_values = []
         for i in range(4):
             response = await self._hc_client.invoke(id, "RGBLoad.GetRGBW", i)
-            tmp_color.append(int(response[1]))
+            rgbw_values.append(int(response[1]))
 
-        return tuple(tmp_color)  # type: ignore[return-value]
+        return tuple(rgbw_values)  # type: ignore[return-value]
 
-    async def get_color_hsl(self, id: int) -> Tuple[int, int, int]:
-        tmp_color = []
+
+    async def get_hsl(self, id: int) -> Tuple[int, int, int]:
+        """
+        Get the HSL color of a load from the controller.
+
+        Args:
+            id: The ID of the load.
+
+        Returns:
+            The color of the load, as a tuple of values 0-360, 0-100, 0-100.
+        """
+
+        # INVOKE <id> RGBLoad.GetHSL <index>
+        # -> R:INVOKE <id> <value> RGBLoad.GetHSL <index>
+        hsl_values = []
         for i in range(3):
             response = await self._hc_client.invoke(id, "RGBLoad.GetHSL", i)
-            tmp_color.append(int(response[1]))
+            hsl_values.append(int(response[1]))
 
-        return tuple(tmp_color)  # type: ignore[return-value]
+        return tuple(hsl_values)  # type: ignore[return-value]
 
     async def get_color_temp(self, id: int) -> int:
-        """Get the color temperature of a load.
+        """
+        Get the color temperature of a load.
 
         Args:
             id: The ID of the load.
@@ -93,14 +121,15 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         return color_temp
 
     async def set_level(self, id: int, level: float) -> None:
-        """Set the level of a load.
+        """
+        Set the level of a load.
 
         Args:
             id: The ID of the load.
             level: The level to set the load to, in percent (0-100).
         """
 
-        # Clamp level to 0-100, match Vantage's rounding
+        # Clamp level to 0-100, match controller's precision for "floats"
         level = round(max(min(level, 100), 0), 3)
 
         # Don't send a command if the level isn't changing
@@ -115,7 +144,8 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         self._update_and_notify(id, level=level)
 
     async def set_rgb(self, id: int, red: int, green: int, blue: int) -> None:
-        """Set the color of an RGB load.
+        """
+        Set the color of an RGB load.
 
         Args:
             id: The ID of the load.
