@@ -1,5 +1,9 @@
+from typing import Sequence
+
+from typing_extensions import override
+
 from aiovantage.aci_client.system_objects import Button
-from aiovantage.vantage.controllers.base import BaseController
+from aiovantage.vantage.controllers.base import StatefulController
 
 # BTN <button vid>
 #   -> R:BTN <button vid>
@@ -23,7 +27,15 @@ from aiovantage.vantage.controllers.base import BaseController
 #   -> S:STATUS <button vid> Adjust.GetLevel <x>
 
 
-class ButtonsController(BaseController[Button]):
+class ButtonsController(StatefulController[Button]):
     item_cls = Button
     vantage_types = (Button,)
     status_types = ("BTN",)
+
+    @override
+    async def fetch_initial_state(self, id: int) -> None:
+        ...
+
+    @override
+    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+        ...

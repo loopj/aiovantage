@@ -1,11 +1,12 @@
-import colorsys
 import struct
 from typing import Any, Dict, List, Sequence, Tuple
+
+from typing_extensions import override
 
 from aiovantage.aci_client import ACIClient
 from aiovantage.aci_client.system_objects import DDGColorLoad, DGColorLoad, RGBLoad
 from aiovantage.hc_client import HCClient
-from aiovantage.vantage.controllers.base import BaseController
+from aiovantage.vantage.controllers.base import StatefulController
 
 
 def _unpack_color(color: int) -> Tuple[int, int, int, int]:
@@ -13,17 +14,7 @@ def _unpack_color(color: int) -> Tuple[int, int, int, int]:
     return struct.unpack("BBBB", bytes)  # type: ignore[return-value]
 
 
-def _hs_to_rgb(hue: int, saturation: int) -> Tuple[int, int, int]:
-    r, g, b = colorsys.hsv_to_rgb(hue / 360, saturation / 100, 1)
-    return int(r * 255), int(g * 255), int(b * 255)
-
-
-def _rgb_to_hsv(red: int, green: int, blue: int) -> Tuple[int, int, int]:
-    hue, saturation, value = colorsys.rgb_to_hsv(red / 255, green / 255, blue / 255)
-    return int(hue * 360), int(saturation * 100), int(value * 100)
-
-
-class RGBLoadsController(BaseController[RGBLoad]):
+class RGBLoadsController(StatefulController[RGBLoad]):
     item_cls = RGBLoad
     vantage_types = (DGColorLoad, DDGColorLoad)
     status_types = ("LOAD",)
@@ -227,7 +218,8 @@ class RGBLoadsController(BaseController[RGBLoad]):
         # Update local state
         self._update_and_notify(id, color_temp=temp)
 
-    async def _fetch_initial_state(self, id: int) -> None:
+    @override
+    async def fetch_initial_state(self, id: int) -> None:
         # Populate the initial state of an RGBLoad.
 
         state: Dict[str, Any] = {}
@@ -252,17 +244,18 @@ class RGBLoadsController(BaseController[RGBLoad]):
 
         self._update_and_notify(id, **state)
 
-    def _handle_status(self, id: int, status_type: str, args: Sequence[str]) -> None:
-        # Update object state based.
+    @override
+    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+        # Handle state changes for an RGBLoad.
 
         state: Dict[str, Any] = {}
-        color_type = self[id].color_type
 
-        if status_type == "LOAD" and color_type == "CCT":
+        color_type = self[id].color_type
+        if status == "LOAD" and color_type == "CCT":
             # S:LOAD <id> <level>
             state["level"] = float(args[0])
 
-        elif status_type == "STATUS":
+        elif status == "STATUS":
             method, *args = args
             if method == "RGBLoad.GetHSL" and color_type == "HSL":
                 # S:STATUS <id> RGBLoad.GetHSL <value> <channel>

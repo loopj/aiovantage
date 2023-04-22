@@ -1,14 +1,32 @@
-from typing import Any, Dict, Optional, Sequence
+from typing import Optional, Sequence
+
+from typing_extensions import override
 
 from aiovantage.aci_client.system_objects import Load
-from aiovantage.vantage.controllers.base import BaseController
+from aiovantage.vantage.controllers.base import StatefulController
 from aiovantage.vantage.query import QuerySet
 
 
-class LoadsController(BaseController[Load]):
+class LoadsController(StatefulController[Load]):
     item_cls = Load
     vantage_types = (Load,)
     status_types = ("LOAD",)
+
+    @override
+    async def fetch_initial_state(self, id: int) -> None:
+        # Fetch initial state of all Loads.
+
+        self._update_and_notify(id, level=await self.get_level(id))
+
+    @override
+    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+        # Handle a status update for a Load.
+
+        if status == "LOAD":
+            # STATUS LOAD
+            #   -> S:LOAD <id> <level (0-100)>
+            level = float(args[0])
+            self._update_and_notify(id, level=level)
 
     @property
     def on(self) -> QuerySet[Load]:
@@ -23,7 +41,8 @@ class LoadsController(BaseController[Load]):
         return self.filter(lambda load: not load.level)
 
     async def turn_on(self, id: int, transition: Optional[float] = None) -> None:
-        """Turn on a load.
+        """
+        Turn on a load.
 
         Args:
             id: The ID of the load.
@@ -32,7 +51,8 @@ class LoadsController(BaseController[Load]):
         await self.set_level(id, 100, transition)
 
     async def turn_off(self, id: int, transition: Optional[float] = None) -> None:
-        """Turn off a load.
+        """
+        Turn off a load.
 
         Args:
             id: The ID of the load.
@@ -41,7 +61,8 @@ class LoadsController(BaseController[Load]):
         await self.set_level(id, 0, transition)
 
     async def get_level(self, id: int) -> float:
-        """Get the level of a load.
+        """
+        Get the level of a load.
 
         Args:
             id: The ID of the load.
@@ -57,7 +78,8 @@ class LoadsController(BaseController[Load]):
     async def set_level(
         self, id: int, level: float, transition: Optional[float] = None
     ) -> None:
-        """Set the level of a load.
+        """
+        Set the level of a load.
 
         Args:
             id: The ID of the load.
@@ -80,19 +102,3 @@ class LoadsController(BaseController[Load]):
 
         # Update local state
         self._update_and_notify(id, level=level)
-
-    async def _fetch_initial_state(self, id: int) -> None:
-        # Fetch initial state of all Loads.
-
-        self._update_and_notify(id, level=await self.get_level(id))
-
-    def _handle_status(self, id: int, status_type: str, args: Sequence[str]) -> None:
-        # Handle a status update for a Load.
-
-        state: Dict[str, Any] = {}
-
-        if status_type == "LOAD":
-            # S:LOAD <id> <level (0-100)>
-            state["level"] = float(args[0])
-
-        self._update_and_notify(id, **state)

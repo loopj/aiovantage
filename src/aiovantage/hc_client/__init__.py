@@ -19,8 +19,7 @@ def _encode_params(params: Iterable[CommandParam]) -> Optional[str]:
     if not params:
         return None
 
-    string_params = [str(p) for p in params]
-    return " ".join(f'"{s}"' if " " in s else s for s in string_params)
+    return " ".join([str(p) for p in params])
 
 
 class HCClient:

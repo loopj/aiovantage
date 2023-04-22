@@ -1,5 +1,9 @@
+from typing import Sequence
+
+from typing_extensions import override
+
 from aiovantage.aci_client.system_objects import Task
-from aiovantage.vantage.controllers.base import BaseController
+from aiovantage.vantage.controllers.base import StatefulController
 
 # TASK <task vid> <eventType>
 #   -> R:TASK <task vid> <eventType>
@@ -17,7 +21,15 @@ from aiovantage.vantage.controllers.base import BaseController
 #   -> S:STATUS <task vid> Task.IsRunning <0/1>
 
 
-class TasksController(BaseController[Task]):
+class TasksController(StatefulController[Task]):
     item_cls = Task
     vantage_types = (Task,)
     status_types = ("TASK",)
+
+    @override
+    async def fetch_initial_state(self, id: int) -> None:
+        ...
+
+    @override
+    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+        ...

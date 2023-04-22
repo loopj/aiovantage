@@ -1,5 +1,9 @@
+from typing import Sequence
+
+from typing_extensions import override
+
 from aiovantage.aci_client.system_objects import DryContact
-from aiovantage.vantage.controllers.base import BaseController
+from aiovantage.vantage.controllers.base import StatefulController
 
 # BTN <button vid>
 #   -> R:BTN <button vid>
@@ -21,7 +25,15 @@ from aiovantage.vantage.controllers.base import BaseController
 #   -> S:STATUS <button vid> Button.GetState <0 | 1>
 
 
-class DryContactsController(BaseController[DryContact]):
+class DryContactsController(StatefulController[DryContact]):
     item_cls = DryContact
     vantage_types = (DryContact,)
     status_types = ("BTN",)
+
+    @override
+    async def fetch_initial_state(self, id: int) -> None:
+        ...
+
+    @override
+    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+        ...
