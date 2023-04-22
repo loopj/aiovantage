@@ -1,11 +1,11 @@
-from datetime import timedelta
-from typing import Any, Sequence
+from typing import Any, Sequence, Union
 
 from typing_extensions import override
 
 from aiovantage.aci_client.system_objects import GMem
 from aiovantage.vantage.controllers.base import StatefulController
 
+ValueType = Union[bool, int, str]
 
 class GMemController(StatefulController[GMem]):
     item_cls = GMem
@@ -45,7 +45,7 @@ class GMemController(StatefulController[GMem]):
 
         return self._parse_value(id, value)
 
-    async def set_value(self, id: int, value: Any) -> None:
+    async def set_value(self, id: int, value: ValueType) -> None:
         """
         Set the value of a variable.
 
@@ -54,15 +54,26 @@ class GMemController(StatefulController[GMem]):
             value: The value to set.
         """
 
-        # String values must be wrapped in quotes.
-        if isinstance(value, str):
-            value = f'"{value}"'
-
         # SETVARIABLE {id} {value}
         #   -> R:SETVARIABLE {id} {value}
-        await self._hc_client.command("VARIABLE", id, value)
+        await self._hc_client.command("VARIABLE", id, self._encode_value(value))
 
-    def _parse_value(self, id: int, value: str) -> Any:
+        # Update the local state
+        self._update_and_notify(id, value=value)
+
+    def _encode_value(self, value: ValueType) -> str:
+        # Encode the value for the SETVARIABLE command.
+
+        if isinstance(value, bool):
+            # Boolean values must be converted to 0 or 1
+            return str(int(value))
+        elif isinstance(value, str):
+            # String values must be wrapped in quotes
+            return f'"{value}"'
+        else:
+            return str(value)
+
+    def _parse_value(self, id: int, value: str) -> ValueType:
         # Parse the value based on the variable type.
 
         type = GMem.Type(self[id].tag)
@@ -71,18 +82,24 @@ class GMemController(StatefulController[GMem]):
         elif type == GMem.Type.NUMBER:
             return int(value)
         elif type == GMem.Type.LEVEL:
-            return int(value) / 1000
+            # % = level / 1000
+            return int(value)
         elif type == GMem.Type.SECONDS:
-            return int(value) / 1000
+            # In milliseconds
+            return int(value)
         elif type == GMem.Type.DELAY:
-            return timedelta(milliseconds=int(value))
+            # In milliseconds
+            return int(value)
         elif type == GMem.Type.TEMPERATURE:
-            return int(value) / 1000
+            # In 1/1000th of a degree C
+            return int(value)
         elif type == GMem.Type.LOAD:
-            return int(value)  # Load VID
+            # Load VID
+            return int(value)
         elif type == GMem.Type.TASK:
-            return int(value)  # Task VID
+            # Task VID
+            return int(value)
         elif type == GMem.Type.DEVICE_UNITS:
-            return int(value) / 1000
+            return int(value)
         else:
             return value
