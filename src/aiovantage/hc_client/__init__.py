@@ -1,17 +1,22 @@
 import asyncio
-from itertools import islice
 import logging
 import shlex
 from inspect import iscoroutinefunction
+from itertools import islice
 from ssl import PROTOCOL_TLS, SSLContext
 from types import TracebackType
 from typing import Callable, Iterable, List, Optional, Tuple, Type, Union, overload
 
 from .errors import CommandExecutionError, LoginFailedError, LoginRequiredError
 
-# Type aliases
+
+# Type for callbacks that are called when a status update is received
 StatusCallback = Callable[[str, int, List[str]], None]
-StatusSubscription = Tuple[StatusCallback, "Iterable[str] | None"]
+
+# Type for a status subscription (a callback with an optional type filter)
+StatusSubscription = Tuple[StatusCallback, Optional[Iterable[str]]]
+
+# Allowed parameter types for commands, will be converted to strings
 CommandParam = Union[int, float, str]
 
 
@@ -25,11 +30,13 @@ def _encode_params(params: Iterable[CommandParam]) -> Optional[str]:
 class HCClient:
     """Communicate with a Vantage InFusion Host Command service.
 
-    The Host Command service is a text-based service that allows interaction with
+    The Host Command service is a TCP text-based service that allows interaction with
     devices controlled by a Vantage InFusion Controller.
 
     Among other things, this service allows you to change the state of devices
     (eg. turn on/off a light) as well as subscribe to status changes for devices.
+
+    The service is exposed by the controller on port 3010, and uses SSL by default.
     """
 
     def __init__(
@@ -113,13 +120,16 @@ class HCClient:
     async def close(self) -> None:
         """Close the connection to the service and cancel any running tasks."""
 
+        # Cancel any running tasks
         for task in self._tasks:
             task.cancel()
         self._tasks = []
 
+        # Check if the connection is already closed
         if self._writer is None or self._writer.is_closing():
             return
 
+        # Close the connection
         self._writer.close()
         await self._writer.wait_closed()
 
@@ -159,12 +169,14 @@ class HCClient:
     async def command(self, command: str, *params: CommandParam) -> List[str]:
         """
         Send a command with parameters to the Host Command service, and return the
-        arguments of the "R:" line of the response. Handles "R:ERROR" errors and
-        raises the appropriate exception.
+        arguments of the "R:" line of the response.
+
+        Handles encoding the parameters correctly, and raises an exception if the
+        response line is R:ERROR.
 
         Args:
-            command: The command to send.
-            params: The parameters to send with the command.
+            command: The command to send, should be a single word string.
+            params: The parameters to send with the command, int, float, or str.
 
         Returns:
             A list of response arguments.
@@ -226,6 +238,8 @@ class HCClient:
 
         await self.command("LOGIN", username, password)
 
+        self._logger.info("Logged in")
+
     async def addstatus(self, ids: Iterable[int]) -> None:
         """Send an ADDSTATUS command to subscribe to status events for the given ids.
 
@@ -235,7 +249,7 @@ class HCClient:
 
         # ADDSTATUS accepts up to 16 ids at a time, so chunk the requests.
         id_iter = iter(ids)
-        while (id_chunk := tuple(islice(id_iter, 16))):
+        while id_chunk := tuple(islice(id_iter, 16)):
             await self.command("ADDSTATUS", *id_chunk)
 
     async def delstatus(self, ids: Iterable[int]) -> None:
@@ -247,7 +261,7 @@ class HCClient:
 
         # DELSTATUS accepts up to 16 ids at a time, so chunk the requests.
         id_iter = iter(ids)
-        while (id_chunk := tuple(islice(id_iter, 16))):
+        while id_chunk := tuple(islice(id_iter, 16)):
             await self.command("DELSTATUS", *id_chunk)
 
     @overload
