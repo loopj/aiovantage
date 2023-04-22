@@ -27,13 +27,13 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
     async def get_level(self, id: int) -> float:
         """
-        Get the level of a load.
+        Get the level of a load from the controller.
 
         Args:
             id: The ID of the load.
 
         Returns:
-            The level of the load, in percent (0-100).
+            The level of the load, between 0-100.
         """
 
         # INVOKE <id> Load.GetLevel
@@ -81,7 +81,6 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         return tuple(rgbw_values)  # type: ignore[return-value]
 
-
     async def get_hsl(self, id: int) -> Tuple[int, int, int]:
         """
         Get the HSL color of a load from the controller.
@@ -126,10 +125,10 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         Args:
             id: The ID of the load.
-            level: The level to set the load to, in percent (0-100).
+            level: The level of the load, between 0-100.
         """
 
-        # Clamp level to 0-100, match controller's precision for "floats"
+        # Clamp level to 0-100, match the precision of the controller
         level = round(max(min(level, 100), 0), 3)
 
         # Don't send a command if the level isn't changing
@@ -138,7 +137,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         # INVOKE <id> Load.SetLevel <level>
         # -> R:INVOKE <id> <rcode> Load.SetLevel <level>
-        await self._hc_client.command("LOAD", id, level)
+        await self._hc_client.invoke(id, "Load.SetLevel", level)
 
         # Update local state
         self._update_and_notify(id, level=level)
@@ -163,6 +162,8 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         if id in self and self[id].rgb == (red, green, blue):
             return
 
+        # TODO: Use DissolveRGB for transitions
+
         # INVOKE <id> RGBLoad.SetRGB <red> <green> <blue>
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGB <red> <green> <blue>
         await self._hc_client.invoke(id, "RGBLoad.SetRGB", red, green, blue)
@@ -173,7 +174,8 @@ class RGBLoadsController(StatefulController[RGBLoad]):
     async def set_rgbw(
         self, id: int, red: int, green: int, blue: int, white: int
     ) -> None:
-        """Set the color of an RGBW load.
+        """
+        Set the color of an RGBW load.
 
         Args:
             id: The ID of the load.
@@ -201,7 +203,8 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         self._update_and_notify(id, rgbw=(red, green, blue, white))
 
     async def set_hsl(self, id: int, hue: int, saturation: int, level: int) -> None:
-        """Set the color of an HSL load.
+        """
+        Set the color of an HSL load.
 
         Args:
             id: The ID of the load.
@@ -219,6 +222,8 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         if id in self and self[id].hs == (hue, saturation) and self[id].level == level:
             return
 
+        # TODO: Use DissolveHSL for transitions
+
         # INVOKE <id> RGBLoad.SetHSL <hue> <saturation> <level>
         # -> R:INVOKE <id> <rcode> RGBLoad.SetHSL <hue> <saturation> <level>
         await self._hc_client.invoke(id, "RGBLoad.SetHSL", hue, saturation, level)
@@ -226,12 +231,14 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # Update local state
         self._update_and_notify(id, hs=(hue, saturation), level=level)
 
-    async def set_color_temp(self, id: int, temp: int) -> None:
-        """Set the color temperature of a load.
+    async def set_color_temp(self, id: int, temp: int, transition: int = 0) -> None:
+        """
+        Set the color temperature of a load.
 
         Args:
             id: The ID of the load.
             temp: The color temperature to set the load to, in Kelvin.
+            transition: The time in seconds to transition to the new color
         """
 
         # Ensure the temperature is an integer
@@ -243,7 +250,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         # INVOKE <id> ColorTemperature.Set <temp>
         # -> R:INVOKE <id> <rcode> ColorTemperature.Set <temp>
-        await self._hc_client.invoke(id, "ColorTemperature.Set", temp)
+        await self._hc_client.invoke(id, "ColorTemperature.Set", temp, transition)
 
         # Update local state
         self._update_and_notify(id, color_temp=temp)
@@ -257,18 +264,16 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # Get initial color
         color_type = self[id].color_type
         if color_type == "HSL":
-            hsl = await self.get_color_hsl(id)
+            hsl = await self.get_hsl(id)
             state["hs"] = hsl[:2]
             state["level"] = hsl[2]
         elif color_type == "CCT":
             state["color_temp"] = await self.get_color_temp(id)
             state["level"] = await self.get_level(id)
         elif color_type == "RGB":
-            state["rgb"] = await self.get_color_rgb(id)
-            state["level"] = await self.get_level(id)
+            state["rgb"] = await self.get_rgb(id)
         elif color_type == "RGBW":
-            state["rgbw"] = await self.get_color_rgbw(id)
-            state["level"] = await self.get_level(id)
+            state["rgbw"] = await self.get_rgbw(id)
         else:
             self._logger.warning(f"Unsupported color type: {color_type}")
 
@@ -287,7 +292,11 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         elif status == "STATUS":
             method, *args = args
-            if method == "RGBLoad.GetHSL" and color_type == "HSL":
+            if method == "RGBLoad.GetColor" and color_type == "RGB":
+                # S:STATUS <id> RGBLoad.GetColor <value>
+                state["rgb"] = _unpack_color(int(args[0]))[:3]
+
+            elif method == "RGBLoad.GetHSL" and color_type == "HSL":
                 # S:STATUS <id> RGBLoad.GetHSL <value> <channel>
 
                 if id not in self._temp_color_map:
@@ -301,10 +310,6 @@ class RGBLoadsController(StatefulController[RGBLoad]):
                     state["level"] = self._temp_color_map[id][2]
 
                     del self._temp_color_map[id]
-
-            elif method == "RGBLoad.GetColor" and color_type == "RGB":
-                # S:STATUS <id> RGBLoad.GetColor <value>
-                state["rgb"] = _unpack_color(int(args[0]))[:3]
 
             elif method == "RGBLoad.GetRGBW" and color_type == "RGBW":
                 # S:STATUS <id> RGBLoad.GetRBGW <value> <channel>
