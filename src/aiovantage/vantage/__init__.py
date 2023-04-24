@@ -3,7 +3,6 @@ from types import TracebackType
 from typing import Callable, Optional, Type
 
 from aiovantage.aci_client import ACIClient
-from aiovantage.aci_client.system_objects import SystemObject
 from aiovantage.hc_client import HCClient
 from aiovantage.vantage.controllers.areas import AreasController
 from aiovantage.vantage.controllers.base import EventCallback
@@ -144,7 +143,7 @@ class Vantage:
         for coro in coros:
             await coro
 
-    def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
+    def subscribe(self, callback: EventCallback) -> Callable[[], None]:
         """
         Subscribe to state changes for all objects.
 

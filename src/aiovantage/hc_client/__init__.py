@@ -5,13 +5,22 @@ from inspect import iscoroutinefunction
 from itertools import islice
 from ssl import PROTOCOL_TLS, SSLContext
 from types import TracebackType
-from typing import Callable, Iterable, List, Optional, Tuple, Type, Union, overload
+from typing import Iterable, List, Optional, Protocol, Tuple, Type, Union, overload
 
 from .errors import CommandExecutionError, LoginFailedError, LoginRequiredError
 
 
 # Type for callbacks that are called when a status update is received
-StatusCallback = Callable[[str, int, List[str]], None]
+class StatusCallback(Protocol):
+    def __call__(self, status: str, id: int, args: List[str]) -> None:
+        ...
+
+
+# Type for the unsubscribe callback that is returned by subscribe()
+class UnsubscribeCallback(Protocol):
+    def __call__(self) -> None:
+        ...
+
 
 # Type for a status subscription (a callback with an optional type filter)
 StatusSubscription = Tuple[StatusCallback, Optional[Iterable[str]]]
@@ -265,7 +274,7 @@ class HCClient:
             await self.command("DELSTATUS", *id_chunk)
 
     @overload
-    async def subscribe(self, callback: StatusCallback) -> Callable[[], None]:
+    async def subscribe(self, callback: StatusCallback) -> UnsubscribeCallback:
         """
         Subscribe to all status events.
 
@@ -280,7 +289,7 @@ class HCClient:
     @overload
     async def subscribe(
         self, callback: StatusCallback, *, object_ids: Iterable[int]
-    ) -> Callable[[], None]:
+    ) -> UnsubscribeCallback:
         """
         Subscribe to status events for the given object ids.
 
@@ -296,7 +305,7 @@ class HCClient:
     @overload
     async def subscribe(
         self, callback: StatusCallback, *, status_types: Iterable[str]
-    ) -> Callable[[], None]:
+    ) -> UnsubscribeCallback:
         """
         Subscribe to status events for the given status types.
 
@@ -315,7 +324,7 @@ class HCClient:
         *,
         object_ids: Optional[Iterable[int]] = None,
         status_types: Optional[Iterable[str]] = None,
-    ) -> Callable[[], None]:
+    ) -> UnsubscribeCallback:
         if object_ids is not None and status_types is not None:
             raise ValueError("Cannot specify both object_ids and status_types.")
 
@@ -341,13 +350,6 @@ class HCClient:
             if object_ids is not None:
                 loop = asyncio.get_event_loop()
                 loop.run_until_complete(self.delstatus(object_ids))
-            elif status_types is not None:
-                # TODO: Unsubscribe from specific status types if we were the last
-                # subscriber for that type
-                pass
-            else:
-                # TODO: ??? (STATUS NONE?)
-                pass
 
             self._subscriptions.remove(subscription)
 

@@ -1,18 +1,22 @@
 import asyncio
 import logging
 from abc import ABC, abstractmethod
+from enum import Enum
 from inspect import iscoroutinefunction
 from typing import (
     Any,
     Callable,
     Dict,
     Generic,
+    Iterable,
     List,
     Optional,
+    Protocol,
     Sequence,
     Tuple,
     Type,
     TypeVar,
+    Union,
 )
 
 from aiovantage.aci_client import ACIClient
@@ -24,7 +28,18 @@ from aiovantage.vantage.query import QuerySet
 T = TypeVar("T", bound="SystemObject")
 
 
-EventCallback = Callable[[T, List[str]], None]
+class EventType(Enum):
+    OBJECT_ADDED = "add"
+    OBJECT_UPDATED = "update"
+    OBJECT_DELETED = "delete"
+
+
+class EventCallback(Protocol):
+    def __call__(self, event_type: EventType, obj: T, **kwargs: Any) -> None:
+        ...
+
+
+EventSubscription = Tuple[EventCallback, Optional[Iterable[EventType]]]
 
 
 class BaseController(Generic[T], QuerySet[T], ABC):
@@ -38,6 +53,8 @@ class BaseController(Generic[T], QuerySet[T], ABC):
         self._aci_client = aci_client
         self._items: Dict[int, T] = {}
         self._logger = logging.getLogger(__package__)
+        self._subscriptions: List[EventSubscription] = []
+        self._id_subscriptions: Dict[int, List[EventSubscription]] = {}
         self._populated = False
 
         QuerySet.__init__(self, self._items)
@@ -60,9 +77,71 @@ class BaseController(Generic[T], QuerySet[T], ABC):
             self._aci_client, vantage_types, self.item_cls
         ):
             self._items[obj.id] = obj
+            self.emit(EventType.OBJECT_ADDED, obj)
 
         self._populated = True
         self._logger.info(f"{self.__class__.__name__} initialized")
+
+    def subscribe(
+        self,
+        callback: EventCallback,
+        id_filter: Union[int, Tuple[int], None] = None,
+        event_filter: Union[EventType, Tuple[EventType], None] = None,
+    ) -> Callable[[], None]:
+        """
+        Subscribe to status changes for objects managed by this controller.
+
+        Args:
+            callback: The callback to call when an object changes.
+            id_filter: The object IDs to subscribe to, all objects if None.
+            event_filter: The event types to subscribe to, all events if None.
+
+        Returns:
+            A function to unsubscribe from the callback.
+        """
+
+        # Handle single ID filter
+        if isinstance(id_filter, int):
+            id_filter = (id_filter,)
+
+        # Handle single event filter
+        if isinstance(event_filter, EventType):
+            event_filter = (event_filter,)
+
+        # Create the subscription
+        subscription = (callback, event_filter)
+
+        # Add the subscription to the list of subscriptions
+        if id_filter is None:
+            self._subscriptions.append(subscription)
+        else:
+            for id in id_filter:
+                if id not in self._id_subscriptions:
+                    self._id_subscriptions[id] = []
+                self._id_subscriptions[id].append(subscription)
+
+        # Return a function to unsubscribe
+        def unsubscribe() -> None:
+            if id_filter is None:
+                self._subscriptions.remove(subscription)
+            else:
+                for id in id_filter:  # type: ignore[union-attr]
+                    if id not in self._id_subscriptions:
+                        continue
+                    self._id_subscriptions[id].remove(subscription)
+
+        return unsubscribe
+
+    def emit(self, event_type: EventType, obj: T, **kwargs: Any) -> None:
+        subscribers = self._subscriptions + self._id_subscriptions.get(obj.id, [])
+        for callback, event_filter in subscribers:
+            if event_filter is not None and event_type not in event_filter:
+                continue
+
+            if iscoroutinefunction(callback):
+                asyncio.create_task(callback(event_type, obj, **kwargs))
+            else:
+                callback(event_type, obj, **kwargs)
 
 
 class StatefulController(BaseController[T]):
@@ -76,8 +155,14 @@ class StatefulController(BaseController[T]):
         super().__init__(aci_client)
 
         self._hc_client = hc_client
-        self._subscribers: List[EventCallback[T]] = []
-        self._id_subscribers: Dict[int, List[EventCallback[T]]] = {}
+
+    @abstractmethod
+    async def fetch_initial_state(self, id: int) -> None:
+        ...
+
+    @abstractmethod
+    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+        ...
 
     async def initialize(self) -> None:
         await super().initialize()
@@ -97,48 +182,6 @@ class StatefulController(BaseController[T]):
             await self._hc_client.subscribe(
                 self._handle_status_event, object_ids=self._items.keys()
             )
-
-    def subscribe(
-        self, callback: EventCallback[T], id_filter: Optional[Sequence[int]] = None
-    ) -> Callable[[], None]:
-        """
-        Subscribe to status changes for objects managed by this controller.
-
-        Args:
-            callback: The callback to call when an object changes.
-            id_filter: The object IDs to subscribe to. Subscribe to all objects if None.
-
-        Returns:
-            A function to unsubscribe from the callback.
-        """
-
-        if id_filter is None:
-            self._subscribers.append(callback)
-        else:
-            for id in id_filter:
-                if id not in self._id_subscribers:
-                    self._id_subscribers[id] = []
-                self._id_subscribers[id].append(callback)
-
-        # Return a function to unsubscribe
-        def unsubscribe() -> None:
-            if id_filter is None:
-                self._subscribers.remove(callback)
-            else:
-                for id in id_filter:
-                    if id not in self._id_subscribers:
-                        continue
-                    self._id_subscribers[id].remove(callback)
-
-        return unsubscribe
-
-    @abstractmethod
-    async def fetch_initial_state(self, id: int) -> None:
-        ...
-
-    @abstractmethod
-    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
-        ...
 
     def _handle_status_event(
         self, status_type: str, vid: int, args: Sequence[str]
@@ -169,9 +212,4 @@ class StatefulController(BaseController[T]):
 
         # Notify subscribers
         if len(attrs_changed) > 0:
-            subscribers = self._subscribers + self._id_subscribers.get(obj.id, [])
-            for callback in subscribers:
-                if iscoroutinefunction(callback):
-                    asyncio.create_task(callback(obj, attrs_changed))
-                else:
-                    callback(obj, attrs_changed)
+            self.emit(EventType.OBJECT_UPDATED, obj, attrs_changed=attrs_changed)
