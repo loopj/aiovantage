@@ -8,6 +8,7 @@ class AreasController(BaseController[Area]):
     item_cls = Area
     vantage_types = (Area,)
 
+    @property
     def root(self) -> Optional[Area]:
         """Return the root (top-most) area."""
 

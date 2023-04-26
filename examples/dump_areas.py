@@ -54,11 +54,10 @@ async def main() -> None:
     async with Vantage(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS) as vantage:
         await vantage.initialize()
 
-        root = vantage.areas.root()
+        root = vantage.areas.root
         if root is not None:
             for area in vantage.areas.filter(area_id=root.id):
                 print_area(vantage, area)
-
 
 
 try:
