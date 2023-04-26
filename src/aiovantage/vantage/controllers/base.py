@@ -190,7 +190,7 @@ class StatefulController(BaseController[T]):
                 self.handle_state_change, self.status_types
             )
 
-    def _update_and_notify(self, id: int, **kwargs: Any) -> None:
+    def update_state(self, id: int, state: Dict[str, Any]) -> None:
         # Update the state of an object and notify subscribers if it changed
 
         obj = self.get(id)
@@ -199,7 +199,7 @@ class StatefulController(BaseController[T]):
 
         # Check if any of the attributes changed and update them
         attrs_changed = []
-        for key, value in kwargs.items():
+        for key, value in state.items():
             try:
                 if getattr(obj, key) != value:
                     setattr(obj, key, value)

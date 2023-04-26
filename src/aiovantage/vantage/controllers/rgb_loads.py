@@ -139,7 +139,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         await self._hc_client.invoke(id, "Load.SetLevel", level)
 
         # Update local state
-        self._update_and_notify(id, level=level)
+        self.update_state(id, {"level": level})
 
     async def set_rgb(self, id: int, red: int, green: int, blue: int) -> None:
         """
@@ -168,7 +168,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         await self._hc_client.invoke(id, "RGBLoad.SetRGB", red, green, blue)
 
         # Update local state
-        self._update_and_notify(id, rgb=(red, green, blue))
+        self.update_state(id, {"rgb": (red, green, blue)})
 
     async def set_rgbw(
         self, id: int, red: int, green: int, blue: int, white: int
@@ -199,7 +199,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         await self._hc_client.invoke(id, "RGBLoad.SetRGBW", red, green, blue, white)
 
         # Update local state
-        self._update_and_notify(id, rgbw=(red, green, blue, white))
+        self.update_state(id, {"rgbw": (red, green, blue, white)})
 
     async def set_hsl(self, id: int, hue: int, saturation: int, level: int) -> None:
         """
@@ -228,7 +228,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         await self._hc_client.invoke(id, "RGBLoad.SetHSL", hue, saturation, level)
 
         # Update local state
-        self._update_and_notify(id, hs=(hue, saturation), level=level)
+        self.update_state(id, {"hs": (hue, saturation), "level": level})
 
     async def set_color_temp(self, id: int, temp: int, transition: int = 0) -> None:
         """
@@ -252,7 +252,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         await self._hc_client.invoke(id, "ColorTemperature.Set", temp, transition)
 
         # Update local state
-        self._update_and_notify(id, color_temp=temp)
+        self.update_state(id, {"color_temp": temp})
 
     @override
     async def fetch_initial_state(self, id: int) -> None:
@@ -276,7 +276,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         else:
             self._logger.warning(f"Unsupported color type: {color_type}")
 
-        self._update_and_notify(id, **state)
+        self.update_state(id, state)
 
     @override
     def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
@@ -319,7 +319,6 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
                 del self._temp_color_map[id]
 
-
         elif status == "RGBLoad.GetRGBW":
             # <id> RGBLoad.GetRGBW <value> <channel>
 
@@ -345,4 +344,4 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
             state["color_temp"] = int(args[0])
 
-        self._update_and_notify(id, **state)
+        self.update_state(id, state)

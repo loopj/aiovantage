@@ -16,7 +16,7 @@ class LoadsController(StatefulController[Load]):
     async def fetch_initial_state(self, id: int) -> None:
         # Fetch initial state of all Loads.
 
-        self._update_and_notify(id, level=await self.get_level(id))
+        self.update_state(id, {"level": await self.get_level(id)})
 
     @override
     def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
@@ -24,9 +24,9 @@ class LoadsController(StatefulController[Load]):
 
         if status == "LOAD":
             # STATUS LOAD
-            #   -> S:LOAD <id> <level (0-100)>
+            # -> S:LOAD <id> <level (0-100)>
             level = float(args[0])
-            self._update_and_notify(id, level=level)
+            self.update_state(id, {"level": level})
 
     @property
     def on(self) -> QuerySet[Load]:
@@ -93,12 +93,14 @@ class LoadsController(StatefulController[Load]):
         if self[id].level == level:
             return
 
-        # LOAD <id> <level>
-        # -> R:LOAD <id> <level>
         if transition is not None:
+            # RAMPLOAD <id> <level> <seconds>
+            # -> R:RAMPLOAD <id> <level> <seconds>
             await self._hc_client.command("RAMPLOAD", id, level, transition)
         else:
+            # LOAD <id> <level>
+            # -> R:LOAD <id> <level>
             await self._hc_client.command("LOAD", id, level)
 
         # Update local state
-        self._update_and_notify(id, level=level)
+        self.update_state(id, {"level": level})

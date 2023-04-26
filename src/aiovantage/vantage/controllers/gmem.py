@@ -31,7 +31,7 @@ class GMemController(StatefulController[GMem]):
     async def fetch_initial_state(self, id: int) -> None:
         # Fetch initial state of all variables.
 
-        self._update_and_notify(id, value=await self.get_value(id))
+        self.update_state(id, {"value": await self.get_value(id)})
 
     @override
     def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
@@ -39,7 +39,8 @@ class GMemController(StatefulController[GMem]):
             # STATUS VARIABLE
             # -> S:VARIABLE <id> <value>
             value = self._parse_value(id, args[0])
-            self._update_and_notify(id, value=value)
+
+            self.update_state(id, {"value": value})
 
     async def get_value(self, id: int) -> Any:
         """
@@ -72,7 +73,7 @@ class GMemController(StatefulController[GMem]):
         await self._hc_client.command("VARIABLE", id, encode_value(value))
 
         # Update the local state
-        self._update_and_notify(id, value=value)
+        self.update_state(id, {"value": value})
 
     def _parse_value(self, id: int, value: str) -> ValueType:
         # Parse the value based on the variable type.
