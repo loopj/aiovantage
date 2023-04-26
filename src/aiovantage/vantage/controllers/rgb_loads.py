@@ -1,5 +1,5 @@
 import struct
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from typing_extensions import override
 
@@ -7,11 +7,6 @@ from aiovantage.aci_client import ACIClient
 from aiovantage.aci_client.system_objects import DDGColorLoad, DGColorLoad, RGBLoad
 from aiovantage.hc_client import HCClient
 from aiovantage.vantage.controllers.base import StatefulController
-
-
-def _unpack_color(color: int) -> Tuple[int, int, int, int]:
-    bytes = struct.pack(">i", color)
-    return struct.unpack("BBBB", bytes)  # type: ignore[return-value]
 
 
 class RGBLoadsController(StatefulController[RGBLoad]):
@@ -58,7 +53,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         response = await self._hc_client.invoke(id, "RGBLoad.GetColor")
         color = int(response[1])
 
-        return _unpack_color(color)[:3]
+        return self._unpack_color_int(color)[:3]
 
     async def get_rgbw(self, id: int) -> Tuple[int, int, int, int]:
         """
@@ -141,7 +136,9 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # Update local state
         self.update_state(id, {"level": level})
 
-    async def set_rgb(self, id: int, red: int, green: int, blue: int) -> None:
+    async def set_rgb(
+        self, id: int, red: int, green: int, blue: int, transition: float = 0
+    ) -> None:
         """
         Set the color of an RGB load.
 
@@ -161,11 +158,16 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         if id in self and self[id].rgb == (red, green, blue):
             return
 
-        # TODO: Use DissolveRGB for transitions
-
-        # INVOKE <id> RGBLoad.SetRGB <red> <green> <blue>
-        # -> R:INVOKE <id> <rcode> RGBLoad.SetRGB <red> <green> <blue>
-        await self._hc_client.invoke(id, "RGBLoad.SetRGB", red, green, blue)
+        if transition:
+            # INVOKE <id> RGBLoad.DissolveRGB <red> <green> <blue> <seconds>
+            # -> R:INVOKE <id> <rcode> RGBLoad.DissolveRGB <red> <green> <blue> <seconds
+            await self._hc_client.invoke(
+                id, "RGBLoad.DissolveRGB", red, green, blue, transition
+            )
+        else:
+            # INVOKE <id> RGBLoad.SetRGB <red> <green> <blue>
+            # -> R:INVOKE <id> <rcode> RGBLoad.SetRGB <red> <green> <blue>
+            await self._hc_client.invoke(id, "RGBLoad.SetRGB", red, green, blue)
 
         # Update local state
         self.update_state(id, {"rgb": (red, green, blue)})
@@ -201,7 +203,9 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # Update local state
         self.update_state(id, {"rgbw": (red, green, blue, white)})
 
-    async def set_hsl(self, id: int, hue: int, saturation: int, level: int) -> None:
+    async def set_hsl(
+        self, id: int, hue: int, saturation: int, level: int, transition: float = 0
+    ) -> None:
         """
         Set the color of an HSL load.
 
@@ -221,11 +225,16 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         if id in self and self[id].hs == (hue, saturation) and self[id].level == level:
             return
 
-        # TODO: Use DissolveHSL for transitions
-
-        # INVOKE <id> RGBLoad.SetHSL <hue> <saturation> <level>
-        # -> R:INVOKE <id> <rcode> RGBLoad.SetHSL <hue> <saturation> <level>
-        await self._hc_client.invoke(id, "RGBLoad.SetHSL", hue, saturation, level)
+        if transition:
+            # INVOKE <id> RGBLoad.DissolveHSL <hue> <saturation> <level> <seconds>
+            # -> R:INVOKE <id> <rcode> RGBLoad.DissolveHSL <hue> <sat> <level> <seconds>
+            await self._hc_client.invoke(
+                id, "RGBLoad.DissolveHSL", hue, saturation, level, transition
+            )
+        else:
+            # INVOKE <id> RGBLoad.SetHSL <hue> <saturation> <level>
+            # -> R:INVOKE <id> <rcode> RGBLoad.SetHSL <hue> <saturation> <level>
+            await self._hc_client.invoke(id, "RGBLoad.SetHSL", hue, saturation, level)
 
         # Update local state
         self.update_state(id, {"hs": (hue, saturation), "level": level})
@@ -259,22 +268,24 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # Populate the initial state of an RGBLoad.
 
         state: Dict[str, Any] = {}
-
-        # Get initial color
         color_type = self[id].color_type
-        if color_type == "HSL":
+
+        # We care about HSL values for HSL, RGB, and RGBW loads, since color
+        # information is lost in the rgb values when adjusting brightness/level.
+        if color_type == "HSL" or color_type == "RGB" or color_type == "RGBW":
             hsl = await self.get_hsl(id)
             state["hs"] = hsl[:2]
             state["level"] = hsl[2]
-        elif color_type == "CCT":
+
+        if color_type == "RGB":
+            state["rgb"] = await self.get_rgb(id)
+
+        if color_type == "RGBW":
+            state["rgbw"] = await self.get_rgbw(id)
+
+        if color_type == "CCT":
             state["color_temp"] = await self.get_color_temp(id)
             state["level"] = await self.get_level(id)
-        elif color_type == "RGB":
-            state["rgb"] = await self.get_rgb(id)
-        elif color_type == "RGBW":
-            state["rgbw"] = await self.get_rgbw(id)
-        else:
-            self._logger.warning(f"Unsupported color type: {color_type}")
 
         self.update_state(id, state)
 
@@ -285,13 +296,19 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         state: Dict[str, Any] = {}
         color_type = self[id].color_type
 
-        if status == "Load.GetLevel":
-            # <id> Load.GetLevel <level (0-100000)>
+        if status == "RGBLoad.GetHSL":
+            # <id> RGBLoad.GetHSL <value> <channel>
 
-            if color_type != "CCT":
+            # We care about HSL values for HSL, RGB, and RGBW loads, since color
+            # information is lost in the rgb values when adjusting brightness/level.
+            if not (color_type == "HSL" or color_type == "RGB" or color_type == "RGBW"):
                 return
 
-            state["level"] = int(args[0]) / 1000
+            # Build a color from each HSL channel
+            color = self._build_color_from_channels(id, args, num_channels=3)
+            if color is not None:
+                state["hs"] = color[:2]
+                state["level"] = color[2]
 
         elif status == "RGBLoad.GetColor":
             # <id> RGBLoad.GetColor <color)>
@@ -299,49 +316,63 @@ class RGBLoadsController(StatefulController[RGBLoad]):
             if color_type != "RGB":
                 return
 
-            state["rgb"] = _unpack_color(int(args[0]))[:3]
-
-        elif status == "RGBLoad.GetHSL":
-            # <id> RGBLoad.GetHSL <value> <channel>
-
-            if color_type != "HSL":
-                return
-
-            if id not in self._temp_color_map:
-                self._temp_color_map[id] = [0, 0, 0]
-
-            channel = int(args[1])
-            self._temp_color_map[id][channel] = int(args[0])
-
-            if channel == 2:
-                state["hs"] = tuple(self._temp_color_map[id][:2])
-                state["level"] = self._temp_color_map[id][2]
-
-                del self._temp_color_map[id]
+            state["rgb"] = self._unpack_color_int(int(args[0]))[:3]
 
         elif status == "RGBLoad.GetRGBW":
             # <id> RGBLoad.GetRGBW <value> <channel>
 
+            # We only care about RGBW values for RGBW loads
             if color_type != "RGBW":
                 return
 
-            if id not in self._temp_color_map:
-                self._temp_color_map[id] = [0, 0, 0, 0]
-
-            channel = int(args[1])
-            self._temp_color_map[id][channel] = int(args[0])
-
-            if channel == 3:
-                state["rgbw"] = tuple(self._temp_color_map[id])
-
-                del self._temp_color_map[id]
+            # Build a color from each RGBW channel
+            color = self._build_color_from_channels(id, args, num_channels=4)
+            if color is not None:
+                state["rgbw"] = color
 
         elif status == "ColorTemperature.Get":
             # <id> ColorTemperature.Get <temp>
 
+            # We only care about color temperature for CCT loads
             if color_type != "CCT":
                 return
 
             state["color_temp"] = int(args[0])
 
+        elif status == "Load.GetLevel":
+            # <id> Load.GetLevel <level (0-100000)>
+
+            # We only care about level changes for CCT loads
+            if color_type != "CCT":
+                return
+
+            state["level"] = int(args[0]) / 1000
+
         self.update_state(id, state)
+
+    def _build_color_from_channels(
+        self, id: int, args: Sequence[str], num_channels: int
+    ) -> Optional[Tuple[int, ...]]:
+        # Build a color from a series of channel values. We need to store partially
+        # constructed colors in memory, since updates come separately for each channel.
+
+        if id not in self._temp_color_map:
+            self._temp_color_map[id] = num_channels * [0]
+
+        # Extract the color and channel from the args
+        channel = int(args[1])
+        self._temp_color_map[id][channel] = int(args[0])
+
+        # If we have all the channels, build and return the color
+        if channel == num_channels - 1:
+            color = tuple(self._temp_color_map[id])
+            del self._temp_color_map[id]
+            return color
+
+        return None
+
+    def _unpack_color_int(self, color: int) -> Tuple[int, int, int, int]:
+        # Unpack a signed 32-bit integer from RGBLoad.GetColor into a color tuple
+
+        bytes = struct.pack(">i", color)
+        return struct.unpack("BBBB", bytes)  # type: ignore[return-value]

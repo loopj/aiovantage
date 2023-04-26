@@ -54,7 +54,7 @@ class GMemController(StatefulController[GMem]):
         """
 
         # GETVARIABLE {id}
-        #   -> R:GETVARIABLE {id} {value}
+        # -> R:GETVARIABLE {id} {value}
         _, value = await self._hc_client.command("GETVARIABLE", id)
 
         return self._parse_value(id, value)
@@ -69,7 +69,7 @@ class GMemController(StatefulController[GMem]):
         """
 
         # SETVARIABLE {id} {value}
-        #   -> R:SETVARIABLE {id} {value}
+        # -> R:SETVARIABLE {id} {value}
         await self._hc_client.command("VARIABLE", id, encode_value(value))
 
         # Update the local state

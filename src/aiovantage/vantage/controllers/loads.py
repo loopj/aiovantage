@@ -1,4 +1,4 @@
-from typing import Optional, Sequence
+from typing import Sequence
 
 from typing_extensions import override
 
@@ -40,7 +40,7 @@ class LoadsController(StatefulController[Load]):
 
         return self.filter(lambda load: not load.level)
 
-    async def turn_on(self, id: int, transition: Optional[float] = None) -> None:
+    async def turn_on(self, id: int, transition: float = 0) -> None:
         """
         Turn on a load.
 
@@ -50,7 +50,7 @@ class LoadsController(StatefulController[Load]):
 
         await self.set_level(id, 100, transition)
 
-    async def turn_off(self, id: int, transition: Optional[float] = None) -> None:
+    async def turn_off(self, id: int, transition: float = 0) -> None:
         """
         Turn off a load.
 
@@ -75,9 +75,7 @@ class LoadsController(StatefulController[Load]):
 
         return level
 
-    async def set_level(
-        self, id: int, level: float, transition: Optional[float] = None
-    ) -> None:
+    async def set_level(self, id: int, level: float, transition: float = 0) -> None:
         """
         Set the level of a load.
 
@@ -93,7 +91,7 @@ class LoadsController(StatefulController[Load]):
         if self[id].level == level:
             return
 
-        if transition is not None:
+        if transition:
             # RAMPLOAD <id> <level> <seconds>
             # -> R:RAMPLOAD <id> <level> <seconds>
             await self._hc_client.command("RAMPLOAD", id, level, transition)
