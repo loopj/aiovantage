@@ -60,7 +60,12 @@ class BaseController(Generic[T], QuerySet[T], ABC):
         return id in self._items
 
     async def initialize(self) -> None:
+        """
+        Initialize a stateless controller by populating the objects it manages.
+        """
+
         # TODO: Allow re-initialization, and track which objects ids were added/removed
+        # since last initialization
 
         if self._populated:
             return
@@ -74,7 +79,7 @@ class BaseController(Generic[T], QuerySet[T], ABC):
             self.emit(EventType.OBJECT_ADDED, obj)
 
         self._populated = True
-        self._logger.info(f"{self.__class__.__name__} initialized")
+        self._logger.info(f"{self.__class__.__name__} populated")
 
     def subscribe(
         self,
@@ -129,9 +134,20 @@ class BaseController(Generic[T], QuerySet[T], ABC):
     def emit(
         self, event_type: EventType, obj: T, user_data: Optional[Dict[str, Any]] = None
     ) -> None:
+        """
+        Emit an event to subscribers of this controller.
+
+        Args:
+            event_type: The type of event to emit.
+            obj: The object that the event relates to.
+            user_data: User data to pass to the callback.
+        """
+
+        # Guarantee that user_data dict is present
         if user_data is None:
             user_data = {}
 
+        # Grab a list of subscribers that care about this object
         subscribers = self._subscriptions + self._id_subscriptions.get(obj.id, [])
         for callback, event_filter in subscribers:
             if event_filter is not None and event_type not in event_filter:
@@ -161,11 +177,19 @@ class StatefulController(BaseController[T]):
         ...
 
     async def initialize(self) -> None:
+        """
+        Initialize a stateful controller by populating the objects it manages, fetching
+        their initial state, and subscribing to state updates.
+        """
+
+        # Populate the objects
         await super().initialize()
 
         # Fetch initial state for all objects
         for obj in self._items.values():
             await self.fetch_initial_state(obj.id)
+
+        self._logger.info(f"{self.__class__.__name__} fetched initial state")
 
         # Subscribe to object state updates from the event log
         if self.event_log_status:
@@ -190,9 +214,18 @@ class StatefulController(BaseController[T]):
                 self.handle_state_change, self.status_types
             )
 
-    def update_state(self, id: int, state: Dict[str, Any]) -> None:
-        # Update the state of an object and notify subscribers if it changed
+        self._logger.info(f"{self.__class__.__name__} monitoring for state changes")
 
+    def update_state(self, id: int, state: Dict[str, Any]) -> None:
+        """
+        Update the state of an object and notify subscribers if it changed
+
+        Args:
+            id: The ID of the object to update.
+            state: A dictionary of attributes to update.
+        """
+
+        # Get the object, skip if it doesn't exist
         obj = self.get(id)
         if obj is None:
             return
