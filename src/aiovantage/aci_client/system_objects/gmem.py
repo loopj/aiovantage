@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Union
 
 from aiovantage.aci_client.xml_dataclass import xml_element
 
@@ -10,19 +10,19 @@ from .system_object import SystemObject
 @dataclass
 class GMem(SystemObject):
     class Type(Enum):
-        TEXT = "Text"
+        BOOL = "bool"
+        DELAY = "Delay"
+        DEVICE_UNITS = "DeviceUnits"
+        LEVEL = "Level"
+        LOAD = "Load"
         NUMBER = "Number"
         SECONDS = "Seconds"
-        DELAY = "Delay"
-        LEVEL = "Level"
-        BOOL = "bool"
-        TEMPERATURE = "DegC"
-        LOAD = "Load"
         TASK = "Task"
-        DEVICE_UNITS = "DeviceUnits"
+        TEMPERATURE = "DegC"
+        TEXT = "Text"
 
     tag: "GMem.Type" = xml_element("Tag")
     persistent: bool = xml_element("Persistent")
 
     def __post_init__(self) -> None:
-        self.value: Optional[Any] = None
+        self.value: Union[int, bool, str, None] = None

@@ -1,16 +1,19 @@
 import asyncio
-import logging
+import os
 import sys
 import termios
 import tty
 
 from aiovantage import Vantage
 
-logging.basicConfig(level=logging.INFO)
+# Set your Vantage host ip, username, and password as environment variables
+VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")
+VANTAGE_USER = os.getenv("VANTAGE_USER")
+VANTAGE_PASS = os.getenv("VANTAGE_PASS")
 
 
 async def main() -> None:
-    vantage = Vantage("10.2.0.103", "administrator", "ZZuUw76CnL")
+    vantage = Vantage(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS)
     await vantage.connect()
     await vantage.loads.initialize()
 
@@ -47,16 +50,16 @@ async def main() -> None:
                 if seq == "[A":  # Up arrow
                     # Increase the load's brightness
                     level = load.level or 0
-                    await vantage.loads.set_level(load_id, level + 10)
+                    await vantage.loads.set_level(load_id, level + 10, transition=1)
                 elif seq == "[B":  # Down arrow
                     # Decrease the load's brightness
                     level = load.level or 0
-                    await vantage.loads.set_level(load_id, level - 10)
+                    await vantage.loads.set_level(load_id, level - 10, transition=1)
             elif c == " ":
                 # Toggle load
                 level = load.level or 0
                 if level > 0:
-                    await vantage.loads.set_level(load_id, 0)
+                    await vantage.loads.set_level(load_id, 0, transition=1)
                 else:
                     await vantage.loads.set_level(load_id, 100)
             elif c == "q":

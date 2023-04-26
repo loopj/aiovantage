@@ -1,16 +1,21 @@
 import asyncio
-import logging
+import os
 
 from aiovantage import Vantage
 
-logging.basicConfig(level=logging.INFO)
+# Set your Vantage host ip, username, and password as environment variables
+VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")
+VANTAGE_USER = os.getenv("VANTAGE_USER")
+VANTAGE_PASS = os.getenv("VANTAGE_PASS")
 
+# Some ANSI escape codes for pretty printing
 RESET = "\033[0m"
 YELLOW = "\033[33m"
 CYAN = "\033[36m"
 
+
 async def main() -> None:
-    async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
+    async with Vantage(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS) as vantage:
         await vantage.initialize()
 
         for station in vantage.stations:

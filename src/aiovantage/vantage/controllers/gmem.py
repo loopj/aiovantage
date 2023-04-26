@@ -7,6 +7,21 @@ from aiovantage.vantage.controllers.base import StatefulController
 
 ValueType = Union[bool, int, str]
 
+
+def encode_value(value: ValueType) -> str:
+    # Encode the value for the SETVARIABLE command.
+
+    if isinstance(value, bool):
+        # Boolean values must be converted to 0 or 1
+        return str(int(value))
+    elif isinstance(value, str):
+        # String values must be wrapped in quotes
+        # TODO: Newlines are not allowed, can double quotes be escaped?
+        return f'"{value}"'
+    else:
+        return str(value)
+
+
 class GMemController(StatefulController[GMem]):
     item_cls = GMem
     vantage_types = (GMem,)
@@ -20,11 +35,9 @@ class GMemController(StatefulController[GMem]):
 
     @override
     def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
-        # Handle a status update for a variable.
-
         if status == "VARIABLE":
             # STATUS VARIABLE
-            #   -> S:VARIABLE <id> <value>
+            # -> S:VARIABLE <id> <value>
             value = self._parse_value(id, args[0])
             self._update_and_notify(id, value=value)
 
@@ -56,22 +69,10 @@ class GMemController(StatefulController[GMem]):
 
         # SETVARIABLE {id} {value}
         #   -> R:SETVARIABLE {id} {value}
-        await self._hc_client.command("VARIABLE", id, self._encode_value(value))
+        await self._hc_client.command("VARIABLE", id, encode_value(value))
 
         # Update the local state
         self._update_and_notify(id, value=value)
-
-    def _encode_value(self, value: ValueType) -> str:
-        # Encode the value for the SETVARIABLE command.
-
-        if isinstance(value, bool):
-            # Boolean values must be converted to 0 or 1
-            return str(int(value))
-        elif isinstance(value, str):
-            # String values must be wrapped in quotes
-            return f'"{value}"'
-        else:
-            return str(value)
 
     def _parse_value(self, id: int, value: str) -> ValueType:
         # Parse the value based on the variable type.
@@ -79,27 +80,7 @@ class GMemController(StatefulController[GMem]):
         type = GMem.Type(self[id].tag)
         if type == GMem.Type.BOOL:
             return bool(int(value))
-        elif type == GMem.Type.NUMBER:
-            return int(value)
-        elif type == GMem.Type.LEVEL:
-            # % = level / 1000
-            return int(value)
-        elif type == GMem.Type.SECONDS:
-            # In milliseconds
-            return int(value)
-        elif type == GMem.Type.DELAY:
-            # In milliseconds
-            return int(value)
-        elif type == GMem.Type.TEMPERATURE:
-            # In 1/1000th of a degree C
-            return int(value)
-        elif type == GMem.Type.LOAD:
-            # Load VID
-            return int(value)
-        elif type == GMem.Type.TASK:
-            # Task VID
-            return int(value)
-        elif type == GMem.Type.DEVICE_UNITS:
-            return int(value)
-        else:
+        elif type == GMem.Type.TEXT:
             return value
+        else:
+            return int(value)

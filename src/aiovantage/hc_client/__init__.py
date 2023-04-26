@@ -1,33 +1,55 @@
 import asyncio
 import logging
-import shlex
+import re
+from collections import defaultdict
 from inspect import iscoroutinefunction
 from itertools import islice
 from ssl import PROTOCOL_TLS, SSLContext
 from types import TracebackType
-from typing import Iterable, List, Optional, Protocol, Tuple, Type, Union, overload
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, Union
 
 from .errors import CommandExecutionError, LoginFailedError, LoginRequiredError
 
-
-# Type for callbacks that are called when a status update is received
-class StatusCallback(Protocol):
-    def __call__(self, status: str, id: int, args: List[str]) -> None:
-        ...
-
-
-# Type for the unsubscribe callback that is returned by subscribe()
-class UnsubscribeCallback(Protocol):
-    def __call__(self) -> None:
-        ...
-
-
-# Type for a status subscription (a callback with an optional type filter)
+# Types for callbacks for status and event log subscriptions
+StatusCallback = Callable[[int, str, List[str]], None]
+EventLogCallback = Callable[[str], None]
+UnsubscribeCallback = Callable[[], None]
 StatusSubscription = Tuple[StatusCallback, Optional[Iterable[str]]]
 
 
+def tokenize_response(string: str) -> List[str]:
+    """
+    Tokenize a response from the Host Command service, handling quoted strings and
+    byte arrays (in curly braces) as single tokens.
+
+    Args:
+        string: The response string to tokenize.
+
+    Returns:
+        A list of string tokens.
+    """
+
+    return re.findall(r'("[^"]*"|\{[^}]*\}|\S+)', string)
+
+
+def run_callback(callback: Callable[..., None], *args: Any, **kwargs: Any) -> None:
+    """
+    Run a callback, either as a coroutine or a normal function.
+
+    Args:
+        callback: The callback to run.
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
+    """
+    if iscoroutinefunction(callback):
+        asyncio.create_task(callback(*args, **kwargs))
+    else:
+        callback(*args, **kwargs)
+
+
 class HCClient:
-    """Communicate with a Vantage InFusion Host Command service.
+    """
+    Communicate with a Vantage InFusion Host Command service.
 
     The Host Command service is a TCP text-based service that allows interaction with
     devices controlled by a Vantage InFusion Controller.
@@ -65,13 +87,19 @@ class HCClient:
         self._password = password
         self._use_ssl = use_ssl
         self._tasks: List[asyncio.Task[None]] = []
-        self._subscriptions: List[StatusSubscription] = []
-        self._response_queue: asyncio.Queue[str] = asyncio.Queue()
-        self._status_queue: asyncio.Queue[str] = asyncio.Queue()
         self._logger = logging.getLogger(__name__)
         self._reader: Optional[asyncio.StreamReader] = None
         self._writer: Optional[asyncio.StreamWriter] = None
         self._conn_timeout = conn_timeout
+
+        self._response_queue: asyncio.Queue[str] = asyncio.Queue()
+
+        self._status_queue: asyncio.Queue[str] = asyncio.Queue()
+        self._status_subscriptions: List[StatusSubscription] = []
+
+        self._event_log_queue: asyncio.Queue[str] = asyncio.Queue()
+        self._event_log_subscriptions: List[EventLogCallback] = []
+        self._event_log_types: Dict[str, int] = defaultdict(int)
 
         if port is None:
             self._port = 3010 if use_ssl else 3001
@@ -109,6 +137,7 @@ class HCClient:
         # Start tasks to handle incoming messages
         self._tasks.append(asyncio.create_task(self._handle_messages()))
         self._tasks.append(asyncio.create_task(self._status_processor()))
+        self._tasks.append(asyncio.create_task(self._event_log_processor()))
 
         self._logger.info("Connected")
 
@@ -195,7 +224,7 @@ class HCClient:
 
         # Get the "R:" return line and split it into parts
         response = response_lines[-1]
-        reply, *args = shlex.split(response)
+        reply, *args = tokenize_response(response)
 
         # Check for errors
         if reply.startswith("R:ERROR"):
@@ -224,7 +253,8 @@ class HCClient:
     async def invoke(
         self, id: int, method: str, *params: Union[int, float, str]
     ) -> List[str]:
-        """Send an INVOKE command to invoke a method on an Vantage object.
+        """
+        Send an INVOKE command to invoke a method on an Vantage object.
 
         Args:
             id: The id of the object to invoke the method on.
@@ -238,7 +268,8 @@ class HCClient:
         return await self.command("INVOKE", id, method, *params)
 
     async def login(self, username: str, password: str) -> None:
-        """Send a LOGIN command to authenticate with the Host Command service.
+        """
+        Send a LOGIN command to authenticate with the Host Command service.
 
         Args:
             username: The username to authenticate with.
@@ -249,65 +280,45 @@ class HCClient:
 
         self._logger.info("Logged in")
 
-    async def addstatus(self, ids: Iterable[int]) -> None:
-        """Send an ADDSTATUS command to subscribe to status events for the given ids.
+    async def addstatus(self, ids: Union[int, Iterable[int]]) -> None:
+        """
+        Send an ADDSTATUS command to subscribe to status events for the given ids.
 
         Args:
             ids: The ids to subscribe to status events for.
         """
+
+        if isinstance(ids, int):
+            ids = (ids,)
 
         # ADDSTATUS accepts up to 16 ids at a time, so chunk the requests.
         id_iter = iter(ids)
         while id_chunk := tuple(islice(id_iter, 16)):
             await self.command("ADDSTATUS", *id_chunk)
 
-    async def delstatus(self, ids: Iterable[int]) -> None:
-        """Send a DELSTATUS command to unsubscribe from status events for the given ids.
+    async def delstatus(self, ids: Union[int, Iterable[int]]) -> None:
+        """
+        Send a DELSTATUS command to unsubscribe from status events for the given ids.
 
         Args:
             ids: The ids to unsubscribe from status events for.
         """
+
+        if isinstance(ids, int):
+            ids = (ids,)
 
         # DELSTATUS accepts up to 16 ids at a time, so chunk the requests.
         id_iter = iter(ids)
         while id_chunk := tuple(islice(id_iter, 16)):
             await self.command("DELSTATUS", *id_chunk)
 
-    @overload
-    async def subscribe(self, callback: StatusCallback) -> UnsubscribeCallback:
-        """
-        Subscribe to all status events.
-
-        Args:
-            callback: The callback to call when a status event is received.
-
-        Returns:
-            A function to unsubscribe from status events.
-        """
-        ...
-
-    @overload
-    async def subscribe(
-        self, callback: StatusCallback, *, object_ids: Iterable[int]
+    async def subscribe_status(
+        self,
+        callback: StatusCallback,
+        status_types: Union[str, Iterable[str], None] = None,
     ) -> UnsubscribeCallback:
         """
-        Subscribe to status events for the given object ids.
-
-        Args:
-            callback: The callback to call when a status event is received.
-            object_ids: The ids to subscribe to status events for.
-
-        Returns:
-            A function to unsubscribe from status events.
-        """
-        ...
-
-    @overload
-    async def subscribe(
-        self, callback: StatusCallback, *, status_types: Iterable[str]
-    ) -> UnsubscribeCallback:
-        """
-        Subscribe to status events for the given status types.
+        Subscribe to status events for the given status types, using "STATUS {type}".
 
         Args:
             callback: The callback to call when a status event is received.
@@ -316,24 +327,12 @@ class HCClient:
         Returns:
             A function to unsubscribe from status events.
         """
-        ...
 
-    async def subscribe(
-        self,
-        callback: StatusCallback,
-        *,
-        object_ids: Optional[Iterable[int]] = None,
-        status_types: Optional[Iterable[str]] = None,
-    ) -> UnsubscribeCallback:
-        if object_ids is not None and status_types is not None:
-            raise ValueError("Cannot specify both object_ids and status_types.")
+        if isinstance(status_types, str):
+            status_types = (status_types,)
 
         subscription: StatusSubscription
-        if object_ids is not None:
-            # Subscribe to status events for these object ids
-            subscription = (callback, ("STATUS"))
-            await self.addstatus(object_ids)
-        elif status_types is not None:
+        if status_types is not None:
             # Subscribe to status events of these types
             subscription = (callback, status_types)
             for status_type in status_types:
@@ -343,7 +342,40 @@ class HCClient:
             subscription = (callback, None)
             await self.command("STATUS", "ALL")
 
-        self._subscriptions.append(subscription)
+        # Ask the controller to start sending events
+        self._status_subscriptions.append(subscription)
+
+        # Return a function to unsubscribe
+        def unsubscribe() -> None:
+            self._status_subscriptions.remove(subscription)
+
+        return unsubscribe
+
+    async def subscribe_objects(
+        self,
+        callback: StatusCallback,
+        object_ids: Union[int, Iterable[int]],
+    ) -> UnsubscribeCallback:
+        """
+        Subscribe to status events for the given object ids, using "ADDSTATUS {id}".
+
+        Args:
+            callback: The callback to call when a status event is received.
+            object_ids: The ids to subscribe to status events for.
+
+        Returns:
+            A function to unsubscribe from status events.
+        """
+
+        if isinstance(object_ids, int):
+            object_ids = (object_ids,)
+
+        # Add the callback to the list of subscriptions
+        subscription = (callback, ("STATUS"))
+        self._status_subscriptions.append(subscription)
+
+        # Ask the controller to start sending events for these objects
+        await self.addstatus(object_ids)
 
         # Return a function to unsubscribe
         def unsubscribe() -> None:
@@ -351,7 +383,52 @@ class HCClient:
                 loop = asyncio.get_event_loop()
                 loop.run_until_complete(self.delstatus(object_ids))
 
-            self._subscriptions.remove(subscription)
+            self._status_subscriptions.remove(subscription)
+
+        return unsubscribe
+
+    async def subscribe_event_log(
+        self,
+        callback: EventLogCallback,
+        log_types: Union[str, Iterable[str]],
+    ) -> UnsubscribeCallback:
+        """
+        Subscribe to event log events, using "ELLOG {type} ON".
+
+        Args:
+            log_types: The event log types to subscribe to.
+            callback: The callback to call when an event log event is received.
+
+        Returns:
+            A function to unsubscribe from event log events.
+        """
+
+        if isinstance(log_types, str):
+            log_types = (log_types,)
+
+        # Add the callback to the list of subscriptions
+        self._event_log_subscriptions.append(callback)
+
+        # Ask the controller to start sending events if we're the first subscriber
+        for log_type in log_types:
+            if self._event_log_types[log_type] == 0:
+                await self.command("ELENABLE", log_type, "ON")
+                await self.command("ELLOG", log_type, "ON")
+
+            self._event_log_types[log_type] += 1
+
+        # Return a function to unsubscribe
+        def unsubscribe() -> None:
+            # Ask the controller to stop sending events if we're the last subscriber
+            for log_type in log_types:
+                self._event_log_types[log_type] -= 1
+
+                if self._event_log_types[log_type] == 0:
+                    loop = asyncio.get_event_loop()
+                    loop.run_until_complete(self.command("ELLOG", log_type, "OFF"))
+
+            # Remove the callback from the list of subscriptions
+            self._event_log_subscriptions.remove(callback)
 
         return unsubscribe
 
@@ -369,23 +446,34 @@ class HCClient:
             self._logger.debug(f"Received message: {message}")
 
             if message.startswith("S:"):
-                self._status_queue.put_nowait(message[2:])
+                self._status_queue.put_nowait(message)
+            elif message.startswith("EL:"):
+                self._event_log_queue.put_nowait(message)
             else:
                 self._response_queue.put_nowait(message)
 
+    async def _event_log_processor(self) -> None:
+        # Process event log messages from the queue and dispatch to subscribers
+
+        while True:
+            message = await self._event_log_queue.get()
+            message = message[4:]
+            self._event_log_queue.task_done()
+
+            for callback in self._event_log_subscriptions:
+                run_callback(callback, message)
+
     async def _status_processor(self) -> None:
-        # Process status messages from the status queue and dispatch to subscribers
+        # Process status messages from the queue and dispatch to subscribers
 
         while True:
             message = await self._status_queue.get()
             self._status_queue.task_done()
 
-            status_type, vid_str, *args = shlex.split(message)
+            status_type, vid_str, *args = tokenize_response(message)
+            status_type = status_type[2:]
             vid = int(vid_str)
 
-            for callback, filters in self._subscriptions:
+            for callback, filters in self._status_subscriptions:
                 if filters is None or status_type in filters:
-                    if iscoroutinefunction(callback):
-                        asyncio.create_task(callback(status_type, vid, args))
-                    else:
-                        callback(status_type, vid, args)
+                    run_callback(callback, vid, status_type, args)

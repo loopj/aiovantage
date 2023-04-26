@@ -24,7 +24,6 @@ from aiovantage.vantage.controllers.base import StatefulController
 class TasksController(StatefulController[Task]):
     item_cls = Task
     vantage_types = (Task,)
-    status_types = ("TASK",)
 
     @override
     async def fetch_initial_state(self, id: int) -> None:

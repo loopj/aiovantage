@@ -1,14 +1,19 @@
 import asyncio
-import logging
+import os
 
 from aiovantage import Vantage
-from aiovantage.aci_client.system_objects.area import Area
+from aiovantage.aci_client.system_objects import Area
 
-logging.basicConfig(level=logging.INFO)
+# Set your Vantage host ip, username, and password as environment variables
+VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")
+VANTAGE_USER = os.getenv("VANTAGE_USER")
+VANTAGE_PASS = os.getenv("VANTAGE_PASS")
 
-RESET = '\033[0m'
-YELLOW = '\033[33m'
-CYAN = '\033[36m'
+# Some ANSI escape codes for pretty printing
+RESET = "\033[0m"
+YELLOW = "\033[33m"
+CYAN = "\033[36m"
+
 
 def print_indented(text: str, indent_level: int) -> None:
     indent = indent_level * "    "
@@ -37,7 +42,6 @@ def print_area(vantage: Vantage, area: Area, level: int = 0) -> None:
             print_indented(f"- {load.name}", level + 1)
         print()
 
-
     dry_contacts = list(vantage.dry_contacts.filter(area_id=area.id))
     if dry_contacts:
         print_indented(f"{YELLOW}Dry Contacts{RESET}", level + 1)
@@ -47,12 +51,14 @@ def print_area(vantage: Vantage, area: Area, level: int = 0) -> None:
 
 
 async def main() -> None:
-    async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
+    async with Vantage(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS) as vantage:
         await vantage.initialize()
 
         root = vantage.areas.root()
         if root is not None:
-            print_area(vantage, root)
+            for area in vantage.areas.filter(area_id=root.id):
+                print_area(vantage, area)
+
 
 
 try:

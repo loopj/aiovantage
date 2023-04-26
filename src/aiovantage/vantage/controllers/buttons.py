@@ -30,7 +30,6 @@ from aiovantage.vantage.controllers.base import StatefulController
 class ButtonsController(StatefulController[Button]):
     item_cls = Button
     vantage_types = (Button,)
-    status_types = ("BTN",)
 
     @override
     async def fetch_initial_state(self, id: int) -> None:

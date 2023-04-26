@@ -28,7 +28,6 @@ from aiovantage.vantage.controllers.base import StatefulController
 class DryContactsController(StatefulController[DryContact]):
     item_cls = DryContact
     vantage_types = (DryContact,)
-    status_types = ("BTN",)
 
     @override
     async def fetch_initial_state(self, id: int) -> None:

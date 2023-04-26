@@ -17,8 +17,7 @@ def _unpack_color(color: int) -> Tuple[int, int, int, int]:
 class RGBLoadsController(StatefulController[RGBLoad]):
     item_cls = RGBLoad
     vantage_types = (DGColorLoad, DDGColorLoad)
-    status_types = ("LOAD",)
-    object_status = True
+    event_log_status = True
 
     def __init__(self, aci_client: ACIClient, hc_client: HCClient) -> None:
         super().__init__(aci_client, hc_client)
@@ -284,49 +283,66 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # Handle state changes for an RGBLoad.
 
         state: Dict[str, Any] = {}
-
         color_type = self[id].color_type
-        if status == "LOAD" and color_type == "CCT":
-            # S:LOAD <id> <level>
-            state["level"] = float(args[0])
 
-        elif status == "STATUS":
-            method, *args = args
-            if method == "RGBLoad.GetColor" and color_type == "RGB":
-                # S:STATUS <id> RGBLoad.GetColor <value>
-                state["rgb"] = _unpack_color(int(args[0]))[:3]
+        if status == "Load.GetLevel":
+            # <id> Load.GetLevel <level (0-100000)>
 
-            elif method == "RGBLoad.GetHSL" and color_type == "HSL":
-                # S:STATUS <id> RGBLoad.GetHSL <value> <channel>
+            if color_type != "CCT":
+                return
 
-                if id not in self._temp_color_map:
-                    self._temp_color_map[id] = [0, 0, 0]
+            state["level"] = int(args[0]) / 1000
 
-                channel = int(args[1])
-                self._temp_color_map[id][channel] = int(args[0])
+        elif status == "RGBLoad.GetColor":
+            # <id> RGBLoad.GetColor <color)>
 
-                if channel == 2:
-                    state["hs"] = tuple(self._temp_color_map[id][:2])
-                    state["level"] = self._temp_color_map[id][2]
+            if color_type != "RGB":
+                return
 
-                    del self._temp_color_map[id]
+            state["rgb"] = _unpack_color(int(args[0]))[:3]
 
-            elif method == "RGBLoad.GetRGBW" and color_type == "RGBW":
-                # S:STATUS <id> RGBLoad.GetRBGW <value> <channel>
+        elif status == "RGBLoad.GetHSL":
+            # <id> RGBLoad.GetHSL <value> <channel>
 
-                if id not in self._temp_color_map:
-                    self._temp_color_map[id] = [0, 0, 0, 0]
+            if color_type != "HSL":
+                return
 
-                channel = int(args[1])
-                self._temp_color_map[id][channel] = int(args[0])
+            if id not in self._temp_color_map:
+                self._temp_color_map[id] = [0, 0, 0]
 
-                if channel == 3:
-                    state["rgbw"] = tuple(self._temp_color_map[id])
+            channel = int(args[1])
+            self._temp_color_map[id][channel] = int(args[0])
 
-                    del self._temp_color_map[id]
+            if channel == 2:
+                state["hs"] = tuple(self._temp_color_map[id][:2])
+                state["level"] = self._temp_color_map[id][2]
 
-            elif method == "ColorTemperature.Get" and color_type == "CCT":
-                # S:STATUS <id> ColorTemperature.Get <temp>
-                state["color_temp"] = int(args[0])
+                del self._temp_color_map[id]
+
+
+        elif status == "RGBLoad.GetRGBW":
+            # <id> RGBLoad.GetRGBW <value> <channel>
+
+            if color_type != "RGBW":
+                return
+
+            if id not in self._temp_color_map:
+                self._temp_color_map[id] = [0, 0, 0, 0]
+
+            channel = int(args[1])
+            self._temp_color_map[id][channel] = int(args[0])
+
+            if channel == 3:
+                state["rgbw"] = tuple(self._temp_color_map[id])
+
+                del self._temp_color_map[id]
+
+        elif status == "ColorTemperature.Get":
+            # <id> ColorTemperature.Get <temp>
+
+            if color_type != "CCT":
+                return
+
+            state["color_temp"] = int(args[0])
 
         self._update_and_notify(id, **state)

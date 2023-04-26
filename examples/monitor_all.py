@@ -1,31 +1,33 @@
 import asyncio
-import logging
-from typing import Any
+import os
+from typing import Any, Dict
 
 from aiovantage import Vantage
-from aiovantage.vantage.controllers.base import EventType
 from aiovantage.aci_client.system_objects import SystemObject
+from aiovantage.vantage.controllers.base import EventType
 
-logging.basicConfig(level=logging.INFO)
+# Set your Vantage host ip, username, and password as environment variables
+VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")
+VANTAGE_USER = os.getenv("VANTAGE_USER")
+VANTAGE_PASS = os.getenv("VANTAGE_PASS")
 
 
-# This callback will be called whenever an object is updated
-def event_callback(event_type: EventType, obj: SystemObject, **kwargs: Any) -> None:
-    # Print which object was updated
-    print(f"[{event_type.name} {type(obj).__name__}] '{obj.name}' ({obj.id})")
+def callback(event: EventType, obj: SystemObject, user_data: Dict[str, Any]) -> None:
+    object_type = type(obj).__name__
 
-    # Print which attributes were updated
-    if "attrs_changed" in kwargs:
-        for attr in kwargs["attrs_changed"]:
+    if event == EventType.OBJECT_ADDED:
+        print(f"[{object_type} added] '{obj.name}' ({obj.id})")
+
+    if event == EventType.OBJECT_UPDATED:
+        print(f"[{object_type} updated] '{obj.name}' ({obj.id})")
+        for attr in user_data.get("attrs_changed", []):
             print(f"    {attr} = {getattr(obj, attr)}")
 
 
 async def main() -> None:
-    async with Vantage("10.2.0.103", "administrator", "ZZuUw76CnL") as vantage:
-        # Subscribe to status updates for all objects
-        vantage.subscribe(event_callback)
-
-        # Fetch all objects from the controller
+    async with Vantage(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS) as vantage:
+        # Fetch all known objects from the controller and subscribe to updates
+        vantage.subscribe(callback)
         await vantage.initialize()
 
         # Keep running for a while
