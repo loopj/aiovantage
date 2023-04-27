@@ -299,16 +299,16 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         if status == "RGBLoad.GetHSL":
             # <id> RGBLoad.GetHSL <value> <channel>
 
-            # We care about HSL values for HSL, RGB, and RGBW loads, since color
-            # information is lost in the rgb values when adjusting brightness/level.
+            # We care about HS values for RGB, and RGBW loads, since color information
+            # is lost in the rgb values when adjusting brightness/level.
             if not (color_type == "HSL" or color_type == "RGB" or color_type == "RGBW"):
                 return
 
             # Build a color from each HSL channel
-            color = self._build_color_from_channels(id, args, num_channels=3)
-            if color is not None:
-                state["hs"] = color[:2]
-                state["level"] = color[2]
+            hsl = self._build_color_from_channels(id, args, num_channels=3)
+            if hsl is not None:
+                state["hs"] = hsl[:2]
+                state["level"] = hsl[2]
 
         elif status == "RGBLoad.GetColor":
             # <id> RGBLoad.GetColor <color)>
