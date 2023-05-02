@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from aiovantage.config_client.xml_dataclass import xml_element
 
 @dataclass
 class GetVersion:
+    interface: ClassVar[str] = "IIntrospection"
     call: Optional[object] = None
     return_value: Optional["GetVersion.Return"] = xml_element("return", default=None)
 

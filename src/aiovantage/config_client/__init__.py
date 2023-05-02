@@ -1,17 +1,17 @@
 import asyncio
 import logging
 import ssl
+import xml.etree.ElementTree as ET
 from types import TracebackType
-from typing import Any, Optional, Protocol, Tuple, Type, TypeVar, Union
-from typing_extensions import Self
+from typing import Any, ClassVar, Optional, Protocol, Tuple, Type, TypeVar, Union
 
+from typing_extensions import Self
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
+from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
-from xsdata.utils.text import snake_case
 
-from .interfaces import ILogin
 from .methods.login import Login
 
 
@@ -29,6 +29,7 @@ T = TypeVar("T")
 
 
 class Method(Protocol[T]):
+    interface: ClassVar[str]
     call: Optional[Any]
     return_value: Optional[T]
 
@@ -83,7 +84,11 @@ class ConfigClient:
         else:
             self._port = port
 
-        self._parser = XmlParser(config=ParserConfig(fail_on_unknown_properties=False))
+        self._parser = XmlParser(
+            config=ParserConfig(fail_on_unknown_properties=False),
+            handler=XmlEventHandler,
+        )
+
         self._serializer = XmlSerializer(config=SerializerConfig(xml_declaration=False))
 
     async def __aenter__(self) -> Self:
@@ -168,14 +173,11 @@ class ConfigClient:
 
         return data.decode()
 
-    async def request(
-        self, interface: Type[Any], method: Type[Method[T]], params: Any = None
-    ) -> T:
+    async def request(self, method: Type[Method[T]], params: Any = None) -> T:
         """
         Marshall a request, send it to the ACI service, and yield a parsed object.
 
         Args:
-            interface: The interface class to use
             method: The method class to use
             params: The parameters instance to pass to the method
 
@@ -183,38 +185,36 @@ class ConfigClient:
             The parsed response object
         """
 
-        request = self._marshall(interface, method, params)
+        request = self._marshall(method, params)
         self._logger.debug(request)
 
-        response = await self.raw_request(request, f"</{interface.__name__}>\n")
+        response = await self.raw_request(request, f"</{method.interface}>\n")
         self._logger.debug(response)
 
-        return self._unmarshall(interface, method, response)
+        return self._unmarshall(method, response)
 
-    def _marshall(
-        self, interface_cls: Type[Any], method_cls: Type[Method[T]], params: Any
-    ) -> str:
+    def _marshall(self, method_cls: Type[Method[T]], params: Any) -> str:
         # Serialize the request to XML using xsdata
 
         method = method_cls()
         method.call = params
 
-        interface = interface_cls()
-        setattr(interface, snake_case(method_cls.__name__), method)
+        return (
+            f"<{method.interface}>"
+            f"{self._serializer.render(method)}"
+            f"</{method.interface}>"
+        )
 
-        return self._serializer.render(interface)
-
-    def _unmarshall(
-        self, interface_cls: Type[Any], method_cls: Type[Method[T]], response_str: str
-    ) -> T:
+    def _unmarshall(self, method_cls: Type[Method[T]], response_str: str) -> T:
         # Deserialize the response from XML using xsdata
 
-        interface = self._parser.from_string(response_str, interface_cls)
-        method: Method[T] = getattr(interface, snake_case(method_cls.__name__))
+        tree = ET.fromstring(response_str)
+        method_el = tree.find(f"{method_cls.__name__}")
+        method = self._parser.parse(method_el, method_cls)
 
         if method.return_value is None or method.return_value == "":
             raise TypeError(
-                f"Response from {interface_cls.__name__}.{method_cls.__name__}"
+                f"Response from {method_cls.interface}.{method_cls.__name__}"
                 f"did not contain a return value"
             )
 
@@ -227,7 +227,7 @@ class ConfigClient:
             return
 
         params = Login.Params(user=self._username, password=self._password)
-        success = await self.request(ILogin, Login, params)
+        success = await self.request(Login, params)
         if not success:
             raise PermissionError("Authentication failed, bad username or password")
 

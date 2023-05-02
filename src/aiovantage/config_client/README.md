@@ -18,11 +18,10 @@ RPC call:
 
 ```python
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.interfaces import IIntrospection
 from aiovantage.config_client.methods.introspection import GetVersion
 
 async with ConfigClient("host", "username", "password") as client:
-    response = await client.request(IIntrospection, GetVersion)
+    response = await client.request(GetVersion)
     print(f"Application version is {response.app}")
 ```
 
@@ -34,6 +33,6 @@ If you'd prefer not to use the async context manager, just make sure to call `cl
 from aiovantage.config_client import ConfigClient
 
 client = ConfigClient("host", "username", "password")
-response = await client.request(Interface, Method, Params())
+response = await client.request(Method, Params())
 await client.close()
 ```

@@ -1,11 +1,9 @@
 from typing import Any, AsyncIterator, List, Optional, Type, TypeVar, Union, overload
 
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.interfaces import IConfiguration
 from aiovantage.config_client.methods.configuration import (
     CloseFilter,
     GetFilterResults,
-    ObjectFilter,
     OpenFilter,
     GetObject,
 )
@@ -51,17 +49,13 @@ async def get_objects_by_type(
 ) -> AsyncIterator[Union[T, Any]]:
     # Open the filter
     handle = await client.request(
-        IConfiguration,
-        OpenFilter,
-        OpenFilter.Params(objects=ObjectFilter(object_type=types)),
+        OpenFilter, OpenFilter.Params(objects=OpenFilter.Filter(object_type=types))
     )
 
     # Get the results
     while True:
         response = await client.request(
-            IConfiguration,
-            GetFilterResults,
-            GetFilterResults.Params(h_filter=handle),
+            GetFilterResults, GetFilterResults.Params(h_filter=handle)
         )
 
         if not response.objects:
@@ -82,7 +76,7 @@ async def get_objects_by_type(
                 )
 
     # Close the filter
-    await client.request(IConfiguration, CloseFilter, handle)
+    await client.request(CloseFilter, handle)
 
 
 @overload
@@ -122,12 +116,7 @@ async def get_objects_by_id(
     client: ConfigClient, ids: List[int], base: Optional[Type[T]] = None
 ) -> AsyncIterator[Union[T, Any]]:
     # Open the filter
-    response = await client.request(
-        IConfiguration,
-        GetObject,
-        GetObject.Params(vids=ids),
-    )
-
+    response = await client.request(GetObject, GetObject.Params(vids=ids))
     if not response.objects:
         return
 

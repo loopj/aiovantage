@@ -2,7 +2,6 @@ import argparse
 import asyncio
 
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.interfaces import IIntrospection
 from aiovantage.config_client.methods.introspection import GetVersion
 
 
@@ -21,7 +20,7 @@ async def main() -> None:
         args.host, args.username, args.password, use_ssl=not args.no_ssl
     ) as client:
         # Simple RPC request without any params (IIntrospection.GetVersion)
-        version = await client.request(IIntrospection, GetVersion)
+        version = await client.request(GetVersion)
         print(version)
 
 
