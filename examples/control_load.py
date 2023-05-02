@@ -1,19 +1,23 @@
+import argparse
 import asyncio
-import os
 import sys
 import termios
 import tty
 
 from aiovantage import Vantage
 
-# Set your Vantage host ip, username, and password as environment variables
-VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")
-VANTAGE_USER = os.getenv("VANTAGE_USER")
-VANTAGE_PASS = os.getenv("VANTAGE_PASS")
+# Grab connection info from command line arguments
+parser = argparse.ArgumentParser(description="aiovantage example")
+parser.add_argument("host", help="hostname of Vantage controller")
+parser.add_argument("--username", help="username for Vantage controller")
+parser.add_argument("--password", help="password for Vantage controller")
+parser.add_argument("--debug", help="enable debug logging", action="store_true")
+args = parser.parse_args()
 
 
 async def main() -> None:
-    vantage = Vantage(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS)
+    vantage = Vantage(args.host, args.username, args.password)
+
     await vantage.connect()
     await vantage.loads.initialize()
 

@@ -1,27 +1,25 @@
+import argparse
 import asyncio
-import os
 
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
-from aiovantage.config_client.interfaces import IIntrospection
-from aiovantage.config_client.methods.introspection import GetVersion
 from aiovantage.config_client.system_objects import Area, Load, StationObject
 
 
-# Set your Vantage host ip, username, and password as environment variables
-VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")
-VANTAGE_USER = os.getenv("VANTAGE_USER")
-VANTAGE_PASS = os.getenv("VANTAGE_PASS")
+# Grab connection info from command line arguments
+parser = argparse.ArgumentParser(description="aiovantage example")
+parser.add_argument("host", help="hostname of Vantage controller")
+parser.add_argument("--username", help="username for Vantage controller")
+parser.add_argument("--password", help="password for Vantage controller")
+parser.add_argument("--no-ssl", help="use non-ssl connection", action="store_true")
+parser.add_argument("--debug", help="enable debug logging", action="store_true")
+args = parser.parse_args()
 
 
 async def main() -> None:
-    async with ConfigClient(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS) as client:
-        # Simple RPC request without any params (IIntrospection.GetVersion)
-        print("# Controller Versions")
-        version = await client.request(IIntrospection, GetVersion)
-        print(version)
-        print()
-
+    async with ConfigClient(
+        args.host, args.username, args.password, use_ssl=not args.no_ssl
+    ) as client:
         # Dump all Areas using the get_objects_by_type helper
         print("# Vantage Areas")
         async for area in get_objects_by_type(client, ["Area"], Area):

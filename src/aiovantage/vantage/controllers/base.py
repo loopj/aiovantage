@@ -22,7 +22,8 @@ from typing import (
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
 from aiovantage.config_client.system_objects import SystemObject, xml_tag_from_class
-from aiovantage.command_client import CommandClient, Event, EventType, tokenize_response
+from aiovantage.command_client import CommandClient, Event, EventType
+from aiovantage.command_client.helpers import tokenize_response
 from aiovantage.vantage.query import QuerySet
 
 if TYPE_CHECKING:

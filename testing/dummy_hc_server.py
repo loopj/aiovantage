@@ -158,7 +158,7 @@ async def main() -> None:
 
     # Start the random status updates
     asyncio.create_task(random_status_updates())
-    asyncio.create_task(close_socket())
+    # asyncio.create_task(close_socket())
 
     async with server:
         await server.serve_forever()

@@ -1,15 +1,18 @@
+import argparse
 import asyncio
-import os
 from typing import Any, Dict
 
 from aiovantage import Vantage
 from aiovantage.config_client.system_objects import SystemObject
 from aiovantage.vantage.controllers.base import ControllerEventType
 
-# Set your Vantage host ip, username, and password as environment variables
-VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")
-VANTAGE_USER = os.getenv("VANTAGE_USER")
-VANTAGE_PASS = os.getenv("VANTAGE_PASS")
+# Grab connection info from command line arguments
+parser = argparse.ArgumentParser(description="aiovantage example")
+parser.add_argument("host", help="hostname of Vantage controller")
+parser.add_argument("--username", help="username for Vantage controller")
+parser.add_argument("--password", help="password for Vantage controller")
+parser.add_argument("--debug", help="enable debug logging", action="store_true")
+args = parser.parse_args()
 
 
 def callback(
@@ -19,17 +22,18 @@ def callback(
 
     if event == ControllerEventType.OBJECT_ADDED:
         print(f"[{object_type} added] '{obj.name}' ({obj.id})")
-
-    if event == ControllerEventType.OBJECT_UPDATED:
+    elif event == ControllerEventType.OBJECT_UPDATED:
         print(f"[{object_type} updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):
             print(f"    {attr} = {getattr(obj, attr)}")
 
 
 async def main() -> None:
-    async with Vantage(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS) as vantage:
-        # Fetch all known objects from the controller and subscribe to updates
+    async with Vantage(args.host, args.username, args.password) as vantage:
+        # Subscribe to updates for all objects
         vantage.subscribe(callback)
+
+        # Fetch all known objects from the controller
         await vantage.initialize()
 
         # Keep running for a while

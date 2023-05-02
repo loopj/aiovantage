@@ -1,13 +1,16 @@
+import argparse
 import asyncio
-import os
 
 from aiovantage import Vantage
 from aiovantage.config_client.system_objects import Area
 
-# Set your Vantage host ip, username, and password as environment variables
-VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")
-VANTAGE_USER = os.getenv("VANTAGE_USER")
-VANTAGE_PASS = os.getenv("VANTAGE_PASS")
+# Grab connection info from command line arguments
+parser = argparse.ArgumentParser(description="aiovantage example")
+parser.add_argument("host", help="hostname of Vantage controller")
+parser.add_argument("--username", help="username for Vantage controller")
+parser.add_argument("--password", help="password for Vantage controller")
+parser.add_argument("--debug", help="enable debug logging", action="store_true")
+args = parser.parse_args()
 
 # Some ANSI escape codes for pretty printing
 RESET = "\033[0m"
@@ -51,7 +54,7 @@ def print_area(vantage: Vantage, area: Area, level: int = 0) -> None:
 
 
 async def main() -> None:
-    async with Vantage(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS) as vantage:
+    async with Vantage(args.host, args.username, args.password) as vantage:
         await vantage.initialize()
 
         root = vantage.areas.root
