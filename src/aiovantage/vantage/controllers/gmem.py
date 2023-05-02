@@ -2,29 +2,20 @@ from typing import Any, Sequence, Union
 
 from typing_extensions import override
 
-from aiovantage.aci_client.system_objects import GMem
+from aiovantage.config_client.system_objects import GMem
 from aiovantage.vantage.controllers.base import StatefulController
 
-ValueType = Union[bool, int, str]
-
-
-def encode_value(value: ValueType) -> str:
-    # Encode the value for the SETVARIABLE command.
-
-    if isinstance(value, bool):
-        # Boolean values must be converted to 0 or 1
-        return str(int(value))
-    elif isinstance(value, str):
-        # String values must be wrapped in quotes
-        # TODO: Newlines are not allowed, can double quotes be escaped?
-        return f'"{value}"'
-    else:
-        return str(value)
+GMemValueType = Union[bool, int, str]
 
 
 class GMemController(StatefulController[GMem]):
+    # Store objects managed by this controller as GMem instances
     item_cls = GMem
+
+    # Fetch GMem objects from Vantage
     vantage_types = (GMem,)
+
+    # Get status updates from "STATUS VARIABLE"
     status_types = ("VARIABLE",)
 
     @override
@@ -55,11 +46,11 @@ class GMemController(StatefulController[GMem]):
 
         # GETVARIABLE {id}
         # -> R:GETVARIABLE {id} {value}
-        _, value = await self._hc_client.command("GETVARIABLE", id)
+        _, value = await self.command_client.command("GETVARIABLE", id)
 
         return self._parse_value(id, value)
 
-    async def set_value(self, id: int, value: ValueType) -> None:
+    async def set_value(self, id: int, value: GMemValueType) -> None:
         """
         Set the value of a variable.
 
@@ -70,13 +61,26 @@ class GMemController(StatefulController[GMem]):
 
         # SETVARIABLE {id} {value}
         # -> R:SETVARIABLE {id} {value}
-        await self._hc_client.command("VARIABLE", id, encode_value(value))
+        await self.command_client.command("VARIABLE", id, self._encode_value(value))
 
         # Update the local state
         self.update_state(id, {"value": value})
 
-    def _parse_value(self, id: int, value: str) -> ValueType:
-        # Parse the value based on the variable type.
+    def _encode_value(self, value: GMemValueType) -> str:
+        # Encode the value for the SETVARIABLE command.
+
+        if isinstance(value, bool):
+            # Boolean values must be converted to 0 or 1
+            return str(int(value))
+        elif isinstance(value, str):
+            # String values must be wrapped in quotes
+            # TODO: Newlines are not allowed, can double quotes be escaped?
+            return f'"{value}"'
+        else:
+            return str(value)
+
+    def _parse_value(self, id: int, value: str) -> GMemValueType:
+        # Parse the results of the VARAIBLE command based on the variable type.
 
         type = GMem.Type(self[id].tag)
         if type == GMem.Type.BOOL:

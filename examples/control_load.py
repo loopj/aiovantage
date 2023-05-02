@@ -50,18 +50,18 @@ async def main() -> None:
                 if seq == "[A":  # Up arrow
                     # Increase the load's brightness
                     level = load.level or 0
-                    await vantage.loads.set_level(load_id, level + 10, transition=1)
+                    await vantage.loads.set_level(load.id, level + 10, transition=1)
                 elif seq == "[B":  # Down arrow
                     # Decrease the load's brightness
                     level = load.level or 0
-                    await vantage.loads.set_level(load_id, level - 10, transition=1)
+                    await vantage.loads.set_level(load.id, level - 10, transition=1)
             elif c == " ":
                 # Toggle load
                 level = load.level or 0
                 if level > 0:
-                    await vantage.loads.set_level(load_id, 0, transition=1)
+                    await vantage.loads.set_level(load.id, 0, transition=1)
                 else:
-                    await vantage.loads.set_level(load_id, 100)
+                    await vantage.loads.set_level(load.id, 100)
             elif c == "q":
                 break
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from aiovantage.aci_client.xml_dataclass import xml_element
+from aiovantage.config_client.xml_dataclass import xml_element
 
 from ..methods.configuration.close_filter import CloseFilter
 from ..methods.configuration.get_filter_results import GetFilterResults

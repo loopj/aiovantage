@@ -2,7 +2,7 @@ import asyncio
 import os
 
 from aiovantage import Vantage
-from aiovantage.aci_client.system_objects import Area
+from aiovantage.config_client.system_objects import Area
 
 # Set your Vantage host ip, username, and password as environment variables
 VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")

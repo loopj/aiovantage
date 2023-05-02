@@ -1,9 +1,11 @@
 import asyncio
 from types import TracebackType
 from typing import Callable, Optional, Type
+from typing_extensions import Self
 
-from aiovantage.aci_client import ACIClient
-from aiovantage.hc_client import HCClient
+from aiovantage.config_client import ConfigClient
+from aiovantage.config_client.system_objects import SystemObject
+from aiovantage.command_client import CommandClient
 from aiovantage.vantage.controllers.areas import AreasController
 from aiovantage.vantage.controllers.base import EventCallback
 from aiovantage.vantage.controllers.buttons import ButtonsController
@@ -26,33 +28,33 @@ class Vantage:
         password: Optional[str] = None,
         *,
         use_ssl: bool = True,
-        aci_port: Optional[int] = None,
-        hc_port: Optional[int] = None,
+        config_port: Optional[int] = None,
+        command_port: Optional[int] = None,
     ) -> None:
         """Initialize the Vantage instance."""
 
-        self._aci_client = ACIClient(
-            host, username, password, use_ssl=use_ssl, port=aci_port
+        self._config_client = ConfigClient(
+            host, username, password, use_ssl=use_ssl, port=config_port
         )
 
-        self._hc_client = HCClient(
-            host, username, password, use_ssl=use_ssl, port=hc_port
+        self._command_client = CommandClient(
+            host, username, password, use_ssl=use_ssl, port=command_port
         )
 
         # Stateless controllers
-        self._areas = AreasController(self._aci_client)
-        self._stations = StationsController(self._aci_client)
+        self._areas = AreasController(self)
+        self._stations = StationsController(self)
 
         # Stateful controllers
-        self._loads = LoadsController(self._aci_client, self._hc_client)
-        self._buttons = ButtonsController(self._aci_client, self._hc_client)
-        self._dry_contacts = DryContactsController(self._aci_client, self._hc_client)
-        self._gmem = GMemController(self._aci_client, self._hc_client)
-        self._rgb_loads = RGBLoadsController(self._aci_client, self._hc_client)
-        self._sensors = SensorsController(self._aci_client, self._hc_client)
-        self._tasks = TasksController(self._aci_client, self._hc_client)
+        self._loads = LoadsController(self)
+        self._buttons = ButtonsController(self)
+        self._dry_contacts = DryContactsController(self)
+        self._gmem = GMemController(self)
+        self._rgb_loads = RGBLoadsController(self)
+        self._sensors = SensorsController(self)
+        self._tasks = TasksController(self)
 
-    async def __aenter__(self) -> "Vantage":
+    async def __aenter__(self) -> Self:
         await self.connect()
         return self
 
@@ -112,14 +114,14 @@ class Vantage:
     async def connect(self) -> None:
         """Connect the clients."""
 
-        await self._hc_client.connect()
+        await self._command_client.connect()
 
     async def close(self) -> None:
         """Close the clients."""
 
         await asyncio.gather(
-            self._aci_client.close(),
-            self._hc_client.close(),
+            self._config_client.close(),
+            self._command_client.close(),
         )
 
     async def initialize(self) -> None:
@@ -143,7 +145,7 @@ class Vantage:
         for coro in coros:
             await coro
 
-    def subscribe(self, callback: EventCallback) -> Callable[[], None]:
+    def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
         """
         Subscribe to state changes for all objects.
 

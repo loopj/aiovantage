@@ -1,6 +1,8 @@
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from enum import Enum
+from inspect import iscoroutinefunction
 from typing import (
     Any,
     Callable,
@@ -14,26 +16,30 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    TYPE_CHECKING,
 )
 
-from aiovantage.aci_client import ACIClient
-from aiovantage.aci_client.helpers import get_objects_by_type
-from aiovantage.aci_client.system_objects import SystemObject, xml_tag_from_class
-from aiovantage.hc_client import HCClient, tokenize_response, run_callback
+from aiovantage.config_client import ConfigClient
+from aiovantage.config_client.helpers import get_objects_by_type
+from aiovantage.config_client.system_objects import SystemObject, xml_tag_from_class
+from aiovantage.command_client import CommandClient, Event, EventType, tokenize_response
 from aiovantage.vantage.query import QuerySet
+
+if TYPE_CHECKING:
+    from aiovantage.vantage import Vantage
 
 T = TypeVar("T", bound="SystemObject")
 
 
-class EventType(Enum):
+class ControllerEventType(Enum):
     OBJECT_ADDED = "add"
     OBJECT_UPDATED = "update"
     OBJECT_DELETED = "delete"
 
 
 # Types for callbacks for event subscriptions
-EventCallback = Callable[[EventType, T, Dict[str, Any]], None]
-EventSubscription = Tuple[EventCallback[T], Optional[Iterable[EventType]]]
+EventCallback = Callable[[ControllerEventType, T, Dict[str, Any]], None]
+EventSubscription = Tuple[EventCallback[T], Optional[Iterable[ControllerEventType]]]
 
 
 class BaseController(Generic[T], QuerySet[T], ABC):
@@ -43,8 +49,8 @@ class BaseController(Generic[T], QuerySet[T], ABC):
     # The Vantage object types that this controller handles
     vantage_types: Tuple[Type[Any], ...]
 
-    def __init__(self, aci_client: ACIClient) -> None:
-        self._aci_client = aci_client
+    def __init__(self, vantage: "Vantage") -> None:
+        self._vantage = vantage
         self._items: Dict[int, T] = {}
         self._logger = logging.getLogger(__package__)
         self._subscriptions: List[EventSubscription[T]] = []
@@ -58,6 +64,14 @@ class BaseController(Generic[T], QuerySet[T], ABC):
 
     def __contains__(self, id: int) -> bool:
         return id in self._items
+
+    @property
+    def command_client(self) -> CommandClient:
+        return self._vantage._command_client
+
+    @property
+    def config_client(self) -> ConfigClient:
+        return self._vantage._config_client
 
     async def initialize(self) -> None:
         """
@@ -73,10 +87,10 @@ class BaseController(Generic[T], QuerySet[T], ABC):
         # Populate the objects
         vantage_types = [xml_tag_from_class(cls) for cls in self.vantage_types]
         async for obj in get_objects_by_type(
-            self._aci_client, vantage_types, self.item_cls
+            self.config_client, vantage_types, self.item_cls
         ):
             self._items[obj.id] = obj
-            self.emit(EventType.OBJECT_ADDED, obj)
+            self.emit(ControllerEventType.OBJECT_ADDED, obj)
 
         self._populated = True
         self._logger.info(f"{self.__class__.__name__} populated")
@@ -85,7 +99,9 @@ class BaseController(Generic[T], QuerySet[T], ABC):
         self,
         callback: EventCallback[T],
         id_filter: Union[int, Tuple[int], None] = None,
-        event_filter: Union[EventType, Tuple[EventType], None] = None,
+        event_filter: Union[
+            ControllerEventType, Tuple[ControllerEventType], None
+        ] = None,
     ) -> Callable[[], None]:
         """
         Subscribe to status changes for objects managed by this controller.
@@ -104,7 +120,7 @@ class BaseController(Generic[T], QuerySet[T], ABC):
             id_filter = (id_filter,)
 
         # Handle single event filter
-        if isinstance(event_filter, EventType):
+        if isinstance(event_filter, ControllerEventType):
             event_filter = (event_filter,)
 
         # Create the subscription
@@ -132,7 +148,10 @@ class BaseController(Generic[T], QuerySet[T], ABC):
         return unsubscribe
 
     def emit(
-        self, event_type: EventType, obj: T, user_data: Optional[Dict[str, Any]] = None
+        self,
+        event_type: ControllerEventType,
+        obj: T,
+        user_data: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Emit an event to subscribers of this controller.
@@ -153,7 +172,10 @@ class BaseController(Generic[T], QuerySet[T], ABC):
             if event_filter is not None and event_type not in event_filter:
                 continue
 
-            run_callback(callback, event_type, obj, user_data)
+            if iscoroutinefunction(callback):
+                asyncio.create_task(callback(event_type, obj, user_data))
+            else:
+                callback(event_type, obj, user_data)
 
 
 class StatefulController(BaseController[T]):
@@ -162,11 +184,6 @@ class StatefulController(BaseController[T]):
 
     # Whether to subscribe to the event log for status updates
     event_log_status: bool = False
-
-    def __init__(self, aci_client: ACIClient, hc_client: HCClient) -> None:
-        super().__init__(aci_client)
-
-        self._hc_client = hc_client
 
     @abstractmethod
     async def fetch_initial_state(self, id: int) -> None:
@@ -193,25 +210,14 @@ class StatefulController(BaseController[T]):
 
         # Subscribe to object state updates from the event log
         if self.event_log_status:
-
-            def _event_log_cb(message: str) -> None:
-                id_str, method, *args = tokenize_response(message)
-                id = int(id_str)
-
-                if id not in self._items.keys():
-                    return
-
-                # Pass the event to the controller
-                self.handle_state_change(id, method, args)
-
-            await self._hc_client.subscribe_event_log(
-                _event_log_cb, ("STATUS", "STATUSEX")
+            await self._vantage._command_client.subscribe_event_log(
+                self._handle_command_client_event, ("STATUS", "STATUSEX")
             )
 
         # Subscribe to "STATUS {type}" updates, if this controller cares about them
         if self.status_types:
-            await self._hc_client.subscribe_status(
-                self.handle_state_change, self.status_types
+            await self._vantage._command_client.subscribe_status(
+                self._handle_command_client_event, self.status_types
             )
 
         self._logger.info(f"{self.__class__.__name__} monitoring for state changes")
@@ -242,4 +248,31 @@ class StatefulController(BaseController[T]):
 
         # Notify subscribers if any attributes changed
         if len(attrs_changed) > 0:
-            self.emit(EventType.OBJECT_UPDATED, obj, {"attrs_changed": attrs_changed})
+            self.emit(
+                ControllerEventType.OBJECT_UPDATED,
+                obj,
+                {"attrs_changed": attrs_changed},
+            )
+
+    def _handle_command_client_event(self, event: Event) -> None:
+        # Handle status update events from the command client
+
+        if event["tag"] == EventType.STATUS:
+            # Handle "STATUS {type}" events
+
+            if event["id"] not in self._items.keys():
+                return
+
+            self.handle_state_change(event["id"], event["status_type"], event["args"])
+
+        elif event["tag"] == EventType.EVENT_LOG:
+            # Handle event log events
+
+            id_str, method, *args = tokenize_response(event["log"])
+            id = int(id_str)
+
+            if id not in self._items.keys():
+                return
+
+            # Pass the event to the controller
+            self.handle_state_change(id, method, args)

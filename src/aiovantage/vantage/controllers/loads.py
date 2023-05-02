@@ -2,14 +2,19 @@ from typing import Sequence
 
 from typing_extensions import override
 
-from aiovantage.aci_client.system_objects import Load
+from aiovantage.config_client.system_objects import Load
 from aiovantage.vantage.controllers.base import StatefulController
 from aiovantage.vantage.query import QuerySet
 
 
 class LoadsController(StatefulController[Load]):
+    # Store objects managed by this controller as Load instances
     item_cls = Load
+
+    # Fetch Load objects from Vantage
     vantage_types = (Load,)
+
+    # Get status updates from "STATUS LOAD"
     status_types = ("LOAD",)
 
     @override
@@ -70,7 +75,7 @@ class LoadsController(StatefulController[Load]):
 
         # GETLOAD <load vid>
         # -> R:GETLOAD <load vid> <level (0-100)>
-        response = await self._hc_client.command("GETLOAD", id)
+        response = await self.command_client.command("GETLOAD", id)
         level = float(response[1])
 
         return level
@@ -88,17 +93,17 @@ class LoadsController(StatefulController[Load]):
         level = max(min(level, 100), 0)
 
         # Don't send a command if the level isn't changing
-        if self[id].level == level:
+        if id in self and self[id].level == level:
             return
 
         if transition:
             # RAMPLOAD <id> <level> <seconds>
             # -> R:RAMPLOAD <id> <level> <seconds>
-            await self._hc_client.command("RAMPLOAD", id, level, transition)
+            await self.command_client.command("RAMPLOAD", id, level, transition)
         else:
             # LOAD <id> <level>
             # -> R:LOAD <id> <level>
-            await self._hc_client.command("LOAD", id, level)
+            await self.command_client.command("LOAD", id, level)
 
         # Update local state
         self.update_state(id, {"level": level})

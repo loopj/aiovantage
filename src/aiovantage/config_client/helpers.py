@@ -1,8 +1,8 @@
 from typing import Any, AsyncIterator, List, Optional, Type, TypeVar, Union, overload
 
-from aiovantage.aci_client import ACIClient
-from aiovantage.aci_client.interfaces import IConfiguration
-from aiovantage.aci_client.methods.configuration import (
+from aiovantage.config_client import ConfigClient
+from aiovantage.config_client.interfaces import IConfiguration
+from aiovantage.config_client.methods.configuration import (
     CloseFilter,
     GetFilterResults,
     ObjectFilter,
@@ -15,7 +15,7 @@ T = TypeVar("T")
 
 @overload
 def get_objects_by_type(
-    client: ACIClient, types: List[str], base: Type[T]
+    client: ConfigClient, types: List[str], base: Type[T]
 ) -> AsyncIterator[T]:
     """
     Helper function to get all vantage system objects of the specified types
@@ -32,7 +32,7 @@ def get_objects_by_type(
 
 
 @overload
-def get_objects_by_type(client: ACIClient, types: List[str]) -> AsyncIterator[Any]:
+def get_objects_by_type(client: ConfigClient, types: List[str]) -> AsyncIterator[Any]:
     """
     Helper function to get all vantage system objects of the specified types
 
@@ -47,7 +47,7 @@ def get_objects_by_type(client: ACIClient, types: List[str]) -> AsyncIterator[An
 
 
 async def get_objects_by_type(
-    client: ACIClient, types: List[str], base: Optional[Type[T]] = None
+    client: ConfigClient, types: List[str], base: Optional[Type[T]] = None
 ) -> AsyncIterator[Union[T, Any]]:
     # Open the filter
     handle = await client.request(
@@ -87,7 +87,7 @@ async def get_objects_by_type(
 
 @overload
 def get_objects_by_id(
-    client: ACIClient, ids: List[int], base: Type[T]
+    client: ConfigClient, ids: List[int], base: Type[T]
 ) -> AsyncIterator[T]:
     """
     Helper function to get all vantage system objects of the specified ids
@@ -104,7 +104,7 @@ def get_objects_by_id(
 
 
 @overload
-def get_objects_by_id(client: ACIClient, ids: List[int]) -> AsyncIterator[Any]:
+def get_objects_by_id(client: ConfigClient, ids: List[int]) -> AsyncIterator[Any]:
     """
     Helper function to get all vantage system objects of the specified ids
 
@@ -119,7 +119,7 @@ def get_objects_by_id(client: ACIClient, ids: List[int]) -> AsyncIterator[Any]:
 
 
 async def get_objects_by_id(
-    client: ACIClient, ids: List[int], base: Optional[Type[T]] = None
+    client: ConfigClient, ids: List[int], base: Optional[Type[T]] = None
 ) -> AsyncIterator[Union[T, Any]]:
     # Open the filter
     response = await client.request(
@@ -146,7 +146,7 @@ async def get_objects_by_id(
             )
 
 
-async def get_object_by_id(client: ACIClient, id: int, base: Type[T]) -> Optional[T]:
+async def get_object_by_id(client: ConfigClient, id: int, base: Type[T]) -> Optional[T]:
     """
     Helper function to get a single Vantage system object by id
 

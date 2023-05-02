@@ -3,6 +3,7 @@ import logging
 import ssl
 from types import TracebackType
 from typing import Any, Optional, Protocol, Tuple, Type, TypeVar, Union
+from typing_extensions import Self
 
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -32,7 +33,7 @@ class Method(Protocol[T]):
     return_value: Optional[T]
 
 
-class ACIClient:
+class ConfigClient:
     """
     Communicate with a Vantage InFusion ACI service.
     """
@@ -46,10 +47,10 @@ class ACIClient:
         use_ssl: Union[ssl.SSLContext, bool] = True,
         port: Optional[int] = None,
         conn_timeout: float = 5,
-        request_timeout: float = 60,
+        read_timeout: float = 60,
     ):
         """
-        Initialize the ACIClient instance.
+        Initialize the ConfigClient instance.
 
         Args:
             host: The hostname or IP address of the ACI service.
@@ -58,7 +59,7 @@ class ACIClient:
             use_ssl: Whether to use SSL when connecting to the ACI service.
             port: The port to use when connecting to the ACI service.
             conn_timeout: The timeout to use when connecting.
-            request_timeout: The timeout to use when making requests.
+            read_timeout: The timeout to use when making requests.
         """
 
         self._host = host
@@ -70,7 +71,7 @@ class ACIClient:
             Tuple[asyncio.StreamReader, asyncio.StreamWriter]
         ] = None
         self._conn_timeout = conn_timeout
-        self._request_timeout = request_timeout
+        self._read_timeout = read_timeout
 
         if use_ssl is True:
             self._ssl_context = _default_ssl_context()
@@ -84,6 +85,21 @@ class ACIClient:
 
         self._parser = XmlParser(config=ParserConfig(fail_on_unknown_properties=False))
         self._serializer = XmlSerializer(config=SerializerConfig(xml_declaration=False))
+
+    async def __aenter__(self) -> Self:
+        # Async context manager entry
+
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        # Async context manager exit
+
+        await self.close()
 
     async def get_connection(self) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """
@@ -174,21 +190,6 @@ class ACIClient:
         self._logger.debug(response)
 
         return self._unmarshall(interface, method, response)
-
-    async def __aenter__(self) -> "ACIClient":
-        # Async context manager entry
-
-        return self
-
-    async def __aexit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
-    ) -> None:
-        # Async context manager exit
-
-        await self.close()
 
     def _marshall(
         self, interface_cls: Type[Any], method_cls: Type[Method[T]], params: Any

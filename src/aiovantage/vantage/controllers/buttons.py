@@ -2,7 +2,7 @@ from typing import Sequence
 
 from typing_extensions import override
 
-from aiovantage.aci_client.system_objects import Button
+from aiovantage.config_client.system_objects import Button
 from aiovantage.vantage.controllers.base import StatefulController
 
 # BTN <button vid>

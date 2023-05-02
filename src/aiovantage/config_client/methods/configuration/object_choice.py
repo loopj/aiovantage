@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from aiovantage.aci_client.system_objects import CONCRETE_TYPES, xml_tag_from_class
-from aiovantage.aci_client.xml_dataclass import xml_attribute
+from aiovantage.config_client.system_objects import CONCRETE_TYPES, xml_tag_from_class
+from aiovantage.config_client.xml_dataclass import xml_attribute
 
 
 @dataclass

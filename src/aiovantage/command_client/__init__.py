@@ -6,15 +6,22 @@ from inspect import iscoroutinefunction
 from itertools import islice
 from ssl import PROTOCOL_TLS, SSLContext
 from types import TracebackType
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
+from typing_extensions import Self
 
 from .errors import CommandExecutionError, LoginFailedError, LoginRequiredError
-
-# Types for callbacks for status and event log subscriptions
-StatusCallback = Callable[[int, str, List[str]], None]
-EventLogCallback = Callable[[str], None]
-UnsubscribeCallback = Callable[[], None]
-StatusSubscription = Tuple[StatusCallback, Optional[Iterable[str]]]
+from .events import Event, EventType
 
 
 def tokenize_response(string: str) -> List[str]:
@@ -32,22 +39,7 @@ def tokenize_response(string: str) -> List[str]:
     return re.findall(r'("[^"]*"|\{[^}]*\}|\S+)', string)
 
 
-def run_callback(callback: Callable[..., None], *args: Any, **kwargs: Any) -> None:
-    """
-    Run a callback, either as a coroutine or a normal function.
-
-    Args:
-        callback: The callback to run.
-        *args: Variable length argument list.
-        **kwargs: Arbitrary keyword arguments.
-    """
-    if iscoroutinefunction(callback):
-        asyncio.create_task(callback(*args, **kwargs))
-    else:
-        callback(*args, **kwargs)
-
-
-class HCClient:
+class CommandClient:
     """
     Communicate with a Vantage InFusion Host Command service.
 
@@ -69,6 +61,9 @@ class HCClient:
         use_ssl: bool = True,
         port: Optional[int] = None,
         conn_timeout: float = 5,
+        read_timeout: float = 5,
+        max_connection_attempts: Optional[int] = None,
+        backoff_fn: Callable[[int], float] = lambda n: 5,
     ) -> None:
         """
         Initialize the HCClient instance.
@@ -80,6 +75,10 @@ class HCClient:
             use_ssl: Whether to use SSL when connecting.
             port: The port to use when connecting.
             conn_timeout: The timeout to use when connecting.
+            read_timeout: The timeout to use when reading.
+            max_retries: The maximum number of times to attempt to reconnect.
+            backoff_fn: A function that takes the number of retries and returns the
+                number of seconds to wait before retrying.
         """
 
         self._host = host
@@ -91,25 +90,32 @@ class HCClient:
         self._reader: Optional[asyncio.StreamReader] = None
         self._writer: Optional[asyncio.StreamWriter] = None
         self._conn_timeout = conn_timeout
+        self._read_timeout = read_timeout
+        self._max_connection_attempts: Optional[int] = max_connection_attempts
+        self._backoff_fn = backoff_fn
 
         self._response_queue: asyncio.Queue[str] = asyncio.Queue()
-
         self._status_queue: asyncio.Queue[str] = asyncio.Queue()
-        self._status_subscriptions: List[StatusSubscription] = []
-
         self._event_log_queue: asyncio.Queue[str] = asyncio.Queue()
-        self._event_log_subscriptions: List[EventLogCallback] = []
-        self._event_log_types: Dict[str, int] = defaultdict(int)
+
+        self._subscriptions: List[
+            Tuple[Callable[[Event], None], Optional[Iterable[EventType]]]
+        ] = []
+
+        self._event_log_subscribed_types: Dict[str, int] = defaultdict(int)
 
         if port is None:
             self._port = 3010 if use_ssl else 3001
         else:
             self._port = port
 
+        self._ssl_context: Optional[SSLContext]
         if use_ssl:
             self._ssl_context = SSLContext(PROTOCOL_TLS)
+        else:
+            self._ssl_context = None
 
-    async def __aenter__(self) -> "HCClient":
+    async def __aenter__(self) -> Self:
         await self.connect()
         return self
 
@@ -124,15 +130,36 @@ class HCClient:
     async def connect(self) -> None:
         """Connect to the Host Command service, authenticating if necessary."""
 
-        # Open a connection to the controller
-        self._reader, self._writer = await asyncio.wait_for(
-            asyncio.open_connection(
-                self._host,
-                self._port,
-                ssl=self._ssl_context,
-            ),
-            timeout=self._conn_timeout,
-        )
+        # Don't connect if already connected
+        if not (self._writer is None or self._writer.is_closing()):
+            return
+
+        attempts = 0
+        while True:
+            try:
+                # Open a connection to the controller
+                self._reader, self._writer = await asyncio.wait_for(
+                    asyncio.open_connection(
+                        self._host,
+                        self._port,
+                        ssl=self._ssl_context,
+                    ),
+                    timeout=self._conn_timeout,
+                )
+
+                break
+            except (ConnectionError, OSError, asyncio.TimeoutError):
+                # Retry with backoff if the connection fails
+                attempts += 1
+                if (
+                    self._max_connection_attempts is not None
+                    and attempts >= self._max_connection_attempts
+                ):
+                    raise
+
+                delay = self._backoff_fn(attempts)
+                self._logger.warning(f"Connection failed, retrying in {delay} seconds")
+                await asyncio.sleep(delay)
 
         # Start tasks to handle incoming messages
         self._tasks.append(asyncio.create_task(self._handle_messages()))
@@ -163,6 +190,12 @@ class HCClient:
 
         self._logger.debug("Connection closed")
 
+    async def reconnect(self) -> None:
+        """Close the connection to the service and reconnect."""
+
+        await self.close()
+        await self.connect()
+
     async def raw_request(self, request: str) -> List[str]:
         """
         Send a raw string request to the Host Command service, returning all lines of
@@ -175,19 +208,24 @@ class HCClient:
             A list of response lines.
         """
 
-        # TODO: Connect if not connected, or at least raise an error
-        # TODO: Add a timeout
+        if self._writer is None or self._writer.is_closing():
+            raise RuntimeError("Not connected")
 
         # Send the request
         self._logger.debug(f"Sending request: {request}")
-        self._writer.write(f"{request}\n".encode())  # type: ignore[union-attr]
-        await self._writer.drain()  # type: ignore[union-attr]
+        self._writer.write(f"{request}\n".encode())
+        await self._writer.drain()
 
-        # Grab every line of the response, until we get a "return" line
+        # Grab every line of the response, until we get a "R:" return line
         response = []
         while True:
-            line = await self._response_queue.get()
+            # Wait for a response line
+            line = await asyncio.wait_for(
+                self._response_queue.get(), self._read_timeout
+            )
             self._response_queue.task_done()
+
+            # Add the line to the response
             response.append(line)
             if line.startswith("R:"):
                 break
@@ -312,11 +350,54 @@ class HCClient:
         while id_chunk := tuple(islice(id_iter, 16)):
             await self.command("DELSTATUS", *id_chunk)
 
+    async def subscribe(
+        self,
+        callback: Callable[[Event], None],
+        event_filter: Union[EventType, Iterable[EventType], None],
+        after_subscribe: Optional[Callable[[], Any]] = None,
+        before_unsubscribe: Optional[Callable[[], Any]] = None,
+    ) -> Callable[[], Awaitable[None]]:
+        """
+        Subscribe to Host Command events, optionally filtering by event type.
+
+        Args:
+            callback: The callback to call when an event is received.
+            event_filter: The event type(s) to filter by, or None to receive all events.
+            after_subscribe: A callback to call after the subscription is added.
+            before_unsubscribe: A callback to call before the subscription is removed.
+
+        Returns:
+            A callback that can be called to unsubscribe.
+        """
+
+        # Convert the event_filter to a tuple if it's a single EventType
+        if isinstance(event_filter, EventType):
+            event_filter = (event_filter,)
+
+        # Add the subscription
+        subscription = (callback, event_filter)
+        self._subscriptions.append(subscription)
+
+        # Run any after_subscribe callback
+        if after_subscribe is not None:
+            await after_subscribe()
+
+        # Return the unsubscribe callback
+        async def unsubscribe() -> None:
+            # Run any before_unsubscribe callback
+            if before_unsubscribe is not None:
+                await before_unsubscribe()
+
+            # Remove the subscription
+            self._subscriptions.remove(subscription)
+
+        return unsubscribe
+
     async def subscribe_status(
         self,
-        callback: StatusCallback,
-        status_types: Union[str, Iterable[str], None] = None,
-    ) -> UnsubscribeCallback:
+        callback: Callable[[Event], None],
+        status_types: Union[str, Iterable[str]],
+    ) -> Callable[[], Awaitable[None]]:
         """
         Subscribe to status events for the given status types, using "STATUS {type}".
 
@@ -331,31 +412,33 @@ class HCClient:
         if isinstance(status_types, str):
             status_types = (status_types,)
 
-        subscription: StatusSubscription
-        if status_types is not None:
-            # Subscribe to status events of these types
-            subscription = (callback, status_types)
+        # Ask the controller to start sending status events
+        async def after_subscribe() -> None:
             for status_type in status_types:
                 await self.command("STATUS", status_type)
-        else:
-            # Subscribe to all status events
-            subscription = (callback, None)
-            await self.command("STATUS", "ALL")
 
-        # Ask the controller to start sending events
-        self._status_subscriptions.append(subscription)
+        # Filter recived status events by type and id
+        def filtered_callback(event: Event) -> None:
+            if event["tag"] != EventType.STATUS:
+                return
 
-        # Return a function to unsubscribe
-        def unsubscribe() -> None:
-            self._status_subscriptions.remove(subscription)
+            # Apply the status type filter
+            if event["status_type"] not in status_types:
+                return
 
-        return unsubscribe
+            callback(event)
+
+        return await self.subscribe(
+            filtered_callback,
+            EventType.STATUS,
+            after_subscribe=after_subscribe,
+        )
 
     async def subscribe_objects(
         self,
-        callback: StatusCallback,
+        callback: Callable[[Event], None],
         object_ids: Union[int, Iterable[int]],
-    ) -> UnsubscribeCallback:
+    ) -> Callable[[], Awaitable[None]]:
         """
         Subscribe to status events for the given object ids, using "ADDSTATUS {id}".
 
@@ -370,34 +453,40 @@ class HCClient:
         if isinstance(object_ids, int):
             object_ids = (object_ids,)
 
-        # Add the callback to the list of subscriptions
-        subscription = (callback, ("STATUS"))
-        self._status_subscriptions.append(subscription)
+        async def after_subscribe() -> None:
+            await self.addstatus(object_ids)
 
-        # Ask the controller to start sending events for these objects
-        await self.addstatus(object_ids)
+        async def before_unsubscribe() -> None:
+            await self.delstatus(object_ids)
 
-        # Return a function to unsubscribe
-        def unsubscribe() -> None:
-            if object_ids is not None:
-                loop = asyncio.get_event_loop()
-                loop.run_until_complete(self.delstatus(object_ids))
+        def filtered_callback(event: Event) -> None:
+            if event["tag"] != EventType.STATUS:
+                return
 
-            self._status_subscriptions.remove(subscription)
+            # Apply the object id filter
+            if event["id"] not in object_ids:  # type: ignore[operator]
+                return
 
-        return unsubscribe
+            callback(event)
+
+        return await self.subscribe(
+            filtered_callback,
+            EventType.STATUS,
+            after_subscribe=after_subscribe,
+            before_unsubscribe=before_unsubscribe,
+        )
 
     async def subscribe_event_log(
         self,
-        callback: EventLogCallback,
+        callback: Callable[[Event], None],
         log_types: Union[str, Iterable[str]],
-    ) -> UnsubscribeCallback:
+    ) -> Callable[[], Awaitable[None]]:
         """
         Subscribe to event log events, using "ELLOG {type} ON".
 
         Args:
-            log_types: The event log types to subscribe to.
             callback: The callback to call when an event log event is received.
+            log_types: The event log types to subscribe to.
 
         Returns:
             A function to unsubscribe from event log events.
@@ -406,43 +495,51 @@ class HCClient:
         if isinstance(log_types, str):
             log_types = (log_types,)
 
-        # Add the callback to the list of subscriptions
-        self._event_log_subscriptions.append(callback)
-
-        # Ask the controller to start sending events if we're the first subscriber
-        for log_type in log_types:
-            if self._event_log_types[log_type] == 0:
-                await self.command("ELENABLE", log_type, "ON")
-                await self.command("ELLOG", log_type, "ON")
-
-            self._event_log_types[log_type] += 1
-
-        # Return a function to unsubscribe
-        def unsubscribe() -> None:
-            # Ask the controller to stop sending events if we're the last subscriber
+        async def after_subscribe() -> None:
             for log_type in log_types:
-                self._event_log_types[log_type] -= 1
+                if self._event_log_subscribed_types[log_type] == 0:
+                    await self.command("ELENABLE", log_type, "ON")
+                    await self.command("ELLOG", log_type, "ON")
 
-                if self._event_log_types[log_type] == 0:
-                    loop = asyncio.get_event_loop()
-                    loop.run_until_complete(self.command("ELLOG", log_type, "OFF"))
+        async def before_unsubscribe() -> None:
+            for log_type in log_types:
+                self._event_log_subscribed_types[log_type] -= 1
 
-            # Remove the callback from the list of subscriptions
-            self._event_log_subscriptions.remove(callback)
+                if self._event_log_subscribed_types[log_type] == 0:
+                    await self.command("ELLOG", log_type, "OFF")
 
-        return unsubscribe
+        return await self.subscribe(
+            callback,
+            EventType.EVENT_LOG,
+            after_subscribe=after_subscribe,
+            before_unsubscribe=before_unsubscribe,
+        )
+
+    def _emit(self, event_type: EventType, event: Event) -> None:
+        # Emit an event to all subscribers.
+
+        for callback, event_types in self._subscriptions:
+            if event_types is None or event_type in event_types:
+                if iscoroutinefunction(callback):
+                    asyncio.create_task(callback(event))
+                else:
+                    callback(event)
 
     async def _handle_messages(self) -> None:
         # Fetch new messages from the reader and enqueue them for processing
 
-        # TODO: Handle lost connection, auto-reconnect
-        # - ConnectionResetError from the reader
-        # - what else?
-
         while True:
-            data = await self._reader.readline()  # type: ignore[union-attr]
-            message = data.decode().rstrip()
+            try:
+                data = await self._reader.readline()  # type: ignore[union-attr]
+            except ConnectionError:
+                self._logger.warning("Connection lost in _handle_messages")
+                break
 
+            if not data:
+                self._logger.warning("EOF in _handle_messages")
+                break
+
+            message = data.decode().rstrip()
             self._logger.debug(f"Received message: {message}")
 
             if message.startswith("S:"):
@@ -452,28 +549,53 @@ class HCClient:
             else:
                 self._response_queue.put_nowait(message)
 
+        # If we get here, the connection was closed, so try to reconnect
+        asyncio.create_task(self.reconnect())
+
     async def _event_log_processor(self) -> None:
         # Process event log messages from the queue and dispatch to subscribers
 
         while True:
-            message = await self._event_log_queue.get()
-            message = message[4:]
-            self._event_log_queue.task_done()
+            try:
+                # Grab the next event log message from the queue
+                message = await self._event_log_queue.get()
+                message = message[4:]
+                self._event_log_queue.task_done()
 
-            for callback in self._event_log_subscriptions:
-                run_callback(callback, message)
+                # Notify subscribers
+                self._emit(
+                    EventType.EVENT_LOG,
+                    {
+                        "tag": EventType.EVENT_LOG,
+                        "log": message,
+                    },
+                )
+            except Exception:
+                self._logger.exception("Error processing event log message")
 
     async def _status_processor(self) -> None:
         # Process status messages from the queue and dispatch to subscribers
 
         while True:
-            message = await self._status_queue.get()
-            self._status_queue.task_done()
+            try:
+                # Grab the next status message from the queue
+                message = await self._status_queue.get()
+                self._status_queue.task_done()
 
-            status_type, vid_str, *args = tokenize_response(message)
-            status_type = status_type[2:]
-            vid = int(vid_str)
+                # Parse the status message
+                status_type, id_str, *args = tokenize_response(message)
+                status_type = status_type[2:]
+                id = int(id_str)
 
-            for callback, filters in self._status_subscriptions:
-                if filters is None or status_type in filters:
-                    run_callback(callback, vid, status_type, args)
+                # Notify subscribers
+                self._emit(
+                    EventType.STATUS,
+                    {
+                        "tag": EventType.STATUS,
+                        "status_type": status_type,
+                        "id": id,
+                        "args": args,
+                    },
+                )
+            except Exception:
+                self._logger.exception("Error processing status message")

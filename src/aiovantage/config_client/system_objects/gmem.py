@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Union
 
-from aiovantage.aci_client.xml_dataclass import xml_element
+from aiovantage.config_client.xml_dataclass import xml_element
 
 from .system_object import SystemObject
 

@@ -1,11 +1,11 @@
 import asyncio
 import os
 
-from aiovantage.aci_client import ACIClient
-from aiovantage.aci_client.helpers import get_objects_by_type
-from aiovantage.aci_client.interfaces import IIntrospection
-from aiovantage.aci_client.methods.introspection import GetVersion
-from aiovantage.aci_client.system_objects import Area, Load, StationObject
+from aiovantage.config_client import ConfigClient
+from aiovantage.config_client.helpers import get_objects_by_type
+from aiovantage.config_client.interfaces import IIntrospection
+from aiovantage.config_client.methods.introspection import GetVersion
+from aiovantage.config_client.system_objects import Area, Load, StationObject
 
 
 # Set your Vantage host ip, username, and password as environment variables
@@ -15,7 +15,7 @@ VANTAGE_PASS = os.getenv("VANTAGE_PASS")
 
 
 async def main() -> None:
-    async with ACIClient(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS) as client:
+    async with ConfigClient(VANTAGE_HOST, VANTAGE_USER, VANTAGE_PASS) as client:
         # Simple RPC request without any params (IIntrospection.GetVersion)
         print("# Controller Versions")
         version = await client.request(IIntrospection, GetVersion)

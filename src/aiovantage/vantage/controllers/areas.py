@@ -1,6 +1,6 @@
 from typing import Optional
 
-from aiovantage.aci_client.system_objects import Area
+from aiovantage.config_client.system_objects import Area
 from aiovantage.vantage.controllers.base import BaseController
 
 

@@ -17,11 +17,11 @@ You can use the client as follows, for example to run the `IIntrospection.GetVer
 RPC call:
 
 ```python
-from aiovantage.aci_client import ACIClient
-from aiovantage.aci_client.interfaces import IIntrospection
-from aiovantage.aci_client.methods.introspection import GetVersion
+from aiovantage.config_client import ConfigClient
+from aiovantage.config_client.interfaces import IIntrospection
+from aiovantage.config_client.methods.introspection import GetVersion
 
-async with ACIClient("host", "username", "password") as client:
+async with ConfigClient("host", "username", "password") as client:
     response = await client.request(IIntrospection, GetVersion)
     print(f"Application version is {response.app}")
 ```
@@ -31,9 +31,9 @@ If you'd prefer not to use the async context manager, just make sure to call `cl
 
 
 ```python
-from aiovantage.aci_client import ACIClient
+from aiovantage.config_client import ConfigClient
 
-client = ACIClient("host", "username", "password")
+client = ConfigClient("host", "username", "password")
 response = await client.request(Interface, Method, Params())
 await client.close()
 ```

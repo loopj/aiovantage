@@ -1,8 +1,8 @@
 import asyncio
 import os
-from typing import List
 
-from aiovantage import HCClient
+from aiovantage.command_client import HCClient
+from aiovantage.command_client.events import Event, EventType
 
 # Set your Vantage host ip, username, and password as environment variables
 VANTAGE_HOST = os.getenv("VANTAGE_HOST", "vantage.local")
@@ -10,8 +10,9 @@ VANTAGE_USER = os.getenv("VANTAGE_USER")
 VANTAGE_PASS = os.getenv("VANTAGE_PASS")
 
 
-def status_callback(object_id: int, status_type: str, args: List[str]) -> None:
-    print(f"[{status_type}] object id: {object_id}, args: {args}")
+def command_client_callback(event: Event) -> None:
+    if event["tag"] == EventType.STATUS:
+        print(f"[{event['status_type']}] id: {event['id']}, args: {event['args']}")
 
 
 async def main() -> None:
@@ -20,7 +21,7 @@ async def main() -> None:
     await client.connect()
 
     # Subscribe to status updates for LOAD objects (STATUS LOAD)
-    await client.subscribe_status(status_callback, "LOAD")
+    await client.subscribe_status(command_client_callback, "LOAD")
 
     print("Connected and monitoring for status updates...")
     await asyncio.sleep(3600)
