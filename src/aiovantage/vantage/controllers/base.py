@@ -202,6 +202,10 @@ class StatefulController(BaseController[T]):
 
         self._logger.info(f"{self.__class__.__name__} fetched initial state")
 
+        # Don't subscribe to state updates if there are no managed objects
+        if len(self._items) == 0:
+            return
+
         # Subscribe to object state updates from the event log
         if self.event_log_status:
             await self._vantage._command_client.subscribe_event_log(
