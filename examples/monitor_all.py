@@ -2,9 +2,8 @@ import argparse
 import asyncio
 from typing import Any, Dict
 
-from aiovantage import Vantage
+from aiovantage import Vantage, VantageEvent
 from aiovantage.config_client.system_objects import SystemObject
-from aiovantage.vantage.controllers.base import ControllerEventType
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -15,14 +14,12 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(
-    event: ControllerEventType, obj: SystemObject, data: Dict[str, Any]
-) -> None:
+def callback(event: VantageEvent, obj: SystemObject, data: Dict[str, Any]) -> None:
     object_type = type(obj).__name__
 
-    if event == ControllerEventType.OBJECT_ADDED:
+    if event == VantageEvent.OBJECT_ADDED:
         print(f"[{object_type} added] '{obj.name}' ({obj.id})")
-    elif event == ControllerEventType.OBJECT_UPDATED:
+    elif event == VantageEvent.OBJECT_UPDATED:
         print(f"[{object_type} updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):
             print(f"    {attr} = {getattr(obj, attr)}")

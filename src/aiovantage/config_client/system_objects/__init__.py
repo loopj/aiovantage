@@ -1,4 +1,3 @@
-from typing import Any, Type
 from .area import Area
 from .button import Button
 from .dry_contact import DryContact
@@ -21,16 +20,6 @@ from .station_object import (
 )
 from .system_object import SystemObject
 from .task import Task
-
-
-def xml_tag_from_class(cls: Type[Any]) -> str:
-    """Get the XML tag name for a class."""
-
-    meta = cls.Meta if "Meta" in cls.__dict__ else None
-    name = getattr(meta, "name", cls.__name__)
-
-    return name
-
 
 # All concrete types (types that can appear in XML)
 CONCRETE_TYPES = [

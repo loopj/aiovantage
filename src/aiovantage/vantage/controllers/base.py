@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from enum import Enum
 from inspect import iscoroutinefunction
 from typing import (
     Any,
@@ -21,9 +20,11 @@ from typing import (
 
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
-from aiovantage.config_client.system_objects import SystemObject, xml_tag_from_class
+from aiovantage.config_client.system_objects import SystemObject
+from aiovantage.config_client.xml_dataclass import xml_tag_from_class
 from aiovantage.command_client import CommandClient, Event, EventType
 from aiovantage.command_client.helpers import tokenize_response
+from aiovantage.vantage.events import VantageEvent
 from aiovantage.vantage.query import QuerySet
 
 if TYPE_CHECKING:
@@ -32,15 +33,9 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound="SystemObject")
 
 
-class ControllerEventType(Enum):
-    OBJECT_ADDED = "add"
-    OBJECT_UPDATED = "update"
-    OBJECT_DELETED = "delete"
-
-
 # Types for callbacks for event subscriptions
-EventCallback = Callable[[ControllerEventType, T, Dict[str, Any]], None]
-EventSubscription = Tuple[EventCallback[T], Optional[Iterable[ControllerEventType]]]
+EventCallback = Callable[[VantageEvent, T, Dict[str, Any]], None]
+EventSubscription = Tuple[EventCallback[T], Optional[Iterable[VantageEvent]]]
 
 
 class BaseController(Generic[T], QuerySet[T], ABC):
@@ -91,7 +86,7 @@ class BaseController(Generic[T], QuerySet[T], ABC):
             self.config_client, vantage_types, self.item_cls
         ):
             self._items[obj.id] = obj
-            self.emit(ControllerEventType.OBJECT_ADDED, obj)
+            self.emit(VantageEvent.OBJECT_ADDED, obj)
 
         self._populated = True
         self._logger.info(f"{self.__class__.__name__} populated")
@@ -100,9 +95,7 @@ class BaseController(Generic[T], QuerySet[T], ABC):
         self,
         callback: EventCallback[T],
         id_filter: Union[int, Tuple[int], None] = None,
-        event_filter: Union[
-            ControllerEventType, Tuple[ControllerEventType], None
-        ] = None,
+        event_filter: Union[VantageEvent, Tuple[VantageEvent], None] = None,
     ) -> Callable[[], None]:
         """
         Subscribe to status changes for objects managed by this controller.
@@ -121,7 +114,7 @@ class BaseController(Generic[T], QuerySet[T], ABC):
             id_filter = (id_filter,)
 
         # Handle single event filter
-        if isinstance(event_filter, ControllerEventType):
+        if isinstance(event_filter, VantageEvent):
             event_filter = (event_filter,)
 
         # Create the subscription
@@ -150,7 +143,7 @@ class BaseController(Generic[T], QuerySet[T], ABC):
 
     def emit(
         self,
-        event_type: ControllerEventType,
+        event_type: VantageEvent,
         obj: T,
         user_data: Optional[Dict[str, Any]] = None,
     ) -> None:
@@ -250,7 +243,7 @@ class StatefulController(BaseController[T]):
         # Notify subscribers if any attributes changed
         if len(attrs_changed) > 0:
             self.emit(
-                ControllerEventType.OBJECT_UPDATED,
+                VantageEvent.OBJECT_UPDATED,
                 obj,
                 {"attrs_changed": attrs_changed},
             )
