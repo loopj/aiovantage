@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import logging
 
 from aiovantage import Vantage
 
@@ -13,6 +14,9 @@ args = parser.parse_args()
 
 
 async def main() -> None:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Populate loads from the controller
         await vantage.loads.initialize()

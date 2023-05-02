@@ -13,10 +13,6 @@ parser.add_argument("--no-ssl", help="use non-ssl connection", action="store_tru
 parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
-# Enable debug logging if requested
-if args.debug:
-    logging.basicConfig(level=logging.DEBUG)
-
 
 # Define callback function for command client events
 def command_client_callback(event: Event) -> None:
@@ -31,6 +27,9 @@ def command_client_callback(event: Event) -> None:
 
 
 async def main() -> None:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     # Create a Host Command client
     client = CommandClient(
         args.host, args.username, args.password, use_ssl=not args.no_ssl

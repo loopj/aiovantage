@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import logging
 import sys
 import termios
 import tty
@@ -16,6 +17,9 @@ args = parser.parse_args()
 
 
 async def main() -> None:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     vantage = Vantage(args.host, args.username, args.password)
 
     await vantage.connect()

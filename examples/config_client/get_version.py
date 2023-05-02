@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import logging
 
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.methods.introspection import GetVersion
@@ -16,6 +17,9 @@ args = parser.parse_args()
 
 
 async def main() -> None:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     async with ConfigClient(
         args.host, args.username, args.password, use_ssl=not args.no_ssl
     ) as client:

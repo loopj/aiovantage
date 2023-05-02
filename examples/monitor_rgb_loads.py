@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import logging
 from typing import Any, Dict
 
 from aiovantage import Vantage, VantageEvent
@@ -24,6 +25,9 @@ def callback(event: VantageEvent, obj: RGBLoad, data: Dict[str, Any]) -> None:
 
 
 async def main() -> None:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to RGB load updates
         vantage.rgb_loads.subscribe(callback)

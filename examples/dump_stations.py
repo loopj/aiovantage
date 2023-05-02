@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import logging
 
 from aiovantage import Vantage
 
@@ -18,6 +19,9 @@ CYAN = "\033[36m"
 
 
 async def main() -> None:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     async with Vantage(args.host, args.username, args.password) as vantage:
         await vantage.initialize()
 

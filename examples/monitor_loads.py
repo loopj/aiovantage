@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import logging
 from typing import Any, Dict
 
 from aiovantage import Vantage, VantageEvent
@@ -17,6 +18,7 @@ args = parser.parse_args()
 def callback(event: VantageEvent, obj: Load, data: Dict[str, Any]) -> None:
     if event == VantageEvent.OBJECT_ADDED:
         print(f"[Load added] '{obj.name}' ({obj.id})")
+
     elif event == VantageEvent.OBJECT_UPDATED:
         print(f"[Load updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):
@@ -24,6 +26,9 @@ def callback(event: VantageEvent, obj: Load, data: Dict[str, Any]) -> None:
 
 
 async def main() -> None:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all loads
         vantage.loads.subscribe(callback)

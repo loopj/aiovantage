@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import logging
 
 from aiovantage import Vantage
 from aiovantage.config_client.system_objects import Area
@@ -54,6 +55,9 @@ def print_area(vantage: Vantage, area: Area, level: int = 0) -> None:
 
 
 async def main() -> None:
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
     async with Vantage(args.host, args.username, args.password) as vantage:
         await vantage.initialize()
 
