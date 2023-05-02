@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ..power_profile import PowerProfile
+from .power_profile import PowerProfile
 
 
 @dataclass

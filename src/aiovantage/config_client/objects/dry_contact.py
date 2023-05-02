@@ -2,9 +2,9 @@ from dataclasses import dataclass
 
 from aiovantage.config_client.xml_dataclass import xml_element
 
-from ..system_object import SystemObject
+from .location_object import LocationObject
 
 
 @dataclass
-class StationBus(SystemObject):
+class DryContact(LocationObject):
     parent_id: int = xml_element("Parent")

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from aiovantage.config_client.xml_dataclass import xml_element
 
-from ..system_object import SystemObject
+from .system_object import SystemObject
 
 
 @dataclass

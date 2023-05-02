@@ -208,13 +208,13 @@ class StatefulController(BaseController[T]):
 
         # Subscribe to object state updates from the event log
         if self.event_log_status:
-            await self._vantage._command_client.subscribe_event_log(
+            await self.command_client.subscribe_event_log(
                 self._handle_command_client_event, ("STATUS", "STATUSEX")
             )
 
         # Subscribe to "STATUS {type}" updates, if this controller cares about them
         if self.status_types:
-            await self._vantage._command_client.subscribe_status(
+            await self.command_client.subscribe_status(
                 self._handle_command_client_event, self.status_types
             )
 

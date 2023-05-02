@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ..keypad import Keypad
+from .keypad import Keypad
 
 
 @dataclass

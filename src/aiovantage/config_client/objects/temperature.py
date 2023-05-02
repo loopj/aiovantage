@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from ..sensor import Sensor
+from .sensor import Sensor
 
 
 @dataclass
-class OmniSensor(Sensor):
+class Temperature(Sensor):
     pass

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from ..sensor import Sensor
+from .sensor import Sensor
 
 
 @dataclass
-class Temperature(Sensor):
+class AnemoSensor(Sensor):
     pass

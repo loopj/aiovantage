@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from aiovantage.config_client.objects import CONCRETE_TYPES
+from aiovantage.config_client.objects import ALL_OBJECT_TYPES
 from aiovantage.config_client.xml_dataclass import xml_attribute, xml_tag_from_class
 
 
@@ -17,7 +17,7 @@ class ObjectChoice:
                     "name": xml_tag_from_class(cls),
                     "type": cls,
                 }
-                for cls in CONCRETE_TYPES
+                for cls in ALL_OBJECT_TYPES
             ],
         },
     )

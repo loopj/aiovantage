@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ..station_object import StationObject
+from .station_object import StationObject
 
 
 @dataclass

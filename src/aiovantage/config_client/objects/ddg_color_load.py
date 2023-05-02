@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from ..rgb_load import RGBLoad
+from .rgb_load import RGBLoad
 
 
 @dataclass
