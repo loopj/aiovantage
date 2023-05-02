@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .location_object import LocationObject
+from ..location_object import LocationObject
 
 
 @dataclass

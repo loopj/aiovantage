@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from xsdata.models.datatype import XmlDateTime
 
-from ..xml_dataclass import xml_attribute, xml_element
+from aiovantage.config_client.xml_dataclass import xml_attribute, xml_element
 
 
 @dataclass

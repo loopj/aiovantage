@@ -1,11 +1,12 @@
 import asyncio
 from types import TracebackType
 from typing import Callable, Optional, Type
+
 from typing_extensions import Self
 
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.system_objects import SystemObject
 from aiovantage.command_client import CommandClient
+from aiovantage.config_client import ConfigClient
+from aiovantage.config_client.objects import SystemObject
 from aiovantage.vantage.controllers.areas import AreasController
 from aiovantage.vantage.controllers.base import EventCallback
 from aiovantage.vantage.controllers.buttons import ButtonsController

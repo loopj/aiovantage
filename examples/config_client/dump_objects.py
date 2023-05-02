@@ -4,7 +4,7 @@ import logging
 
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
-from aiovantage.config_client.system_objects import Area, Load, StationObject
+from aiovantage.config_client.objects import Area, Load, StationObject
 
 
 # Grab connection info from command line arguments

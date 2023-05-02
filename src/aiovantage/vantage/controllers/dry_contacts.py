@@ -2,7 +2,7 @@ from typing import Sequence
 
 from typing_extensions import override
 
-from aiovantage.config_client.system_objects import DryContact
+from aiovantage.config_client.objects import DryContact
 from aiovantage.vantage.controllers.base import StatefulController
 
 # BTN <button vid>

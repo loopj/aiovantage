@@ -3,7 +3,7 @@ import asyncio
 import logging
 
 from aiovantage import Vantage
-from aiovantage.config_client.system_objects import Area
+from aiovantage.config_client.objects import Area
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")

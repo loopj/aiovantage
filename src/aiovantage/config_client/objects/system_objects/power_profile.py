@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
-from ..xml_dataclass import xml_element
-from .system_object import SystemObject
+from aiovantage.config_client.xml_dataclass import xml_element
+
+from ..system_object import SystemObject
 
 
 @dataclass
@@ -11,13 +12,3 @@ class PowerProfile(SystemObject):
     adjust: int = xml_element("Adjust")
     freq: int = xml_element("Freq")
     inductive: bool = xml_element("Inductive")
-
-
-@dataclass
-class DCPowerProfile(PowerProfile):
-    pass
-
-
-@dataclass
-class PWMPowerProfile(PowerProfile):
-    pass

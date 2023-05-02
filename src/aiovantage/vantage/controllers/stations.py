@@ -1,4 +1,4 @@
-from aiovantage.config_client.system_objects import (
+from aiovantage.config_client.objects import (
     Dimmer,
     DualRelayStation,
     EqCtrl,

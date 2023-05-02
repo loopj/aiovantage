@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from typing_extensions import override
 
-from aiovantage.config_client.system_objects import DDGColorLoad, DGColorLoad, RGBLoad
+from aiovantage.config_client.objects import DDGColorLoad, DGColorLoad, RGBLoad
 from aiovantage.vantage.controllers.base import StatefulController
 
 

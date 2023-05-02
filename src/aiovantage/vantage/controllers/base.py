@@ -20,7 +20,7 @@ from typing import (
 
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
-from aiovantage.config_client.system_objects import SystemObject
+from aiovantage.config_client.objects import SystemObject
 from aiovantage.config_client.xml_dataclass import xml_tag_from_class
 from aiovantage.command_client import CommandClient, Event, EventType
 from aiovantage.command_client.helpers import tokenize_response

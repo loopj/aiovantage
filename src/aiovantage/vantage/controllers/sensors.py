@@ -2,7 +2,7 @@ from typing import Sequence
 
 from typing_extensions import override
 
-from aiovantage.config_client.system_objects import (
+from aiovantage.config_client.objects import (
     AnemoSensor,
     LightSensor,
     OmniSensor,

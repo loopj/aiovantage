@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from aiovantage.config_client.system_objects import CONCRETE_TYPES
+from aiovantage.config_client.objects import CONCRETE_TYPES
 from aiovantage.config_client.xml_dataclass import xml_attribute, xml_tag_from_class
 
 

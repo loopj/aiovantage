@@ -2,7 +2,7 @@ from typing import Sequence
 
 from typing_extensions import override
 
-from aiovantage.config_client.system_objects import Load
+from aiovantage.config_client.objects import Load
 from aiovantage.vantage.controllers.base import StatefulController
 from aiovantage.vantage.query import QuerySet
 
