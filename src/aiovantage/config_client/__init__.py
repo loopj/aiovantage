@@ -15,17 +15,8 @@ from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from .methods.login import Login
 
 
-def _default_ssl_context() -> ssl.SSLContext:
-    # We don't have a local issuer certificate to check against, and we'll be
-    # connecting to an IP address so we can't check the hostname
-    context = ssl.create_default_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
-
-    return context
-
-
 T = TypeVar("T")
+Connection = Tuple[asyncio.StreamReader, asyncio.StreamWriter]
 
 
 class Method(Protocol[T]):
@@ -68,28 +59,36 @@ class ConfigClient:
         self._password = password
         self._ssl_context = None
         self._logger = logging.getLogger(__name__)
-        self._connection: Optional[
-            Tuple[asyncio.StreamReader, asyncio.StreamWriter]
-        ] = None
+        self._connection: Optional[Connection] = None
         self._conn_timeout = conn_timeout
         self._read_timeout = read_timeout
+        self._lock = asyncio.Lock()
 
+        # Set up SSL context
         if use_ssl is True:
-            self._ssl_context = _default_ssl_context()
-        elif isinstance(ssl, ssl.SSLContext):
-            self._ssl_context = ssl
+            # We don't have a local issuer certificate to check against, and we'll be
+            # connecting to an IP address so we can't check the hostname
+            self._ssl_context = ssl.create_default_context()
+            self._ssl_context.check_hostname = False
+            self._ssl_context.verify_mode = ssl.CERT_NONE
+        elif isinstance(use_ssl, ssl.SSLContext):
+            self._ssl_context = use_ssl
 
+        # Set up port
         if port is None:
             self._port = 2010 if use_ssl else 2001
         else:
             self._port = port
 
+        # Set up XML parser and serializer
         self._parser = XmlParser(
             config=ParserConfig(fail_on_unknown_properties=False),
             handler=XmlEventHandler,
         )
 
-        self._serializer = XmlSerializer(config=SerializerConfig(xml_declaration=False))
+        self._serializer = XmlSerializer(
+            config=SerializerConfig(xml_declaration=False),
+        )
 
     async def __aenter__(self) -> Self:
         # Async context manager entry
@@ -105,32 +104,6 @@ class ConfigClient:
         # Async context manager exit
 
         await self.close()
-
-    async def get_connection(self) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
-        """
-        Get a connection to the ACI service, authenticating if necessary.
-        """
-
-        # If we already have a connection, return it
-        if self._connection is not None and not self._connection[1].is_closing():
-            return self._connection
-
-        # Otherwise, open a new connection
-        connection = await asyncio.wait_for(
-            asyncio.open_connection(
-                self._host,
-                self._port,
-                ssl=self._ssl_context,
-            ),
-            timeout=self._conn_timeout,
-        )
-        self._connection = connection
-        self._logger.info("Connected")
-
-        # Login if we have a username and password
-        await self._login()
-
-        return connection
 
     async def close(self) -> None:
         """
@@ -160,18 +133,19 @@ class ConfigClient:
             The response payload string
         """
 
-        # Get a connection
-        reader, writer = await self.get_connection()
+        async with self._lock:
+            # Get a connection
+            reader, writer = await self._get_connection()
 
-        # Send the request
-        writer.write(request_payload.encode())
-        await writer.drain()
+            # Send the request
+            writer.write(request_payload.encode())
+            await writer.drain()
 
-        # Fetch the response
-        end_bytes = end_token.encode()
-        data = await reader.readuntil(end_bytes)
+            # Fetch the response
+            end_bytes = end_token.encode()
+            data = await reader.readuntil(end_bytes)
 
-        return data.decode()
+            return data.decode()
 
     async def request(self, method: Type[Method[T]], params: Any = None) -> T:
         """
@@ -193,12 +167,40 @@ class ConfigClient:
 
         return self._unmarshall(method, response)
 
+    async def _get_connection(self) -> Connection:
+        """
+        Get a connection to the ACI service, authenticating if necessary.
+        """
+
+        # If we already have a connection, return it
+        if self._connection is not None and not self._connection[1].is_closing():
+            return self._connection
+
+        # Otherwise, open a new connection
+        connection = await asyncio.wait_for(
+            asyncio.open_connection(
+                self._host,
+                self._port,
+                ssl=self._ssl_context,
+            ),
+            timeout=self._conn_timeout,
+        )
+        self._connection = connection
+        self._logger.info("Connected")
+
+        # Login if we have a username and password
+        await self._login()
+
+        return connection
+
     def _marshall(self, method_cls: Type[Method[T]], params: Any) -> str:
         # Serialize the request to XML using xsdata
 
+        # Build the method object
         method = method_cls()
         method.call = params
 
+        # Render the method object to XML with xsdata
         return (
             f"<{method.interface}>"
             f"{self._serializer.render(method)}"
@@ -208,10 +210,19 @@ class ConfigClient:
     def _unmarshall(self, method_cls: Type[Method[T]], response_str: str) -> T:
         # Deserialize the response from XML using xsdata
 
+        # Parse the XML doc
         tree = ET.fromstring(response_str)
-        method_el = tree.find(f"{method_cls.__name__}")
-        method = self._parser.parse(method_el, method_cls)
 
+        # Extract the method element from XML doc
+        method_el = tree.find(f"{method_cls.__name__}")
+        if method_el is None:
+            raise ValueError(
+                f"Response from {method_cls.interface} did not contain a "
+                f"<{method_cls.__name__}> element"
+            )
+
+        # Parse the method element with xsdata
+        method = self._parser.parse(method_el, method_cls)
         if method.return_value is None or method.return_value == "":
             raise TypeError(
                 f"Response from {method_cls.interface}.{method_cls.__name__}"

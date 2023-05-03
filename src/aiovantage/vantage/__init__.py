@@ -128,9 +128,7 @@ class Vantage:
     async def initialize(self) -> None:
         """Fetch all objects from the controllers."""
 
-        # TODO: Do a single request for all objects?
-
-        coros = [
+        await asyncio.gather(*[
             self._areas.initialize(),
             self._buttons.initialize(),
             self._dry_contacts.initialize(),
@@ -140,11 +138,7 @@ class Vantage:
             self._sensors.initialize(),
             self._stations.initialize(),
             self._tasks.initialize(),
-        ]
-
-        # TODO: Connection pool? asyncio.gather?
-        for coro in coros:
-            await coro
+        ])
 
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
         """
