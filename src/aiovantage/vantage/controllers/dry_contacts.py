@@ -33,8 +33,7 @@ class DryContactsController(StatefulController[DryContact]):
     @override
     async def fetch_object_state(self, id: int) -> None:
         # Fetch initial state of all DryContact objects.
-
-        self.update_state(id, {"state": await self.get_state(id)})
+        ...
 
     @override
     def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:

@@ -17,11 +17,10 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller
+    # Connect to the Vantage controller and print out the name and level of each load
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Print out the name of each load
         async for load in vantage.loads:
-            print(f"{load.name}")
+            print(f"{load.name} - {load.level}%")
 
 
 try:

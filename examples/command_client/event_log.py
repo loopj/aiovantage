@@ -13,6 +13,7 @@ parser.add_argument("--no-ssl", help="use non-ssl connection", action="store_tru
 parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
+
 # Define callback function for Host Command events
 def command_client_callback(event: Event) -> None:
     if event["tag"] == EventType.EVENT_LOG:
@@ -26,21 +27,17 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     # Create a Host Command client
-    client = CommandClient(
+    async with CommandClient(
         args.host, args.username, args.password, use_ssl=not args.no_ssl
-    )
+    ) as client:
+        # Subscribe to connection events
+        client.subscribe(command_client_callback, EventType.CONNECTED)
 
-    # Subscribe to connection events
-    client.subscribe(command_client_callback, EventType.CONNECTED)
+        # Subscribe to system log events
+        await client.subscribe_event_log(command_client_callback, "SYSTEM")
 
-    # Connect the client
-    await client.connect()
-
-    # Subscribe to system log events
-    await client.subscribe_event_log(command_client_callback, "SYSTEM")
-
-    # Keep running for a while
-    await asyncio.sleep(3600)
+        # Keep running for a while
+        await asyncio.sleep(3600)
 
 
 try:

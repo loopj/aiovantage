@@ -31,21 +31,20 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     # Create a Host Command client
-    client = CommandClient(
+    async with CommandClient(
         args.host, args.username, args.password, use_ssl=not args.no_ssl
-    )
+    ) as client:
+        # Subscribe to connection events
+        client.subscribe(
+            command_client_callback,
+            (EventType.CONNECTED, EventType.DISCONNECTED, EventType.RECONNECTED),
+        )
 
-    # Subscribe to connection events
-    client.subscribe(
-        command_client_callback,
-        (EventType.CONNECTED, EventType.DISCONNECTED, EventType.RECONNECTED),
-    )
+        # Subscribe to status updates for LOAD objects (STATUS LOAD)
+        await client.subscribe_status(command_client_callback, "LOAD")
 
-    # Subscribe to status updates for LOAD objects (STATUS LOAD)
-    await client.subscribe_status(command_client_callback, "LOAD")
-
-    # Keep running for a while
-    await asyncio.sleep(3600)
+        # Keep running for a while
+        await asyncio.sleep(3600)
 
 
 try:

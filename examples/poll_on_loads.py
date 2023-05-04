@@ -18,7 +18,7 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Populate loads from the controller
+        # Preload the loads from the controller
         await vantage.loads.initialize()
 
         # Print a list of all loads that are currently on every 5 seconds

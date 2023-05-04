@@ -21,8 +21,6 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     vantage = Vantage(args.host, args.username, args.password)
-
-    await vantage.connect()
     await vantage.loads.initialize()
 
     try:

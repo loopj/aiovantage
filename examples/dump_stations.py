@@ -23,7 +23,10 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     async with Vantage(args.host, args.username, args.password) as vantage:
-        await vantage.initialize()
+        # Preload all the objects we want to dump
+        await vantage.stations.initialize()
+        await vantage.buttons.initialize()
+        await vantage.dry_contacts.initialize()
 
         for station in vantage.stations:
             print(f"{CYAN}{station.name}{RESET}")
