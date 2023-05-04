@@ -31,13 +31,13 @@ class DryContactsController(StatefulController[DryContact]):
     status_types = ("BTN",)
 
     @override
-    async def fetch_initial_state(self, id: int) -> None:
+    async def fetch_object_state(self, id: int) -> None:
         # Fetch initial state of all DryContact objects.
 
         self.update_state(id, {"state": await self.get_state(id)})
 
     @override
-    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+    def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
         # Handle a status update for a Load.
 
         if status == "BTN":

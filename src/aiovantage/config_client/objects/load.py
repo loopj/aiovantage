@@ -19,5 +19,16 @@ class Load(LocationObject):
             or self.load_type == "Low Voltage Relay"
         )
 
+    @property
+    def is_relay(self) -> bool:
+        return (
+            self.load_type == "High Voltage Relay"
+            or self.load_type == "Low Voltage Relay"
+        )
+
+    @property
+    def is_motor(self) -> bool:
+        return self.load_type == "Motor"
+
     def __post_init__(self) -> None:
         self.level: Optional[float] = None

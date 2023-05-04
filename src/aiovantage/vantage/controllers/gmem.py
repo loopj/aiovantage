@@ -19,13 +19,13 @@ class GMemController(StatefulController[GMem]):
     status_types = ("VARIABLE",)
 
     @override
-    async def fetch_initial_state(self, id: int) -> None:
+    async def fetch_object_state(self, id: int) -> None:
         # Fetch initial state of all variables.
 
         self.update_state(id, {"value": await self.get_value(id)})
 
     @override
-    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+    def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
         if status == "VARIABLE":
             # STATUS VARIABLE
             # -> S:VARIABLE <id> <value>

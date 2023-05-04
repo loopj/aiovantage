@@ -2,8 +2,6 @@ import asyncio
 from types import TracebackType
 from typing import Callable, Optional, Type
 
-from typing_extensions import Self
-
 from aiovantage.command_client import CommandClient
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.objects import SystemObject
@@ -34,6 +32,7 @@ class Vantage:
     ) -> None:
         """Initialize the Vantage instance."""
 
+        # Set up config and command clients
         self._config_client = ConfigClient(
             host, username, password, use_ssl=use_ssl, port=config_port
         )
@@ -42,21 +41,18 @@ class Vantage:
             host, username, password, use_ssl=use_ssl, port=command_port
         )
 
-        # Stateless controllers
+        # Set up controllers
         self._areas = AreasController(self)
-        self._stations = StationsController(self)
-
-        # Stateful controllers
-        self._loads = LoadsController(self)
         self._buttons = ButtonsController(self)
         self._dry_contacts = DryContactsController(self)
         self._gmem = GMemController(self)
+        self._loads = LoadsController(self)
         self._rgb_loads = RGBLoadsController(self)
         self._sensors = SensorsController(self)
+        self._stations = StationsController(self)
         self._tasks = TasksController(self)
 
-    async def __aenter__(self) -> Self:
-        await self.connect()
+    async def __aenter__(self) -> "Vantage":
         return self
 
     async def __aexit__(
@@ -66,6 +62,16 @@ class Vantage:
         traceback: Optional[TracebackType],
     ) -> None:
         await self.close()
+
+    @property
+    def config_client(self) -> ConfigClient:
+        """Return the config client."""
+        return self._config_client
+
+    @property
+    def command_client(self) -> CommandClient:
+        """Return the command client."""
+        return self._command_client
 
     @property
     def areas(self) -> AreasController:
@@ -112,11 +118,6 @@ class Vantage:
         """Return the Tasks controller for managing tasks."""
         return self._tasks
 
-    async def connect(self) -> None:
-        """Connect the clients."""
-
-        await self._command_client.connect()
-
     async def close(self) -> None:
         """Close the clients."""
 
@@ -128,7 +129,7 @@ class Vantage:
     async def initialize(self) -> None:
         """Fetch all objects from the controllers."""
 
-        await asyncio.gather(*[
+        await asyncio.gather(
             self._areas.initialize(),
             self._buttons.initialize(),
             self._dry_contacts.initialize(),
@@ -138,7 +139,7 @@ class Vantage:
             self._sensors.initialize(),
             self._stations.initialize(),
             self._tasks.initialize(),
-        ])
+        )
 
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
         """

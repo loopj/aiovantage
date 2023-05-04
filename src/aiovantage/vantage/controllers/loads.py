@@ -18,14 +18,14 @@ class LoadsController(StatefulController[Load]):
     status_types = ("LOAD",)
 
     @override
-    async def fetch_initial_state(self, id: int) -> None:
-        # Fetch initial state of all Loads.
+    async def fetch_object_state(self, id: int) -> None:
+        # Fetch initial state of a Load.
 
         self.update_state(id, {"level": await self.get_level(id)})
 
     @override
-    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
-        # Handle a status update for a Load.
+    def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
+        # Handle a state changes for a Load.
 
         if status == "LOAD":
             # STATUS LOAD
@@ -44,6 +44,18 @@ class LoadsController(StatefulController[Load]):
         """Return a queryset of all loads that are turned off."""
 
         return self.filter(lambda load: not load.level)
+
+    @property
+    def relays(self) -> QuerySet[Load]:
+        """Return a queryset of all loads that are relays."""
+
+        return self.filter(lambda load: load.is_relay)
+
+    @property
+    def motors(self) -> QuerySet[Load]:
+        """Return a queryset of all loads that are motors."""
+
+        return self.filter(lambda load: load.is_motor)
 
     async def turn_on(self, id: int, transition: float = 0) -> None:
         """

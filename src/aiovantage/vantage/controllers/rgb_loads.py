@@ -268,8 +268,8 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         self.update_state(id, {"color_temp": temp})
 
     @override
-    async def fetch_initial_state(self, id: int) -> None:
-        # Populate the initial state of an RGBLoad.
+    async def fetch_object_state(self, id: int) -> None:
+        # Fetch initial state of an RGBLoad.
 
         state: Dict[str, Any] = {}
         color_type = self[id].color_type
@@ -294,7 +294,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         self.update_state(id, state)
 
     @override
-    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+    def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
         # Handle state changes for an RGBLoad.
 
         state: Dict[str, Any] = {}

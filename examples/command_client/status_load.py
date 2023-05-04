@@ -41,9 +41,6 @@ async def main() -> None:
         (EventType.CONNECTED, EventType.DISCONNECTED, EventType.RECONNECTED),
     )
 
-    # Connect the client
-    await client.connect()
-
     # Subscribe to status updates for LOAD objects (STATUS LOAD)
     await client.subscribe_status(command_client_callback, "LOAD")
 

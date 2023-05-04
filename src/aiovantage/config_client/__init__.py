@@ -5,7 +5,6 @@ import xml.etree.ElementTree as ET
 from types import TracebackType
 from typing import Any, ClassVar, Optional, Protocol, Tuple, Type, TypeVar, Union
 
-from typing_extensions import Self
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
 from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
@@ -15,8 +14,12 @@ from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from .methods.login import Login
 
 
-T = TypeVar("T")
+# Type alias for connections
 Connection = Tuple[asyncio.StreamReader, asyncio.StreamWriter]
+
+
+# Duck typing for methods
+T = TypeVar("T")
 
 
 class Method(Protocol[T]):
@@ -27,7 +30,19 @@ class Method(Protocol[T]):
 
 class ConfigClient:
     """
-    Communicate with a Vantage InFusion ACI service.
+    Communicate with the Vantage InFusion "Application Communication Interface" (ACI)
+    service.
+
+    The ACI service is an XML-based RPC service that Design Center uses to communicate
+    with Vantage InFusion Controllers. There are a number of "interfaces" exposed, each
+    with one or more "methods".
+
+    This service allows you to query the "configuration" of a Vantage system, for
+    example fetching a list of all the objects, getting a backup of the Design Center
+    XML, etc.
+
+    The service is exposed on port 2010 (SSL) by default, and on port 2001 (non-SSL) if
+    this port has been opened by the firewall on the controller.
     """
 
     def __init__(
@@ -90,9 +105,7 @@ class ConfigClient:
             config=SerializerConfig(xml_declaration=False),
         )
 
-    async def __aenter__(self) -> Self:
-        # Async context manager entry
-
+    async def __aenter__(self) -> "ConfigClient":
         return self
 
     async def __aexit__(
@@ -101,8 +114,6 @@ class ConfigClient:
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
-        # Async context manager exit
-
         await self.close()
 
     async def close(self) -> None:
@@ -143,7 +154,9 @@ class ConfigClient:
 
             # Fetch the response
             end_bytes = end_token.encode()
-            data = await reader.readuntil(end_bytes)
+            data = await asyncio.wait_for(
+                reader.readuntil(end_bytes), timeout=self._read_timeout
+            )
 
             return data.decode()
 

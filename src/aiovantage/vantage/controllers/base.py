@@ -1,12 +1,11 @@
 import asyncio
 import logging
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from inspect import iscoroutinefunction
 from typing import (
     Any,
     Callable,
     Dict,
-    Generic,
     Iterable,
     List,
     Optional,
@@ -38,7 +37,7 @@ EventCallback = Callable[[VantageEvent, T, Dict[str, Any]], None]
 EventSubscription = Tuple[EventCallback[T], Optional[Iterable[VantageEvent]]]
 
 
-class BaseController(Generic[T], QuerySet[T], ABC):
+class BaseController(QuerySet[T]):
     # The base class of the items that this controller handles
     item_cls: Type[T]
 
@@ -51,9 +50,10 @@ class BaseController(Generic[T], QuerySet[T], ABC):
         self._logger = logging.getLogger(__package__)
         self._subscriptions: List[EventSubscription[T]] = []
         self._id_subscriptions: Dict[int, List[EventSubscription[T]]] = {}
-        self._populated = False
+        self._initialized = False
+        self._lock = asyncio.Lock()
 
-        QuerySet.__init__(self, self._items)
+        QuerySet.__init__(self, self._items, self.initialize)
 
     def __getitem__(self, id: int) -> T:
         return self._items[id]
@@ -62,25 +62,31 @@ class BaseController(Generic[T], QuerySet[T], ABC):
         return id in self._items
 
     @property
-    def command_client(self) -> CommandClient:
-        return self._vantage._command_client
-
-    @property
     def config_client(self) -> ConfigClient:
         return self._vantage._config_client
+
+    @property
+    def command_client(self) -> CommandClient:
+        return self._vantage._command_client
 
     async def initialize(self) -> None:
         """
         Initialize a stateless controller by populating the objects it manages.
         """
 
-        # TODO: Allow re-initialization, and track which objects ids were added/removed
-        # since last initialization
+        async with self._lock:
+            if self._initialized:
+                return
 
-        if self._populated:
-            return
+            await self.fetch_objects()
 
-        # Populate the objects
+            self._initialized = True
+
+    async def fetch_objects(self) -> None:
+        """
+        Fetch all objects managed by this controller.
+        """
+
         vantage_types = [xml_tag_from_class(cls) for cls in self.vantage_types]
         async for obj in get_objects_by_type(
             self.config_client, vantage_types, self.item_cls
@@ -88,8 +94,7 @@ class BaseController(Generic[T], QuerySet[T], ABC):
             self._items[obj.id] = obj
             self.emit(VantageEvent.OBJECT_ADDED, obj)
 
-        self._populated = True
-        self._logger.info(f"{self.__class__.__name__} populated")
+        self._logger.info(f"{self.__class__.__name__} fetched objects")
 
     def subscribe(
         self,
@@ -156,7 +161,6 @@ class BaseController(Generic[T], QuerySet[T], ABC):
             user_data: User data to pass to the callback.
         """
 
-        # Guarantee that user_data dict is present
         if user_data is None:
             user_data = {}
 
@@ -180,11 +184,11 @@ class StatefulController(BaseController[T]):
     event_log_status: bool = False
 
     @abstractmethod
-    async def fetch_initial_state(self, id: int) -> None:
+    async def fetch_object_state(self, id: int) -> None:
         ...
 
     @abstractmethod
-    def handle_state_change(self, id: int, status: str, args: Sequence[str]) -> None:
+    def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
         ...
 
     async def initialize(self) -> None:
@@ -193,17 +197,32 @@ class StatefulController(BaseController[T]):
         their initial state, and subscribing to state updates.
         """
 
-        # Populate the objects
-        await super().initialize()
+        async with self._lock:
+            if self._initialized:
+                return
 
-        # Fetch initial state for all objects
+            await self.fetch_objects()
+            await self.fetch_initial_state()
+            await self.subscribe_to_updates()
+
+            self._initialized = True
+
+    async def fetch_initial_state(self) -> None:
+        """
+        Fetch the initial state of all objects managed by this controller.
+        """
+
         for obj in self._items.values():
-            await self.fetch_initial_state(obj.id)
+            await self.fetch_object_state(obj.id)
 
         self._logger.info(f"{self.__class__.__name__} fetched initial state")
 
-        # Don't subscribe to state updates if there are no managed objects
-        if len(self._items) == 0:
+    async def subscribe_to_updates(self) -> None:
+        """
+        Subscribe to state updates for objects managed by this controller.
+        """
+
+        if not self._items:
             return
 
         # Subscribe to object state updates from the event log
@@ -218,7 +237,7 @@ class StatefulController(BaseController[T]):
                 self._handle_command_client_event, self.status_types
             )
 
-        self._logger.info(f"{self.__class__.__name__} monitoring for state changes")
+        self._logger.info(f"{self.__class__.__name__} subscribed to updates")
 
     def update_state(self, id: int, state: Dict[str, Any]) -> None:
         """
@@ -261,7 +280,7 @@ class StatefulController(BaseController[T]):
             if event["id"] not in self._items.keys():
                 return
 
-            self.handle_state_change(event["id"], event["status_type"], event["args"])
+            self.handle_object_update(event["id"], event["status_type"], event["args"])
 
         elif event["tag"] == EventType.EVENT_LOG:
             # Handle event log events
@@ -273,4 +292,4 @@ class StatefulController(BaseController[T]):
                 return
 
             # Pass the event to the controller
-            self.handle_state_change(id, method, args)
+            self.handle_object_update(id, method, args)

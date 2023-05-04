@@ -17,12 +17,10 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Fetch loads from the controller
-        await vantage.loads.initialize()
-
         # Print out the name of each load
-        for load in vantage.loads:
+        async for load in vantage.loads:
             print(f"{load.name}")
 
 
