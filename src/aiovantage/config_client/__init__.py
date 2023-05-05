@@ -114,9 +114,9 @@ class ConfigClient:
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
-        await self.close()
+        self.close()
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """
         Close any open connections to the ACI service.
         """
@@ -128,7 +128,6 @@ class ConfigClient:
         # Close the connection
         _, writer = self._connection
         writer.close()
-        await writer.wait_closed()
 
         self._logger.debug("Connection closed")
 

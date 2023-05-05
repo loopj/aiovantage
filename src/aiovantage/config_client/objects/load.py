@@ -13,11 +13,7 @@ class Load(LocationObject):
 
     @property
     def is_dimmable(self) -> bool:
-        return not (
-            self.load_type.endswith("non-Dim")
-            or self.load_type == "High Voltage Relay"
-            or self.load_type == "Low Voltage Relay"
-        )
+        return not (self.load_type.endswith("non-Dim") or self.is_relay)
 
     @property
     def is_relay(self) -> bool:

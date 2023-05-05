@@ -89,8 +89,7 @@ class CommandClient:
         self._backoff_fn = backoff_fn
         self._previously_connected = False
         self._response_queue: asyncio.Queue[str] = asyncio.Queue()
-        self._status_queue: asyncio.Queue[str] = asyncio.Queue()
-        self._event_log_queue: asyncio.Queue[str] = asyncio.Queue()
+        self._event_queue: asyncio.Queue[str] = asyncio.Queue()
         self._subscriptions: List[EventSubscription] = []
         self._event_log_subscribed_types: Dict[str, int] = defaultdict(int)
 
@@ -119,9 +118,9 @@ class CommandClient:
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
-        await self.close()
+        self.close()
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """Close the connection to the service and cancel any running tasks."""
 
         # Cancel any running tasks
@@ -136,7 +135,6 @@ class CommandClient:
         # Close the connection
         _, writer = self._connection
         writer.close()
-        await writer.wait_closed()
 
         self._logger.debug("Connection closed")
 
@@ -503,13 +501,17 @@ class CommandClient:
                 self._previously_connected = True
 
             # Start tasks to handle incoming messages
-            self._tasks.append(asyncio.create_task(self._handle_messages()))
-            self._tasks.append(asyncio.create_task(self._status_processor()))
-            self._tasks.append(asyncio.create_task(self._event_log_processor()))
+            self._tasks.append(asyncio.create_task(self._event_reader()))
+            self._tasks.append(asyncio.create_task(self._event_processor()))
+            self._tasks.append(asyncio.create_task(self._keepalive()))
 
-            self._logger.info("Connected and listening for messages")
+            self._logger.info("Connected and listening for events")
 
             return self._connection
+
+    async def _reconnect(self) -> None:
+        self.close()
+        await self._get_connection()
 
     def _emit(self, event: Event) -> None:
         # Emit an event to all subscribers.
@@ -521,7 +523,7 @@ class CommandClient:
                 else:
                     callback(event)
 
-    async def _handle_messages(self) -> None:
+    async def _event_reader(self) -> None:
         # Fetch new messages from the reader and enqueue them for processing
 
         reader, _ = await self._get_connection()
@@ -529,20 +531,18 @@ class CommandClient:
             try:
                 data = await reader.readline()
             except ConnectionError:
-                self._logger.warning("Connection lost in _handle_messages")
+                self._logger.warning("Connection lost in _event_reader")
                 break
 
             if not data:
-                self._logger.warning("EOF in _handle_messages")
+                self._logger.warning("EOF in _event_reader")
                 break
 
             message = data.decode().rstrip()
             self._logger.debug(f"Received message: {message}")
 
-            if message.startswith("S:"):
-                self._status_queue.put_nowait(message)
-            elif message.startswith("EL:"):
-                self._event_log_queue.put_nowait(message)
+            if message.startswith("S:") or message.startswith("EL:"):
+                self._event_queue.put_nowait(message)
             else:
                 self._response_queue.put_nowait(message)
 
@@ -550,49 +550,51 @@ class CommandClient:
         self._emit({"tag": EventType.DISCONNECTED})
 
         # Try to reconnect
-        async def reconnect() -> None:
-            await self.close()
-            await self._get_connection()
+        asyncio.create_task(self._reconnect())
 
-        asyncio.create_task(reconnect())
-
-    async def _event_log_processor(self) -> None:
-        # Process event log messages from the queue and dispatch to subscribers
-
-        while True:
-            try:
-                # Grab the next event log message from the queue
-                message = await self._event_log_queue.get()
-                message = message[4:]
-                self._event_log_queue.task_done()
-
-                # Notify subscribers
-                self._emit({"tag": EventType.EVENT_LOG, "log": message})
-            except Exception:
-                self._logger.exception(f"Error processing event log message: {message}")
-
-    async def _status_processor(self) -> None:
+    async def _event_processor(self) -> None:
         # Process status messages from the queue and dispatch to subscribers
 
         while True:
             try:
                 # Grab the next status message from the queue
-                message = await self._status_queue.get()
-                self._status_queue.task_done()
+                message = await self._event_queue.get()
+                self._event_queue.task_done()
 
-                # Parse the status message
-                status_type, id_str, *args = tokenize_response(message)
-                status_type = status_type[2:]
-                id = int(id_str)
+                if message.startswith("S:"):
+                    # Parse a status message
+                    status_type, id_str, *args = tokenize_response(message)
+                    status_type = status_type[2:]
+                    id = int(id_str)
 
-                # Notify subscribers
-                self._emit(
-                    {
-                        "tag": EventType.STATUS,
-                        "status_type": status_type,
-                        "id": id,
-                        "args": args,
-                    },
-                )
+                    # Notify subscribers
+                    self._emit(
+                        {
+                            "tag": EventType.STATUS,
+                            "status_type": status_type,
+                            "id": id,
+                            "args": args,
+                        },
+                    )
+                elif message.startswith("EL:"):
+                    message = message[4:]
+                    self._emit({"tag": EventType.EVENT_LOG, "log": message})
             except Exception:
                 self._logger.exception(f"Error processing status message: {message}")
+
+    async def _keepalive(self) -> None:
+        # Send a periodic "keepalive" message, so we can detect dropped connections.
+
+        while True:
+            await asyncio.sleep(60)
+            try:
+                await asyncio.wait_for(self.command("ECHO"), self._read_timeout)
+            except (ConnectionError, OSError, asyncio.TimeoutError):
+                break
+
+        # If we get here, the connection was closed
+        self._logger.warning("Connection lost in _keepalive")
+        self._emit({"tag": EventType.DISCONNECTED})
+
+        # Try to reconnect
+        asyncio.create_task(self._reconnect())
