@@ -25,9 +25,12 @@ from .helpers import tokenize_response
 # Type alias for connections
 Connection = Tuple[asyncio.StreamReader, asyncio.StreamWriter]
 
-# Types for callbacks for event subscriptions
+# Type aliases for callbacks for event subscriptions
 EventCallback = Callable[[Event], None]
 EventSubscription = Tuple[EventCallback, Optional[Iterable[EventType]]]
+
+# Keepalive interval in seconds
+KEEPALIVE_INTERVAL = 30
 
 
 class CommandClient:
@@ -54,8 +57,8 @@ class CommandClient:
         use_ssl: bool = True,
         port: Optional[int] = None,
         conn_timeout: float = 5,
-        read_timeout: float = 5,
-        max_connection_attempts: Optional[int] = None,
+        read_timeout: float = 10,
+        max_retries: Optional[int] = None,
         backoff_fn: Callable[[int], float] = lambda n: 5,
     ) -> None:
         """
@@ -85,7 +88,7 @@ class CommandClient:
         self._conn_timeout = conn_timeout
         self._read_timeout = read_timeout
         self._tasks: List[asyncio.Task[None]] = []
-        self._max_connection_attempts: Optional[int] = max_connection_attempts
+        self._max_retries: Optional[int] = max_retries
         self._backoff_fn = backoff_fn
         self._previously_connected = False
         self._response_queue: asyncio.Queue[str] = asyncio.Queue()
@@ -259,8 +262,6 @@ class CommandClient:
 
         await self.command("LOGIN", username, password)
 
-        self._logger.info("Logged in")
-
     async def addstatus(self, ids: Union[int, Iterable[int]]) -> None:
         """
         Send an ADDSTATUS command to subscribe to status events for the given ids.
@@ -292,6 +293,17 @@ class CommandClient:
         id_iter = iter(ids)
         while id_chunk := tuple(islice(id_iter, 16)):
             await self.command("DELSTATUS", *id_chunk)
+
+    async def version(self) -> str:
+        """
+        Send a VERSION command to get the version of the controller.
+
+        Returns:
+            The version string.
+        """
+
+        response = await self.command("VERSION")
+        return response[0]
 
     def subscribe(
         self,
@@ -476,10 +488,7 @@ class CommandClient:
                 except (ConnectionError, OSError, asyncio.TimeoutError):
                     # Retry with backoff if the connection fails
                     attempts += 1
-                    if (
-                        self._max_connection_attempts is not None
-                        and attempts >= self._max_connection_attempts
-                    ):
+                    if self._max_retries is not None and attempts >= self._max_retries:
                         raise
 
                     delay = self._backoff_fn(attempts)
@@ -489,9 +498,10 @@ class CommandClient:
                     )
                     await asyncio.sleep(delay)
 
-            # Login if we have a username and password
+            # Authenticate this connection if we have a username and password
             if self._username and self._password:
                 await self.login(self._username, self._password)
+                self._logger.info("Logged in")
 
             # Notify subscribers that we've connected
             if self._previously_connected:
@@ -535,7 +545,7 @@ class CommandClient:
                 break
 
             if not data:
-                self._logger.warning("EOF in _event_reader")
+                self._logger.warning("Connection lost in _event_reader (EOF)")
                 break
 
             message = data.decode().rstrip()
@@ -546,7 +556,7 @@ class CommandClient:
             else:
                 self._response_queue.put_nowait(message)
 
-        # If we get here, the connection was closed
+        # If we get here, the connection was lost
         self._emit({"tag": EventType.DISCONNECTED})
 
         # Try to reconnect
@@ -586,7 +596,7 @@ class CommandClient:
         # Send a periodic "keepalive" message, so we can detect dropped connections.
 
         while True:
-            await asyncio.sleep(60)
+            await asyncio.sleep(KEEPALIVE_INTERVAL)
             try:
                 await asyncio.wait_for(self.command("ECHO"), self._read_timeout)
             except (ConnectionError, OSError, asyncio.TimeoutError):
