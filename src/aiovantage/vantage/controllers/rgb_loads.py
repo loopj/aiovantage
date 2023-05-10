@@ -34,7 +34,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         # INVOKE <id> Load.GetLevel
         # -> R:INVOKE <id> <level> Load.GetLevel
-        response = await self.command_client.invoke(id, "Load.GetLevel")
+        response = await self.command_client.command("INVOKE", id, "Load.GetLevel")
         level = float(response[1])
 
         return level
@@ -52,7 +52,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         # INVOKE <id> RGBLoad.GetColor
         # -> R:INVOKE <id> <color> RGBLoad.GetColor
-        response = await self.command_client.invoke(id, "RGBLoad.GetColor")
+        response = await self.command_client.command("INVOKE", id, "RGBLoad.GetColor")
         color = int(response[1])
 
         return self._unpack_color_int(color)[:3]
@@ -72,7 +72,9 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <index>
         rgbw_values = []
         for i in range(4):
-            response = await self.command_client.invoke(id, "RGBLoad.GetRGBW", i)
+            response = await self.command_client.command(
+                "INVOKE", id, "RGBLoad.GetRGBW", i
+            )
             rgbw_values.append(int(response[1]))
 
         return tuple(rgbw_values)  # type: ignore[return-value]
@@ -92,7 +94,9 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # -> R:INVOKE <id> <value> RGBLoad.GetHSL <index>
         hsl_values = []
         for i in range(3):
-            response = await self.command_client.invoke(id, "RGBLoad.GetHSL", i)
+            response = await self.command_client.command(
+                "INVOKE", id, "RGBLoad.GetHSL", i
+            )
             hsl_values.append(int(response[1]))
 
         return tuple(hsl_values)  # type: ignore[return-value]
@@ -110,7 +114,9 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         # INVOKE <id> ColorTemperature.Get
         # -> R:INVOKE <id> <temp> ColorTemperature.Get
-        response = await self.command_client.invoke(id, "ColorTemperature.Get")
+        response = await self.command_client.command(
+            "INVOKE", id, "ColorTemperature.Get"
+        )
         color_temp = int(response[1])
 
         return color_temp
@@ -133,7 +139,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         # INVOKE <id> Load.SetLevel <level>
         # -> R:INVOKE <id> <rcode> Load.SetLevel <level>
-        await self.command_client.invoke(id, "Load.SetLevel", level)
+        await self.command_client.command("INVOKE", id, "Load.SetLevel", level)
 
         # Update local state
         self.update_state(id, {"level": level})
@@ -163,13 +169,15 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         if transition:
             # INVOKE <id> RGBLoad.DissolveRGB <red> <green> <blue> <seconds>
             # -> R:INVOKE <id> <rcode> RGBLoad.DissolveRGB <red> <green> <blue> <seconds
-            await self.command_client.invoke(
-                id, "RGBLoad.DissolveRGB", red, green, blue, transition
+            await self.command_client.command(
+                "INVOKE", id, "RGBLoad.DissolveRGB", red, green, blue, transition
             )
         else:
             # INVOKE <id> RGBLoad.SetRGB <red> <green> <blue>
             # -> R:INVOKE <id> <rcode> RGBLoad.SetRGB <red> <green> <blue>
-            await self.command_client.invoke(id, "RGBLoad.SetRGB", red, green, blue)
+            await self.command_client.command(
+                "INVOKE", id, "RGBLoad.SetRGB", red, green, blue
+            )
 
         # Update local state
         self.update_state(id, {"rgb": (red, green, blue)})
@@ -200,7 +208,9 @@ class RGBLoadsController(StatefulController[RGBLoad]):
 
         # INVOKE <id> RGBLoad.SetRGBW <red> <green> <blue> <white>
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBW <red> <green> <blue> <white>
-        await self.command_client.invoke(id, "RGBLoad.SetRGBW", red, green, blue, white)
+        await self.command_client.command(
+            "INVOKE", id, "RGBLoad.SetRGBW", red, green, blue, white
+        )
 
         # Update local state
         self.update_state(id, {"rgbw": (red, green, blue, white)})
@@ -230,14 +240,14 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         if transition:
             # INVOKE <id> RGBLoad.DissolveHSL <hue> <saturation> <level> <seconds>
             # -> R:INVOKE <id> <rcode> RGBLoad.DissolveHSL <hue> <sat> <level> <seconds>
-            await self.command_client.invoke(
-                id, "RGBLoad.DissolveHSL", hue, saturation, level, transition
+            await self.command_client.command(
+                "INVOKE", id, "RGBLoad.DissolveHSL", hue, saturation, level, transition
             )
         else:
             # INVOKE <id> RGBLoad.SetHSL <hue> <saturation> <level>
             # -> R:INVOKE <id> <rcode> RGBLoad.SetHSL <hue> <saturation> <level>
-            await self.command_client.invoke(
-                id, "RGBLoad.SetHSL", hue, saturation, level
+            await self.command_client.command(
+                "INVOKE", id, "RGBLoad.SetHSL", hue, saturation, level
             )
 
         # Update local state
@@ -260,9 +270,11 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         if id in self and self[id].color_temp == temp:
             return
 
-        # INVOKE <id> ColorTemperature.Set <temp>
+        # INVOKE <id> ColorTemperature.Set <temp> <seconds>
         # -> R:INVOKE <id> <rcode> ColorTemperature.Set <temp>
-        await self.command_client.invoke(id, "ColorTemperature.Set", temp, transition)
+        await self.command_client.command(
+            "INVOKE", id, "ColorTemperature.Set", temp, transition
+        )
 
         # Update local state
         self.update_state(id, {"color_temp": temp})

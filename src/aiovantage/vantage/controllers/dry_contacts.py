@@ -49,7 +49,7 @@ class DryContactsController(StatefulController[DryContact]):
     async def get_state(self, id: int) -> str:
         # INVOKE <id> Button.GetState
         # -> R:INVOKE <id> <Up|Down> Button.GetState
-        response = await self.command_client.invoke(id, "Button.GetState")
+        response = await self.command_client.command("INVOKE", id, "Button.GetState")
         state = response[1]
 
         return state

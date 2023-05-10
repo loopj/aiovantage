@@ -3,9 +3,9 @@ import logging
 import ssl
 from collections import defaultdict
 from inspect import iscoroutinefunction
-from itertools import islice
 from types import TracebackType
 from typing import (
+    AsyncIterator,
     Awaitable,
     Callable,
     Dict,
@@ -15,9 +15,15 @@ from typing import (
     Tuple,
     Type,
     Union,
+    cast,
 )
 
-from .errors import CommandExecutionError, LoginFailedError, LoginRequiredError
+from .errors import (
+    CommandExecutionError,
+    LoginFailedError,
+    LoginRequiredError,
+    NotConnectedError,
+)
 from .events import Event, EventType
 from .helpers import tokenize_response
 
@@ -29,90 +35,108 @@ Connection = Tuple[asyncio.StreamReader, asyncio.StreamWriter]
 EventCallback = Callable[[Event], None]
 EventSubscription = Tuple[EventCallback, Optional[Iterable[EventType]]]
 
-# Keepalive interval in seconds
-KEEPALIVE_INTERVAL = 30
 
-
-class CommandClient:
+def create_ssl_context() -> ssl.SSLContext:
     """
-    Communicate with the Vantage InFusion "Host Command" service.
+    Creates a default SSL context that doesn't verify hostname or certificate.
 
-    The Host Command service is a TCP text-based service that allows interaction with
-    devices controlled by a Vantage InFusion Controller.
+    We don't have a local issuer certificate to check against, and we'll most likely be
+    connecting to an IP address, so we can't check the hostname.
+    """
 
-    Among other things, this service allows you to query and change the state of devices
-    attached to a Vantage system (eg. turn on/off a light) as well as subscribe to
-    status changes for devices.
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
+    return context
 
-    The service is exposed on port 3010 (SSL) by default, and on port 3001 (non-SSL) if
-    this port has been opened by the firewall on the controller.
+
+class CommandProtocol(asyncio.Protocol):
+    """
+    Async I/O Protocol implementation for the Vantage Host Command service that handles
+    buffering and parsing of messages, and provides queues for command responses and
+    "events" such as "status" events, and "event log" events.
+    """
+
+    def __init__(self) -> None:
+        self._transport: Optional[asyncio.Transport] = None
+        self._buffer = bytearray()
+        self._response_buffer: List[str] = []
+        self._response_queue: asyncio.Queue[List[str]] = asyncio.Queue()
+        self._event_queue: asyncio.Queue[Union[str, Exception]] = asyncio.Queue()
+        self._delimiter = b"\r\n"
+
+    def connection_made(self, transport: asyncio.BaseTransport) -> None:
+        self._transport = cast(asyncio.Transport, transport)
+
+    def connection_lost(self, exc: Optional[Exception]) -> None:
+        if exc is not None:
+            self._event_queue.put_nowait(exc)
+
+        self._transport = None
+
+    def data_received(self, data: bytes) -> None:
+        # Add the new data to the buffer
+        self._buffer.extend(data)
+
+        # Check for newlines in the buffer and process any complete lines
+        while self._delimiter in self._buffer:
+            line, self._buffer = self._buffer.split(self._delimiter, 1)
+            message = line.decode()
+            if message.startswith("R:"):
+                self._response_buffer.append(message)
+                self._response_queue.put_nowait(self._response_buffer.copy())
+                self._response_buffer = []
+            elif message.startswith("S:") or message.startswith("EL:"):
+                self._event_queue.put_nowait(message)
+            else:
+                self._response_buffer.append(message)
+
+    def eof_received(self) -> Optional[bool]:
+        self._event_queue.put_nowait(EOFError("EOF received"))
+        return False
+
+    def is_connected(self) -> bool:
+        return self._transport is not None and not self._transport.is_closing()
+
+    def close(self) -> None:
+        if self._transport is not None:
+            self._transport.close()
+            self._transport = None
+
+    @property
+    def response_queue(self) -> asyncio.Queue[List[str]]:
+        return self._response_queue
+
+    @property
+    def event_queue(self) -> asyncio.Queue[Union[str, Exception]]:
+        return self._event_queue
+
+
+class CommandConnection:
+    """
+    A connection to the Vantage Host Command service that handles sending
+    commands and receiving responses and events.
     """
 
     def __init__(
         self,
         host: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        port: int,
         *,
-        use_ssl: bool = True,
-        port: Optional[int] = None,
-        conn_timeout: float = 5,
-        read_timeout: float = 10,
-        max_retries: Optional[int] = None,
-        backoff_fn: Callable[[int], float] = lambda n: 5,
+        ssl: Optional[ssl.SSLContext] = None,
+        conn_timeout: Optional[float] = 5,
+        read_timeout: Optional[float] = 10,
     ) -> None:
-        """
-        Initialize the HCClient instance.
-
-        Args:
-            host: The hostname or IP address of the Host Command service.
-            username: The username to use to authenticate.
-            password: The password to use to authenticate.
-            use_ssl: Whether to use SSL when connecting.
-            port: The port to use when connecting.
-            conn_timeout: The timeout to use when connecting.
-            read_timeout: The timeout to use when reading.
-            max_retries: The maximum number of times to attempt to reconnect.
-            backoff_fn: A function that takes the number of retries and returns the
-                        number of seconds to wait before retrying.
-        """
-
         self._host = host
-        self._username = username
-        self._password = password
-        self._ssl_context = None
-        self._logger = logging.getLogger(__name__)
-        self._connection: Optional[Connection] = None
-        self._conn_lock = asyncio.Lock()
-        self._request_lock = asyncio.Lock()
+        self._port = port
+        self._ssl = ssl
         self._conn_timeout = conn_timeout
         self._read_timeout = read_timeout
-        self._tasks: List[asyncio.Task[None]] = []
-        self._max_retries: Optional[int] = max_retries
-        self._backoff_fn = backoff_fn
-        self._previously_connected = False
-        self._response_queue: asyncio.Queue[str] = asyncio.Queue()
-        self._event_queue: asyncio.Queue[str] = asyncio.Queue()
-        self._subscriptions: List[EventSubscription] = []
-        self._event_log_subscribed_types: Dict[str, int] = defaultdict(int)
+        self._protocol: Optional[CommandProtocol] = None
+        self._lock: asyncio.Lock = asyncio.Lock()
 
-        # Set up SSL context
-        if use_ssl is True:
-            # We don't have a local issuer certificate to check against, and we'll be
-            # connecting to an IP address so we can't check the hostname
-            self._ssl_context = ssl.create_default_context()
-            self._ssl_context.check_hostname = False
-            self._ssl_context.verify_mode = ssl.CERT_NONE
-        elif isinstance(use_ssl, ssl.SSLContext):
-            self._ssl_context = use_ssl
-
-        # Set up port
-        if port is None:
-            self._port = 3010 if use_ssl else 3001
-        else:
-            self._port = port
-
-    async def __aenter__(self) -> "CommandClient":
+    async def __aenter__(self) -> "CommandConnection":
+        await self.open()
         return self
 
     async def __aexit__(
@@ -123,28 +147,43 @@ class CommandClient:
     ) -> None:
         self.close()
 
-    def close(self) -> None:
-        """Close the connection to the service and cancel any running tasks."""
+    @property
+    def transport(self) -> Optional[asyncio.Transport]:
+        if self._protocol is None:
+            return None
 
-        # Cancel any running tasks
-        for task in self._tasks:
-            task.cancel()
-        self._tasks = []
+        return self._protocol._transport
 
-        # Check if connection is already closed
-        if self._connection is None or self._connection[1].is_closing():
+    @property
+    def protocol(self) -> Optional[CommandProtocol]:
+        return self._protocol
+
+    async def open(self) -> None:
+        """Open a connection to the Vantage Host Command service."""
+
+        # If we're already connected, do nothing
+        if self.protocol is not None and self.protocol.is_connected():
             return
 
-        # Close the connection
-        _, writer = self._connection
-        writer.close()
+        # Create the connection using our protocol
+        loop = asyncio.get_running_loop()
+        _, self._protocol = await asyncio.wait_for(
+            loop.create_connection(
+                CommandProtocol, self._host, self._port, ssl=self._ssl
+            ),
+            timeout=self._conn_timeout,
+        )
 
-        self._logger.debug("Connection closed")
+    def close(self) -> None:
+        """Close the connection to the Vantage Host Command service."""
+
+        if self.protocol is not None:
+            self.protocol.close()
 
     async def raw_request(self, request: str) -> List[str]:
         """
-        Send a raw string request to the Host Command service, returning all lines of
-        the response, until the "R:" line is received.
+        Send a raw string request to the Vantage Host Command service, returning all
+        lines of the response, until the "R:" line is received.
 
         Args:
             request: The request string to send.
@@ -153,38 +192,26 @@ class CommandClient:
             A list of response lines.
         """
 
-        # Get the connection
-        _, writer = await self._get_connection()
+        async with self._lock:
+            # Make sure we're connected
+            if self.protocol is None or not self.protocol.is_connected():
+                raise NotConnectedError("Not connected to Vantage Host Command service")
 
-        # Send the request
-        async with self._request_lock:
-            self._logger.debug(f"Sending request: {request}")
-            writer.write(f"{request}\n".encode())
-            await writer.drain()
+            # Send the request
+            self.transport.write(f"{request}\n".encode())  # type: ignore[union-attr]
 
-            # Grab every line of the response, until we get a "R:" return line
-            response = []
-            while True:
-                # Wait for a response line
-                line = await asyncio.wait_for(
-                    self._response_queue.get(), self._read_timeout
-                )
-                self._response_queue.task_done()
-
-                # Add the line to the response
-                response.append(line)
-                if line.startswith("R:"):
-                    break
-
-            return response
+            # Wait for the response
+            return await asyncio.wait_for(
+                self.protocol.response_queue.get(), timeout=self._read_timeout
+            )
 
     async def command(self, command: str, *params: Union[int, float, str]) -> List[str]:
         """
-        Send a command with parameters to the Host Command service, and return the
-        arguments of the "R:" line of the response.
+        Send a command with parameters to the Vantage Host Command service, and return
+        the arguments of the "R:" line of the response.
 
-        Handles encoding the parameters correctly, and raises an exception if the
-        response line is R:ERROR.
+        Handles encoding parameters, and raises an exception if the response was an
+        error response (R:ERROR).
 
         Args:
             command: The command to send, should be a single word string.
@@ -194,6 +221,7 @@ class CommandClient:
             A list of response arguments.
         """
 
+        # Validate parameters
         if not all(isinstance(param, (int, float, str)) for param in params):
             raise TypeError("Command parameters must be int, float, or str")
 
@@ -204,11 +232,10 @@ class CommandClient:
             request = command
 
         # Send the request
-        response_lines = await self.raw_request(request)
+        response = await self.raw_request(request)
 
         # Get the "R:" return line and split it into parts
-        response = response_lines[-1]
-        reply, *args = tokenize_response(response)
+        reply, *args = tokenize_response(response[-1])
 
         # Check for errors
         if reply.startswith("R:ERROR"):
@@ -234,76 +261,145 @@ class CommandClient:
 
         return args
 
-    async def invoke(
-        self, id: int, method: str, *params: Union[int, float, str]
-    ) -> List[str]:
+    async def events(self) -> AsyncIterator[str]:
         """
-        Send an INVOKE command to invoke a method on an Vantage object.
+        An async iterator that yields events from the Host Command service.
+
+        Yields:
+            "S:" (Status) or "EL:" (Event Log) strings from the Host Command service.
+        """
+
+        # Make sure we're connected
+        if self.protocol is None or not self.protocol.is_connected():
+            raise NotConnectedError("Not connected to Vantage Host Command service")
+
+        # Yield events from the event queue
+        while True:
+            result = await self.protocol.event_queue.get()
+            if isinstance(result, Exception):
+                raise result
+
+            yield result
+
+
+class CommandClient:
+    """
+    Communicate with the Vantage InFusion "Host Command" service.
+
+    The Host Command service is a TCP text-based service that allows interaction with
+    devices controlled by a Vantage InFusion Controller.
+
+    Among other things, this service allows you to query and change the state of devices
+    attached to a Vantage system (eg. turn on/off a light) as well as subscribe to
+    status changes for devices.
+
+    The service is exposed on port 3010 (SSL) by default, and on port 3001 (non-SSL) if
+    this port has been opened by the firewall on the controller.
+    """
+
+    def __init__(
+        self,
+        host: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        *,
+        use_ssl: bool = True,
+        port: Optional[int] = None,
+        conn_timeout: Optional[float] = 5,
+        read_timeout: Optional[float] = 10,
+    ) -> None:
+        """
+        Initialize the HCClient instance.
 
         Args:
-            id: The id of the object to invoke the method on.
-            method: The name of the method to invoke.
-            params: The parameters to pass to the method.
+            host: The hostname or IP address of the Host Command service.
+            username: The username to use to authenticate.
+            password: The password to use to authenticate.
+            use_ssl: Whether to use SSL when connecting.
+            port: The port to use when connecting.
+            conn_timeout: The timeout to use when connecting.
+            read_timeout: The timeout to use when reading.
+        """
+
+        self._host = host
+        self._username = username
+        self._password = password
+        self._ssl_context = None
+        self._logger = logging.getLogger(__name__)
+        self._conn_timeout = conn_timeout
+        self._read_timeout = read_timeout
+        self._event_handler_connected: asyncio.Event = asyncio.Event()
+        self._event_handler_connection: Optional[CommandConnection] = None
+        self._event_handler_task: Optional[asyncio.Task[None]] = None
+        self._subscriptions: List[EventSubscription] = []
+        self._subscribed_statuses: Dict[str, int] = defaultdict(int)
+        self._subscribed_objects: Dict[int, int] = defaultdict(int)
+        self._subscribed_event_logs: Dict[str, int] = defaultdict(int)
+
+        # Set up SSL context
+        if use_ssl is True:
+            self._ssl_context = create_ssl_context()
+        elif isinstance(use_ssl, ssl.SSLContext):
+            self._ssl_context = use_ssl
+
+        # Set up port
+        if port is None:
+            self._port = 3010 if use_ssl else 3001
+        else:
+            self._port = port
+
+    async def __aenter__(self) -> "CommandClient":
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> None:
+        await self.close()
+
+    async def close(self) -> None:
+        """
+        Close the connection to the Host Command service and stop the event handler.
+        """
+
+        # Stop the event handler
+        if self._event_handler_task is not None:
+            self._event_handler_task.cancel()
+            try:
+                await self._event_handler_task
+            except asyncio.CancelledError:
+                pass
+            self._event_handler_task = None
+
+        # Close the connection
+        if self._event_handler_connection is not None:
+            self._event_handler_connection.close()
+            self._event_handler_connection = None
+
+    async def command(self, command: str, *params: Union[int, float, str]) -> List[str]:
+        """
+        Send a command with parameters to the Host Command service, and return the
+        arguments of the "R:" line of the response.
+
+        Handles encoding the parameters correctly, and raises an exception if the
+        response line is R:ERROR.
+
+        Args:
+            command: The command to send, should be a single word string.
+            params: The parameters to send with the command, int, float, or str.
+            connection: The connection to use, or None to get a new connection.
 
         Returns:
             A list of response arguments.
         """
 
-        return await self.command("INVOKE", id, method, *params)
+        conn = await self._create_connection()
+        response = await conn.command(command, *params)
+        conn.close()
 
-    async def login(self, username: str, password: str) -> None:
-        """
-        Send a LOGIN command to authenticate with the Host Command service.
-
-        Args:
-            username: The username to authenticate with.
-            password: The password to authenticate with.
-        """
-
-        await self.command("LOGIN", username, password)
-
-    async def addstatus(self, ids: Union[int, Iterable[int]]) -> None:
-        """
-        Send an ADDSTATUS command to subscribe to status events for the given ids.
-
-        Args:
-            ids: The ids to subscribe to status events for.
-        """
-
-        if isinstance(ids, int):
-            ids = (ids,)
-
-        # ADDSTATUS accepts up to 16 ids at a time, so chunk the requests.
-        id_iter = iter(ids)
-        while id_chunk := tuple(islice(id_iter, 16)):
-            await self.command("ADDSTATUS", *id_chunk)
-
-    async def delstatus(self, ids: Union[int, Iterable[int]]) -> None:
-        """
-        Send a DELSTATUS command to unsubscribe from status events for the given ids.
-
-        Args:
-            ids: The ids to unsubscribe from status events for.
-        """
-
-        if isinstance(ids, int):
-            ids = (ids,)
-
-        # DELSTATUS accepts up to 16 ids at a time, so chunk the requests.
-        id_iter = iter(ids)
-        while id_chunk := tuple(islice(id_iter, 16)):
-            await self.command("DELSTATUS", *id_chunk)
-
-    async def version(self) -> str:
-        """
-        Send a VERSION command to get the version of the controller.
-
-        Returns:
-            The version string.
-        """
-
-        response = await self.command("VERSION")
-        return response[0]
+        return response
 
     def subscribe(
         self,
@@ -321,7 +417,7 @@ class CommandClient:
             A callback that can be called to unsubscribe.
         """
 
-        # Convert the event_filter to a tuple if it's a single EventType
+        # Support passing a single EventType
         if isinstance(event_filter, EventType):
             event_filter = (event_filter,)
 
@@ -329,17 +425,14 @@ class CommandClient:
         subscription = (callback, event_filter)
         self._subscriptions.append(subscription)
 
-        # Return the unsubscribe callback
+        # Return an unsubscribe callback to remove the subscription
         def unsubscribe() -> None:
-            # Remove the subscription
             self._subscriptions.remove(subscription)
 
         return unsubscribe
 
     async def subscribe_status(
-        self,
-        callback: EventCallback,
-        status_types: Union[str, Iterable[str]],
+        self, callback: EventCallback, status_types: Union[str, Iterable[str]]
     ) -> Callable[[], Awaitable[None]]:
         """
         Subscribe to status events for the given status types, using "STATUS {type}".
@@ -352,6 +445,7 @@ class CommandClient:
             A coroutine to unsubscribe from status events.
         """
 
+        # Support passing a single status type
         if isinstance(status_types, str):
             status_types = (status_types,)
 
@@ -369,20 +463,24 @@ class CommandClient:
         # Add the subscription to the list
         remove_subscription = self.subscribe(filtered_callback, EventType.STATUS)
 
-        # Ask the controller to start sending status events
+        # Ask the Host Command service to start sending status events
+        conn = await self._get_event_handler_connection()
         for status_type in status_types:
-            await self.command("STATUS", status_type)
+            self._subscribed_statuses[status_type] += 1
+            if self._subscribed_statuses[status_type] == 1:
+                await conn.command("STATUS", status_type)
 
         # Return an unsubscribe callback
         async def unsubscribe() -> None:
+            for status_type in status_types:
+                self._subscribed_statuses[status_type] -= 1
+
             remove_subscription()
 
         return unsubscribe
 
     async def subscribe_objects(
-        self,
-        callback: EventCallback,
-        object_ids: Union[int, Iterable[int]],
+        self, callback: EventCallback, object_ids: Union[int, Iterable[int]]
     ) -> Callable[[], Awaitable[None]]:
         """
         Subscribe to status events for the given object ids, using "ADDSTATUS {id}".
@@ -395,6 +493,7 @@ class CommandClient:
             A coroutine to unsubscribe from status events.
         """
 
+        # Support passing a single object id
         if isinstance(object_ids, int):
             object_ids = (object_ids,)
 
@@ -412,20 +511,28 @@ class CommandClient:
         # Add the subscription to the list
         remove_subscription = self.subscribe(filtered_callback, EventType.STATUS)
 
+        # Get the event handler connection
+        conn = await self._get_event_handler_connection()
+
         # Ask the controller to start sending status events for these objects
-        await self.addstatus(object_ids)
+        for object_id in object_ids:
+            self._subscribed_objects[object_id] += 1
+            if self._subscribed_objects[object_id] == 1:
+                await conn.command("ADDSTATUS", object_id)
 
         # Return an unsubscribe callback
         async def unsubscribe() -> None:
-            await self.delstatus(object_ids)
+            for object_id in object_ids:  # type: ignore[union-attr]
+                self._subscribed_objects[object_id] -= 1
+                if self._subscribed_objects[object_id] == 0:
+                    await conn.command("DELSTATUS", object_id)
+
             remove_subscription()
 
         return unsubscribe
 
     async def subscribe_event_log(
-        self,
-        callback: EventCallback,
-        log_types: Union[str, Iterable[str]],
+        self, callback: EventCallback, log_types: Union[str, Iterable[str]]
     ) -> Callable[[], Awaitable[None]]:
         """
         Subscribe to event log events, using "ELLOG {type} ON".
@@ -438,93 +545,36 @@ class CommandClient:
             A coroutine to unsubscribe from event log events.
         """
 
+        # Support passing a single log type
         if isinstance(log_types, str):
             log_types = (log_types,)
 
         # Add the subscription to the list
         remove_subscription = self.subscribe(callback, EventType.EVENT_LOG)
 
+        # Get the event handler connection
+        conn = await self._get_event_handler_connection()
+
         # Ask the controller to start sending event logs for these types
         for log_type in log_types:
-            if self._event_log_subscribed_types[log_type] == 0:
-                await self.command("ELENABLE", log_type, "ON")
-                await self.command("ELLOG", log_type, "ON")
+            self._subscribed_event_logs[log_type] += 1
+            if self._subscribed_event_logs[log_type] == 1:
+                await conn.command("ELENABLE", log_type, "ON")
+                await conn.command("ELLOG", log_type, "ON")
 
         # Return an unsubscribe callback
         async def unsubscribe() -> None:
             for log_type in log_types:
-                self._event_log_subscribed_types[log_type] -= 1
-
-                if self._event_log_subscribed_types[log_type] == 0:
-                    await self.command("ELLOG", log_type, "OFF")
+                self._subscribed_event_logs[log_type] -= 1
+                if self._subscribed_event_logs[log_type] == 0:
+                    await conn.command("ELLOG", log_type, "OFF")
 
             remove_subscription()
 
         return unsubscribe
 
-    async def _get_connection(self) -> Connection:
-        # Get a connection to the controller, reconnecting if necessary
-
-        async with self._conn_lock:
-            # If we already have a connection, return it
-            if self._connection is not None and not self._connection[1].is_closing():
-                return self._connection
-
-            # Otherwise, try to establish a new connection, retrying if necessary
-            attempts = 0
-            while True:
-                try:
-                    # Otherwise, open a new connection
-                    self._connection = await asyncio.wait_for(
-                        asyncio.open_connection(
-                            self._host,
-                            self._port,
-                            ssl=self._ssl_context,
-                        ),
-                        timeout=self._conn_timeout,
-                    )
-
-                    break
-                except (ConnectionError, OSError, asyncio.TimeoutError):
-                    # Retry with backoff if the connection fails
-                    attempts += 1
-                    if self._max_retries is not None and attempts >= self._max_retries:
-                        raise
-
-                    delay = self._backoff_fn(attempts)
-                    self._logger.warning(
-                        f"Connection to {self._host}:{self._port} failed, "
-                        f"retrying in {delay} seconds"
-                    )
-                    await asyncio.sleep(delay)
-
-            # Authenticate this connection if we have a username and password
-            if self._username and self._password:
-                await self.login(self._username, self._password)
-                self._logger.info("Logged in")
-
-            # Notify subscribers that we've connected
-            if self._previously_connected:
-                self._emit({"tag": EventType.RECONNECTED})
-            else:
-                self._emit({"tag": EventType.CONNECTED})
-                self._previously_connected = True
-
-            # Start tasks to handle incoming messages
-            self._tasks.append(asyncio.create_task(self._event_reader()))
-            self._tasks.append(asyncio.create_task(self._event_processor()))
-            self._tasks.append(asyncio.create_task(self._keepalive()))
-
-            self._logger.info("Connected and listening for events")
-
-            return self._connection
-
-    async def _reconnect(self) -> None:
-        self.close()
-        await self._get_connection()
-
-    def _emit(self, event: Event) -> None:
-        # Emit an event to all subscribers.
+    def emit(self, event: Event) -> None:
+        """Emit an event to all subscribers."""
 
         for callback, event_types in self._subscriptions:
             if event_types is None or event["tag"] in event_types:
@@ -533,78 +583,110 @@ class CommandClient:
                 else:
                     callback(event)
 
-    async def _event_reader(self) -> None:
-        # Fetch new messages from the reader and enqueue them for processing
+    async def _get_event_handler_connection(self) -> CommandConnection:
+        # Get the event handler connection, starting the task if necessary
 
-        reader, _ = await self._get_connection()
+        await self._start_event_handler()
+        assert self._event_handler_connection is not None
+        return self._event_handler_connection
+
+    async def _start_event_handler(self) -> None:
+        # Start the event handler if it's not already running
+
+        # Return if the event handler is already running
+        if self._event_handler_task is not None:
+            return
+
+        # Otherwise, start the event handler task
+        self._event_handler_task = asyncio.create_task(self._event_handler())
+
+        # Wait for the event handler to connect before returning
+        await self._event_handler_connected.wait()
+
+    async def _create_connection(self) -> CommandConnection:
+        # Get a new connection to the Host Command service, authenticating if necessary
+
+        conn = CommandConnection(self._host, self._port, ssl=self._ssl_context)
+        await conn.open()
+
+        # Log in if we have credentials
+        if self._username is not None and self._password is not None:
+            await conn.command("LOGIN", self._username, self._password)
+
+        return conn
+
+    async def _resubscribe(self, conn: CommandConnection) -> None:
+        # Re-subscribe to events after a reconnection
+
+        # Re-subscribe to status events
+        for status_type, count in self._subscribed_statuses.items():
+            if count > 0:
+                await conn.command("STATUS", status_type)
+
+        # Re-subscribe to object events
+        for object_id, count in self._subscribed_objects.items():
+            if count > 0:
+                await conn.command("ADDSTATUS", object_id)
+
+        # Re-subscribe to event log events
+        for log_type, count in self._subscribed_event_logs.items():
+            if count > 0:
+                await conn.command("ELENABLE", log_type, "ON")
+                await conn.command("ELLOG", log_type, "ON")
+
+    async def _event_handler(self) -> None:
+        # The event handler task
+
+        connect_attempts = 0
         while True:
+            connect_attempts += 1
             try:
-                data = await reader.readline()
-            except ConnectionError:
-                self._logger.warning("Connection lost in _event_reader")
-                break
+                # Get a connection
+                conn = await self._create_connection()
+                self._event_handler_connection = conn
+                self._logger.info("Connected and listening for events")
 
-            if not data:
-                self._logger.warning("Connection lost in _event_reader (EOF)")
-                break
+                # Signal that we're connected
+                if self._event_handler_connected.is_set():
+                    await self._resubscribe(conn)
+                    self.emit({"tag": EventType.RECONNECTED})
 
-            message = data.decode().rstrip()
-            self._logger.debug(f"Received message: {message}")
+                else:
+                    self._event_handler_connected.set()
+                    self.emit({"tag": EventType.CONNECTED})
 
-            if message.startswith("S:") or message.startswith("EL:"):
-                self._event_queue.put_nowait(message)
-            else:
-                self._response_queue.put_nowait(message)
+                # Start processing events
+                async for event in conn.events():
+                    self._logger.debug(f"Received event: {event}")
 
-        # If we get here, the connection was lost
-        self._emit({"tag": EventType.DISCONNECTED})
+                    if event.startswith("S:"):
+                        # Parse a status message
+                        status_type, id_str, *args = tokenize_response(event)
+                        status_type = status_type[2:]
+                        id = int(id_str)
 
-        # Try to reconnect
-        asyncio.create_task(self._reconnect())
+                        # Notify subscribers
+                        self.emit(
+                            {
+                                "tag": EventType.STATUS,
+                                "status_type": status_type,
+                                "id": id,
+                                "args": args,
+                            },
+                        )
+                    elif event.startswith("EL:"):
+                        # Parse an event log message
+                        message = event[4:]
+                        self.emit({"tag": EventType.EVENT_LOG, "log": message})
 
-    async def _event_processor(self) -> None:
-        # Process status messages from the queue and dispatch to subscribers
-
-        while True:
-            try:
-                # Grab the next status message from the queue
-                message = await self._event_queue.get()
-                self._event_queue.task_done()
-
-                if message.startswith("S:"):
-                    # Parse a status message
-                    status_type, id_str, *args = tokenize_response(message)
-                    status_type = status_type[2:]
-                    id = int(id_str)
-
-                    # Notify subscribers
-                    self._emit(
-                        {
-                            "tag": EventType.STATUS,
-                            "status_type": status_type,
-                            "id": id,
-                            "args": args,
-                        },
-                    )
-                elif message.startswith("EL:"):
-                    message = message[4:]
-                    self._emit({"tag": EventType.EVENT_LOG, "log": message})
+            except (ConnectionError, OSError, EOFError, asyncio.TimeoutError):
+                # Connection error either during the connection attempt or while
+                # processing events
+                print("Connection error in _event_handler")
             except Exception:
-                self._logger.exception(f"Error processing status message: {message}")
+                self._logger.exception("Unknown error in _event_handler")
 
-    async def _keepalive(self) -> None:
-        # Send a periodic "keepalive" message, so we can detect dropped connections.
+            self.emit({"tag": EventType.DISCONNECTED})
 
-        while True:
-            await asyncio.sleep(KEEPALIVE_INTERVAL)
-            try:
-                await asyncio.wait_for(self.command("ECHO"), self._read_timeout)
-            except (ConnectionError, OSError, asyncio.TimeoutError):
-                break
-
-        # If we get here, the connection was closed
-        self._logger.warning("Connection lost in _keepalive")
-        self._emit({"tag": EventType.DISCONNECTED})
-
-        # Try to reconnect
-        asyncio.create_task(self._reconnect())
+            print("Retrying in 5 seconds")
+            await asyncio.sleep(5)

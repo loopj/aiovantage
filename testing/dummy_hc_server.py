@@ -95,6 +95,8 @@ class Client:
             await self.send_message(f"R:LOAD {id} {level}")
             await self.send_message(f"S:LOAD {id} {level}")
         else:
+            print(f"Client {self.id} sent unknown command {command}")
+
             response = command.upper()
             if args:
                 response += " " + " ".join(args)
@@ -112,12 +114,12 @@ async def random_status_updates() -> None:
         for client in clients:
             id = random.choice(list(KNOWN_OBJECTS))
 
-            if client.status_all or id in LOADS:
+            if client.status_all or (id in LOADS and "LOAD" in client.status_types):
                 load = LOADS[id]
                 load["level"] = random.randint(0, 100)
                 await client.send_message(f"S:LOAD {id} {load['level']}")
 
-        await asyncio.sleep(random.random() * 20)
+        await asyncio.sleep(random.uniform(0, 10))
 
 
 async def close_socket() -> None:

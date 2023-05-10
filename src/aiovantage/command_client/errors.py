@@ -1,3 +1,7 @@
+class NotConnectedError(Exception):
+    pass
+
+
 class CommandExecutionError(Exception):
     pass
 
