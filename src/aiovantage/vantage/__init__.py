@@ -61,7 +61,7 @@ class Vantage:
         exc_value: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
-        self.close()
+        await self.close()
 
     @property
     def config_client(self) -> ConfigClient:
@@ -118,11 +118,11 @@ class Vantage:
         """Return the Tasks controller for managing tasks."""
         return self._tasks
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Close the clients."""
 
         self.config_client.close()
-        self.command_client.close()
+        await self.command_client.close()
 
     async def initialize(self) -> None:
         """Fetch all objects from the controllers."""
