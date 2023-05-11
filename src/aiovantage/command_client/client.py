@@ -69,10 +69,10 @@ class CommandProtocol(asyncio.Protocol):
         self._transport = cast(asyncio.Transport, transport)
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
+        self._transport = None
+
         if exc is not None:
             self._event_queue.put_nowait(exc)
-
-        self._transport = None
 
     def data_received(self, data: bytes) -> None:
         # Add the new data to the buffer
@@ -328,8 +328,9 @@ class CommandClient:
         self._logger = logging.getLogger(__name__)
         self._conn_timeout = conn_timeout
         self._read_timeout = read_timeout
-        self._event_handler_connected: asyncio.Event = asyncio.Event()
+        self._command_connection: Optional[CommandConnection] = None
         self._event_handler_connection: Optional[CommandConnection] = None
+        self._event_handler_connected: asyncio.Event = asyncio.Event()
         self._event_handler_task: Optional[asyncio.Task[None]] = None
         self._subscriptions: List[EventSubscription] = []
         self._subscribed_statuses: Dict[str, int] = defaultdict(int)
@@ -373,10 +374,14 @@ class CommandClient:
                 pass
             self._event_handler_task = None
 
-        # Close the connection
+        # Close the connections
         if self._event_handler_connection is not None:
             self._event_handler_connection.close()
             self._event_handler_connection = None
+
+        if self._command_connection is not None:
+            self._command_connection.close()
+            self._command_connection = None
 
     async def command(self, command: str, *params: Union[int, float, str]) -> List[str]:
         """
@@ -395,11 +400,10 @@ class CommandClient:
             A list of response arguments.
         """
 
-        conn = await self._create_connection()
-        response = await conn.command(command, *params)
-        conn.close()
+        if self._command_connection is None:
+            self._command_connection = await self._create_connection()
 
-        return response
+        return await self._command_connection.command(command, *params)
 
     def subscribe(
         self,
