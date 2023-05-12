@@ -46,9 +46,9 @@ class GMemController(StatefulController[GMem]):
 
         # GETVARIABLE {id}
         # -> R:GETVARIABLE {id} {value}
-        _, value = await self.command_client.command("GETVARIABLE", id)
+        response = await self.command_client.command("GETVARIABLE", id)
 
-        return self._parse_value(id, value)
+        return self._parse_value(id, response.args[1])
 
     async def set_value(self, id: int, value: GMemValueType) -> None:
         """

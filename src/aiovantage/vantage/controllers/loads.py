@@ -88,7 +88,7 @@ class LoadsController(StatefulController[Load]):
         # GETLOAD <load vid>
         # -> R:GETLOAD <load vid> <level (0-100)>
         response = await self.command_client.command("GETLOAD", id)
-        level = float(response[1])
+        level = float(response.args[1])
 
         return level
 

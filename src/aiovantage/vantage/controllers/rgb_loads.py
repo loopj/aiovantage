@@ -35,7 +35,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # INVOKE <id> Load.GetLevel
         # -> R:INVOKE <id> <level> Load.GetLevel
         response = await self.command_client.command("INVOKE", id, "Load.GetLevel")
-        level = float(response[1])
+        level = float(response.args[1])
 
         return level
 
@@ -53,7 +53,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         # INVOKE <id> RGBLoad.GetColor
         # -> R:INVOKE <id> <color> RGBLoad.GetColor
         response = await self.command_client.command("INVOKE", id, "RGBLoad.GetColor")
-        color = int(response[1])
+        color = int(response.args[1])
 
         return self._unpack_color_int(color)[:3]
 
@@ -75,7 +75,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
             response = await self.command_client.command(
                 "INVOKE", id, "RGBLoad.GetRGBW", i
             )
-            rgbw_values.append(int(response[1]))
+            rgbw_values.append(int(response.args[1]))
 
         return tuple(rgbw_values)  # type: ignore[return-value]
 
@@ -97,7 +97,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
             response = await self.command_client.command(
                 "INVOKE", id, "RGBLoad.GetHSL", i
             )
-            hsl_values.append(int(response[1]))
+            hsl_values.append(int(response.args[1]))
 
         return tuple(hsl_values)  # type: ignore[return-value]
 
@@ -117,7 +117,7 @@ class RGBLoadsController(StatefulController[RGBLoad]):
         response = await self.command_client.command(
             "INVOKE", id, "ColorTemperature.Get"
         )
-        color_temp = int(response[1])
+        color_temp = int(response.args[1])
 
         return color_temp
 

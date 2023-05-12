@@ -21,7 +21,7 @@ from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
 from aiovantage.config_client.objects import SystemObject
 from aiovantage.config_client.xml_dataclass import xml_tag_from_class
-from aiovantage.command_client import CommandClient, Event, EventType
+from aiovantage.command_client import HostCommandClient, Event, EventType
 from aiovantage.command_client.helpers import tokenize_response
 from aiovantage.vantage.events import VantageEvent
 from aiovantage.vantage.query import QuerySet
@@ -66,7 +66,7 @@ class BaseController(QuerySet[T]):
         return self._vantage._config_client
 
     @property
-    def command_client(self) -> CommandClient:
+    def command_client(self) -> HostCommandClient:
         return self._vantage._command_client
 
     async def initialize(self) -> None:
@@ -205,6 +205,10 @@ class StatefulController(BaseController[T]):
             await self.fetch_initial_state()
             await self.subscribe_to_updates()
 
+            self.command_client.subscribe(
+                self._handle_reconnect_event, EventType.RECONNECTED
+            )
+
             self._initialized = True
 
     async def fetch_initial_state(self) -> None:
@@ -293,3 +297,8 @@ class StatefulController(BaseController[T]):
 
             # Pass the event to the controller
             self.handle_object_update(id, method, args)
+
+    def _handle_reconnect_event(self, event: Event) -> None:
+        assert event["tag"] == EventType.RECONNECTED
+
+        asyncio.create_task(self.fetch_initial_state())

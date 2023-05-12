@@ -1,16 +1,16 @@
-from aiovantage.command_client.client import CommandClient
+from aiovantage.command_client.client import HostCommandClient
 from aiovantage.command_client.errors import (
-    CommandExecutionError,
+    CommandError,
     LoginFailedError,
     LoginRequiredError,
 )
 from aiovantage.command_client.events import Event, EventType
 
 __all__ = [
-    "CommandClient",
+    "HostCommandClient",
     "Event",
     "EventType",
-    "CommandExecutionError",
+    "CommandError",
     "LoginRequiredError",
     "LoginFailedError",
 ]

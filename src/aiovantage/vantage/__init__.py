@@ -2,7 +2,7 @@ import asyncio
 from types import TracebackType
 from typing import Callable, Optional, Type
 
-from aiovantage.command_client import CommandClient
+from aiovantage.command_client import HostCommandClient
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.objects import SystemObject
 from aiovantage.vantage.controllers.areas import AreasController
@@ -37,8 +37,8 @@ class Vantage:
             host, username, password, use_ssl=use_ssl, port=config_port
         )
 
-        self._command_client = CommandClient(
-            host, username, password, use_ssl=use_ssl, port=command_port
+        self._command_client = HostCommandClient(
+            host, username, password, ssl=use_ssl, port=command_port
         )
 
         # Set up controllers
@@ -69,7 +69,7 @@ class Vantage:
         return self._config_client
 
     @property
-    def command_client(self) -> CommandClient:
+    def command_client(self) -> HostCommandClient:
         """Return the command client."""
         return self._command_client
 
