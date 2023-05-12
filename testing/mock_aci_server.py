@@ -1,6 +1,5 @@
 import asyncio
 import socket
-import struct
 from typing import Set
 
 
@@ -52,14 +51,14 @@ async def handle_client(
 
 
 async def main() -> None:
-    # Start the server
-    server = await asyncio.start_server(handle_client, "localhost", 2001)
-    server_sock = server.sockets[0]
-    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
-
+    # Create the server
+    server = await asyncio.start_server(
+        handle_client, "localhost", 2001, family=socket.AF_INET
+    )
     addr = server.sockets[0].getsockname()
-    print(f"Serving on {addr}")
+    print(f"Mock ACI service started at {addr[0]}:{addr[1]}")
 
+    # Start the server
     async with server:
         await server.serve_forever()
 

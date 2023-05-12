@@ -1,7 +1,6 @@
 import asyncio
 import random
 import socket
-import struct
 from typing import Set
 
 VALID_STATUS_TYPES = ("LOAD", "LED", "BTN", "TASK", "TEMP", "VARIABLE")
@@ -19,6 +18,8 @@ class Client:
         self.status_all = False
         self.status_types: Set[str] = set()
         self.status_ids: Set[int] = set()
+
+        print(f"Client {self.id} connected.")
 
     async def send_message(self, message: str) -> None:
         self.writer.write(message.encode() + b"\r\n")
@@ -122,23 +123,15 @@ async def random_status_updates() -> None:
         await asyncio.sleep(random.uniform(0, 10))
 
 
-async def close_socket() -> None:
-    await asyncio.sleep(10)
-    for client in clients:
-        print(f"Closing client {client.id}")
-        client.writer.close()
-
-
 async def handle_client(
     reader: asyncio.StreamReader, writer: asyncio.StreamWriter
 ) -> None:
     client = Client(writer, len(clients) + 1)
     clients.add(client)
-    print(f"New client connected. {len(clients)} clients connected.")
 
     try:
         while True:
-            data = await reader.read(100)
+            data = await reader.readline()
             if not data:
                 break
 
@@ -150,18 +143,17 @@ async def handle_client(
 
 
 async def main() -> None:
-    # Start the server
-    server = await asyncio.start_server(handle_client, "localhost", 3001)
-    server_sock = server.sockets[0]
-    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack('ii', 1, 0))
-
+    # Create the server
+    server = await asyncio.start_server(
+        handle_client, "localhost", 3001, family=socket.AF_INET
+    )
     addr = server.sockets[0].getsockname()
-    print(f"Serving on {addr}")
+    print(f"Mock Host Command service started at {addr[0]}:{addr[1]}")
 
     # Start the random status updates
     asyncio.create_task(random_status_updates())
-    # asyncio.create_task(close_socket())
 
+    # Start the server
     async with server:
         await server.serve_forever()
 
