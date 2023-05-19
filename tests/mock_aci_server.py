@@ -75,6 +75,12 @@ class MockACISession:
         if "Keypad" in object_types:
             results.extend(list(self._objects.stations.values()))
 
+        if "Button" in object_types:
+            results.extend(list(self._objects.buttons.values()))
+
+        if "DryContact" in object_types:
+            results.extend(list(self._objects.dry_contacts.values()))
+
         self._handle += 1
         self._filter_results[self._handle] = results
 

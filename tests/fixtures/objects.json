@@ -85,5 +85,65 @@
             "area_id": 56,
             "name": "Master Bedroom Keypad"
         }
+    ],
+
+    "Button": [
+        {
+            "id": 300,
+            "parent_id": 200,
+            "name": "Kitchen Button 1",
+            "text": "Kitchen Lights"
+        },
+        {
+            "id": 301,
+            "parent_id": 200,
+            "name": "Kitchen Button 2",
+            "text": "Kitchen Lights"
+        },
+        {
+            "id": 302,
+            "parent_id": 201,
+            "name": "Living Room Button 1",
+            "text": "Living Room Lights"
+        },
+        {
+            "id": 303,
+            "parent_id": 201,
+            "name": "Living Room Button 2",
+            "text": "Living Room Lights"
+        },
+        {
+            "id": 304,
+            "parent_id": 202,
+            "name": "Dining Room Button 1",
+            "text": "Dining Room Lights"
+        },
+        {
+            "id": 305,
+            "parent_id": 202,
+            "name": "Dining Room Button 2",
+            "text": "Dining Room Lights"
+        },
+        {
+            "id": 306,
+            "parent_id": 203,
+            "name": "Master Bedroom Button 1",
+            "text": "Master Bedroom Lights"
+        },
+        {
+            "id": 307,
+            "parent_id": 203,
+            "name": "Master Bedroom Button 2",
+            "text": "Master Bedroom Lights"
+        }
+    ],
+
+    "DryContact": [
+        {
+            "id": 400,
+            "parent_id": 203,
+            "area_id": 56,
+            "name": "Master Bedroom Motion Sensor"
+        }
     ]
 }
