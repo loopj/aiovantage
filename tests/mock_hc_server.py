@@ -1,23 +1,25 @@
+# python3 -m tests.mock_hc_server
+
 import asyncio
 import random
 import socket
 from typing import Set
 
+from .common import ObjectStore
+
 VALID_STATUS_TYPES = ("LOAD", "LED", "BTN", "TASK", "TEMP", "VARIABLE")
-LOADS = {
-    1: {"level": 0},
-    2: {"level": 0},
-}
-KNOWN_OBJECTS = LOADS.keys()
 
 
-class Client:
-    def __init__(self, writer: asyncio.StreamWriter, id: int) -> None:
+class MockHCSession:
+    def __init__(
+        self, writer: asyncio.StreamWriter, id: int, objects: ObjectStore
+    ) -> None:
         self.writer = writer
         self.id = id
         self.status_all = False
         self.status_types: Set[str] = set()
         self.status_ids: Set[int] = set()
+        self._objects = objects
 
         print(f"Client {self.id} connected.")
 
@@ -66,6 +68,14 @@ class Client:
             self.status_ids.difference_update(map(int, ids_str))
             await self.send_message(f"R:DELSTATUS {' '.join(ids_str)}")
             print(f"Client {self.id} unsubscribed from object ids {ids_str}")
+
+        elif command == "LISTSTATUS":
+            # LISTSTATUS
+
+            for id in self.status_ids:
+                await self.send_message(f"SL: {id}")
+            await self.send_message("R:LISTSTATUS")
+
         elif command == "GETLOAD":
             # GETLOAD {id}
 
@@ -74,11 +84,12 @@ class Client:
                 return
 
             id = int(args[0])
-            if id not in KNOWN_OBJECTS:
+            if not self._objects.exists(id):
                 await self.send_message('R:ERROR:7 "Invalid VID"')
                 return
 
-            await self.send_message(f"R:GETLOAD {id} {LOADS[id]['level']}")
+            await self.send_message(f"R:GETLOAD {id} {self._objects.loads[id].level}")
+
         elif command == "LOAD":
             # LOAD {id} {level}
 
@@ -87,14 +98,15 @@ class Client:
                 return
 
             id = int(args[0])
-            if id not in KNOWN_OBJECTS:
+            if not self._objects.exists(id):
                 await self.send_message('R:ERROR:7 "Invalid VID"')
                 return
 
             level = max(min(int(args[1]), 100), 0)
-            LOADS[id]["level"] = level
+            self._objects.loads[id].level = level
             await self.send_message(f"R:LOAD {id} {level}")
             await self.send_message(f"S:LOAD {id} {level}")
+
         else:
             print(f"Client {self.id} sent unknown command {command}")
 
@@ -107,58 +119,63 @@ class Client:
         print(f"Client {self.id} disconnected.")
 
 
-clients: Set[Client] = set()
+class MockHCServer:
+    def __init__(self) -> None:
+        self._sessions: Set[MockHCSession] = set()
+        self._objects = ObjectStore()
+
+    async def handle_client(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ) -> None:
+        session = MockHCSession(writer, len(self._sessions) + 1, self._objects)
+        self._sessions.add(session)
+
+        try:
+            while True:
+                data = await reader.readline()
+                if not data:
+                    break
+
+                command = data.decode().rstrip()
+                await session.handle_command(command)
+        finally:
+            self._sessions.discard(session)
+            await session.close()
+
+    async def start(self) -> None:
+        # Create the server
+        server = await asyncio.start_server(
+            self.handle_client, "localhost", 3001, family=socket.AF_INET
+        )
+
+        # Get the server address
+        addr = server.sockets[0].getsockname()
+        print(f"Mock Host Command service started at {addr[0]}:{addr[1]}")
+
+        # Run the server indefinitely
+        async with server:
+            await server.serve_forever()
+
+    async def load_updated(self, id: int, level: int) -> None:
+        for session in self._sessions:
+            if session.status_all or (
+                id in self._objects.loads and "LOAD" in session.status_types
+            ):
+                self._objects.loads[id].level = level
+                await session.send_message(f"S:LOAD {id} {level}")
 
 
-async def random_status_updates() -> None:
+async def random_status_updates(server: MockHCServer) -> None:
     while True:
-        for client in clients:
-            id = random.choice(list(KNOWN_OBJECTS))
-
-            if client.status_all or (id in LOADS and "LOAD" in client.status_types):
-                load = LOADS[id]
-                load["level"] = random.randint(0, 100)
-                await client.send_message(f"S:LOAD {id} {load['level']}")
-
+        id = random.choice(list(server._objects.loads.keys()))
+        await server.load_updated(id, random.randint(0, 100))
         await asyncio.sleep(random.uniform(0, 10))
 
 
-async def handle_client(
-    reader: asyncio.StreamReader, writer: asyncio.StreamWriter
-) -> None:
-    client = Client(writer, len(clients) + 1)
-    clients.add(client)
-
-    try:
-        while True:
-            data = await reader.readline()
-            if not data:
-                break
-
-            command = data.decode().rstrip()
-            await client.handle_command(command)
-    finally:
-        clients.discard(client)
-        await client.close()
-
-
 async def main() -> None:
-    # Create the server
-    server = await asyncio.start_server(
-        handle_client, "localhost", 3001, family=socket.AF_INET
-    )
-    addr = server.sockets[0].getsockname()
-    print(f"Mock Host Command service started at {addr[0]}:{addr[1]}")
-
-    # Start the random status updates
-    asyncio.create_task(random_status_updates())
-
-    # Start the server
-    async with server:
-        await server.serve_forever()
+    server = MockHCServer()
+    asyncio.create_task(random_status_updates(server))
+    await server.start()
 
 
-try:
-    asyncio.run(main())
-except KeyboardInterrupt:
-    print("Server stopped.")
+asyncio.run(main())

@@ -1,0 +1,89 @@
+{
+    "Area": [
+        {
+            "id": 50,
+            "area_id": 0,
+            "name": "My House"
+        },
+        {
+            "id": 51,
+            "area_id": 50,
+            "name": "First Floor"
+        },
+        {
+            "id": 52,
+            "area_id": 50,
+            "name": "Second Floor"
+        },
+        {
+            "id": 53,
+            "area_id": 51,
+            "name": "Kitchen"
+        },
+        {
+            "id": 54,
+            "area_id": 51,
+            "name": "Living Room"
+        },
+        {
+            "id": 55,
+            "area_id": 51,
+            "name": "Dining Room"
+        },
+        {
+            "id": 56,
+            "area_id": 52,
+            "name": "Master Bedroom"
+        }
+    ],
+
+    "Load": [
+        {
+            "id": 100,
+            "area_id": 53,
+            "name": "Kitchen Lights",
+            "type": "Incandescent"
+        },
+        {
+            "id": 101,
+            "area_id": 54,
+            "name": "Living Room Lights",
+            "type": "Incandescent"
+        },
+        {
+            "id": 102,
+            "area_id": 55,
+            "name": "Dining Room Lights",
+            "type": "Incandescent"
+        },
+        {
+            "id": 103,
+            "area_id": 56,
+            "name": "Master Bedroom Lights",
+            "type": "Incandescent"
+        }
+    ],
+
+    "Keypad": [
+        {
+            "id": 200,
+            "area_id": 53,
+            "name": "Kitchen Keypad"
+        },
+        {
+            "id": 201,
+            "area_id": 54,
+            "name": "Living Room Keypad"
+        },
+        {
+            "id": 202,
+            "area_id": 55,
+            "name": "Dining Room Keypad"
+        },
+        {
+            "id": 203,
+            "area_id": 56,
+            "name": "Master Bedroom Keypad"
+        }
+    ]
+}

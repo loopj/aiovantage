@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import logging
 
-from aiovantage.command_client import CommandClient, Event, EventType
+from aiovantage.command_client import HostCommandClient, Event, EventType
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -27,8 +27,8 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     # Create a Host Command client
-    async with CommandClient(
-        args.host, args.username, args.password, use_ssl=not args.no_ssl
+    async with HostCommandClient(
+        args.host, args.username, args.password, ssl=not args.no_ssl
     ) as client:
         # Subscribe to connection events
         client.subscribe(command_client_callback, EventType.CONNECTED)
