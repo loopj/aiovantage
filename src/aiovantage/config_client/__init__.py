@@ -3,7 +3,7 @@ import logging
 import ssl
 import xml.etree.ElementTree as ET
 from types import TracebackType
-from typing import Any, ClassVar, Optional, Protocol, Tuple, Type, TypeVar, Union
+from typing import Any, Optional, Tuple, Type, Union
 
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -11,21 +11,12 @@ from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
+from .methods import Method, CallType, ReturnType
 from .methods.login import Login
 
 
 # Type alias for connections
 Connection = Tuple[asyncio.StreamReader, asyncio.StreamWriter]
-
-
-# Duck typing for methods
-T = TypeVar("T")
-
-
-class Method(Protocol[T]):
-    interface: ClassVar[str]
-    call: Optional[Any]
-    return_value: Optional[T]
 
 
 class ConfigClient:
@@ -159,7 +150,9 @@ class ConfigClient:
 
             return data.decode()
 
-    async def request(self, method: Type[Method[T]], params: Any = None) -> T:
+    async def request(
+        self, method: Type[Method[CallType, ReturnType]], params: Any = None
+    ) -> ReturnType:
         """
         Marshall a request, send it to the ACI service, and yield a parsed object.
 
@@ -171,13 +164,13 @@ class ConfigClient:
             The parsed response object
         """
 
-        request = self._marshall(method, params)
+        request = self._marshall_request(method, params)
         self._logger.debug(request)
 
         response = await self.raw_request(request, f"</{method.interface}>\n")
         self._logger.debug(response)
 
-        return self._unmarshall(method, response)
+        return self._unmarshall_response(method, response)
 
     async def _get_connection(self) -> Connection:
         """
@@ -205,7 +198,9 @@ class ConfigClient:
 
         return connection
 
-    def _marshall(self, method_cls: Type[Method[T]], params: Any) -> str:
+    def _marshall_request(
+        self, method_cls: Type[Method[CallType, ReturnType]], params: Any
+    ) -> str:
         # Serialize the request to XML using xsdata
 
         # Build the method object
@@ -219,7 +214,9 @@ class ConfigClient:
             f"</{method.interface}>"
         )
 
-    def _unmarshall(self, method_cls: Type[Method[T]], response_str: str) -> T:
+    def _unmarshall_response(
+        self, method_cls: Type[Method[CallType, ReturnType]], response_str: str
+    ) -> ReturnType:
         # Deserialize the response from XML using xsdata
 
         # Parse the XML doc

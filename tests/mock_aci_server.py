@@ -3,7 +3,7 @@
 import asyncio
 import socket
 import xml.etree.ElementTree as ET
-from typing import Dict, List, Set
+from typing import Any, Dict, List, Optional, Set, Type
 
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -18,6 +18,7 @@ from aiovantage.config_client.methods.configuration import (
     OpenFilter,
 )
 from aiovantage.config_client.objects import SystemObject
+from aiovantage.config_client.methods import Method, CallType, ReturnType
 
 from .common import ObjectStore
 
@@ -59,8 +60,7 @@ class MockACISession:
             pass
 
     def open_filter(self, tree: ET.Element) -> str:
-        method = OpenFilter
-        params = self._parser.parse(tree, method).call
+        params = self._unmarshall_request(OpenFilter, tree)
         assert params is not None
 
         object_types = params.objects.object_type if params.objects else []
@@ -84,13 +84,10 @@ class MockACISession:
         self._handle += 1
         self._filter_results[self._handle] = results
 
-        method_str = self._serializer.render(OpenFilter(return_value=self._handle))
-
-        return f"<{method.interface}>{method_str}</{method.interface}>"
+        return self._marshall_response(OpenFilter, self._handle)
 
     def get_filter_results(self, tree: ET.Element) -> str:
-        method = GetFilterResults
-        params = self._parser.parse(tree, method).call
+        params = self._unmarshall_request(GetFilterResults, tree)
         assert params is not None
 
         handle = params.h_filter
@@ -101,19 +98,15 @@ class MockACISession:
             results.extend(self._filter_results[handle][:count])
             del self._filter_results[handle][:count]
 
-        method_str = self._serializer.render(
-            GetFilterResults(
-                return_value=GetFilterResults.Return(
-                    objects=[ObjectChoice(id=obj.id, choice=obj) for obj in results]
-                )
-            )
+        return self._marshall_response(
+            GetFilterResults,
+            GetFilterResults.Return(
+                objects=[ObjectChoice(id=obj.id, choice=obj) for obj in results]
+            ),
         )
 
-        return f"<{method.interface}>{method_str}</{method.interface}>"
-
     def close_filter(self, tree: ET.Element) -> str:
-        method = CloseFilter
-        handle = self._parser.parse(tree, method).call
+        handle = self._unmarshall_request(CloseFilter, tree)
         assert handle is not None
 
         success = False
@@ -121,9 +114,7 @@ class MockACISession:
             del self._filter_results[handle]
             success = True
 
-        method_str = self._serializer.render(CloseFilter(return_value=success))
-
-        return f"<{method.interface}>{method_str}</{method.interface}>"
+        return self._marshall_response(CloseFilter, success)
 
     def handle_request(self, tree: ET.Element) -> str:
         interface_name = tree.tag
@@ -133,11 +124,11 @@ class MockACISession:
         print(f"Client {self._id} requested {qualified_method_name}")
 
         if qualified_method_name == "IConfiguration.OpenFilter":
-            return self.open_filter(tree[0])
+            return self.open_filter(tree)
         elif qualified_method_name == "IConfiguration.GetFilterResults":
-            return self.get_filter_results(tree[0])
+            return self.get_filter_results(tree)
         elif qualified_method_name == "IConfiguration.CloseFilter":
-            return self.close_filter(tree[0])
+            return self.close_filter(tree)
         else:
             print(f"Client {self._id} requested unknown method {qualified_method_name}")
 
@@ -148,6 +139,35 @@ class MockACISession:
                 f"\t</{method_name}>\n"
                 f"</{interface_name}>"
             )
+
+    def _unmarshall_request(
+        self, method_cls: Type[Method[CallType, ReturnType]], tree: ET.Element
+    ) -> Optional[CallType]:
+        # Extract the method element from XML doc
+        method_el = tree.find(f"{method_cls.__name__}")
+        if method_el is None:
+            raise ValueError(
+                f"Request to {method_cls.interface} did not contain a "
+                f"<{method_cls.__name__}> element"
+            )
+
+        # Parse the method element with xsdata
+        method = self._parser.parse(method_el, method_cls)
+        return method.call
+
+    def _marshall_response(
+        self, method_cls: Type[Method[CallType, ReturnType]], params: Any
+    ) -> str:
+        # Build the method object
+        method = method_cls()
+        method.return_value = params
+
+        # Render the method object to XML with xsdata
+        return (
+            f"<{method.interface}>"
+            f"{self._serializer.render(method)}"
+            f"</{method.interface}>"
+        )
 
 
 class MockACIServer:

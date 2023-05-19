@@ -216,6 +216,10 @@ class HostCommandConnection:
     def protocol(self) -> Optional[HostCommandProtocol]:
         return self._protocol
 
+    @property
+    def closed(self) -> bool:
+        return self._protocol is None or not self._protocol.is_connected()
+
     async def open(self) -> None:
         """Open a connection to the Vantage Host Command service."""
 
@@ -406,7 +410,7 @@ class HostCommandClient:
             A list of response arguments.
         """
 
-        if self._command_connection is None:
+        if self._command_connection is None or self._command_connection.closed:
             self._command_connection = await self._create_connection()
 
         return await self._command_connection.command(command, *params)
