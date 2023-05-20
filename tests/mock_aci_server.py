@@ -3,7 +3,7 @@
 import asyncio
 import socket
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List, Optional, Set, Type
+from typing import Any, Callable, Dict, List, Optional, Set, Type
 
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -59,8 +59,7 @@ class MockACISession:
         except ET.ParseError:
             pass
 
-    def open_filter(self, tree: ET.Element) -> str:
-        params = self._unmarshall_request(OpenFilter, tree)
+    def open_filter(self, params: Optional[OpenFilter.Params]) -> int:
         assert params is not None
 
         object_types = params.objects.object_type if params.objects else []
@@ -84,10 +83,11 @@ class MockACISession:
         self._handle += 1
         self._filter_results[self._handle] = results
 
-        return self._marshall_response(OpenFilter, self._handle)
+        return self._handle
 
-    def get_filter_results(self, tree: ET.Element) -> str:
-        params = self._unmarshall_request(GetFilterResults, tree)
+    def get_filter_results(
+        self, params: Optional[GetFilterResults.Params]
+    ) -> GetFilterResults.Return:
         assert params is not None
 
         handle = params.h_filter
@@ -98,15 +98,11 @@ class MockACISession:
             results.extend(self._filter_results[handle][:count])
             del self._filter_results[handle][:count]
 
-        return self._marshall_response(
-            GetFilterResults,
-            GetFilterResults.Return(
-                objects=[ObjectChoice(id=obj.id, choice=obj) for obj in results]
-            ),
+        return GetFilterResults.Return(
+            objects=[ObjectChoice(id=obj.id, choice=obj) for obj in results]
         )
 
-    def close_filter(self, tree: ET.Element) -> str:
-        handle = self._unmarshall_request(CloseFilter, tree)
+    def close_filter(self, handle: Optional[int]) -> bool:
         assert handle is not None
 
         success = False
@@ -114,7 +110,7 @@ class MockACISession:
             del self._filter_results[handle]
             success = True
 
-        return self._marshall_response(CloseFilter, success)
+        return success
 
     def handle_request(self, tree: ET.Element) -> str:
         interface_name = tree.tag
@@ -123,12 +119,21 @@ class MockACISession:
 
         print(f"Client {self._id} requested {qualified_method_name}")
 
+        def dispatch(
+            tree: ET.Element,
+            method_cls: Type[Method[CallType, ReturnType]],
+            handler: Callable[[Optional[CallType]], ReturnType],
+        ) -> str:
+            return self._marshall_response(
+                method_cls, handler(self._unmarshall_request(method_cls, tree))
+            )
+
         if qualified_method_name == "IConfiguration.OpenFilter":
-            return self.open_filter(tree)
+            return dispatch(tree, OpenFilter, self.open_filter)
         elif qualified_method_name == "IConfiguration.GetFilterResults":
-            return self.get_filter_results(tree)
+            return dispatch(tree, GetFilterResults, self.get_filter_results)
         elif qualified_method_name == "IConfiguration.CloseFilter":
-            return self.close_filter(tree)
+            return dispatch(tree, CloseFilter, self.close_filter)
         else:
             print(f"Client {self._id} requested unknown method {qualified_method_name}")
 
