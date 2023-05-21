@@ -10,7 +10,6 @@ parser = argparse.ArgumentParser(description="aiovantage example")
 parser.add_argument("host", help="hostname of Vantage controller")
 parser.add_argument("--username", help="username for Vantage controller")
 parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--no-ssl", help="use non-ssl connection", action="store_true")
 parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
@@ -59,9 +58,7 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    async with Vantage(
-        args.host, args.username, args.password, use_ssl=not args.no_ssl
-    ) as vantage:
+    async with Vantage(args.host, args.username, args.password) as vantage:
         await vantage.initialize()
 
         root = vantage.areas.root

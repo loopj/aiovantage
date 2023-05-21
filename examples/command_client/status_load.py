@@ -9,7 +9,6 @@ parser = argparse.ArgumentParser(description="aiovantage example")
 parser.add_argument("host", help="hostname of Vantage controller")
 parser.add_argument("--username", help="username for Vantage controller")
 parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--no-ssl", help="use non-ssl connection", action="store_true")
 parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
@@ -31,9 +30,7 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     # Create a Host Command client
-    async with HostCommandClient(
-        args.host, args.username, args.password, ssl=not args.no_ssl
-    ) as client:
+    async with HostCommandClient(args.host, args.username, args.password) as client:
         # Subscribe to connection events
         client.subscribe(
             command_client_callback,
