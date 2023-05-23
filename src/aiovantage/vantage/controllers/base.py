@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from abc import abstractmethod
-from contextlib import suppress
 from inspect import iscoroutinefunction
 from typing import (
     TYPE_CHECKING,
@@ -301,10 +300,6 @@ class StatefulController(BaseController[T]):
 
     async def _handle_reconnect_event(self, event: Event) -> None:
         assert event["tag"] == EventType.RECONNECTED
-
-        # Make sure the command client has reconnected by forcing a write to the socket
-        with suppress(asyncio.TimeoutError):
-            await self.command_client.command("ECHO")
 
         # Fetch the full state
         await self.fetch_full_state()

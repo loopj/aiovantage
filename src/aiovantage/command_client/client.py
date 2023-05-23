@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import socket
 from collections import defaultdict
 from contextlib import suppress
 from dataclasses import dataclass
@@ -8,7 +7,6 @@ from inspect import iscoroutinefunction
 from ssl import SSLContext, SSLError
 from types import TracebackType
 from typing import (
-    Any,
     AsyncIterator,
     Awaitable,
     Callable,
@@ -16,13 +14,11 @@ from typing import (
     Iterable,
     List,
     Optional,
+    Set,
     Tuple,
     Type,
     Union,
-    cast,
 )
-
-from typing_extensions import override
 
 from .errors import NotConnectedError, command_error_from_string
 from .events import Event, EventType
@@ -65,129 +61,6 @@ class CommandResponse:
         self.command = command[2:]
 
 
-class HostCommandProtocol(asyncio.Protocol):
-    """
-    Async I/O Protocol implementation for the Vantage Host Command service.
-    Handles buffering and parsing of messages.
-    """
-
-    def __init__(self) -> None:
-        self._transport: Optional[asyncio.Transport] = None
-        self._buffer = bytearray()
-        self._response_buffer: List[str] = []
-        self._response_queue: asyncio.Queue[
-            Union[CommandResponse, Exception]
-        ] = asyncio.Queue(1)
-        self._event_queue: asyncio.Queue[Union[str, Exception]] = asyncio.Queue(1024)
-        self._event_consumer: bool = False
-        self._delimiter = b"\r\n"
-        self._is_eof = False
-        self._logger = logging.getLogger(__name__)
-
-    @override
-    def connection_made(self, transport: asyncio.BaseTransport) -> None:
-        self._transport = cast(asyncio.Transport, transport)
-
-        # Enable TCP keepalive if available
-        if hasattr(socket, "SO_KEEPALIVE"):
-            sock = transport.get_extra_info("socket")
-            if sock is not None:
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
-
-    @override
-    def connection_lost(self, exc: Optional[Exception]) -> None:
-        self._transport = None
-
-        # Clear the queues
-        self._clear_queue(self._response_queue)
-        self._clear_queue(self._event_queue)
-
-        # Tell the event consumer if we closed unexpectedly
-        if self._is_eof:
-            self._put_event(ConnectionError("EOF received"))
-        elif exc is not None:
-            self._put_event(exc)
-
-        # Clear the buffers
-        self._buffer.clear()
-        self._response_buffer.clear()
-        self._is_eof = False
-
-    @override
-    def data_received(self, data: bytes) -> None:
-        # Add the new data to the buffer
-        self._buffer.extend(data)
-
-        # Check for newlines in the buffer and process any complete lines
-        while self._delimiter in self._buffer:
-            line, self._buffer = self._buffer.split(self._delimiter, 1)
-            message = line.decode()
-            if message.startswith("R:ERROR"):
-                self._response_queue.put_nowait(command_error_from_string(message))
-                self._response_buffer = []
-            elif message.startswith("R:"):
-                self._response_buffer.append(message)
-                self._response_queue.put_nowait(CommandResponse(self._response_buffer))
-                self._response_buffer = []
-            elif message.startswith("S:") or message.startswith("EL:"):
-                self._put_event(message)
-            else:
-                self._response_buffer.append(message)
-
-    @override
-    def eof_received(self) -> Optional[bool]:
-        self._is_eof = True
-        return False
-
-    def is_connected(self) -> bool:
-        return self._transport is not None and not self._transport.is_closing()
-
-    def close(self) -> None:
-        if self._transport is not None:
-            self._transport.close()
-
-    async def read_response(self) -> CommandResponse:
-        response = await self._response_queue.get()
-        self._response_queue.task_done()
-
-        if isinstance(response, Exception):
-            raise response
-
-        return response
-
-    async def iter_events(self) -> AsyncIterator[str]:
-        if self._event_consumer:
-            raise RuntimeError("Event stream already being consumed")
-
-        self._event_consumer = True
-        try:
-            while True:
-                event = await self._event_queue.get()
-                self._event_queue.task_done()
-
-                if isinstance(event, Exception):
-                    raise event
-
-                yield event
-        finally:
-            self._event_consumer = False
-
-    def _put_event(self, event: Union[str, Exception]) -> None:
-        if not self._event_consumer:
-            return
-
-        try:
-            self._event_queue.put_nowait(event)
-        except asyncio.QueueFull:
-            # TODO: Should we clear the queue?
-            self._logger.warning(f"Event queue full trying to put {event}")
-
-    def _clear_queue(self, queue: asyncio.Queue[Any]) -> None:
-        while not queue.empty():
-            queue.get_nowait()
-            queue.task_done()
-
-
 class HostCommandConnection:
     """
     A connection to the Vantage Host Command service that handles sending
@@ -219,8 +92,18 @@ class HostCommandConnection:
         self._host = host
         self._conn_timeout = conn_timeout
         self._read_timeout = read_timeout
-        self._protocol: Optional[HostCommandProtocol] = None
-        self._lock: asyncio.Lock = asyncio.Lock()
+        self._reader: Optional[asyncio.StreamReader] = None
+        self._writer: Optional[asyncio.StreamWriter] = None
+
+        self._delimiter = b"\r\n"
+        self._command_lock: asyncio.Lock = asyncio.Lock()
+        self._response_buffer: List[str] = []
+        self._response_queue: asyncio.Queue[
+            Union[CommandResponse, Exception]
+        ] = asyncio.Queue(1)
+        self._event_queues: Set[asyncio.Queue[Union[str, Exception]]] = set()
+        self._task: Optional[asyncio.Task[None]] = None
+        self._logger = logging.getLogger(__name__)
 
         # Set up the SSL context
         self._ssl: Optional[SSLContext]
@@ -250,43 +133,40 @@ class HostCommandConnection:
     ) -> None:
         self.close()
 
-    @property
-    def transport(self) -> Optional[asyncio.Transport]:
-        if self._protocol is None:
-            return None
-
-        return self._protocol._transport
-
-    @property
-    def protocol(self) -> Optional[HostCommandProtocol]:
-        return self._protocol
-
-    @property
-    def closed(self) -> bool:
-        return self._protocol is None or not self._protocol.is_connected()
-
     async def open(self) -> None:
         """Open a connection to the Vantage Host Command service."""
 
         # If we're already connected, do nothing
-        if self.protocol and self.protocol.is_connected():
+        if self._writer is not None and not self._writer.is_closing():
             return
 
-        # Create the connection using our protocol
-        loop = asyncio.get_running_loop()
-        _, self._protocol = await asyncio.wait_for(
-            loop.create_connection(
-                HostCommandProtocol, self._host, self._port, ssl=self._ssl
-            ),
+        # Create the connection
+        self._reader, self._writer = await asyncio.wait_for(
+            asyncio.open_connection(self._host, self._port, ssl=self._ssl),
             timeout=self._conn_timeout,
         )
+
+        # Start the message handler task
+        self._task = asyncio.create_task(self._message_handler())
 
     def close(self) -> None:
         """Close the connection to the Vantage Host Command service."""
 
-        if self.protocol is not None:
-            self.protocol.close()
-            self._protocol = None
+        # Cancel the message handler task
+        if self._task is not None:
+            self._task.cancel()
+            self._task = None
+
+        # Close the underlying connection
+        if self._writer is not None and not self._writer.is_closing():
+            self._writer.close()
+            self._writer = None
+
+    @property
+    def closed(self) -> bool:
+        """Whether the connection is closed."""
+
+        return self._writer is None or self._writer.is_closing()
 
     async def command(
         self, command: str, *params: Union[int, float, str]
@@ -306,6 +186,10 @@ class HostCommandConnection:
             A CommandResponse instance.
         """
 
+        # Make sure we're connected
+        if self._writer is None or self._writer.is_closing():
+            raise NotConnectedError("Not connected to Vantage Host Command service")
+
         # Validate parameters
         if not all(isinstance(param, (int, float, str)) for param in params):
             raise TypeError("Command parameters must be int, float, or str")
@@ -316,18 +200,21 @@ class HostCommandConnection:
         else:
             request = command
 
-        async with self._lock:
-            # Make sure we're connected
-            if not (self.transport and self.protocol and self.protocol.is_connected()):
-                raise NotConnectedError("Not connected to Vantage Host Command service")
-
+        # Send the request and wait for the response as a single transaction
+        async with self._command_lock:
             # Send the request
-            self.transport.write(f"{request}\n".encode())
+            self._writer.write(f"{request}\n".encode())
+            await self._writer.drain()
 
             # Wait for the response
-            return await asyncio.wait_for(
-                self.protocol.read_response(), timeout=self._read_timeout
+            response = await asyncio.wait_for(
+                self._response_queue.get(), timeout=self._read_timeout
             )
+
+        if isinstance(response, Exception):
+            raise response
+
+        return response
 
     async def events(self) -> AsyncIterator[str]:
         """
@@ -337,13 +224,53 @@ class HostCommandConnection:
             "S:" (Status) or "EL:" (Event Log) strings from the Host Command service.
         """
 
-        # Make sure we're connected
-        if not (self.protocol and self.protocol.is_connected()):
-            raise NotConnectedError("Not connected to Vantage Host Command service")
+        queue = asyncio.Queue[Union[str, Exception]](1024)
+        try:
+            self._event_queues.add(queue)
 
-        # Yield events from the event queue
-        async for event in self.protocol.iter_events():
-            yield event
+            while True:
+                event = await queue.get()
+                if isinstance(event, Exception):
+                    raise event
+
+                yield event
+        finally:
+            self._event_queues.remove(queue)
+
+    async def _message_handler(self) -> None:
+        assert self._reader is not None
+
+        while True:
+            try:
+                line = await self._reader.readuntil(self._delimiter)
+                message = line.decode().rstrip()
+                if message.startswith("R:ERROR"):
+                    self._publish_response(command_error_from_string(message))
+                    self._response_buffer = []
+                elif message.startswith("R:"):
+                    self._response_buffer.append(message)
+                    self._publish_response(CommandResponse(self._response_buffer))
+                    self._response_buffer = []
+                elif message.startswith("S:") or message.startswith("EL:"):
+                    self._publish_event(message)
+                else:
+                    self._response_buffer.append(message)
+            except Exception as e:
+                self._publish_response(e)
+                self._publish_event(e)
+
+                break
+
+    def _publish_event(self, event: Union[str, Exception]) -> None:
+        for queue in self._event_queues:
+            try:
+                queue.put_nowait(event)
+            except asyncio.QueueFull:
+                self._logger.warning(f"Event queue full trying to put {event}")
+
+    def _publish_response(self, response: Union[CommandResponse, Exception]) -> None:
+        if self._command_lock.locked():
+            self._response_queue.put_nowait(response)
 
 
 class HostCommandClient:
@@ -763,7 +690,13 @@ class HostCommandClient:
                     else:
                         self._logger.warning(f"Received unexpected event: {event}")
 
-            except (OSError, ConnectionError, SSLError, asyncio.TimeoutError):
+            except (
+                OSError,
+                ConnectionError,
+                SSLError,
+                asyncio.TimeoutError,
+                asyncio.IncompleteReadError,
+            ):
                 # If we get here, the connection was lost
                 self._logger.debug("Event handler lost connection")
                 self._emit({"tag": EventType.DISCONNECTED})
