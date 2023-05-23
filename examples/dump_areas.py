@@ -15,6 +15,8 @@ args = parser.parse_args()
 
 # Some ANSI escape codes for pretty printing
 RESET = "\033[0m"
+RED = "\033[31m"
+GREEN = "\033[32m"
 YELLOW = "\033[33m"
 CYAN = "\033[36m"
 
@@ -43,7 +45,15 @@ def print_area(vantage: Vantage, area: Area, level: int = 0) -> None:
     if loads:
         print_indented(f"{YELLOW}Loads{RESET}", level + 1)
         for load in loads:
-            print_indented(f"- {load.name}", level + 1)
+            print_indented(
+                f"- {load.name} "
+                + (
+                    f"{GREEN}({load.level}%){RESET}"
+                    if load.level
+                    else f"{RED}(OFF){RESET}"
+                ),
+                level + 1,
+            )
         print()
 
     dry_contacts = list(vantage.dry_contacts.filter(area_id=area.id))
