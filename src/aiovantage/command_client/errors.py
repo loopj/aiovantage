@@ -1,3 +1,6 @@
+# TODO: Export connection erorrs with a common base like aiohttp so the user doesn't
+# have catch EOFError, OSError, TimeoutError and ConnectionError, etc
+
 class NotConnectedError(Exception):
     pass
 

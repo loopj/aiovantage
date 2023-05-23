@@ -1,8 +1,10 @@
 import asyncio
 import logging
 from abc import abstractmethod
+from contextlib import suppress
 from inspect import iscoroutinefunction
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -14,15 +16,14 @@ from typing import (
     Type,
     TypeVar,
     Union,
-    TYPE_CHECKING,
 )
 
+from aiovantage.command_client import Event, EventType, HostCommandClient
+from aiovantage.command_client.helpers import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
 from aiovantage.config_client.objects import SystemObject
 from aiovantage.config_client.xml_dataclass import xml_tag_from_class
-from aiovantage.command_client import HostCommandClient, Event, EventType
-from aiovantage.command_client.helpers import tokenize_response
 from aiovantage.vantage.events import VantageEvent
 from aiovantage.vantage.query import QuerySet
 
@@ -202,7 +203,7 @@ class StatefulController(BaseController[T]):
                 return
 
             await self.fetch_objects()
-            await self.fetch_initial_state()
+            await self.fetch_full_state()
             await self.subscribe_to_updates()
 
             self.command_client.subscribe(
@@ -211,15 +212,15 @@ class StatefulController(BaseController[T]):
 
             self._initialized = True
 
-    async def fetch_initial_state(self) -> None:
+    async def fetch_full_state(self) -> None:
         """
-        Fetch the initial state of all objects managed by this controller.
+        Fetch the full state of all objects managed by this controller.
         """
 
         for obj in self._items.values():
             await self.fetch_object_state(obj.id)
 
-        self._logger.info(f"{self.__class__.__name__} fetched initial state")
+        self._logger.info(f"{self.__class__.__name__} fetched full state")
 
     async def subscribe_to_updates(self) -> None:
         """
@@ -298,7 +299,12 @@ class StatefulController(BaseController[T]):
             # Pass the event to the controller
             self.handle_object_update(id, method, args)
 
-    def _handle_reconnect_event(self, event: Event) -> None:
+    async def _handle_reconnect_event(self, event: Event) -> None:
         assert event["tag"] == EventType.RECONNECTED
 
-        asyncio.create_task(self.fetch_initial_state())
+        # Make sure the command client has reconnected by forcing a write to the socket
+        with suppress(asyncio.TimeoutError):
+            await self.command_client.command("ECHO")
+
+        # Fetch the full state
+        await self.fetch_full_state()

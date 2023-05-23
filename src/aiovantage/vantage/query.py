@@ -17,7 +17,7 @@ T = TypeVar("T")
 
 class QuerySet(Iterable[T], AsyncIterator[T]):
     """
-    A basic django-style queryset class for querying objects from an integer-keyed
+    A basic django-ish queryset class for querying objects from an integer-keyed
     dictionary of objects. Querysets are iterable and async iterable, and can be
     chained together to filter objects.
     """
