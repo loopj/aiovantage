@@ -72,7 +72,7 @@ class HostCommandConnection:
         host: str,
         port: Optional[int] = None,
         *,
-        ssl: Union[SSLContext, bool, None] = None,
+        ssl: Union[SSLContext, bool] = True,
         conn_timeout: Optional[float] = 5,
         read_timeout: Optional[float] = 10,
     ) -> None:
@@ -400,6 +400,31 @@ class HostCommandClient:
     ) -> None:
         await self.close()
 
+    async def connection(self, retry: bool = False) -> HostCommandConnection:
+        """
+        Get a connection to the Host Command service, creating one if necessary.
+
+        Args:
+            retry: Whether to retry if the connection attempt fails.
+        """
+
+        try:
+            # Note: Getting a connection can potentially block for a long time even if
+            # retry is False, if someone else is already trying to get a connection.
+            await asyncio.wait_for(
+                self._lock.acquire(), timeout=(None if retry else self._conn_timeout)
+            )
+        except asyncio.TimeoutError:
+            raise ClientTimeoutError("Timeout waiting for connection")
+
+        try:
+            if self._connection is None or self._connection.closed:
+                self._connection = await self._create_connection(retry=retry)
+
+            return self._connection
+        finally:
+            self._lock.release()
+
     async def close(self) -> None:
         """
         Close the connections to the Host Command service and stop the event handler.
@@ -432,7 +457,7 @@ class HostCommandClient:
             A CommandResponse instance.
         """
 
-        conn = await self._get_connection()
+        conn = await self.connection()
         return await conn.command(command, *params)
 
     def subscribe(
@@ -479,6 +504,9 @@ class HostCommandClient:
             A coroutine to unsubscribe from status events.
         """
 
+        # Start the event handler if it's not already running
+        await self._start_event_handler()
+
         # Support passing a single status type
         if isinstance(status_types, str):
             status_types = (status_types,)
@@ -493,8 +521,7 @@ class HostCommandClient:
         remove_subscription = self.subscribe(filtered_callback, EventType.STATUS)
 
         # Ask the Host Command service to start sending status events
-        await self._start_event_handler()
-        conn = await self._get_connection()
+        conn = await self.connection()
         for status_type in status_types:
             self._subscribed_statuses[status_type] += 1
             if self._subscribed_statuses[status_type] == 1:
@@ -525,6 +552,9 @@ class HostCommandClient:
             A coroutine to unsubscribe from status events.
         """
 
+        # Start the event handler if it's not already running
+        await self._start_event_handler()
+
         # Support passing a single object id
         if isinstance(object_ids, int):
             object_ids = (object_ids,)
@@ -539,8 +569,7 @@ class HostCommandClient:
         remove_subscription = self.subscribe(filtered_callback, EventType.STATUS)
 
         # Ask the controller to start sending status events for these objects
-        await self._start_event_handler()
-        conn = await self._get_connection()
+        conn = await self.connection()
         for object_id in object_ids:
             self._subscribed_objects[object_id] += 1
             if self._subscribed_objects[object_id] == 1:
@@ -572,6 +601,9 @@ class HostCommandClient:
             A coroutine to unsubscribe from event log events.
         """
 
+        # Start the event handler if it's not already running
+        await self._start_event_handler()
+
         # Support passing a single log type
         if isinstance(log_types, str):
             log_types = (log_types,)
@@ -580,8 +612,7 @@ class HostCommandClient:
         remove_subscription = self.subscribe(callback, EventType.EVENT_LOG)
 
         # Ask the controller to start sending event logs for these types
-        await self._start_event_handler()
-        conn = await self._get_connection()
+        conn = await self.connection()
         for log_type in log_types:
             self._subscribed_event_logs[log_type] += 1
             if self._subscribed_event_logs[log_type] == 1:
@@ -616,15 +647,6 @@ class HostCommandClient:
         if self._event_handler_task is None or self._event_handler_task.done():
             self._event_handler_task = asyncio.create_task(self._event_handler())
             await self._event_handler_ready.wait()
-
-    async def _get_connection(self, retry: bool = False) -> HostCommandConnection:
-        # Get a command connection, creating one if necessary
-
-        async with self._lock:
-            if self._connection is None or self._connection.closed:
-                self._connection = await self._create_connection(retry)
-
-            return self._connection
 
     async def _create_connection(self, retry: bool = False) -> HostCommandConnection:
         # Get a new connection to the Host Command service, authenticating if necessary
@@ -693,7 +715,7 @@ class HostCommandClient:
         while True:
             try:
                 # Get a connection, retrying if necessary
-                conn = await self._get_connection(retry=True)
+                conn = await self.connection(retry=True)
 
                 # Signal that we're connected
                 if self._event_handler_ready.is_set():
