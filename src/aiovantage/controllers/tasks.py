@@ -3,7 +3,7 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.config_client.objects import Task
-from aiovantage.vantage.controllers.base import StatefulController
+from aiovantage.controllers.base import StatefulController
 
 # TASK <task vid> <eventType>
 #   -> R:TASK <task vid> <eventType>

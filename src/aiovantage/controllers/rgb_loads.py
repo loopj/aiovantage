@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from typing_extensions import override
 
 from aiovantage.config_client.objects import DDGColorLoad, DGColorLoad, RGBLoad
-from aiovantage.vantage.controllers.base import StatefulController
+from aiovantage.controllers.base import StatefulController
 
 
 class RGBLoadsController(StatefulController[RGBLoad]):

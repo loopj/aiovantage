@@ -7,7 +7,7 @@ from aiovantage.config_client.objects import (
     ScenePointRelay,
     StationObject,
 )
-from aiovantage.vantage.controllers.base import BaseController
+from aiovantage.controllers.base import BaseController
 
 
 class StationsController(BaseController[StationObject]):

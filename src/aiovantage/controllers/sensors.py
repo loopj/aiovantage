@@ -9,7 +9,7 @@ from aiovantage.config_client.objects import (
     Sensor,
     Temperature,
 )
-from aiovantage.vantage.controllers.base import StatefulController
+from aiovantage.controllers.base import StatefulController
 
 
 class SensorsController(StatefulController[Sensor]):

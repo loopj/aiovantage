@@ -3,7 +3,7 @@ from typing import Any, Sequence, Union
 from typing_extensions import override
 
 from aiovantage.config_client.objects import GMem
-from aiovantage.vantage.controllers.base import StatefulController
+from aiovantage.controllers.base import StatefulController
 
 GMemValueType = Union[bool, int, str]
 

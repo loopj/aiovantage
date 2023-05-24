@@ -23,11 +23,11 @@ from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
 from aiovantage.config_client.objects import SystemObject
 from aiovantage.config_client.xml_dataclass import xml_tag_from_class
-from aiovantage.vantage.events import VantageEvent
-from aiovantage.vantage.query import QuerySet
+from aiovantage.events import VantageEvent
+from aiovantage.query import QuerySet
 
 if TYPE_CHECKING:
-    from aiovantage.vantage import Vantage
+    from aiovantage import Vantage
 
 T = TypeVar("T", bound="SystemObject")
 

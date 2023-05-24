@@ -3,8 +3,8 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.config_client.objects import Load
-from aiovantage.vantage.controllers.base import StatefulController
-from aiovantage.vantage.query import QuerySet
+from aiovantage.controllers.base import StatefulController
+from aiovantage.query import QuerySet
 
 
 class LoadsController(StatefulController[Load]):
