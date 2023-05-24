@@ -1,7 +1,6 @@
 import asyncio
 import logging
 from collections import defaultdict
-from contextlib import suppress
 from dataclasses import dataclass
 from inspect import iscoroutinefunction
 from ssl import SSLContext, SSLError
@@ -238,6 +237,9 @@ class HostCommandConnection:
             self._event_queues.remove(queue)
 
     async def _message_handler(self) -> None:
+        # Task to handle incoming messages from the Host Command service and send them
+        # to the appropriate queues.
+
         assert self._reader is not None
 
         while True:
@@ -245,32 +247,45 @@ class HostCommandConnection:
                 line = await self._reader.readuntil(self._delimiter)
                 message = line.decode().rstrip()
                 if message.startswith("R:ERROR"):
-                    self._publish_response(command_error_from_string(message))
+                    self._put_response(command_error_from_string(message))
                     self._response_buffer = []
                 elif message.startswith("R:"):
                     self._response_buffer.append(message)
-                    self._publish_response(CommandResponse(self._response_buffer))
+                    self._put_response(CommandResponse(self._response_buffer))
                     self._response_buffer = []
                 elif message.startswith("S:") or message.startswith("EL:"):
-                    self._publish_event(message)
+                    self._put_event(message)
                 else:
                     self._response_buffer.append(message)
             except Exception as e:
-                self._publish_response(e)
-                self._publish_event(e)
+                self._put_response(e, warn=False)
+                self._put_event(e)
 
                 break
 
-    def _publish_event(self, event: Union[str, Exception]) -> None:
+    def _put_event(self, event: Union[str, Exception]) -> None:
+        # Send an event to all event queues.
+
         for queue in self._event_queues:
             try:
                 queue.put_nowait(event)
             except asyncio.QueueFull:
                 self._logger.warning(f"Event queue full trying to put {event}")
 
-    def _publish_response(self, response: Union[CommandResponse, Exception]) -> None:
+    def _put_response(
+        self, response: Union[CommandResponse, Exception], warn: bool = True
+    ) -> None:
+        # Send a response to the response queue, discard if no command is waiting.
+
         if self._command_lock.locked():
-            self._response_queue.put_nowait(response)
+            try:
+                self._response_queue.put_nowait(response)
+            except asyncio.QueueFull:
+                self._logger.warning(f"Response queue full trying to put {response}")
+        elif warn:
+            self._logger.warning(
+                f"Received response message with no command waiting: {response}"
+            )
 
 
 class HostCommandClient:
@@ -324,13 +339,14 @@ class HostCommandClient:
 
         self._command_connection: Optional[HostCommandConnection] = None
         self._event_handler_connection: Optional[HostCommandConnection] = None
-        self._event_handler_connected: asyncio.Event = asyncio.Event()
         self._event_handler_task: Optional[asyncio.Task[None]] = None
+        self._event_handler_ready: asyncio.Event = asyncio.Event()
         self._subscriptions: List[EventSubscription] = []
         self._subscribed_statuses: Dict[str, int] = defaultdict(int)
         self._subscribed_objects: Dict[int, int] = defaultdict(int)
         self._subscribed_event_logs: Dict[str, int] = defaultdict(int)
         self._logger = logging.getLogger(__name__)
+        self._lock = asyncio.Lock()
 
     async def __aenter__(self) -> "HostCommandClient":
         return self
@@ -351,18 +367,12 @@ class HostCommandClient:
         # Stop the event handler
         if self._event_handler_task is not None:
             self._event_handler_task.cancel()
-            with suppress(asyncio.CancelledError):
-                await self._event_handler_task
             self._event_handler_task = None
 
         # Close the connections
-        if self._event_handler_connection is not None:
-            self._event_handler_connection.close()
-            self._event_handler_connection = None
-
-        if self._command_connection is not None:
-            self._command_connection.close()
-            self._command_connection = None
+        for conn in (self._command_connection, self._event_handler_connection):
+            if conn is not None:
+                conn.close()
 
     async def command(
         self, command: str, *params: Union[int, float, str]
@@ -382,10 +392,8 @@ class HostCommandClient:
             A CommandResponse instance.
         """
 
-        if self._command_connection is None or self._command_connection.closed:
-            self._command_connection = await self._create_connection()
-
-        return await self._command_connection.command(command, *params)
+        conn = await self._get_command_connection()
+        return await conn.command(command, *params)
 
     def subscribe(
         self,
@@ -445,7 +453,7 @@ class HostCommandClient:
         remove_subscription = self.subscribe(filtered_callback, EventType.STATUS)
 
         # Ask the Host Command service to start sending status events
-        conn = await self._get_event_handler_connection()
+        conn = await self._start_event_handler()
         for status_type in status_types:
             self._subscribed_statuses[status_type] += 1
             if self._subscribed_statuses[status_type] == 1:
@@ -490,7 +498,7 @@ class HostCommandClient:
         remove_subscription = self.subscribe(filtered_callback, EventType.STATUS)
 
         # Ask the controller to start sending status events for these objects
-        conn = await self._get_event_handler_connection()
+        conn = await self._start_event_handler()
         for object_id in object_ids:
             self._subscribed_objects[object_id] += 1
             if self._subscribed_objects[object_id] == 1:
@@ -529,7 +537,7 @@ class HostCommandClient:
         remove_subscription = self.subscribe(callback, EventType.EVENT_LOG)
 
         # Ask the controller to start sending event logs for these types
-        conn = await self._get_event_handler_connection()
+        conn = await self._start_event_handler()
         for log_type in log_types:
             self._subscribed_event_logs[log_type] += 1
             if self._subscribed_event_logs[log_type] == 1:
@@ -557,25 +565,25 @@ class HostCommandClient:
                 else:
                     callback(event)
 
-    async def _get_event_handler_connection(self) -> HostCommandConnection:
-        # Get the event handler connection, starting the task if necessary
-
-        await self._start_event_handler()
-        assert self._event_handler_connection is not None
-        return self._event_handler_connection
-
-    async def _start_event_handler(self) -> None:
+    async def _start_event_handler(self) -> HostCommandConnection:
         # Start the event handler if it's not already running
 
-        # Return if the event handler is already running
-        if self._event_handler_task is not None:
-            return
+        async with self._lock:
+            if self._event_handler_task is None or self._event_handler_task.done():
+                self._event_handler_task = asyncio.create_task(self._event_handler())
+                await self._event_handler_ready.wait()
 
-        # Otherwise, start the event handler task
-        self._event_handler_task = asyncio.create_task(self._event_handler())
+            assert self._event_handler_connection is not None
+            return self._event_handler_connection
 
-        # Wait for the event handler to connect before returning
-        await self._event_handler_connected.wait()
+    async def _get_command_connection(self) -> HostCommandConnection:
+        # Get a command connection, creating one if necessary
+
+        async with self._lock:
+            if self._command_connection is None or self._command_connection.closed:
+                self._command_connection = await self._create_connection()
+
+            return self._command_connection
 
     async def _create_connection(self, retry: bool = False) -> HostCommandConnection:
         # Get a new connection to the Host Command service, authenticating if necessary
@@ -644,21 +652,22 @@ class HostCommandClient:
         while True:
             try:
                 # Get a connection, retrying if necessary
-                conn = await self._create_connection(retry=True)
-                self._event_handler_connection = conn
+                self._event_handler_connection = await self._create_connection(
+                    retry=True
+                )
 
                 # Signal that we're connected
-                if self._event_handler_connected.is_set():
-                    await self._resubscribe(conn)
+                if self._event_handler_ready.is_set():
+                    await self._resubscribe(self._event_handler_connection)
                     self._emit({"tag": EventType.RECONNECTED})
                 else:
-                    self._event_handler_connected.set()
+                    self._event_handler_ready.set()
                     self._emit({"tag": EventType.CONNECTED})
 
                 self._logger.info("Event handler connected and listening for events")
 
                 # Start processing events
-                async for event in conn.events():
+                async for event in self._event_handler_connection.events():
                     self._logger.debug(f"Received event: {event}")
 
                     if event.startswith("S:"):

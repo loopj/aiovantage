@@ -216,8 +216,9 @@ class StatefulController(BaseController[T]):
         Fetch the full state of all objects managed by this controller.
         """
 
-        for obj in self._items.values():
-            await self.fetch_object_state(obj.id)
+        await asyncio.gather(
+            *[self.fetch_object_state(obj.id) for obj in self._items.values()]
+        )
 
         self._logger.info(f"{self.__class__.__name__} fetched full state")
 
