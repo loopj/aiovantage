@@ -1,12 +1,33 @@
-# TODO: Export connection erorrs with a common base like aiohttp so the user doesn't
-# have catch EOFError, OSError, TimeoutError and ConnectionError, etc
+import asyncio
 
-class NotConnectedError(Exception):
+
+class ClientError(Exception):
     pass
 
 
-class CommandError(Exception):
+class ClientConnectionError(ClientError):
     pass
+
+
+class ClientTimeoutError(asyncio.TimeoutError, ClientConnectionError):
+    pass
+
+
+class CommandError(ClientError):
+    @classmethod
+    def from_string(cls, message: str) -> "CommandError":
+        tag, error_message = message.split(" ", 1)
+        _, _, error_code_str = tag.split(":")
+        error_code = int(error_code_str)
+
+        exc: Exception
+        if error_code == 21:
+            exc = LoginRequiredError(error_message)
+        elif error_code == 23:
+            exc = LoginFailedError(error_message)
+        else:
+            exc = CommandError(f"{error_message} (Error code {error_code})")
+        return exc
 
 
 class LoginRequiredError(CommandError):
@@ -15,18 +36,3 @@ class LoginRequiredError(CommandError):
 
 class LoginFailedError(CommandError):
     pass
-
-
-def command_error_from_string(message: str) -> CommandError:
-    tag, error_message = message.split(" ", 1)
-    _, _, error_code_str = tag.split(":")
-    error_code = int(error_code_str)
-
-    exc: Exception
-    if error_code == 21:
-        exc = LoginRequiredError(error_message)
-    elif error_code == 23:
-        exc = LoginFailedError(error_message)
-    else:
-        exc = CommandError(f"{error_message} (Error code {error_code})")
-    return exc
