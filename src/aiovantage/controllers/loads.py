@@ -57,6 +57,12 @@ class LoadsController(StatefulController[Load]):
 
         return self.filter(lambda load: load.is_motor)
 
+    @property
+    def lights(self) -> QuerySet[Load]:
+        """Return a queryset of all loads that are lights."""
+
+        return self.filter(lambda load: load.is_light)
+
     async def turn_on(self, id: int, transition: float = 0) -> None:
         """
         Turn on a load.

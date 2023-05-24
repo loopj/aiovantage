@@ -17,7 +17,7 @@ from typing import (
     Union,
 )
 
-from aiovantage.command_client import Event, EventType, HostCommandClient
+from aiovantage.command_client import Event, EventType, CommandClient
 from aiovantage.command_client.helpers import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
@@ -66,7 +66,7 @@ class BaseController(QuerySet[T]):
         return self._vantage._config_client
 
     @property
-    def command_client(self) -> HostCommandClient:
+    def command_client(self) -> CommandClient:
         return self._vantage._command_client
 
     async def initialize(self) -> None:

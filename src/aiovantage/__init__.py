@@ -1,8 +1,10 @@
+__all__ = ["Vantage", "VantageEvent"]
+
 import asyncio
 from types import TracebackType
 from typing import Callable, Optional, Type
 
-from aiovantage.command_client import HostCommandClient
+from aiovantage.command_client import CommandClient
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.objects import SystemObject
 from aiovantage.controllers.areas import AreasController
@@ -18,12 +20,6 @@ from aiovantage.controllers.tasks import TasksController
 
 from .events import VantageEvent
 
-__all__ = [
-    "Vantage",
-    "VantageEvent",
-    "HostCommandClient",
-    "ConfigClient",
-]
 
 class Vantage:
     """Control a Vantage InFusion controller."""
@@ -45,7 +41,7 @@ class Vantage:
             host, username, password, use_ssl=use_ssl, port=config_port
         )
 
-        self._command_client = HostCommandClient(
+        self._command_client = CommandClient(
             host, username, password, ssl=use_ssl, port=command_port
         )
 
@@ -77,7 +73,7 @@ class Vantage:
         return self._config_client
 
     @property
-    def command_client(self) -> HostCommandClient:
+    def command_client(self) -> CommandClient:
         """Return the command client."""
         return self._command_client
 

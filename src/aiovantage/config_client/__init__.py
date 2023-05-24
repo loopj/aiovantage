@@ -1,3 +1,24 @@
+"""
+This module provides a client for the Vantage Application Communication Interface (ACI)
+service.
+
+The ACI service is an XML-based RPC service that Design Center uses to communicate
+with Vantage InFusion Controllers. There are a number of "interfaces" exposed, each
+with one or more "methods".
+
+This service allows you to query the "configuration" of a Vantage system, for
+example fetching a list of all the objects, getting a backup of the Design Center
+XML, etc.
+
+The service is exposed on port 2010 (SSL) by default, and on port 2001 (non-SSL) if
+this port has been opened by the firewall on the controller.
+
+The service is discoverable via mDNS as `_aci._tcp.local` and/or
+`_secure_aci._tcp.local`.
+"""
+
+__all__ = ["ConfigClient"]
+
 import asyncio
 import logging
 import ssl
@@ -11,9 +32,8 @@ from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
-from .methods import Method, CallType, ReturnType
+from .methods import CallType, Method, ReturnType
 from .methods.login import Login
-
 
 # Type alias for connections
 Connection = Tuple[asyncio.StreamReader, asyncio.StreamWriter]
@@ -21,19 +41,11 @@ Connection = Tuple[asyncio.StreamReader, asyncio.StreamWriter]
 
 class ConfigClient:
     """
-    Communicate with the Vantage InFusion "Application Communication Interface" (ACI)
-    service.
+    Client to communicate with the Vantage InFusion "Application Communication
+    Interface" (ACI) service.
 
-    The ACI service is an XML-based RPC service that Design Center uses to communicate
-    with Vantage InFusion Controllers. There are a number of "interfaces" exposed, each
-    with one or more "methods".
-
-    This service allows you to query the "configuration" of a Vantage system, for
-    example fetching a list of all the objects, getting a backup of the Design Center
-    XML, etc.
-
-    The service is exposed on port 2010 (SSL) by default, and on port 2001 (non-SSL) if
-    this port has been opened by the firewall on the controller.
+    This client handles connecting to the ACI service, authenticating, and the
+    serialization/deserialization of XML requests and responses.
     """
 
     def __init__(
