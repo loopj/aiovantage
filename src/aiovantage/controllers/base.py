@@ -17,7 +17,7 @@ from typing import (
     Union,
 )
 
-from aiovantage.command_client import Event, EventType, CommandClient
+from aiovantage.command_client import CommandClient, Event, EventType
 from aiovantage.command_client.helpers import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
@@ -51,7 +51,6 @@ class BaseController(QuerySet[T]):
         self._subscriptions: List[EventSubscription[T]] = []
         self._id_subscriptions: Dict[int, List[EventSubscription[T]]] = {}
         self._initialized = False
-        self._lock = asyncio.Lock()
 
         QuerySet.__init__(self, self._items, self.initialize)
 
@@ -74,13 +73,12 @@ class BaseController(QuerySet[T]):
         Initialize a stateless controller by populating the objects it manages.
         """
 
-        async with self._lock:
-            if self._initialized:
-                return
+        if self._initialized:
+            return
 
-            await self.fetch_objects()
+        await self.fetch_objects()
 
-            self._initialized = True
+        self._initialized = True
 
     async def fetch_objects(self) -> None:
         """
@@ -197,19 +195,18 @@ class StatefulController(BaseController[T]):
         their initial state, and subscribing to state updates.
         """
 
-        async with self._lock:
-            if self._initialized:
-                return
+        if self._initialized:
+            return
 
-            await self.fetch_objects()
-            await self.fetch_full_state()
-            await self.subscribe_to_updates()
+        await self.fetch_objects()
+        await self.fetch_full_state()
+        await self.subscribe_to_updates()
 
-            self.command_client.subscribe(
-                self._handle_reconnect_event, EventType.RECONNECTED
-            )
+        self.command_client.subscribe(
+            self._handle_command_client_event, EventType.RECONNECTED
+        )
 
-            self._initialized = True
+        self._initialized = True
 
     async def fetch_full_state(self) -> None:
         """
@@ -276,7 +273,7 @@ class StatefulController(BaseController[T]):
                 {"attrs_changed": attrs_changed},
             )
 
-    def _handle_command_client_event(self, event: Event) -> None:
+    async def _handle_command_client_event(self, event: Event) -> None:
         # Handle status update events from the command client
 
         if event["tag"] == EventType.STATUS:
@@ -299,8 +296,8 @@ class StatefulController(BaseController[T]):
             # Pass the event to the controller
             self.handle_object_update(id, method, args)
 
-    async def _handle_reconnect_event(self, event: Event) -> None:
-        assert event["tag"] == EventType.RECONNECTED
+        elif event["tag"] == EventType.RECONNECTED:
+            # Handle reconnect events
 
-        # Fetch the full state
-        await self.fetch_full_state()
+            # Fetch the full state
+            await self.fetch_full_state()
