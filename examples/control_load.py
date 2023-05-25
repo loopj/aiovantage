@@ -4,7 +4,7 @@ import logging
 import sys
 import termios
 from contextlib import contextmanager
-from enum import Enum, auto
+from enum import Enum
 from typing import Iterator, TextIO, Union
 
 from aiovantage import Vantage
@@ -65,12 +65,11 @@ async def main() -> None:
                 print("> ", end="", flush=True)
                 load_id = int(input())
                 load = vantage.loads[load_id]
+                print()
                 break
             except (ValueError, KeyError):
-                print("Invalid load id")
+                print("Invalid load id\n")
                 continue
-            finally:
-                print()
 
         # Print control instructions
         print(f"Controlling load '{load.name}'")
