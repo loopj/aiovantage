@@ -11,6 +11,7 @@ from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
+from aiovantage.config_client.methods import CallType, Method, ReturnType
 from aiovantage.config_client.methods.configuration import (
     CloseFilter,
     GetFilterResults,
@@ -18,7 +19,6 @@ from aiovantage.config_client.methods.configuration import (
     OpenFilter,
 )
 from aiovantage.config_client.objects import SystemObject
-from aiovantage.config_client.methods import Method, CallType, ReturnType
 
 from .common import ObjectStore
 

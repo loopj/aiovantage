@@ -3,7 +3,9 @@ import asyncio
 import logging
 import sys
 import termios
-import tty
+from contextlib import contextmanager
+from enum import Enum, auto
+from typing import Iterator, TextIO, Union
 
 from aiovantage import Vantage
 
@@ -16,64 +18,89 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
+Key = Enum("Key", ["UP", "DOWN"])
+
+
+def parse_keypress() -> Union[Key, str, None]:
+    c = sys.stdin.read(1)
+    if c == "\x1b":
+        seq = sys.stdin.read(2)
+        if seq == "[A":
+            return Key.UP
+        elif seq == "[B":
+            return Key.DOWN
+        else:
+            return None
+    else:
+        return c
+
+
+@contextmanager
+def raw_mode(io: TextIO) -> Iterator[None]:
+    old_attrs = termios.tcgetattr(io)
+    new_attrs = old_attrs[:]
+    new_attrs[3] = new_attrs[3] & ~(termios.ECHO | termios.ICANON)
+    try:
+        termios.tcsetattr(io, termios.TCSADRAIN, new_attrs)
+        yield
+    finally:
+        termios.tcsetattr(io, termios.TCSADRAIN, old_attrs)
+
+
 async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    vantage = Vantage(args.host, args.username, args.password)
-    await vantage.loads.initialize()
-
-    try:
+    async with Vantage(args.host, args.username, args.password) as vantage:
+        # Print out the available loads
         print("Available loads:")
-        for load in vantage.loads:
+        async for load in vantage.loads:
             print(f"{load.id} | {load.name}")
         print()
 
-        # Prompt for the load ID
-        sys.stdout.write("Enter a load ID to control: ")
-        sys.stdout.flush()
-        load_id = int(input())
-        load = vantage.loads[load_id]
-
-        # Suppress echoing
-        old_settings = termios.tcgetattr(sys.stdin)
-        tty.setcbreak(sys.stdin.fileno())
-
-        # Print instructions to the user
-        print("Use the arrow keys to increase or decrease the load's brightness.")
-        print("Press the spacebar to toggle the load.")
-        print("Press 'q' to quit.\n")
-
-        # Main loop
+        # Ask which load to control
         while True:
-            # Get the next key pressed
-            c = sys.stdin.read(1)
-
-            # Check if the key is an escape sequence
-            if c == "\x1b":
-                # Read the rest of the escape sequence
-                seq = sys.stdin.read(2)
-                if seq == "[A":  # Up arrow
-                    # Increase the load's brightness
-                    level = load.level or 0
-                    await vantage.loads.set_level(load.id, level + 10, transition=1)
-                elif seq == "[B":  # Down arrow
-                    # Decrease the load's brightness
-                    level = load.level or 0
-                    await vantage.loads.set_level(load.id, level - 10, transition=1)
-            elif c == " ":
-                # Toggle load
-                level = load.level or 0
-                if level > 0:
-                    await vantage.loads.set_level(load.id, 0, transition=1)
-                else:
-                    await vantage.loads.set_level(load.id, 100)
-            elif c == "q":
+            try:
+                print("Enter a load ID to control:")
+                print("> ", end="", flush=True)
+                load_id = int(input())
+                load = vantage.loads[load_id]
                 break
+            except (ValueError, KeyError):
+                print("Invalid load id")
+                continue
+            finally:
+                print()
 
-    finally:
-        # Restore terminal settings
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        # Print control instructions
+        print(f"Controlling load '{load.name}'")
+        print("    Use the arrow keys to increase or decrease the load's brightness.")
+        print("    Press the spacebar to toggle the load.")
+        print("    Press 'q' to quit.\n")
+
+        # Listen for control keypresses
+        with raw_mode(sys.stdin):
+            while True:
+                key = parse_keypress()
+                level = load.level or 0
+                if key == Key.UP:
+                    # Increase the load's brightness
+                    await vantage.loads.set_level(load.id, level + 10, transition=1)
+                    print(f"Increased '{load.name}' brightness to {load.level}%")
+                elif key == Key.DOWN:
+                    # Decrease the load's brightness
+                    await vantage.loads.set_level(load.id, level - 10, transition=1)
+                    print(f"Decreased '{load.name}' brightness to {load.level}%")
+                elif key == " ":
+                    # Toggle load
+                    if level > 0:
+                        await vantage.loads.set_level(load.id, 0, transition=1)
+                        print(f"Turned '{load.name}' load off")
+                    else:
+                        await vantage.loads.set_level(load.id, 100)
+                        print(f"Turned '{load.name}' load on")
+                elif key == "q":
+                    break
 
 
 try:
