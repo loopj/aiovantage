@@ -3,9 +3,9 @@ import asyncio
 import logging
 import sys
 import termios
+import tty
 from contextlib import contextmanager
-from enum import Enum
-from typing import Iterator, TextIO, Union
+from typing import Iterator, Optional
 
 from aiovantage import Vantage
 
@@ -18,17 +18,16 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-Key = Enum("Key", ["UP", "DOWN"])
+def parse_keypress() -> Optional[str]:
+    # Rudimentary keypress parser
 
-
-def parse_keypress() -> Union[Key, str, None]:
     c = sys.stdin.read(1)
     if c == "\x1b":
         seq = sys.stdin.read(2)
         if seq == "[A":
-            return Key.UP
+            return "KEY_UP"
         elif seq == "[B":
-            return Key.DOWN
+            return "KEY_DOWN"
         else:
             return None
     else:
@@ -36,15 +35,15 @@ def parse_keypress() -> Union[Key, str, None]:
 
 
 @contextmanager
-def raw_mode(io: TextIO) -> Iterator[None]:
-    old_attrs = termios.tcgetattr(io)
-    new_attrs = old_attrs[:]
-    new_attrs[3] = new_attrs[3] & ~(termios.ECHO | termios.ICANON)
+def cbreak_mode(fd: int) -> Iterator[None]:
+    # Context manager to read terminal input character by character
+
+    old_attrs = termios.tcgetattr(fd)
     try:
-        termios.tcsetattr(io, termios.TCSADRAIN, new_attrs)
+        tty.setcbreak(fd)
         yield
     finally:
-        termios.tcsetattr(io, termios.TCSADRAIN, old_attrs)
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_attrs)
 
 
 async def main() -> None:
@@ -53,9 +52,10 @@ async def main() -> None:
 
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the available loads
-        print("Available loads:")
+        print(f"{'Load ID': ^7}  {'Name'}")
+        print(f"{'-------': ^7}  {'----'}")
         async for load in vantage.loads:
-            print(f"{load.id} | {load.name}")
+            print(f"{load.id: ^7}  {load.name}")
         print()
 
         # Ask which load to control
@@ -78,15 +78,15 @@ async def main() -> None:
         print("    Press 'q' to quit.\n")
 
         # Listen for control keypresses
-        with raw_mode(sys.stdin):
+        with cbreak_mode(sys.stdin.fileno()):
             while True:
                 key = parse_keypress()
                 level = load.level or 0
-                if key == Key.UP:
+                if key == "KEY_UP":
                     # Increase the load's brightness
                     await vantage.loads.set_level(load.id, level + 10, transition=1)
                     print(f"Increased '{load.name}' brightness to {load.level}%")
-                elif key == Key.DOWN:
+                elif key == "KEY_DOWN":
                     # Decrease the load's brightness
                     await vantage.loads.set_level(load.id, level - 10, transition=1)
                     print(f"Decreased '{load.name}' brightness to {load.level}%")
