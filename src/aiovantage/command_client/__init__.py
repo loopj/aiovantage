@@ -61,12 +61,11 @@ from .events import Event, EventType
 from .helpers import tokenize_response
 from .ssl import create_ssl_context
 
-# Type alias for connections
-Connection = Tuple[asyncio.StreamReader, asyncio.StreamWriter]
 
 # Type aliases for callbacks for event subscriptions
 EventCallback = Union[Callable[[Event], None], Callable[[Event], Awaitable[None]]]
-EventSubscription = Tuple[EventCallback, Optional[Iterable[EventType]]]
+EventFilter = Callable[[Event], bool]
+EventSubscription = Tuple[EventCallback, Optional[EventFilter]]
 
 
 @dataclass
@@ -496,7 +495,7 @@ class CommandClient:
     def subscribe(
         self,
         callback: EventCallback,
-        event_filter: Union[EventType, Iterable[EventType], None],
+        event_filter: Union[EventType, Iterable[EventType], EventFilter, None] = None,
     ) -> Callable[[], None]:
         """
         Subscribe to Host Command events, optionally filtering by event type.
@@ -509,12 +508,23 @@ class CommandClient:
             A callback that can be called to unsubscribe.
         """
 
-        # Support passing a single EventType
+        # Support filtering by event type, a list of event types, or a predicate
+        filter_fn: Optional[EventFilter]
         if isinstance(event_filter, EventType):
-            event_filter = (event_filter,)
+
+            def filter_fn(event: Event) -> bool:
+                return event["tag"] == event_filter
+
+        elif isinstance(event_filter, Iterable):
+
+            def filter_fn(event: Event) -> bool:
+                return event["tag"] in event_filter  # type: ignore[operator]
+
+        else:
+            filter_fn = event_filter
 
         # Add the subscription
-        subscription = (callback, event_filter)
+        subscription: EventSubscription = (callback, filter_fn)
         self._subscriptions.append(subscription)
 
         # Return an unsubscribe callback to remove the subscription
@@ -540,18 +550,19 @@ class CommandClient:
         # Start the event handler if it's not already running
         await self._start_event_handler()
 
-        # Support passing a single status type
+        # Support both a single status type and a list of status types
         if isinstance(status_types, str):
             status_types = (status_types,)
 
         # Filter received status events by type
-        def filtered_callback(event: Event) -> None:
-            assert event["tag"] == EventType.STATUS
-            if event["status_type"] in status_types:
-                callback(event)
+        def event_filter(event: Event) -> bool:
+            return (
+                event["tag"] == EventType.STATUS
+                and event["status_type"] in status_types
+            )
 
         # Add the subscription to the list
-        remove_subscription = self.subscribe(filtered_callback, EventType.STATUS)
+        remove_subscription = self.subscribe(callback, event_filter)
 
         # Ask the Host Command service to start sending status events
         conn = await self.connection()
@@ -588,18 +599,19 @@ class CommandClient:
         # Start the event handler if it's not already running
         await self._start_event_handler()
 
-        # Support passing a single object id
+        # Support both a single object id and a list of object ids
         if isinstance(object_ids, int):
             object_ids = (object_ids,)
 
         # Filter recived status events by id
-        def filtered_callback(event: Event) -> None:
-            assert event["tag"] == EventType.STATUS
-            if event["id"] in object_ids:  # type: ignore[operator]
-                callback(event)
+        def event_filter(event: Event) -> bool:
+            return (
+                event["tag"] == EventType.STATUS
+                and event["id"] in object_ids  # type: ignore[operator]
+            )
 
         # Add the subscription to the list
-        remove_subscription = self.subscribe(filtered_callback, EventType.STATUS)
+        remove_subscription = self.subscribe(callback, event_filter)
 
         # Ask the controller to start sending status events for these objects
         conn = await self.connection()
@@ -637,7 +649,7 @@ class CommandClient:
         # Start the event handler if it's not already running
         await self._start_event_handler()
 
-        # Support passing a single log type
+        # Support both a single log type and a list of log types
         if isinstance(log_types, str):
             log_types = (log_types,)
 
@@ -665,10 +677,10 @@ class CommandClient:
         return unsubscribe
 
     def _emit(self, event: Event) -> None:
-        # Emit an event to subscribers
+        # Emit an event to any subscribers that are interested in it
 
-        for callback, event_types in self._subscriptions:
-            if event_types is None or event["tag"] in event_types:
+        for callback, event_filter in self._subscriptions:
+            if event_filter is None or event_filter(event):
                 if iscoroutinefunction(callback):
                     asyncio.create_task(callback(event))
                 else:

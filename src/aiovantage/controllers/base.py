@@ -73,6 +73,8 @@ class BaseController(QuerySet[T]):
         Initialize a stateless controller by populating the objects it manages.
         """
 
+        # TODO: Allow reinitalization
+
         if self._initialized:
             return
 
@@ -84,6 +86,10 @@ class BaseController(QuerySet[T]):
         """
         Fetch all objects managed by this controller.
         """
+
+        # TODO: Allow re-fetching objects
+        # - fire OBJECT_ADDED events for new objects
+        # - fire OBJECT_REMOVED events for removed objects
 
         vantage_types = [xml_tag_from_class(cls) for cls in self.vantage_types]
         async for obj in get_objects_by_type(
@@ -195,6 +201,9 @@ class StatefulController(BaseController[T]):
         their initial state, and subscribing to state updates.
         """
 
+        # TODO: Allow reinitalization
+        # TODO: Allow initializing without subscribing to object state updates
+
         if self._initialized:
             return
 
@@ -223,6 +232,8 @@ class StatefulController(BaseController[T]):
         """
         Subscribe to state updates for objects managed by this controller.
         """
+
+        # TODO: Handle unsubscribe
 
         if not self._items:
             return
