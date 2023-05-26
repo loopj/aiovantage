@@ -9,6 +9,7 @@ from typing import Iterator, Optional
 
 from aiovantage import Vantage
 
+
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
 parser.add_argument("host", help="hostname of Vantage controller")
@@ -52,8 +53,8 @@ async def main() -> None:
 
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the available loads
-        print(f"{'Load ID': ^7}  {'Name'}")
-        print(f"{'-------': ^7}  {'----'}")
+        print("Load ID  Name")
+        print("-------  ----")
         async for load in vantage.loads:
             print(f"{load.id: ^7}  {load.name}")
         print()
@@ -63,16 +64,16 @@ async def main() -> None:
             try:
                 print("Enter a load ID to control:")
                 print("> ", end="", flush=True)
+
                 load_id = int(input())
                 load = vantage.loads[load_id]
-                print()
                 break
             except (ValueError, KeyError):
-                print("Invalid load id\n")
+                print("Invalid load id")
                 continue
 
         # Print control instructions
-        print(f"Controlling load '{load.name}'")
+        print(f"\nControlling load '{load.name}'")
         print("    Use the arrow keys to increase or decrease the load's brightness.")
         print("    Press the spacebar to toggle the load.")
         print("    Press 'q' to quit.\n")
