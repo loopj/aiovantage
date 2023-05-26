@@ -17,10 +17,10 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and level of each load
+    # Connect to the Vantage controller and print out the name and value of each GMem
     async with Vantage(args.host, args.username, args.password) as vantage:
-        async for area in vantage.areas:
-            print(area.name)
+        async for gmem in vantage.gmem:
+            print(f"{gmem.name} is {gmem.value}")
 
 
 try:

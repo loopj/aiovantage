@@ -18,6 +18,7 @@ args = parser.parse_args()
 def callback(event: VantageEvent, obj: GMem, data: Dict[str, Any]) -> None:
     if event == VantageEvent.OBJECT_ADDED:
         print(f"[GMem added] '{obj.name}' ({obj.id})")
+
     elif event == VantageEvent.OBJECT_UPDATED:
         print(f"[GMem updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):

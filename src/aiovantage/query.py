@@ -42,6 +42,9 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
             if all(filter(obj) for filter in self.__filters):
                 yield obj
 
+    def __bool__(self) -> bool:
+        return any(True for _ in self)
+
     def __aiter__(self) -> AsyncIterator[T]:
         self.__iterator = None
         return self

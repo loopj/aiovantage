@@ -20,6 +20,14 @@ class RGBLoad(LocationObject):
         self.color_temp: Optional[int] = None
 
     @property
+    def is_on(self) -> bool:
+        """
+        Return whether the load is on.
+        """
+
+        return bool(self.brightness)
+
+    @property
     def brightness(self) -> Optional[float]:
         """
         Return the brightness of the load, 0-100.
@@ -39,14 +47,3 @@ class RGBLoad(LocationObject):
             return max(self.rgbw) / 255 * 100
 
         return None
-
-@dataclass
-class DGColorLoad(RGBLoad):
-    class Meta:
-        name = "Vantage.DGColorLoad"
-
-
-@dataclass
-class DDGColorLoad(RGBLoad):
-    class Meta:
-        name = "Vantage.DDGColorLoad"

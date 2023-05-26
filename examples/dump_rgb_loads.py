@@ -19,8 +19,8 @@ async def main() -> None:
 
     # Connect to the Vantage controller and print out the name and level of each load
     async with Vantage(args.host, args.username, args.password) as vantage:
-        async for area in vantage.areas:
-            print(area.name)
+        async for rgb_load in vantage.rgb_loads:
+            print(f"{rgb_load.name} is {'ON' if rgb_load.is_on else 'OFF'}")
 
 
 try:
