@@ -1,4 +1,4 @@
-from typing import Any, Sequence, Union
+from typing import Any, Dict, Sequence, Union
 
 from typing_extensions import override
 
@@ -20,28 +20,34 @@ class GMemController(StatefulController[GMem]):
 
     @override
     async def fetch_object_state(self, id: int) -> None:
-        # Fetch initial state of all variables.
+        # Fetch initial state of all GMem objects.
 
-        self.update_state(id, {"value": await self.get_value(id)})
+        state: Dict[str, Any] = {}
+        state["value"] = await self.get_value(id)
+
+        self.update_state(id, state)
 
     @override
     def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
+        # Handle state changes for a GMem object.
+
+        state: Dict[str, Any] = {}
         if status == "VARIABLE":
             # STATUS VARIABLE
             # -> S:VARIABLE <id> <value>
-            value = self._parse_value(id, args[0])
+            state["value"] = self._parse_value(id, args[0])
 
-            self.update_state(id, {"value": value})
+        self.update_state(id, state)
 
-    async def get_value(self, id: int) -> Any:
+    async def get_value(self, id: int) -> GMemValueType:
         """
-        Get the value of a variable.
+        Get the value of a variable, and convert it to the correct type.
 
         Args:
             id: The variable ID.
 
         Returns:
-            The value of the variable.
+            The value of the variable, as either a bool, int, or str.
         """
 
         # GETVARIABLE {id}
@@ -56,7 +62,7 @@ class GMemController(StatefulController[GMem]):
 
         Args:
             id: The variable ID.
-            value: The value to set.
+            value: The value to set, either a bool, int, or str.
         """
 
         # SETVARIABLE {id} {value}

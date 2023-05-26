@@ -20,7 +20,7 @@ async def main() -> None:
     # Connect to the Vantage controller and print out the name and level of each load
     async with Vantage(args.host, args.username, args.password) as vantage:
         async for load in vantage.loads:
-            print(f"{load.name} is {load.level}%")
+            print(f"[{load.id}] '{load.name}' level={load.level}%")
 
 
 try:

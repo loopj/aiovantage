@@ -63,12 +63,10 @@ class TasksController(StatefulController[Task]):
         state: Dict[str, Any] = {}
         if status == "Task.IsRunning":
             # <id> Task.IsRunning <0/1>
-
             state["is_running"] = bool(int(args[0]))
 
         elif status == "Task.GetState":
             # <id> Task.GetState <0/1>
-
             state["state"] = bool(int(args[0]))
 
         self.update_state(id, state)

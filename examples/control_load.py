@@ -83,22 +83,26 @@ async def main() -> None:
             while True:
                 key = parse_keypress()
                 level = load.level or 0
+
                 if key == "KEY_UP":
                     # Increase the load's brightness
                     await vantage.loads.set_level(load.id, level + 10, transition=1)
                     print(f"Increased '{load.name}' brightness to {load.level}%")
+
                 elif key == "KEY_DOWN":
                     # Decrease the load's brightness
                     await vantage.loads.set_level(load.id, level - 10, transition=1)
                     print(f"Decreased '{load.name}' brightness to {load.level}%")
+
                 elif key == " ":
                     # Toggle load
-                    if level > 0:
-                        await vantage.loads.set_level(load.id, 0, transition=1)
+                    if load.is_on:
+                        await vantage.loads.turn_off(load.id)
                         print(f"Turned '{load.name}' load off")
                     else:
-                        await vantage.loads.set_level(load.id, 100)
+                        await vantage.loads.turn_on(load.id)
                         print(f"Turned '{load.name}' load on")
+
                 elif key == "q":
                     break
 
