@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Dict, Sequence
 
 from typing_extensions import override
@@ -5,9 +6,34 @@ from typing_extensions import override
 from aiovantage.config_client.objects import Task
 from aiovantage.controllers.base import StatefulController
 
-# Event types:
-#   PRESS, RELEASE, HOLD, TIMER, DATA, POSITION, INRANGE, OUTOFRANGE, TEMPERATURE,
-#   DAYMODE, FANMODE, OPERATIONMODE, CONNECT, DISCONNECT, BOOT, LEARN, CANCEL, NONE
+
+class EventType(Enum):
+    CANCEL = (-2, "CANCEL")
+    NONE = (-1, "NONE")
+    RELEASE = (0, "RELEASE")
+    PRESS = (1, "PRESS")
+    HOLD = (2, "HOLD")
+    TIMER = (3, "TIMER")
+    DATA = (4, "DATA")
+    POSITION = (5, "POSITION")
+    INRANGE = (6, "INRANGE")
+    OUTOFRANGE = (7, "OUTOFRANGE")
+    TEMPERATURE = (8, "TEMPERATURE")
+    DAYMODE = (9, "DAYMODE")
+    FANMODE = (10, "FANMODE")
+    OPERATIONMODE = (11, "OPERATIONMODE")
+    CONNECT = (12, "CONNECT")
+    DISCONNECT = (13, "DISCONNECT")
+    BOOT = (14, "BOOT")
+    LEARN = (15, "LEARN")
+
+    @property
+    def id(self) -> int:
+        return self.value[0]
+
+    @property
+    def name(self) -> str:
+        return self.value[1]
 
 
 class TasksController(StatefulController[Task]):
@@ -47,24 +73,6 @@ class TasksController(StatefulController[Task]):
 
         self.update_state(id, state)
 
-    async def get_state(self, id: int) -> bool:
-        """
-        Get the state of a task.
-
-        Args:
-            id: The ID of the task.
-        """
-
-        # GETTASK <id>
-        # -> R:GETTASK <id> <state 0/1>
-
-        # INVOKE <id> Task.GetState
-        # -> R:INVOKE <id> <state (0/1)> Task.GetState
-        response = await self.command_client.command("INVOKE", id, "Task.GetState")
-        task_state = bool(int(response.args[1]))
-
-        return task_state
-
     async def is_running(self, id: int) -> bool:
         """
         Get the running state of a task.
@@ -80,15 +88,56 @@ class TasksController(StatefulController[Task]):
 
         return is_running
 
-    async def start(self, id: int, event: str = "RELEASE") -> None:
+    async def get_state(self, id: int) -> bool:
+        """
+        Get the state of a task.
+
+        Args:
+            id: The ID of the task.
+        """
+
+        # GETTASK <id>
+        # -> R:GETTASK <id> <state 0/1>
+        # response = await self.command_client.command("GETTASK", id)
+        # task_state = bool(int(response.args[1]))
+
+        # INVOKE <id> Task.GetState
+        # -> R:INVOKE <id> <state (0/1)> Task.GetState
+        response = await self.command_client.command("INVOKE", id, "Task.GetState")
+        task_state = bool(int(response.args[1]))
+
+        return task_state
+
+    async def start(
+        self, id: int, *, event_type: EventType = EventType.RELEASE, source_id: int = 0
+    ) -> None:
         """
         Start a task.
 
         Args:
             id: The ID of the task.
-            event: The event to send to the task.
+            event_type: The type event to send to the task, defaults to RELEASE.
+            source_id: The object ID of the source sending the event, defaults to 0.
         """
 
         # TASK <id> <event>
         # -> R:TASK <task vid> <event>
-        await self.command_client.command("TASK", id, event)
+        # await self.command_client.command("TASK", id, event_type.name)
+
+        # INVOKE <id> Task.Start <source> <event> <param1> <param2>
+        # -> R:INVOKE <id> <rcode (0/1)> Task.Start <source> <event> <param1> <param2>
+        await self.command_client.command(
+            "INVOKE", id, "Task.Start", source_id, event_type.id
+        )
+
+    async def stop(self, id: int) -> None:
+        """
+        Stop a running task.
+
+        Args:
+            id: The ID of the task.
+        """
+
+        # INVOKE <id> Task.Stop
+        # -> R:INVOKE <id> <rcode> Task.Stop
+        await self.command_client.command("INVOKE", id, "Task.Stop")
