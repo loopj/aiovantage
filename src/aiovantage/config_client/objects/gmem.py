@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Union
+from typing import Optional, Union
 
 from aiovantage.config_client.xml_dataclass import xml_element
 
@@ -21,11 +21,13 @@ class GMem(SystemObject):
         TEMPERATURE = "DegC"
         TEXT = "Text"
 
+    Value = Union[bool, int, str]
+
     tag: "GMem.Type" = xml_element("Tag")
     persistent: bool = xml_element("Persistent")
 
     def __post_init__(self) -> None:
-        self.value: Union[int, bool, str, None] = None
+        self.value: Optional["GMem.Value"] = None
 
     @property
     def is_bool(self) -> bool:
@@ -38,16 +40,16 @@ class GMem(SystemObject):
     @property
     def is_int(self) -> bool:
         return self.tag in (
-            self.Type.DELAY,
-            self.Type.DEVICE_UNITS,
-            self.Type.LEVEL,
-            self.Type.LOAD,
-            self.Type.NUMBER,
-            self.Type.SECONDS,
-            self.Type.TASK,
-            self.Type.TEMPERATURE,
+            GMem.Type.DELAY,
+            GMem.Type.DEVICE_UNITS,
+            GMem.Type.LEVEL,
+            GMem.Type.LOAD,
+            GMem.Type.NUMBER,
+            GMem.Type.SECONDS,
+            GMem.Type.TASK,
+            GMem.Type.TEMPERATURE,
         )
 
     @property
     def is_object_id(self) -> bool:
-        return self.tag in (self.Type.LOAD, self.Type.TASK)
+        return self.tag in (GMem.Type.LOAD, GMem.Type.TASK)

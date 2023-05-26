@@ -1,11 +1,9 @@
-from typing import Any, Dict, Sequence, Union
+from typing import Any, Dict, Sequence
 
 from typing_extensions import override
 
 from aiovantage.config_client.objects import GMem
 from aiovantage.controllers.base import StatefulController
-
-GMemValueType = Union[bool, int, str]
 
 
 class GMemController(StatefulController[GMem]):
@@ -39,7 +37,7 @@ class GMemController(StatefulController[GMem]):
 
         self.update_state(id, state)
 
-    async def get_value(self, id: int) -> GMemValueType:
+    async def get_value(self, id: int) -> GMem.Value:
         """
         Get the value of a variable, and convert it to the correct type.
 
@@ -56,7 +54,7 @@ class GMemController(StatefulController[GMem]):
 
         return self._parse_value(id, response.args[1])
 
-    async def set_value(self, id: int, value: GMemValueType) -> None:
+    async def set_value(self, id: int, value: GMem.Value) -> None:
         """
         Set the value of a variable.
 
@@ -72,7 +70,7 @@ class GMemController(StatefulController[GMem]):
         # Update the local state
         self.update_state(id, {"value": value})
 
-    def _encode_value(self, value: GMemValueType) -> str:
+    def _encode_value(self, value: GMem.Value) -> str:
         # Encode the value for the SETVARIABLE command.
 
         if isinstance(value, bool):
@@ -85,7 +83,7 @@ class GMemController(StatefulController[GMem]):
         else:
             return str(value)
 
-    def _parse_value(self, id: int, value: str) -> GMemValueType:
+    def _parse_value(self, id: int, value: str) -> GMem.Value:
         # Parse the results of the VARAIBLE command based on the variable type.
 
         type = GMem.Type(self[id].tag)

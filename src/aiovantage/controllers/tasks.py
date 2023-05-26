@@ -1,39 +1,9 @@
-from enum import Enum
 from typing import Any, Dict, Sequence
 
 from typing_extensions import override
 
 from aiovantage.config_client.objects import Task
 from aiovantage.controllers.base import StatefulController
-
-
-class EventType(Enum):
-    CANCEL = (-2, "CANCEL")
-    NONE = (-1, "NONE")
-    RELEASE = (0, "RELEASE")
-    PRESS = (1, "PRESS")
-    HOLD = (2, "HOLD")
-    TIMER = (3, "TIMER")
-    DATA = (4, "DATA")
-    POSITION = (5, "POSITION")
-    INRANGE = (6, "INRANGE")
-    OUTOFRANGE = (7, "OUTOFRANGE")
-    TEMPERATURE = (8, "TEMPERATURE")
-    DAYMODE = (9, "DAYMODE")
-    FANMODE = (10, "FANMODE")
-    OPERATIONMODE = (11, "OPERATIONMODE")
-    CONNECT = (12, "CONNECT")
-    DISCONNECT = (13, "DISCONNECT")
-    BOOT = (14, "BOOT")
-    LEARN = (15, "LEARN")
-
-    @property
-    def id(self) -> int:
-        return self.value[0]
-
-    @property
-    def name(self) -> str:
-        return self.value[1]
 
 
 class TasksController(StatefulController[Task]):
@@ -107,7 +77,10 @@ class TasksController(StatefulController[Task]):
         return task_state
 
     async def start(
-        self, id: int, *, event_type: EventType = EventType.RELEASE, source_id: int = 0
+        self,
+        id: int,
+        event_type: Task.EventType = Task.EventType.RELEASE,
+        source_id: int = 0,
     ) -> None:
         """
         Start a task.
@@ -125,7 +98,7 @@ class TasksController(StatefulController[Task]):
         # INVOKE <id> Task.Start <source> <event> <param1> <param2>
         # -> R:INVOKE <id> <rcode (0/1)> Task.Start <source> <event> <param1> <param2>
         await self.command_client.command(
-            "INVOKE", id, "Task.Start", source_id, event_type.id
+            "INVOKE", id, "Task.Start", source_id, event_type.value
         )
 
     async def stop(self, id: int) -> None:
