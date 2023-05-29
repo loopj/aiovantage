@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 from typing import Optional, Tuple
 
 from aiovantage.config_client.xml_dataclass import xml_element
@@ -8,7 +9,15 @@ from .location_object import LocationObject
 
 @dataclass
 class RGBLoad(LocationObject):
-    color_type: str = xml_element("ColorType")
+    class ColorType(Enum):
+        RGB = "RGB"
+        RGBW = "RGBW"
+        HSL = "HSL"
+        HSIC = "HSIC"
+        CCT = "CCT"
+        COLOR_CHANNEL = "Color Channel"
+
+    color_type: ColorType = xml_element("ColorType")
     min_temp: int = xml_element("MinTemp")
     max_temp: int = xml_element("MaxTemp")
 
@@ -33,14 +42,16 @@ class RGBLoad(LocationObject):
         Return the brightness of the load, 0-100.
         """
 
-        if self.color_type == "HSL" or self.color_type == "CCT":
+        if self.color_type in (self.ColorType.HSL, self.ColorType.CCT):
             return self.level
-        elif self.color_type == "RGB":
+
+        elif self.color_type == self.ColorType.RGB:
             if self.rgb is None:
                 return None
 
             return max(self.rgb) / 255 * 100
-        elif self.color_type == "RGBW":
+
+        elif self.color_type == self.ColorType.RGBW:
             if self.rgbw is None:
                 return None
 

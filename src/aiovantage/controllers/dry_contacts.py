@@ -1,55 +1,35 @@
-from typing import Sequence
+from typing import Any, Dict, Sequence
 
 from typing_extensions import override
 
-from aiovantage.config_client.objects import DryContact
-from aiovantage.controllers.base import StatefulController
+from aiovantage.config_client.objects import Button, DryContact
 
-# BTN <button vid>
-#   -> R:BTN <button vid>
-#      R:PRESS <button vid> "EVENT"
-#      R:RELEASE <button vid> "EVENT"
+from .base import StatefulController
+from .interfaces.button import ButtonInterface
 
-# BTNPRESS <button vid>
-# -> R:PRESS <button vid> "EVENT"
 
-# BTNRELEASE <button vid>
-# -> R:RELEASE <button vid> "EVENT"
-
-# ADDSTATUS <button vid>
-# -> R:ADDSTATUS <button vid>
-# -> S:STATUS <button vid> Button.GetState <0 | 1>
-
-class DryContactsController(StatefulController[DryContact]):
+class DryContactsController(StatefulController[DryContact], ButtonInterface):
     # Store objects managed by this controller as DryContact instances
     item_cls = DryContact
 
     # Fetch DryContact objects from Vantage
     vantage_types = (DryContact,)
 
-    # Get status updates from "STATUS BTN"
-    status_types = ("BTN",)
+    # Get status updates from the event log
+    event_log_status = True
 
     @override
     async def fetch_object_state(self, id: int) -> None:
-        # Fetch initial state of all DryContact objects.
-        ...
+        # DryContacts are momentary, fetching initial state is not worth the overhead.
+        pass
 
     @override
     def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
-        # Handle a status update for a Load.
+        # Handle state changes for a DryContact object.
 
-        if status == "BTN":
-            # STATUS BTN
-            # -> S:BTN <id> <PRESS | RELEASE>
-            # state = args[0]
-            # self.update_state(id, {"level": level})
-            pass
+        state: Dict[str, Any] = {}
+        if status == "Button.GetState":
+            # <id> Button.GetState <state (0/1)>
+            state["state"] = Button.State(int(args[0]))
 
-    async def get_state(self, id: int) -> str:
-        # INVOKE <id> Button.GetState
-        # -> R:INVOKE <id> <Up|Down> Button.GetState
-        response = await self.command_client.command("INVOKE", id, "Button.GetState")
-        state = response.args[1]
-
-        return state
+        self.update_state(id, state)

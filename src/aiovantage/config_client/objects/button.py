@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 from aiovantage.config_client.xml_dataclass import xml_element
 
@@ -32,4 +31,4 @@ class Button(SystemObject):
         )
 
     def __post_init__(self) -> None:
-        self.state: Optional["Button.State"] = None
+        self.state: Button.State = Button.State.UP

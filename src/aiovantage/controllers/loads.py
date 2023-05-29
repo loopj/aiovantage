@@ -3,11 +3,13 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.config_client.objects import Load
-from aiovantage.controllers.base import StatefulController
 from aiovantage.query import QuerySet
 
+from .base import StatefulController
+from .interfaces.load import LoadInterface
 
-class LoadsController(StatefulController[Load]):
+
+class LoadsController(StatefulController[Load], LoadInterface):
     # Store objects managed by this controller as Load instances
     item_cls = Load
 
@@ -62,66 +64,3 @@ class LoadsController(StatefulController[Load]):
         """Return a queryset of all loads that are lights."""
 
         return self.filter(lambda load: load.is_light)
-
-    async def turn_on(self, id: int, transition: float = 0) -> None:
-        """
-        Turn on a load.
-
-        Args:
-            id: The ID of the load.
-        """
-
-        await self.set_level(id, 100, transition)
-
-    async def turn_off(self, id: int, transition: float = 0) -> None:
-        """
-        Turn off a load.
-
-        Args:
-            id: The ID of the load.
-        """
-
-        await self.set_level(id, 0, transition)
-
-    async def get_level(self, id: int) -> float:
-        """
-        Get the level of a load.
-
-        Args:
-            id: The ID of the load.
-        """
-
-        # GETLOAD <load vid>
-        # -> R:GETLOAD <load vid> <level (0-100)>
-        response = await self.command_client.command("GETLOAD", id)
-        level = float(response.args[1])
-
-        return level
-
-    async def set_level(self, id: int, level: float, transition: float = 0) -> None:
-        """
-        Set the level of a load.
-
-        Args:
-            id: The ID of the load.
-            level: The level to set the load to (0-100).
-        """
-
-        # Clamp level to 0-100
-        level = max(min(level, 100), 0)
-
-        # Don't send a command if the level isn't changing
-        if id in self and self[id].level == level:
-            return
-
-        if transition:
-            # RAMPLOAD <id> <level> <seconds>
-            # -> R:RAMPLOAD <id> <level> <seconds>
-            await self.command_client.command("RAMPLOAD", id, level, transition)
-        else:
-            # LOAD <id> <level>
-            # -> R:LOAD <id> <level>
-            await self.command_client.command("LOAD", id, level)
-
-        # Update local state
-        self.update_state(id, {"level": level})

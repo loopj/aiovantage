@@ -17,13 +17,11 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and level of each load
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        async for button in vantage.buttons:
-            print(
-                f"[{button.id}] name='{button.name}' "
-                f"text1='{button.text1}' text2='{button.text2}'"
-            )
+        # Print some details about each dry contact
+        async for dry_contact in vantage.dry_contacts:
+            print(f"[{dry_contact.id}] name='{dry_contact.name}' ")
 
 
 try:
