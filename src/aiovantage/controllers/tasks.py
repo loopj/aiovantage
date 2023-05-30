@@ -2,10 +2,10 @@ from typing import Any, Dict, Sequence
 
 from typing_extensions import override
 
+from aiovantage.command_client.interfaces import TaskInterface
 from aiovantage.config_client.objects import Task
 
 from .base import StatefulController
-from .interfaces.task import TaskInterface
 
 
 class TasksController(StatefulController[Task], TaskInterface):
@@ -15,8 +15,8 @@ class TasksController(StatefulController[Task], TaskInterface):
     # Fetch Task objects from Vantage
     vantage_types = (Task,)
 
-    # Get status updates from the event log
-    event_log_status = True
+    # Subscribe to status updates from the event log for the following methods
+    event_log_status_methods = ("Task.IsRunning", "Task.GetState")
 
     @override
     async def fetch_object_state(self, id: int) -> None:

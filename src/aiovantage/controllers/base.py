@@ -184,8 +184,8 @@ class StatefulController(BaseController[T]):
     # Which Vantage status types this controller handles, if any
     status_types: Optional[Tuple[str, ...]] = None
 
-    # Whether to subscribe to the event log for status updates
-    event_log_status: bool = False
+    # Which status methods this controller handles from the event log, if any
+    event_log_status_methods: Optional[Tuple[str, ...]] = None
 
     @abstractmethod
     async def fetch_object_state(self, id: int) -> None:
@@ -239,7 +239,7 @@ class StatefulController(BaseController[T]):
             return
 
         # Subscribe to object state updates from the event log
-        if self.event_log_status:
+        if self.event_log_status_methods:
             await self.command_client.subscribe_event_log(
                 self._handle_command_client_event, ("STATUS", "STATUSEX")
             )
@@ -299,8 +299,13 @@ class StatefulController(BaseController[T]):
             # Handle event log events
 
             id_str, method, *args = tokenize_response(event["log"])
-            id = int(id_str)
+            if (
+                self.event_log_status_methods is None
+                or method not in self.event_log_status_methods
+            ):
+                return
 
+            id = int(id_str)
             if id not in self._items.keys():
                 return
 

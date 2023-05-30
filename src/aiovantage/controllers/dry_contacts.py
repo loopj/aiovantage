@@ -2,10 +2,10 @@ from typing import Any, Dict, Sequence
 
 from typing_extensions import override
 
-from aiovantage.config_client.objects import Button, DryContact
+from aiovantage.command_client.interfaces import ButtonInterface
+from aiovantage.config_client.objects import DryContact
 
 from .base import StatefulController
-from .interfaces.button import ButtonInterface
 
 
 class DryContactsController(StatefulController[DryContact], ButtonInterface):
@@ -15,8 +15,8 @@ class DryContactsController(StatefulController[DryContact], ButtonInterface):
     # Fetch DryContact objects from Vantage
     vantage_types = (DryContact,)
 
-    # Get status updates from the event log
-    event_log_status = True
+    # Subscribe to status updates from the event log for the following methods
+    event_log_status_methods = ("Button.GetState",)
 
     @override
     async def fetch_object_state(self, id: int) -> None:
@@ -30,6 +30,6 @@ class DryContactsController(StatefulController[DryContact], ButtonInterface):
         state: Dict[str, Any] = {}
         if status == "Button.GetState":
             # <id> Button.GetState <state (0/1)>
-            state["state"] = Button.State(int(args[0]))
+            state["state"] = DryContact.State(int(args[0]))
 
         self.update_state(id, state)

@@ -2,10 +2,10 @@ from typing import Any, Dict, Sequence
 
 from typing_extensions import override
 
+from aiovantage.command_client.interfaces import ButtonInterface
 from aiovantage.config_client.objects import Button
 
 from .base import StatefulController
-from .interfaces.button import ButtonInterface
 
 
 class ButtonsController(StatefulController[Button], ButtonInterface):
@@ -15,13 +15,12 @@ class ButtonsController(StatefulController[Button], ButtonInterface):
     # Fetch Load objects from Vantage
     vantage_types = (Button,)
 
-    # Get status updates from the event log
-    event_log_status = True
+    # Subscribe to status updates from the event log for the following methods
+    event_log_status_methods = ("Button.GetState",)
 
     @override
     async def fetch_object_state(self, id: int) -> None:
-        # Buttons are momentary, fetching initial state is not worth the overhead.
-        pass
+        pass # Buttons are momentary, fetching initial state is not worth the overhead.
 
     @override
     def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:

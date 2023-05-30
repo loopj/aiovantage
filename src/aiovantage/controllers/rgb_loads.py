@@ -2,12 +2,14 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from typing_extensions import override
 
+from aiovantage.command_client.interfaces import (
+    ColorTemperatureInterface,
+    LoadInterface,
+    RGBLoadInterface,
+)
 from aiovantage.config_client.objects import DDGColorLoad, DGColorLoad, RGBLoad
 
 from .base import StatefulController
-from .interfaces.color_temperature import ColorTemperatureInterface
-from .interfaces.load import LoadInterface
-from .interfaces.rgb_load import RGBLoadInterface
 
 
 class RGBLoadsController(
@@ -22,8 +24,14 @@ class RGBLoadsController(
     # Fetch Vantage.DGColorLoad and Vantage.DDGColorLoad objects from Vantage
     vantage_types = (DGColorLoad, DDGColorLoad)
 
-    # Get status updates from the event log
-    event_log_status = True
+    # Subscribe to status updates from the event log for the following methods
+    event_log_status_methods = (
+        "RGBLoad.GetHSL",
+        "RGBLoad.GetRGB",
+        "RGBLoad.GetRGBW",
+        "ColorTemperature.Get",
+        "Load.GetLevel",
+    )
 
     async def initialize(self) -> None:
         self._temp_color_map: Dict[int, List[int]] = {}
@@ -43,9 +51,7 @@ class RGBLoadsController(
             RGBLoad.ColorType.RGB,
             RGBLoad.ColorType.RGBW,
         ):
-            hsl = await self.get_hsl(id)
-            state["hs"] = hsl[:2]
-            state["level"] = hsl[2]
+            state["hsl"] = await self.get_hsl(id)
 
         if color_type == RGBLoad.ColorType.RGB:
             state["rgb"] = await self.get_rgb(id)
@@ -54,8 +60,8 @@ class RGBLoadsController(
             state["rgbw"] = await self.get_rgbw(id)
 
         if color_type == RGBLoad.ColorType.CCT:
-            state["color_temp"] = await self.get_color_temp(id)
-            state["level"] = await self.get_level(id)
+            state["cct_temp"] = await self.get_color_temp(id)
+            state["cct_level"] = await self.get_level(id)
 
         self.update_state(id, state)
 
@@ -76,42 +82,30 @@ class RGBLoadsController(
                 RGBLoad.ColorType.RGB,
                 RGBLoad.ColorType.RGBW,
             ):
-                # Build a color from each HSL channel
                 if hsl := self._build_color(id, args, num_channels=3):
-                    state["hs"] = hsl[:2]
-                    state["level"] = hsl[2]
+                    state["hsl"] = RGBLoad.HSLValue(*hsl)
 
         elif method == "RGBLoad.GetRGB":
             # <id> RGBLoad.GetRGB <value> <channel>
-
-            # We only care about RGB values for RGB loads
             if color_type == RGBLoad.ColorType.RGB:
-                # Build a color from each RGB channel
                 if color := self._build_color(id, args, num_channels=3):
-                    state["rgb"] = color
+                    state["rgb"] = RGBLoad.RGBValue(*color)
 
         elif method == "RGBLoad.GetRGBW":
             # <id> RGBLoad.GetRGBW <value> <channel>
-
-            # We only care about RGBW values for RGBW loads
             if color_type == RGBLoad.ColorType.RGBW:
-                # Build a color from each RGBW channel
                 if color := self._build_color(id, args, num_channels=4):
-                    state["rgbw"] = color
+                    state["rgbw"] = RGBLoad.RGBWValue(*color)
 
         elif method == "ColorTemperature.Get":
             # <id> ColorTemperature.Get <temp>
-
-            # We only care about color temperature for CCT loads
             if color_type == RGBLoad.ColorType.CCT:
-                state["color_temp"] = int(args[0])
+                state["cct_temp"] = int(args[0])
 
         elif method == "Load.GetLevel":
             # <id> Load.GetLevel <level (0-100000)>
-
-            # We only care about level changes for CCT loads
             if color_type == RGBLoad.ColorType.CCT:
-                state["level"] = int(args[0]) / 1000
+                state["cct_level"] = int(args[0]) / 1000
 
         self.update_state(id, state)
 
@@ -126,6 +120,8 @@ class RGBLoadsController(
 
         # Extract the color and channel from the args
         channel = int(args[1])
+        if channel < 0 or channel >= num_channels:
+            return None
         self._temp_color_map[id][channel] = int(args[0])
 
         # If we have all the channels, build and return the color

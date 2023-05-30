@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple
+from typing import NamedTuple, Optional
 
 from aiovantage.config_client.xml_dataclass import xml_element
 
@@ -17,16 +17,32 @@ class RGBLoad(LocationObject):
         CCT = "CCT"
         COLOR_CHANNEL = "Color Channel"
 
+    class RGBValue(NamedTuple):
+        red: int
+        green: int
+        blue: int
+
+    class RGBWValue(NamedTuple):
+        red: int
+        green: int
+        blue: int
+        white: int
+
+    class HSLValue(NamedTuple):
+        hue: int
+        saturation: int
+        lightness: int
+
     color_type: ColorType = xml_element("ColorType")
     min_temp: int = xml_element("MinTemp")
     max_temp: int = xml_element("MaxTemp")
 
     def __post_init__(self) -> None:
-        self.level: Optional[float] = None
-        self.hs: Optional[Tuple[int, int]] = None
-        self.rgb: Optional[Tuple[int, int, int]] = None
-        self.rgbw: Optional[Tuple[int, int, int, int]] = None
-        self.color_temp: Optional[int] = None
+        self.hsl: Optional[RGBLoad.HSLValue] = None
+        self.rgb: Optional[RGBLoad.RGBValue] = None
+        self.rgbw: Optional[RGBLoad.RGBWValue] = None
+        self.cct_temp: Optional[int] = None
+        self.cct_level: Optional[int] = None
 
     @property
     def is_on(self) -> bool:
@@ -34,27 +50,36 @@ class RGBLoad(LocationObject):
         Return whether the load is on.
         """
 
-        return bool(self.brightness)
+        return bool(self.level)
 
     @property
-    def brightness(self) -> Optional[float]:
+    def level(self) -> Optional[float]:
         """
-        Return the brightness of the load, 0-100.
+        Return the level of the load, as a percentage (0-100).
         """
 
-        if self.color_type in (self.ColorType.HSL, self.ColorType.CCT):
-            return self.level
+        if self.color_type == RGBLoad.ColorType.HSL:
+            if self.hsl is None:
+                return None
 
-        elif self.color_type == self.ColorType.RGB:
+            return self.hsl.lightness
+
+        elif self.color_type == RGBLoad.ColorType.RGB:
             if self.rgb is None:
                 return None
 
-            return max(self.rgb) / 255 * 100
+            return round(max(self.rgb) / 255 * 100)
 
-        elif self.color_type == self.ColorType.RGBW:
+        elif self.color_type == RGBLoad.ColorType.RGBW:
             if self.rgbw is None:
                 return None
 
-            return max(self.rgbw) / 255 * 100
+            return round(max(self.rgbw) / 255 * 100)
+
+        elif self.color_type == RGBLoad.ColorType.CCT:
+            if self.cct_level is None:
+                return None
+
+            return self.cct_level
 
         return None

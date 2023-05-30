@@ -1,4 +1,4 @@
-from . import Interface
+from .base import Interface
 
 
 class TaskInterface(Interface):

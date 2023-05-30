@@ -1,6 +1,6 @@
 from enum import Enum
 
-from . import Interface
+from .base import Interface
 
 
 class ButtonInterface(Interface):

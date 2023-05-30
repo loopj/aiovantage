@@ -2,7 +2,7 @@ import struct
 from enum import Enum
 from typing import Tuple
 
-from . import Interface
+from .base import Interface
 
 
 class RGBLoadInterface(Interface):
