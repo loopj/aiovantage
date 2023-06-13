@@ -24,7 +24,6 @@ dependencies = [
 dynamic = ["version"]
 
 [tool.setuptools_scm]
-local_scheme = "no-local-version"
 
 [tool.isort]
 profile = "black"

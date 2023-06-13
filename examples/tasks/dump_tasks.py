@@ -1,3 +1,7 @@
+"""
+Prints out the id, name, and running state of each task in the Vantage controller.
+"""
+
 import argparse
 import asyncio
 import logging
