@@ -1,3 +1,7 @@
+"""
+Prints out the id, name, and members of each blind group in the Vantage controller.
+"""
+
 import argparse
 import asyncio
 import logging
@@ -17,13 +21,10 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and level of each load
+    # Connect to the Vantage controller and print out details of each blind group
     async with Vantage(args.host, args.username, args.password) as vantage:
-        async for rgb_load in vantage.rgb_loads:
-            print(
-                f"[{rgb_load.id}] '{rgb_load.name}' "
-                f"is {'ON' if rgb_load.is_on else 'OFF'}"
-            )
+        async for blind_group in vantage.blind_groups:
+            print(f"[{blind_group.id}] '{blind_group.name}' {blind_group.blind_ids}")
 
 
 try:

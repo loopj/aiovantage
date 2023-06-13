@@ -1,3 +1,7 @@
+"""
+Fetch all objects from the Vantage controller, and print out any state changes.
+"""
+
 import argparse
 import asyncio
 import logging

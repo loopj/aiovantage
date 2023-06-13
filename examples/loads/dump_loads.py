@@ -1,3 +1,7 @@
+"""
+Prints out the id, name, and level of each load in the Vantage controller.
+"""
+
 import argparse
 import asyncio
 import logging
@@ -17,10 +21,10 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and value of each GMem
+    # Connect to the Vantage controller and print out the name and level of each load
     async with Vantage(args.host, args.username, args.password) as vantage:
-        async for gmem in vantage.gmem:
-            print(f"[{gmem.id}] '{gmem.name}' = '{gmem.value}'")
+        async for load in vantage.loads:
+            print(f"[{load.id}] '{load.name}' level={load.level}%")
 
 
 try:

@@ -1,3 +1,7 @@
+"""
+Prints out the id and name of each blind in the Vantage controller.
+"""
+
 import argparse
 import asyncio
 import logging
@@ -19,9 +23,8 @@ async def main() -> None:
 
     # Connect to the Vantage controller and print out the name and level of each load
     async with Vantage(args.host, args.username, args.password) as vantage:
-        async for load_group in vantage.load_groups:
-            print(load_group)
-            print(f"[{load_group.id}] '{load_group.name}' {load_group.load_ids}")
+        async for blind in vantage.blinds:
+            print(f"[{blind.id}] '{blind.name}'")
 
 
 try:

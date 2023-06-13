@@ -1,3 +1,8 @@
+"""
+Print a tree of all the areas, loads, stations, and dry contacts in the
+Vantage system.
+"""
+
 import argparse
 import asyncio
 import logging
