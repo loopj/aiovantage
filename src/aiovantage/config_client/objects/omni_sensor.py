@@ -16,6 +16,7 @@ class OmniSensor(Sensor):
 
         formula: Formula = xml_element("Formula")
         method: str = xml_element("Method")
+        method_hw: str = xml_element("MethodHW")
 
     get: GetMethodType = xml_element("Get")
     parent_id: int = xml_element("Parent")

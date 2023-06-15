@@ -36,7 +36,7 @@ class OmniSensorsController(StatefulController[OmniSensor]):
 
         self.update_state(id, state)
 
-    async def get_level(self, id: int) -> Union[int, Decimal]:
+    async def get_level(self, id: int, cached: bool = False) -> Union[int, Decimal]:
         """
         Get the level of an OmniSensor.
 
@@ -49,11 +49,12 @@ class OmniSensorsController(StatefulController[OmniSensor]):
 
         omni_sensor: OmniSensor = self[id]
 
+        # Figure out which get method to use, hardware or software (cached)
+        method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
+
         # INVOKE <id> <method>
         # -> R:INVOKE <id> <value> <method>
-        response = await self.command_client.command(
-            "INVOKE", id, omni_sensor.get.method
-        )
+        response = await self.command_client.command("INVOKE", id, method)
 
         # Convert the level to the correct type
         if omni_sensor.get.formula.return_type == "fixed":
