@@ -4,6 +4,8 @@ import asyncio
 from types import TracebackType
 from typing import Callable, Optional, Type
 
+from typing_extensions import Self
+
 from aiovantage.command_client import CommandClient
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.objects import SystemObject
@@ -64,16 +66,19 @@ class Vantage:
         self._stations = StationsController(self)
         self._tasks = TasksController(self)
 
-    async def __aenter__(self) -> "Vantage":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(
         self,
         exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
+        exc_val: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
         await self.close()
+
+        if exc_val:
+            raise exc_val
 
     @property
     def config_client(self) -> ConfigClient:

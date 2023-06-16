@@ -28,11 +28,11 @@ __all__ = [
 ]
 
 import asyncio
-from decimal import Decimal
 import logging
 from collections import defaultdict
 from contextlib import suppress
 from dataclasses import dataclass
+from decimal import Decimal
 from inspect import iscoroutinefunction
 from ssl import SSLContext
 from types import TracebackType
@@ -50,6 +50,8 @@ from typing import (
     Union,
 )
 
+from typing_extensions import Self
+
 from .errors import (
     ClientConnectionError,
     ClientError,
@@ -59,7 +61,7 @@ from .errors import (
     LoginRequiredError,
 )
 from .events import Event, EventType
-from .helpers import tokenize_response, encode_params
+from .helpers import encode_params, tokenize_response
 from .ssl import create_ssl_context
 
 KEEPALIVE_INTERVAL = 60
@@ -157,17 +159,20 @@ class CommandConnection:
         else:
             self._port = port
 
-    async def __aenter__(self) -> "CommandConnection":
+    async def __aenter__(self) -> Self:
         await self.open()
         return self
 
     async def __aexit__(
         self,
         exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
+        exc_val: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
         self.close()
+
+        if exc_val:
+            raise exc_val
 
     async def open(self) -> None:
         """Open a connection to the Vantage Host Command service."""
@@ -285,7 +290,7 @@ class CommandConnection:
             "S:" (Status) or "EL:" (Event Log) strings from the Host Command service.
         """
 
-        queue = asyncio.Queue[Union[str, Exception]](1024)
+        queue: asyncio.Queue[Union[str, Exception]] = asyncio.Queue(1024)
         try:
             self._event_queues.add(queue)
 
@@ -426,16 +431,19 @@ class CommandClient:
         self._logger = logging.getLogger(__name__)
         self._lock = asyncio.Lock()
 
-    async def __aenter__(self) -> "CommandClient":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(
         self,
         exc_type: Optional[Type[BaseException]],
-        exc_value: Optional[BaseException],
+        exc_val: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
         await self.close()
+
+        if exc_val:
+            raise exc_val
 
     async def connection(self, retry: bool = False) -> CommandConnection:
         """

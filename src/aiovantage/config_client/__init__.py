@@ -26,6 +26,7 @@ import xml.etree.ElementTree as ET
 from types import TracebackType
 from typing import Any, Optional, Tuple, Type, Union
 
+from typing_extensions import Self
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
 from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
@@ -108,7 +109,7 @@ class ConfigClient:
             config=SerializerConfig(xml_declaration=False),
         )
 
-    async def __aenter__(self) -> "ConfigClient":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(
@@ -118,6 +119,9 @@ class ConfigClient:
         exc_tb: Optional[TracebackType],
     ) -> None:
         self.close()
+
+        if exc_val:
+            raise exc_val
 
     def close(self) -> None:
         """
