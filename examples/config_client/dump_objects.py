@@ -4,7 +4,6 @@ import logging
 
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects_by_type
-from aiovantage.config_client.objects import Area, Load, StationObject
 
 
 # Grab connection info from command line arguments
@@ -20,26 +19,22 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    async with ConfigClient(
-        args.host, args.username, args.password
-    ) as client:
+    async with ConfigClient(args.host, args.username, args.password) as client:
         # Dump all Areas using the get_objects_by_type helper
         print("# Vantage Areas")
-        async for area in get_objects_by_type(client, ["Area"], Area):
+        async for area in get_objects_by_type(client, ["Area"]):
             print(area)
         print()
 
         # Dump all Loads using the get_objects_by_type helper
         print("# Vantage Loads")
-        async for load in get_objects_by_type(client, ["Load"], Load):
+        async for load in get_objects_by_type(client, ["Load"]):
             print(load)
         print()
 
         # Dump some StationObjects using the get_objects_by_type helper
         print("# Vantage Stations")
-        async for station in get_objects_by_type(
-            client, ["Keypad", "EqCtrl"], StationObject
-        ):
+        async for station in get_objects_by_type(client, ("Keypad", "EqCtrl")):
             print(station)
         print()
 

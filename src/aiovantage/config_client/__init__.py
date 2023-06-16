@@ -134,13 +134,13 @@ class ConfigClient:
 
         self._logger.debug("Connection closed")
 
-    async def raw_request(self, request_payload: str, end_token: str) -> str:
+    async def raw_request(self, interface: str, payload: str) -> str:
         """
         Send a plaintext request to the ACI service.
 
         Args:
-            request_payload: The request payload string to send
-            end_token: The token to look for to indicate the end of the response
+            interface: The interface to send the request to
+            payload: The request payload string to send
 
         Returns:
             The response payload string
@@ -151,11 +151,12 @@ class ConfigClient:
             reader, writer = await self._get_connection()
 
             # Send the request
-            writer.write(request_payload.encode())
+            request = f"<{interface}>{payload}</{interface}>"
+            writer.write(request.encode())
             await writer.drain()
 
             # Fetch the response
-            end_bytes = end_token.encode()
+            end_bytes = f"</{interface}>\n".encode()
             data = await asyncio.wait_for(
                 reader.readuntil(end_bytes), timeout=self._read_timeout
             )
@@ -179,7 +180,7 @@ class ConfigClient:
         request = self._marshall_request(method, params)
         self._logger.debug(request)
 
-        response = await self.raw_request(request, f"</{method.interface}>\n")
+        response = await self.raw_request(method.interface, request)
         self._logger.debug(response)
 
         return self._unmarshall_response(method, response)
@@ -220,11 +221,7 @@ class ConfigClient:
         method.call = params
 
         # Render the method object to XML with xsdata
-        return (
-            f"<{method.interface}>"
-            f"{self._serializer.render(method)}"
-            f"</{method.interface}>"
-        )
+        return self._serializer.render(method)
 
     def _unmarshall_response(
         self, method_cls: Type[Method[CallType, ReturnType]], response_str: str
