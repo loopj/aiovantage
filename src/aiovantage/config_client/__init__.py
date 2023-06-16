@@ -204,6 +204,7 @@ class ConfigClient:
                 self._host,
                 self._port,
                 ssl=self._ssl_context,
+                limit=2**20,
             ),
             timeout=self._conn_timeout,
         )
