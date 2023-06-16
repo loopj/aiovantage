@@ -62,6 +62,7 @@ from .events import Event, EventType
 from .helpers import tokenize_response, encode_params
 from .ssl import create_ssl_context
 
+KEEPALIVE_INTERVAL = 60
 
 # Type aliases for callbacks for event subscriptions
 EventCallback = Union[Callable[[Event], None], Callable[[Event], Awaitable[None]]]
@@ -417,6 +418,7 @@ class CommandClient:
         self._connection: Optional[CommandConnection] = None
         self._event_handler_task: Optional[asyncio.Task[None]] = None
         self._event_handler_ready: asyncio.Event = asyncio.Event()
+        self._keepalive_task: Optional[asyncio.Task[None]] = None
         self._subscriptions: List[EventSubscription] = []
         self._subscribed_statuses: Dict[str, int] = defaultdict(int)
         self._subscribed_objects: Dict[int, int] = defaultdict(int)
@@ -462,10 +464,15 @@ class CommandClient:
 
     async def close(self) -> None:
         """
-        Close the connections to the Host Command service and stop the event handler.
+        Close the connections to the Host Command service and cancel any running tasks.
         """
 
-        # Stop the event handler
+        # Cancel the keepalive task
+        if self._keepalive_task is not None:
+            self._keepalive_task.cancel()
+            self._keepalive_task = None
+
+        # Cancel the event handler task
         if self._event_handler_task is not None:
             self._event_handler_task.cancel()
             self._event_handler_task = None
@@ -779,6 +786,9 @@ class CommandClient:
 
                 self._logger.info("Event handler connected and listening for events")
 
+                # Start the keepalive task
+                self._keepalive_task = asyncio.create_task(self._keepalive())
+
                 # Start processing events
                 async for event in conn.events():
                     self._logger.debug(f"Received event: {event}")
@@ -813,11 +823,30 @@ class CommandClient:
                         self._logger.warning(f"Received unexpected event: {event}")
 
             except ClientConnectionError:
-                # If we get here, the connection was lost
-                self._logger.debug("Event handler lost connection", exc_info=True)
-                self._emit({"tag": EventType.DISCONNECTED})
+                pass
 
             except Exception:
                 # Unexpected error, log for debugging
                 self._logger.exception("Unexpected error in event handler")
                 raise
+
+            # If we get here, the connection was lost
+            self._logger.debug("Event handler lost connection")
+            self._emit({"tag": EventType.DISCONNECTED})
+
+            # Cancel the keepalive task
+            if self._keepalive_task is not None:
+                self._keepalive_task.cancel()
+                self._keepalive_task = None
+
+    async def _keepalive(self) -> None:
+        # Send an "ECHO" command periodically to keep the connection alive,
+        # and detect dropped connections.
+
+        while True:
+            await asyncio.sleep(KEEPALIVE_INTERVAL)
+
+            try:
+                await self.command("ECHO")
+            except ClientError as err:
+                self._logger.debug("Error while sending keepalive: %s", str(err))
