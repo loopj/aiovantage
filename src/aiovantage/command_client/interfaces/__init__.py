@@ -1,6 +1,7 @@
 from .blind import BlindInterface
 from .button import ButtonInterface
 from .color_temperature import ColorTemperatureInterface
+from .gmem import GMemInterface
 from .introspection import IntrospectionInterface
 from .load import LoadInterface
 from .object import ObjectInterface
@@ -12,6 +13,7 @@ __all__ = [
     "BlindInterface",
     "ButtonInterface",
     "ColorTemperatureInterface",
+    "GMemInterface",
     "IntrospectionInterface",
     "LoadInterface",
     "ObjectInterface",

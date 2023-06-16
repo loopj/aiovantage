@@ -26,7 +26,7 @@ def callback(event: VantageEvent, obj: GMem, data: Dict[str, Any]) -> None:
     elif event == VantageEvent.OBJECT_UPDATED:
         print(f"[GMem updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):
-            print(f"    {attr} = {getattr(obj, attr)}")
+            print(f"    {attr} = {repr(getattr(obj, attr))}")
 
 
 async def main() -> None:
