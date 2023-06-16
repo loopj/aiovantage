@@ -24,7 +24,7 @@ async def main() -> None:
     # Connect to the Vantage controller and print out the name and value of each GMem
     async with Vantage(args.host, args.username, args.password) as vantage:
         async for gmem in vantage.gmem:
-            print(f"[{gmem.id}] '{gmem.name}' = '{gmem.value}'")
+            print(f"[{gmem.id}] '{gmem.name}' = {repr(gmem.value)}")
 
 
 try:

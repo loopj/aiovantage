@@ -24,4 +24,4 @@ class IntrospectionInterface(Interface):
             id, "IntroSpection.GetFirmwareVersion", image.value
         )
 
-        return response.args[4].strip('"')
+        return response.args[4].rstrip()

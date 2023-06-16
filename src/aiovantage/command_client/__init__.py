@@ -28,6 +28,7 @@ __all__ = [
 ]
 
 import asyncio
+from decimal import Decimal
 import logging
 from collections import defaultdict
 from contextlib import suppress
@@ -58,7 +59,7 @@ from .errors import (
     LoginRequiredError,
 )
 from .events import Event, EventType
-from .helpers import tokenize_response
+from .helpers import tokenize_response, encode_params
 from .ssl import create_ssl_context
 
 
@@ -212,7 +213,10 @@ class CommandConnection:
         return self._writer is None or self._writer.is_closing()
 
     async def command(
-        self, command: str, *params: Union[int, float, str]
+        self,
+        command: str,
+        *params: Union[str, int, float, Decimal, bool],
+        force_quotes: bool = False,
     ) -> CommandResponse:
         """
         Send a command with parameters to the Host Command service and wait for a
@@ -223,7 +227,8 @@ class CommandConnection:
 
         Args:
             command: The command to send, should be a single word string.
-            params: The parameters to send with the command, int, float, or str.
+            params: The parameters to send with the command.
+            force_quotes: Whether to force string params to be wrapped in double quotes.
 
         Returns:
             A CommandResponse instance.
@@ -233,13 +238,9 @@ class CommandConnection:
         if self._writer is None or self._writer.is_closing():
             raise ClientConnectionError("Not connected to Vantage Host Command service")
 
-        # Validate parameters
-        if not all(isinstance(param, (int, float, str)) for param in params):
-            raise TypeError("Command parameters must be int, float, or str")
-
         # Build the request string, encoding the parameters if necessary
         if params:
-            request = f"{command} {' '.join([str(p) for p in params])}"
+            request = f"{command} {encode_params(*params, force_quotes=force_quotes)}"
         else:
             request = command
 
@@ -474,7 +475,10 @@ class CommandClient:
             self._connection.close()
 
     async def command(
-        self, command: str, *params: Union[int, float, str]
+        self,
+        command: str,
+        *params: Union[str, int, float, Decimal, bool],
+        force_quotes: bool = False,
     ) -> CommandResponse:
         """
         Send a command with parameters to the Host Command service and wait for a
@@ -485,14 +489,15 @@ class CommandClient:
 
         Args:
             command: The command to send, should be a single word string.
-            params: The parameters to send with the command, int, float, or str.
+            params: The parameters to send with the command.
+            force_quotes: Whether to force string params to be wrapped in double quotes.
 
         Returns:
             A CommandResponse instance.
         """
 
         conn = await self.connection()
-        return await conn.command(command, *params)
+        return await conn.command(command, *params, force_quotes=force_quotes)
 
     def subscribe(
         self,
