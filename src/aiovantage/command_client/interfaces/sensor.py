@@ -1,28 +1,30 @@
+"""Interface for querying and controlling sensors."""
+
 from typing import Sequence
 
 from .base import Interface
 
 
 class SensorInterface(Interface):
-    async def get_level(self, id: int) -> int:
-        """
-        Get the level of a sensor.
+    """Interface for querying and controlling sensors."""
+
+    async def get_level(self, vid: int) -> int:
+        """Get the level of a sensor.
 
         Args:
-            id: The ID of the sensor.
+            vid: The Vantage ID of the sensor.
         """
 
         # INVOKE <id> Sensor.GetLevel
         # -> R:INVOKE <id> <level (0-100)> Sensor.GetLevel
-        response = await self.invoke(id, "Sensor.GetLevel")
+        response = await self.invoke(vid, "Sensor.GetLevel")
         level = int(response.args[1])
 
         return level
 
     @classmethod
     def parse_get_level_status(cls, args: Sequence[str]) -> int:
-        """
-        Parse a "Sensor.GetLevel" event.
+        """Parse a 'Sensor.GetLevel' event.
 
         Args:
             args: The arguments of the event.

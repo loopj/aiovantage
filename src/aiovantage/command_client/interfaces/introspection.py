@@ -1,27 +1,32 @@
+"""Interface for controller introspection."""
+
 from enum import Enum
 
 from .base import Interface
 
 
 class IntrospectionInterface(Interface):
+    """Interface for controller introspection."""
+
     class Firmware(Enum):
+        """Firmware images."""
+
         KERNEL = 0
         ROOT_FS = 1
         APPLICATION = 2
 
-    async def get_firmware_version(self, id: int, image: Firmware) -> str:
-        """
-        Get the firmware version.
+    async def get_firmware_version(self, vid: int, image: Firmware) -> str:
+        """Get the firmware version.
 
         Args:
-            id: The ID of the object.
-            firmware: The firmware to get the version of.
+            vid: The Vantage ID of the controller.
+            image: The firmware image to get the version of.
         """
 
         # INVOKE <id> IntroSpection.GetFirmwareVersion <image>
         # -> R:INVOKE <id> <rcode> IntroSpection.GetFirmwareVersion <image> <version>
         response = await self.invoke(
-            id, "IntroSpection.GetFirmwareVersion", image.value
+            vid, "IntroSpection.GetFirmwareVersion", image.value
         )
 
         return response.args[4].rstrip()
