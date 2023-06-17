@@ -1,9 +1,8 @@
-"""
-Fetch all RGB loads from the Vantage controller, and print out any state changes.
-"""
+"""Fetch all RGB loads from the Vantage controller, and print out any state changes."""
 
 import argparse
 import asyncio
+import contextlib
 import logging
 from typing import Any, Dict
 
@@ -20,6 +19,7 @@ args = parser.parse_args()
 
 
 def callback(event: VantageEvent, obj: RGBLoad, data: Dict[str, Any]) -> None:
+    """Print out any state changes."""
     if event == VantageEvent.OBJECT_ADDED:
         print(f"[RGBLoad added] '{obj.name}' ({obj.id})")
     elif event == VantageEvent.OBJECT_UPDATED:
@@ -29,6 +29,7 @@ def callback(event: VantageEvent, obj: RGBLoad, data: Dict[str, Any]) -> None:
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -43,7 +44,5 @@ async def main() -> None:
         await asyncio.sleep(3600)
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

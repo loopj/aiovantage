@@ -1,16 +1,13 @@
-"""
-Print a tree of all the areas, loads, stations, and dry contacts in the
-Vantage system.
-"""
+"""Print a tree of objects in the Vantage system."""
 
 import argparse
 import asyncio
+import contextlib
 import logging
 from typing import Optional
 
 from aiovantage import Vantage
 from aiovantage.config_client.objects import Area, Load
-
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -30,15 +27,18 @@ CYAN = "\033[36m"
 
 
 def colorize(text: str, color: str) -> str:
+    """Return text wrapped in the given ANSI color code."""
     return f"{color}{text}{RESET}"
 
 
 def print_indented(text: str, indent_level: int) -> None:
+    """Print text indented by the given number of levels."""
     indent = indent_level * "    "
     print(f"{indent}{text}")
 
 
 def load_state(load: Load) -> str:
+    """Return a string describing the state of a load."""
     if not load.level:
         return colorize("(OFF)", RED)
     elif load.level == 100:
@@ -48,6 +48,7 @@ def load_state(load: Load) -> str:
 
 
 def print_area(vantage: Vantage, area: Optional[Area], indent: int = 0) -> None:
+    """Recursively print an area and all its children."""
     if area is None:
         return
 
@@ -94,6 +95,7 @@ def print_area(vantage: Vantage, area: Optional[Area], indent: int = 0) -> None:
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -106,7 +108,5 @@ async def main() -> None:
         print_area(vantage, vantage.areas.root)
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

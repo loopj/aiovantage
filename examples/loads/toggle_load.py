@@ -1,9 +1,8 @@
-"""
-Toggle a load on or off by ID.
-"""
+"""Toggle a load on or off by ID."""
 
 import argparse
 import asyncio
+import contextlib
 import logging
 
 from aiovantage import Vantage
@@ -19,6 +18,7 @@ args = parser.parse_args()
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -42,7 +42,5 @@ async def main() -> None:
             await vantage.loads.turn_on(load.id)
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

@@ -1,5 +1,8 @@
+"""Use a CommandClient to subscribe to status updates for LOAD objects."""
+
 import argparse
 import asyncio
+import contextlib
 import logging
 
 from aiovantage.command_client import CommandClient, Event, EventType
@@ -13,8 +16,8 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-# Define callback function for command client events
 def command_client_callback(event: Event) -> None:
+    """Print out the status update for each event."""
     if event["tag"] == EventType.STATUS:
         print(f"[{event['status_type']}] id: {event['id']}, args: {event['args']}")
     elif event["tag"] == EventType.CONNECTED:
@@ -26,6 +29,7 @@ def command_client_callback(event: Event) -> None:
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -44,7 +48,5 @@ async def main() -> None:
         await asyncio.sleep(3600)
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

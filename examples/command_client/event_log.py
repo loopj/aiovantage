@@ -1,5 +1,8 @@
+"""Example of using the CommandClient to subscribe to system log events."""
+
 import argparse
 import asyncio
+import contextlib
 import logging
 
 from aiovantage.command_client import CommandClient, Event, EventType
@@ -13,8 +16,8 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-# Define callback function for Host Command events
 def command_client_callback(event: Event) -> None:
+    """Print out the log message for each event."""
     if event["tag"] == EventType.EVENT_LOG:
         print(event["log"])
     elif event["tag"] == EventType.CONNECTED:
@@ -22,6 +25,7 @@ def command_client_callback(event: Event) -> None:
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -37,7 +41,5 @@ async def main() -> None:
         await asyncio.sleep(3600)
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

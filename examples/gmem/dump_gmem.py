@@ -1,9 +1,8 @@
-"""
-Prints out the id, name, and value of each variable in the Vantage controller.
-"""
+"""Prints out the id, name, and value of each variable in the Vantage controller."""
 
 import argparse
 import asyncio
+import contextlib
 import logging
 
 from aiovantage import Vantage
@@ -18,6 +17,7 @@ args = parser.parse_args()
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -27,7 +27,5 @@ async def main() -> None:
             print(f"[{gmem.id}] '{gmem.name}' = {repr(gmem.value)}")
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass
