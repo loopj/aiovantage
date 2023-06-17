@@ -1,3 +1,5 @@
+"""Controller holding and managing Vantage loads."""
+
 from typing import Any, Dict, Sequence
 
 from typing_extensions import override
@@ -10,6 +12,8 @@ from .base import StatefulController
 
 
 class LoadsController(StatefulController[Load], LoadInterface):
+    """Controller holding and managing Vantage loads."""
+
     # Fetch the following object types from Vantage
     vantage_types = ("Load",)
 
@@ -17,23 +21,23 @@ class LoadsController(StatefulController[Load], LoadInterface):
     status_types = ("LOAD",)
 
     @override
-    async def fetch_object_state(self, id: int) -> None:
-        # Fetch initial state of a Load.
+    async def fetch_object_state(self, vid: int) -> None:
+        """Fetch the initial state of a load."""
 
         state: Dict[str, Any] = {}
-        state["level"] = await LoadInterface.get_level(self, id)
+        state["level"] = await LoadInterface.get_level(self, vid)
 
-        self.update_state(id, state)
+        self.update_state(vid, state)
 
     @override
-    def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
-        # Handle state changes for a Load.
+    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+        """Handle state changes for a load."""
 
         state: Dict[str, Any] = {}
         if status == "LOAD":
             state["level"] = LoadInterface.parse_load_status(args)
 
-        self.update_state(id, state)
+        self.update_state(vid, state)
 
     @property
     def on(self) -> QuerySet[Load]:

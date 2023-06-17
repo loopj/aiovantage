@@ -1,3 +1,5 @@
+"""Controller holding and managing Vantage omni sensors."""
+
 from decimal import Decimal
 from typing import Any, Dict, Sequence, Union
 
@@ -8,6 +10,8 @@ from aiovantage.controllers.base import StatefulController
 
 
 class OmniSensorsController(StatefulController[OmniSensor]):
+    """Controller holding and managing Vantage omni sensors."""
+
     # Fetch the following object types from Vantage
     vantage_types = ("OmniSensor",)
 
@@ -15,46 +19,46 @@ class OmniSensorsController(StatefulController[OmniSensor]):
     event_log_status = True
 
     @override
-    async def fetch_object_state(self, id: int) -> None:
-        # Fetch initial state of an OmniSensor.
+    async def fetch_object_state(self, vid: int) -> None:
+        """Fetch the initial state of an omni sensor."""
 
         state: Dict[str, Any] = {}
-        state["level"] = await self.get_level(id)
+        state["level"] = await self.get_level(vid)
 
-        self.update_state(id, state)
+        self.update_state(vid, state)
 
     @override
-    def handle_object_update(self, id: int, method: str, args: Sequence[str]) -> None:
-        # Handle state changes for an OmniSensor.
+    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+        """Handle state changes for an omni sensor."""
 
-        omni_sensor: OmniSensor = self[id]
-        if method != omni_sensor.get.method:
+        omni_sensor: OmniSensor = self[vid]
+        if status != omni_sensor.get.method:
             return
 
         state: Dict[str, Any] = {}
         state["level"] = self.parse_get_level_status(omni_sensor, args)
 
-        self.update_state(id, state)
+        self.update_state(vid, state)
 
-    async def get_level(self, id: int, cached: bool = False) -> Union[int, Decimal]:
-        """
-        Get the level of an OmniSensor.
+    async def get_level(self, vid: int, cached: bool = False) -> Union[int, Decimal]:
+        """Get the level of an OmniSensor.
 
         Args:
-            id: The ID of the sensor.
+            vid: The ID of the sensor.
+            cached: Whether to use the cached value or fetch a new one.
 
         Returns:
             The level of the sensor.
         """
 
-        omni_sensor: OmniSensor = self[id]
+        omni_sensor: OmniSensor = self[vid]
 
         # Figure out which get method to use, hardware or software (cached)
         method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
 
         # INVOKE <id> <method>
         # -> R:INVOKE <id> <value> <method>
-        response = await self.command_client.command("INVOKE", id, method)
+        response = await self.command_client.command("INVOKE", vid, method)
 
         # Convert the level to the correct type
         if omni_sensor.get.formula.return_type == "fixed":
@@ -74,7 +78,7 @@ class OmniSensorsController(StatefulController[OmniSensor]):
     def parse_get_level_status(
         cls, omni_sensor: OmniSensor, args: Sequence[str]
     ) -> Union[int, Decimal]:
-        # Parse an OmniSensor "GetLevel" event, eg. "PowerSensor.GetPower"
+        """Parse an OmniSensor 'GetLevel' event, eg. 'PowerSensor.GetPower'."""
 
         # ELLOG STATUS ON
         # -> EL: <id> <method> <value>

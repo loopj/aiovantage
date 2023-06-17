@@ -1,3 +1,5 @@
+"""Controller holding and managing Vantage dry contacts."""
+
 from typing import Any, Dict, Sequence
 
 from typing_extensions import override
@@ -9,6 +11,8 @@ from .base import StatefulController
 
 
 class DryContactsController(StatefulController[DryContact], ButtonInterface):
+    """Controller holding and managing Vantage dry contacts."""
+
     # Fetch the following object types from Vantage
     vantage_types = ("DryContact",)
 
@@ -16,15 +20,15 @@ class DryContactsController(StatefulController[DryContact], ButtonInterface):
     status_types = ("BTN",)
 
     @override
-    async def fetch_object_state(self, id: int) -> None:
-        pass  # DryContacts are momentary, skip fetching initial state.
+    async def fetch_object_state(self, vid: int) -> None:
+        """Fetch the initial state of a dry contact."""
 
     @override
-    def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
-        # Handle state changes for a DryContact object.
+    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+        """Handle state changes for a dry contact."""
 
         state: Dict[str, Any] = {}
         if status == "BTN":
             state["triggered"] = ButtonInterface.parse_btn_status(args)
 
-        self.update_state(id, state)
+        self.update_state(vid, state)
