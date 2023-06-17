@@ -17,12 +17,14 @@ def xml_element(name: str, **kwargs: Any) -> Any:
 
     return field(metadata=metadata, **kwargs)
 
+
 def xml_text(**kwargs: Any) -> Any:
     metadata = {}
     metadata.update(kwargs.pop("metadata", {}))
     metadata.update({"type": "Text"})
 
     return field(metadata=metadata, **kwargs)
+
 
 def xml_tag_from_class(cls: Type[Any]) -> str:
     """Get the XML tag name for a class."""

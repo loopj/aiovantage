@@ -6,6 +6,7 @@ from aiovantage.config_client.xml_dataclass import xml_attribute, xml_element
 
 from .location_object import LocationObject
 
+
 @dataclass
 class Blind(LocationObject):
     parent_id: Optional[int] = xml_element("Parent", default=None)

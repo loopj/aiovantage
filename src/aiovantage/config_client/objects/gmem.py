@@ -5,6 +5,7 @@ from aiovantage.config_client.xml_dataclass import xml_attribute, xml_element, x
 
 from .system_object import SystemObject
 
+
 @dataclass
 class GMem(SystemObject):
     @dataclass

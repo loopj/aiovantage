@@ -254,7 +254,7 @@ class CommandConnection:
         async with self._command_lock:
             # Send the request
             try:
-                self._logger.debug(f"Sending command: {request}")
+                self._logger.debug("Sending command: %s", request)
                 self._writer.write(f"{request}\n".encode())
                 await self._writer.drain()
             except OSError as exc:
@@ -265,20 +265,17 @@ class CommandConnection:
                 response = await asyncio.wait_for(
                     self._response_queue.get(), timeout=self._read_timeout
                 )
-                self._logger.debug(f"Received response: {response}")
+                self._logger.debug("Received response: %s", response)
             except asyncio.TimeoutError as exc:
                 raise ClientTimeoutError("Timeout waiting for response") from exc
 
-        # Handle exception fetched from the queue
-        if isinstance(response, CommandError):
-            # R:ERROR responses
-            raise response
-        elif isinstance(response, (OSError, asyncio.IncompleteReadError)):
-            # Connection errors, or EOF when reading response
+        # Re-raise connection errors, EOF, etc. as a connection error
+        if isinstance(response, (OSError, asyncio.IncompleteReadError)):
             raise ClientConnectionError("Connection error") from response
-        elif isinstance(response, Exception):
-            # Other unexpected errors
-            raise
+
+        # Re-raise all other exceptions, including "R:ERROR" responses
+        if isinstance(response, Exception):
+            raise response
 
         return response
 
@@ -297,13 +294,13 @@ class CommandConnection:
             while True:
                 event = await queue.get()
 
-                # Handle exception fetched from the queue
+                # Re-raise connection errors, EOF, etc. as a connection error
                 if isinstance(event, (OSError, asyncio.IncompleteReadError)):
-                    # Connection errors, or EOF when reading response
                     raise ClientConnectionError("Connection error") from event
-                elif isinstance(event, Exception):
-                    # Other unexpected errors
-                    raise
+
+                # Re-raise all other exceptions
+                if isinstance(event, Exception):
+                    raise event
 
                 yield event
         finally:
@@ -330,9 +327,9 @@ class CommandConnection:
                     self._put_event(message)
                 else:
                     self._response_buffer.append(message)
-            except Exception as e:
-                self._put_response(e, warn=False)
-                self._put_event(e)
+            except Exception as exc:
+                self._put_response(exc, warn=False)
+                self._put_event(exc)
                 break
 
         # Explicitly close the connection
@@ -347,8 +344,10 @@ class CommandConnection:
             if queue.full():
                 dropped_event = queue.get_nowait()
                 self._logger.warning(
-                    f"Event queue full trying to put '{event}', dropping oldest event"
-                    f"'{dropped_event}' to make room."
+                    "Event queue full trying to put '%s', "
+                    "dropping oldest event '%s' to make room.",
+                    event,
+                    dropped_event,
                 )
 
             queue.put_nowait(event)
@@ -362,14 +361,16 @@ class CommandConnection:
             if not self._response_queue.empty():
                 old_response = self._response_queue.get_nowait()
                 self._logger.error(
-                    f"Response queue not empty when trying to put '{response}', "
-                    f"dropping previous response '{old_response}'."
+                    "Response queue not empty when trying to put '%s', "
+                    "dropping previous response '%s'.",
+                    response,
+                    old_response,
                 )
 
             self._response_queue.put_nowait(response)
         elif warn:
             self._logger.error(
-                f"Discarding response message, no command waiting: {response}"
+                "Discarding response message, no command waiting: %s", response
             )
 
 
@@ -459,8 +460,8 @@ class CommandClient:
             await asyncio.wait_for(
                 self._lock.acquire(), timeout=(None if retry else self._conn_timeout)
             )
-        except asyncio.TimeoutError:
-            raise ClientTimeoutError("Timeout waiting for connection")
+        except asyncio.TimeoutError as exc:
+            raise ClientTimeoutError("Timeout waiting for connection") from exc
 
         try:
             if self._connection is None or self._connection.closed:
@@ -745,14 +746,15 @@ class CommandClient:
             reconnect_wait = min(2 * connect_attempts, 600)
 
             self._logger.debug(
-                f"Connection to {self._host} failed"
-                f" - retrying in {reconnect_wait} seconds"
+                "Connection to controller failed - retrying in %d seconds",
+                reconnect_wait,
             )
 
             if connect_attempts % 10 == 0:
                 self._logger.warning(
-                    f"{connect_attempts} attempts to (re)connect to {self._host} failed"
-                    f" - this may indicate a problem with the connection"
+                    "%d attempts to (re)connect to controller failed"
+                    " - This might be an indication of connection issues.",
+                    connect_attempts,
                 )
 
             await asyncio.sleep(reconnect_wait)
@@ -799,20 +801,19 @@ class CommandClient:
 
                 # Start processing events
                 async for event in conn.events():
-                    self._logger.debug(f"Received event: {event}")
+                    self._logger.debug("Received event: %s", event)
 
                     if event.startswith("S:"):
                         # Parse a status message
                         status_type, id_str, *args = tokenize_response(event)
                         status_type = status_type[2:]
-                        id = int(id_str)
 
                         # Notify subscribers
                         self._emit(
                             {
                                 "tag": EventType.STATUS,
                                 "status_type": status_type,
-                                "id": id,
+                                "id": int(id_str),
                                 "args": args,
                             },
                         )
@@ -828,7 +829,7 @@ class CommandClient:
                             },
                         )
                     else:
-                        self._logger.warning(f"Received unexpected event: {event}")
+                        self._logger.warning("Received unexpected event: %s", event)
 
             except ClientConnectionError:
                 pass

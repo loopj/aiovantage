@@ -3,6 +3,7 @@ from typing import ClassVar, Optional
 
 from aiovantage.config_client.xml_dataclass import xml_element
 
+
 @dataclass
 class Login:
     interface: ClassVar[str] = "ILogin"
