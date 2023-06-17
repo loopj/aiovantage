@@ -1,4 +1,4 @@
-from typing import Any, AsyncIterator, Sequence
+from typing import Any, AsyncIterator, Optional, Sequence
 
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.methods.configuration import (
@@ -9,27 +9,38 @@ from aiovantage.config_client.methods.configuration import (
 )
 
 
-async def get_objects_by_type(
-    client: ConfigClient, types: Sequence[str]
+async def get_objects(
+    client: ConfigClient,
+    *,
+    type: Optional[Sequence[str]] = None,
+    xpath: Optional[str] = None,
 ) -> AsyncIterator[Any]:
     """
     Helper function to get all vantage system objects of the specified types
 
     Args:
         client: The ACI client instance
-        types: A list of strings of the Vantage object types to fetch
+        object_types: An optional string, or list of strings of object types to fetch
+        xpath: An optional xpath to filter the results by, eg. "/Load", "/*[@VID='12']"
 
     Yields:
         The objects of the specified types
     """
 
-    try:
-        # Open the filter
-        handle = await client.request(
-            OpenFilter,
-            OpenFilter.Params(objects=OpenFilter.Filter(object_type=list(types))),
-        )
+    # Support both a single object type and a list of status types
+    if isinstance(type, str):
+        type_filter = OpenFilter.Filter(object_type=[type])
+    elif type is None:
+        type_filter = None
+    else:
+        type_filter = OpenFilter.Filter(object_type=list(type))
 
+    # Open the filter
+    handle = await client.request(
+        OpenFilter, OpenFilter.Params(objects=type_filter, xpath=xpath)
+    )
+
+    try:
         # Get the results
         while True:
             response = await client.request(

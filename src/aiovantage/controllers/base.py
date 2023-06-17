@@ -20,7 +20,7 @@ from typing import (
 from aiovantage.command_client import CommandClient, Event, EventType
 from aiovantage.command_client.helpers import tokenize_response
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.helpers import get_objects_by_type
+from aiovantage.config_client.helpers import get_objects
 from aiovantage.config_client.objects import SystemObject
 from aiovantage.events import VantageEvent
 from aiovantage.query import QuerySet
@@ -87,7 +87,7 @@ class BaseController(QuerySet[T]):
         # - fire OBJECT_ADDED events for new objects
         # - fire OBJECT_REMOVED events for removed objects
 
-        async for obj in get_objects_by_type(self.config_client, self.vantage_types):
+        async for obj in get_objects(self.config_client, type=self.vantage_types):
             self._items[obj.id] = cast(T, obj)
             self.emit(VantageEvent.OBJECT_ADDED, cast(T, obj))
 

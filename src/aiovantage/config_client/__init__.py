@@ -33,6 +33,7 @@ from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
+from .errors import ClientConnectionError, ClientTimeoutError
 from .methods import CallType, Method, ReturnType
 from .methods.login import Login
 
@@ -154,16 +155,22 @@ class ConfigClient:
             # Get a connection
             reader, writer = await self._get_connection()
 
-            # Send the request
-            request = f"<{interface}>{payload}</{interface}>"
-            writer.write(request.encode())
-            await writer.drain()
+            try:
+                # Send the request
+                request = f"<{interface}>{payload}</{interface}>"
+                writer.write(request.encode())
+                await writer.drain()
 
-            # Fetch the response
-            end_bytes = f"</{interface}>\n".encode()
-            data = await asyncio.wait_for(
-                reader.readuntil(end_bytes), timeout=self._read_timeout
-            )
+                # Fetch the response
+                end_bytes = f"</{interface}>\n".encode()
+                data = await asyncio.wait_for(
+                    reader.readuntil(end_bytes), timeout=self._read_timeout
+                )
+
+            except asyncio.TimeoutError as err:
+                raise ClientTimeoutError from err
+            except (OSError, asyncio.IncompleteReadError) as err:
+                raise ClientConnectionError from err
 
             return data.decode()
 
@@ -198,21 +205,27 @@ class ConfigClient:
         if self._connection is not None and not self._connection[1].is_closing():
             return self._connection
 
-        # Otherwise, open a new connection
-        connection = await asyncio.wait_for(
-            asyncio.open_connection(
-                self._host,
-                self._port,
-                ssl=self._ssl_context,
-                limit=2**20,
-            ),
-            timeout=self._conn_timeout,
-        )
-        self._connection = connection
-        self._logger.info("Connected")
+        try:
+            # Otherwise, open a new connection
+            connection = await asyncio.wait_for(
+                asyncio.open_connection(
+                    self._host,
+                    self._port,
+                    ssl=self._ssl_context,
+                    limit=2**20,
+                ),
+                timeout=self._conn_timeout,
+            )
+            self._connection = connection
+            self._logger.info("Connected")
 
-        # Login if we have a username and password
-        await self._login()
+            # Login if we have a username and password
+            await self._login()
+
+        except asyncio.TimeoutError as err:
+            raise ClientTimeoutError from err
+        except OSError as err:
+            raise ClientConnectionError from err
 
         return connection
 

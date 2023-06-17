@@ -28,10 +28,10 @@ Additionally, a few helper functions for fetching objects are provided by
 
 ```python
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.helpers import get_objects_by_type
+from aiovantage.config_client.helpers import get_objects
 
 async with ConfigClient("hostname") as client:
-    loads = get_objects_by_type(client, ["Load", "Button"])
+    loads = get_objects(client, type=["Load", "Button"])
 ```
 
 ### Lookup objects by id, using a helper
