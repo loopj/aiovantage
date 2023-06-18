@@ -1,9 +1,8 @@
-"""
-Print a list of all loads that are currently on every 5 seconds.
-"""
+"""Print a list of all loads that are currently on every 5 seconds."""
 
 import argparse
 import asyncio
+import contextlib
 import logging
 
 from aiovantage import Vantage
@@ -18,6 +17,7 @@ args = parser.parse_args()
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -36,7 +36,5 @@ async def main() -> None:
             await asyncio.sleep(5)
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

@@ -1,3 +1,5 @@
+"""Interact with and control Vantage InFusion home automation controllers."""
+
 __all__ = ["Vantage", "VantageEvent"]
 
 import asyncio
@@ -11,13 +13,13 @@ from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.objects import SystemObject
 from aiovantage.controllers.areas import AreasController
 from aiovantage.controllers.base import EventCallback
-from aiovantage.controllers.blinds import BlindsController
 from aiovantage.controllers.blind_groups import BlindGroupsController
+from aiovantage.controllers.blinds import BlindsController
 from aiovantage.controllers.buttons import ButtonsController
 from aiovantage.controllers.dry_contacts import DryContactsController
 from aiovantage.controllers.gmem import GMemController
-from aiovantage.controllers.loads import LoadsController
 from aiovantage.controllers.load_groups import LoadGroupsController
+from aiovantage.controllers.loads import LoadsController
 from aiovantage.controllers.masters import MastersController
 from aiovantage.controllers.omni_sensors import OmniSensorsController
 from aiovantage.controllers.rgb_loads import RGBLoadsController
@@ -67,6 +69,7 @@ class Vantage:
         self._tasks = TasksController(self)
 
     async def __aenter__(self) -> Self:
+        """Return context manager."""
         return self
 
     async def __aexit__(
@@ -75,8 +78,8 @@ class Vantage:
         exc_val: Optional[BaseException],
         traceback: Optional[TracebackType],
     ) -> None:
+        """Exit context manager."""
         await self.close()
-
         if exc_val:
             raise exc_val
 
@@ -180,8 +183,7 @@ class Vantage:
         )
 
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
-        """
-        Subscribe to state changes for all objects.
+        """Subscribe to state changes for all objects.
 
         Returns:
             A function to unsubscribe.

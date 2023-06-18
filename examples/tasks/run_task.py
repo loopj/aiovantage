@@ -1,9 +1,8 @@
-"""
-Run a task by id.
-"""
+"""Run a task by id."""
 
 import argparse
 import asyncio
+import contextlib
 import logging
 
 from aiovantage import Vantage
@@ -19,6 +18,7 @@ args = parser.parse_args()
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -39,7 +39,5 @@ async def main() -> None:
         await vantage.tasks.start(task.id)
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

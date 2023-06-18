@@ -1,13 +1,15 @@
+"""Config client exceptions."""
+
 import asyncio
 
 
 class ClientError(Exception):
-    pass
+    """Base exception for config client."""
 
 
 class ClientConnectionError(ClientError):
-    pass
+    """Exception for config client connection errors."""
 
 
 class ClientTimeoutError(asyncio.TimeoutError, ClientConnectionError):
-    pass
+    """Exception for command client connection errors caused by timeouts."""

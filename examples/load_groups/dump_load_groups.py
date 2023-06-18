@@ -1,9 +1,8 @@
-"""
-Prints out the id, name, and members of each load group in the Vantage controller.
-"""
+"""Prints out the id, name, and members of each load group in the Vantage controller."""
 
 import argparse
 import asyncio
+import contextlib
 import logging
 
 from aiovantage import Vantage
@@ -18,6 +17,7 @@ args = parser.parse_args()
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -28,7 +28,5 @@ async def main() -> None:
             print(f"[{load_group.id}] '{load_group.name}' {load_group.load_ids}")
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

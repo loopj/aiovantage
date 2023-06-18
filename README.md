@@ -32,20 +32,20 @@ See the [examples](examples) folder for more examples.
 
 The following interfaces/controllers are currently supported.
 
-| Type          | Description           | Controller                | Examples
-| ------------- | --------------------- | ------------------------- | --------
-| Area          | Rooms, etc            | `vantage.areas`           | [Examples](examples/areas)
-| Blind         | Shades, blinds        | `vantage.blinds`          | [Examples](examples/blinds)
-| BlindGroups   | Groups of blinds      | `vantage.blind_groups`    | [Examples](examples/blind_groups)
-| Buttons       | Keypad buttons        | `vantage.buttons`         | [Examples](examples/buttons)
-| DryContacts   | Motion sensors, etc   | `vantage.dry_contacts`    | [Examples](examples/dry_contacts)
-| GMem          | Vantage variables     | `vantage.gmem`            | [Examples](examples/gmem)
-| Load          | Lights, relays, etc   | `vantage.loads`           | [Examples](examples/loads)
-| LoadGroup     | Groups of loads       | `vantage.load_groups`     | [Examples](examples/load_groups)
-| OmniSensor    | Power, current, etc   | `vantage.omni_sensors`    | [Examples](examples/omni_sensors)
-| RGBLoad       | RGB lights            | `vantage.rgb_loads`       | [Examples](examples/rgb_loads)
-| Stations      | Keypads, etc          | `vantage.stations`        | [Examples](examples/stations)
-| Tasks         | Vantage tasks         | `vantage.tasks`           | [Examples](examples/tasks)
+| Type          | Description           | Controller                | Examples                          |
+| ------------- | --------------------- | ------------------------- | --------------------------------- |
+| Area          | Rooms, etc            | `vantage.areas`           | [Examples](examples/areas)        |
+| Blind         | Shades, blinds        | `vantage.blinds`          | [Examples](examples/blinds)       |
+| BlindGroups   | Groups of blinds      | `vantage.blind_groups`    | [Examples](examples/blind_groups) |
+| Buttons       | Keypad buttons        | `vantage.buttons`         | [Examples](examples/buttons)      |
+| DryContacts   | Motion sensors, etc   | `vantage.dry_contacts`    | [Examples](examples/dry_contacts) |
+| GMem          | Vantage variables     | `vantage.gmem`            | [Examples](examples/gmem)         |
+| Load          | Lights, relays, etc   | `vantage.loads`           | [Examples](examples/loads)        |
+| LoadGroup     | Groups of loads       | `vantage.load_groups`     | [Examples](examples/load_groups)  |
+| OmniSensor    | Power, current, etc   | `vantage.omni_sensors`    | [Examples](examples/omni_sensors) |
+| RGBLoad       | RGB lights            | `vantage.rgb_loads`       | [Examples](examples/rgb_loads)    |
+| Stations      | Keypads, etc          | `vantage.stations`        | [Examples](examples/stations)     |
+| Tasks         | Vantage tasks         | `vantage.tasks`           | [Examples](examples/tasks)        |
 
 If you have an object that you expect to show up in one of these controllers, but it is missing, please let me know in an issue.
 

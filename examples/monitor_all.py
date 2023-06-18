@@ -1,9 +1,8 @@
-"""
-Fetch all objects from the Vantage controller, and print out any state changes.
-"""
+"""Fetch all objects from the Vantage controller, and print out any state changes."""
 
 import argparse
 import asyncio
+import contextlib
 import logging
 from typing import Any, Dict
 
@@ -20,6 +19,7 @@ args = parser.parse_args()
 
 
 def callback(event: VantageEvent, obj: SystemObject, data: Dict[str, Any]) -> None:
+    """Print out any state changes."""
     object_type = type(obj).__name__
 
     if event == VantageEvent.OBJECT_ADDED:
@@ -31,6 +31,7 @@ def callback(event: VantageEvent, obj: SystemObject, data: Dict[str, Any]) -> No
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -45,7 +46,5 @@ async def main() -> None:
         await asyncio.sleep(3600)
 
 
-try:
+with contextlib.suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

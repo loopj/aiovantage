@@ -1,3 +1,5 @@
+"""Base controller for Vantage objects."""
+
 import asyncio
 import logging
 from abc import abstractmethod
@@ -18,7 +20,7 @@ from typing import (
 )
 
 from aiovantage.command_client import CommandClient, Event, EventType
-from aiovantage.command_client.helpers import tokenize_response
+from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects
 from aiovantage.config_client.objects import SystemObject
@@ -28,7 +30,7 @@ from aiovantage.query import QuerySet
 if TYPE_CHECKING:
     from aiovantage import Vantage
 
-T = TypeVar("T", bound="SystemObject")
+T = TypeVar("T", bound=SystemObject)
 
 
 # Types for callbacks for event subscriptions
@@ -37,10 +39,13 @@ EventSubscription = Tuple[EventCallback[T], Optional[Iterable[VantageEvent]]]
 
 
 class BaseController(QuerySet[T]):
+    """Base controller for Vantage objects."""
+
     # The Vantage object types that this controller handles
     vantage_types: Tuple[str, ...]
 
     def __init__(self, vantage: "Vantage") -> None:
+        """Initialize instance."""
         self._vantage = vantage
         self._items: Dict[int, T] = {}
         self._logger = logging.getLogger(__package__)
@@ -50,26 +55,31 @@ class BaseController(QuerySet[T]):
 
         QuerySet.__init__(self, self._items, self.initialize)
 
-    def __getitem__(self, id: int) -> T:
-        return self._items[id]
+        self.__post_init__()
 
-    def __contains__(self, id: int) -> bool:
-        return id in self._items
+    def __post_init__(self) -> None:
+        """Post initialization hook."""
+
+    def __getitem__(self, vid: int) -> T:
+        """Return the object with the given Vantage ID."""
+        return self._items[vid]
+
+    def __contains__(self, vid: int) -> bool:
+        """Return True if the object with the given Vantage ID exists."""
+        return vid in self._items
 
     @property
     def config_client(self) -> ConfigClient:
-        return self._vantage._config_client
+        """Return the config client instance."""
+        return self._vantage.config_client
 
     @property
     def command_client(self) -> CommandClient:
-        return self._vantage._command_client
+        """Return the command client instance."""
+        return self._vantage.command_client
 
     async def initialize(self) -> None:
-        """
-        Initialize a stateless controller by populating the objects it manages.
-        """
-
-        # TODO: Allow reinitalization
+        """Initialize a stateless controller by populating the objects it manages."""
 
         if self._initialized:
             return
@@ -79,19 +89,13 @@ class BaseController(QuerySet[T]):
         self._initialized = True
 
     async def fetch_objects(self) -> None:
-        """
-        Fetch all objects managed by this controller.
-        """
+        """Fetch all objects managed by this controller."""
 
-        # TODO: Allow re-fetching objects
-        # - fire OBJECT_ADDED events for new objects
-        # - fire OBJECT_REMOVED events for removed objects
-
-        async for obj in get_objects(self.config_client, type=self.vantage_types):
+        async for obj in get_objects(self.config_client, types=self.vantage_types):
             self._items[obj.id] = cast(T, obj)
             self.emit(VantageEvent.OBJECT_ADDED, cast(T, obj))
 
-        self._logger.info(f"{self.__class__.__name__} fetched objects")
+        self._logger.info("%s fetched objects", self.__class__.__name__)
 
     def subscribe(
         self,
@@ -99,12 +103,11 @@ class BaseController(QuerySet[T]):
         id_filter: Union[int, Tuple[int], None] = None,
         event_filter: Union[VantageEvent, Tuple[VantageEvent], None] = None,
     ) -> Callable[[], None]:
-        """
-        Subscribe to status changes for objects managed by this controller.
+        """Subscribe to status changes for objects managed by this controller.
 
         Args:
             callback: The callback to call when an object changes.
-            id_filter: The object IDs to subscribe to, all objects if None.
+            id_filter: The Vantage IDs to subscribe to, all objects if None.
             event_filter: The event types to subscribe to, all events if None.
 
         Returns:
@@ -126,20 +129,20 @@ class BaseController(QuerySet[T]):
         if id_filter is None:
             self._subscriptions.append(subscription)
         else:
-            for id in id_filter:
-                if id not in self._id_subscriptions:
-                    self._id_subscriptions[id] = []
-                self._id_subscriptions[id].append(subscription)
+            for vid in id_filter:
+                if vid not in self._id_subscriptions:
+                    self._id_subscriptions[vid] = []
+                self._id_subscriptions[vid].append(subscription)
 
         # Return a function to unsubscribe
         def unsubscribe() -> None:
             if id_filter is None:
                 self._subscriptions.remove(subscription)
             else:
-                for id in id_filter:  # type: ignore[union-attr]
-                    if id not in self._id_subscriptions:
+                for vid in id_filter:  # type: ignore[union-attr]
+                    if vid not in self._id_subscriptions:
                         continue
-                    self._id_subscriptions[id].remove(subscription)
+                    self._id_subscriptions[vid].remove(subscription)
 
         return unsubscribe
 
@@ -147,19 +150,18 @@ class BaseController(QuerySet[T]):
         self,
         event_type: VantageEvent,
         obj: T,
-        user_data: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """
-        Emit an event to subscribers of this controller.
+        """Emit an event to subscribers of this controller.
 
         Args:
             event_type: The type of event to emit.
             obj: The object that the event relates to.
-            user_data: User data to pass to the callback.
+            data: Data to pass to the callback.
         """
 
-        if user_data is None:
-            user_data = {}
+        if data is None:
+            data = {}
 
         # Grab a list of subscribers that care about this object
         subscribers = self._subscriptions + self._id_subscriptions.get(obj.id, [])
@@ -168,12 +170,14 @@ class BaseController(QuerySet[T]):
                 continue
 
             if iscoroutinefunction(callback):
-                asyncio.create_task(callback(event_type, obj, user_data))
+                asyncio.create_task(callback(event_type, obj, data))  # noqa: RUF006
             else:
-                callback(event_type, obj, user_data)
+                callback(event_type, obj, data)
 
 
 class StatefulController(BaseController[T]):
+    """Base controller for Vantage objects that have state."""
+
     # Which Vantage status types this controller handles, if any
     status_types: Optional[Tuple[str, ...]] = None
 
@@ -184,21 +188,19 @@ class StatefulController(BaseController[T]):
     event_log_status_methods: Optional[Tuple[str, ...]] = None
 
     @abstractmethod
-    async def fetch_object_state(self, id: int) -> None:
-        ...
+    async def fetch_object_state(self, vid: int) -> None:
+        """Fetch the initial state of an object."""
 
     @abstractmethod
-    def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
-        ...
+    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+        """Handle state changes for an object."""
 
     async def initialize(self) -> None:
-        """
-        Initialize a stateful controller by populating the objects it manages, fetching
-        their initial state, and subscribing to state updates.
-        """
+        """Initialize a stateful controller.
 
-        # TODO: Allow reinitalization
-        # TODO: Allow initializing without subscribing to object state updates
+        Populates the objects it manages, fetches their initial state, and subscribes
+        to state updates.
+        """
 
         if self._initialized:
             return
@@ -214,22 +216,16 @@ class StatefulController(BaseController[T]):
         self._initialized = True
 
     async def fetch_full_state(self) -> None:
-        """
-        Fetch the full state of all objects managed by this controller.
-        """
+        """Fetch the full state of all objects managed by this controller."""
 
         await asyncio.gather(
             *[self.fetch_object_state(obj.id) for obj in self._items.values()]
         )
 
-        self._logger.info(f"{self.__class__.__name__} fetched full state")
+        self._logger.info("%s fetched full state", self.__class__.__name__)
 
     async def subscribe_to_updates(self) -> None:
-        """
-        Subscribe to state updates for objects managed by this controller.
-        """
-
-        # TODO: Handle unsubscribe
+        """Subscribe to state updates for objects managed by this controller."""
 
         if not self._items:
             return
@@ -246,19 +242,18 @@ class StatefulController(BaseController[T]):
                 self._handle_command_client_event, self.status_types
             )
 
-        self._logger.info(f"{self.__class__.__name__} subscribed to updates")
+        self._logger.info("%s subscribed to updates", self.__class__.__name__)
 
-    def update_state(self, id: int, state: Dict[str, Any]) -> None:
-        """
-        Update the state of an object and notify subscribers if it changed
+    def update_state(self, vid: int, state: Dict[str, Any]) -> None:
+        """Update the state of an object and notify subscribers if it changed.
 
         Args:
-            id: The ID of the object to update.
+            vid: The Vantage ID of the object to update.
             state: A dictionary of attributes to update.
         """
 
         # Get the object, skip if it doesn't exist
-        obj = self.get(id)
+        obj = self.get(vid)
         if obj is None:
             return
 
@@ -270,7 +265,7 @@ class StatefulController(BaseController[T]):
                     setattr(obj, key, value)
                     attrs_changed.append(key)
             except AttributeError:
-                self._logger.warn(f"Object '{obj.id}' has no attribute '{key}'")
+                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
 
         # Notify subscribers if any attributes changed
         if len(attrs_changed) > 0:
@@ -286,7 +281,7 @@ class StatefulController(BaseController[T]):
         if event["tag"] == EventType.STATUS:
             # Handle "STATUS {type}" events
 
-            if event["id"] not in self._items.keys():
+            if event["id"] not in self._items:
                 return
 
             self.handle_object_update(event["id"], event["status_type"], event["args"])
@@ -302,12 +297,12 @@ class StatefulController(BaseController[T]):
             ):
                 return
 
-            id = int(id_str)
-            if id not in self._items.keys():
+            vid = int(id_str)
+            if vid not in self._items:
                 return
 
             # Pass the event to the controller
-            self.handle_object_update(id, method, args)
+            self.handle_object_update(vid, method, args)
 
         elif event["tag"] == EventType.RECONNECTED:
             # Handle reconnect events

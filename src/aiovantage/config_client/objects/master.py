@@ -1,3 +1,5 @@
+"""Master (controller) object."""
+
 from dataclasses import dataclass
 
 from aiovantage.config_client.xml_dataclass import xml_element
@@ -7,6 +9,8 @@ from .system_object import SystemObject
 
 @dataclass
 class Master(SystemObject):
+    """Master (controller) object."""
+
     number: int = xml_element("Number")
     volts: float = xml_element("Volts")
     amps: float = xml_element("Amps")

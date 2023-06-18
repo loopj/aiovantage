@@ -1,3 +1,5 @@
+"""RGB load object."""
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Tuple
@@ -12,7 +14,11 @@ from .location_object import LocationObject
 
 @dataclass
 class RGBLoad(LocationObject):
+    """RGB load object."""
+
     class ColorType(Enum):
+        """Color type."""
+
         RGB = "RGB"
         RGBW = "RGBW"
         HSL = "HSL"
@@ -25,6 +31,8 @@ class RGBLoad(LocationObject):
     max_temp: int = xml_element("MaxTemp")
 
     def __post_init__(self) -> None:
+        """Post init."""
+
         self.hsl: Optional[Tuple[int, int, int]] = None
         self.rgb: Optional[Tuple[int, int, int]] = None
         self.rgbw: Optional[Tuple[int, int, int, int]] = None
@@ -33,18 +41,12 @@ class RGBLoad(LocationObject):
 
     @property
     def is_on(self) -> bool:
-        """
-        Return whether the load is on.
-        """
-
+        """Return True if the load is on."""
         return bool(self.level)
 
     @property
     def is_rgb(self) -> bool:
-        """
-        Return whether the load is an RGB load.
-        """
-
+        """Return True if the load is an RGB(W) load."""
         return self.color_type in (
             RGBLoad.ColorType.RGB,
             RGBLoad.ColorType.RGBW,
@@ -53,8 +55,5 @@ class RGBLoad(LocationObject):
 
     @property
     def is_cct(self) -> bool:
-        """
-        Return whether the load is a CCT load.
-        """
-
+        """Return True if the load is a CCT load."""
         return self.color_type == RGBLoad.ColorType.CCT

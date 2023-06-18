@@ -1,15 +1,18 @@
+"""Interface for querying and controlling buttons."""
+
 from typing import Sequence
 
 from .base import Interface
 
 
 class ButtonInterface(Interface):
-    async def get_state(self, id: int) -> bool:
-        """
-        Get the state of a button.
+    """Interface for querying and controlling buttons."""
+
+    async def get_state(self, vid: int) -> bool:
+        """Get the state of a button.
 
         Args:
-            id: The ID of the button.
+            vid: The Vantage ID of the button.
 
         Returns:
             The pressed state of the button, True if pressed, False if not.
@@ -17,63 +20,58 @@ class ButtonInterface(Interface):
 
         # INVOKE <id> Button.GetState
         # -> R:INVOKE <id> <state (Up/Down)> Button.GetState
-        response = await self.invoke(id, "Button.GetState")
+        response = await self.invoke(vid, "Button.GetState")
         state = response.args[1]
         if state == "Up":
             return False
-        elif state == "Down":
+        if state == "Down":
             return True
-        else:
-            raise ValueError(f"Invalid button state name: {state}")
 
-    async def set_state(self, id: int, pressed: bool) -> None:
-        """
-        Set the state of a button.
+        raise ValueError(f"Invalid button state name: {state}")
+
+    async def set_state(self, vid: int, pressed: bool) -> None:
+        """Set the state of a button.
 
         Args:
-            id: The ID of the button.
-            state: The state to set the button to, either a State.UP or State.DOWN.
+            vid: The Vantage ID of the button.
+            pressed: The state to set the button to, either a State.UP or State.DOWN.
         """
 
         # INVOKE <id> Button.SetState <state (0/1/Up/Down)>
         # -> R:INVOKE <id> Button.SetState <state (Up/Down)>
-        await self.invoke(id, "Button.SetState", pressed)
+        await self.invoke(vid, "Button.SetState", pressed)
 
-    async def press(self, id: int) -> None:
-        """
-        Press a button.
-
-        Args:
-            id: The ID of the button.
-        """
-
-        await self.set_state(id, True)
-
-    async def release(self, id: int) -> None:
-        """
-        Release a button.
+    async def press(self, vid: int) -> None:
+        """Press a button.
 
         Args:
-            id: The ID of the button.
+            vid: The Vantage ID of the button.
         """
 
-        await self.set_state(id, False)
+        await self.set_state(vid, True)
 
-    async def press_and_release(self, id: int) -> None:
-        """
-        Press and release a button.
+    async def release(self, vid: int) -> None:
+        """Release a button.
 
         Args:
-            id: The ID of the button.
+            vid: The Vantage ID of the button.
         """
 
-        await self.press(id)
-        await self.release(id)
+        await self.set_state(vid, False)
+
+    async def press_and_release(self, vid: int) -> None:
+        """Press and release a button.
+
+        Args:
+            vid: The Vantage ID of the button.
+        """
+
+        await self.press(vid)
+        await self.release(vid)
 
     @classmethod
     def parse_btn_status(cls, args: Sequence[str]) -> bool:
-        """
-        Parse a simple "S:BTN" event.
+        """Parse a simple 'S:BTN' event.
 
         Args:
             args: The arguments of the event.
@@ -87,15 +85,14 @@ class ButtonInterface(Interface):
         state = args[0]
         if state == "RELEASE":
             return False
-        elif state == "PRESS":
+        if state == "PRESS":
             return True
-        else:
-            raise ValueError(f"Invalid button state name: {state}")
+
+        raise ValueError(f"Invalid button state name: {state}")
 
     @classmethod
     def parse_get_state_status(cls, args: Sequence[str]) -> bool:
-        """
-        Parse a "Button.GetState" event.
+        """Parse a 'Button.GetState' event.
 
         Args:
             args: The arguments of the event.

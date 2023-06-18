@@ -1,3 +1,5 @@
+"""Interface for querying and controlling system objects."""
+
 from datetime import datetime
 from typing import Sequence
 
@@ -5,12 +7,13 @@ from .base import Interface
 
 
 class ObjectInterface(Interface):
-    async def get_mtime(self, id: int) -> datetime:
-        """
-        Get the modification time of an object.
+    """Interface for querying and controlling system objects."""
+
+    async def get_mtime(self, vid: int) -> datetime:
+        """Get the modification time of an object.
 
         Args:
-            id: The ID of the object.
+            vid: The Vantage ID of the object.
 
         Returns:
             The modification time of the object, as a datetime object.
@@ -18,15 +21,14 @@ class ObjectInterface(Interface):
 
         # INVOKE <id> Object.GetMTime
         # -> R:INVOKE <id> <mtime> Object.GetMTime
-        response = await self.invoke(id, "Object.GetMTime")
+        response = await self.invoke(vid, "Object.GetMTime")
         mtime = datetime.fromtimestamp(int(response.args[1]))
 
         return mtime
 
     @classmethod
     def parse_get_mtime_status(cls, args: Sequence[str]) -> datetime:
-        """
-        Parse a "Object.GetMTime" event.
+        """Parse an 'Object.GetMTime' event.
 
         Args:
             args: The arguments of the event.

@@ -1,3 +1,5 @@
+"""Controller holding and managing Vantage blinds."""
+
 from typing import Any, Dict, Sequence
 
 from typing_extensions import override
@@ -9,6 +11,8 @@ from .base import StatefulController
 
 
 class BlindsController(StatefulController[Blind], BlindInterface):
+    """Controller holding and managing Vantage blinds."""
+
     # Fetch the following object types from Vantage
     vantage_types = ("QISBlind", "QubeBlind", "RelayBlind", "Somfy.URTSI_2_Shade_CHILD")
 
@@ -17,20 +21,21 @@ class BlindsController(StatefulController[Blind], BlindInterface):
     event_log_status_methods = ("Blind.GetPosition",)
 
     @override
-    async def fetch_object_state(self, id: int) -> None:
-        # Fetch initial state of a Blind.
+    async def fetch_object_state(self, vid: int) -> None:
+        """Fetch the initial state of a blind."""
 
-        state: Dict[str, Any] = {}
-        state["position"] = await BlindInterface.get_position(self, id)
+        state: Dict[str, Any] = {
+            "position": await BlindInterface.get_position(self, vid)
+        }
 
-        self.update_state(id, state)
+        self.update_state(vid, state)
 
     @override
-    def handle_object_update(self, id: int, status: str, args: Sequence[str]) -> None:
-        # Handle state changes for a Blind.
+    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+        """Handle state changes for a blind."""
 
         state: Dict[str, Any] = {}
         if status == "Blind.GetPosition":
             state["position"] = BlindInterface.parse_get_position_status(args)
 
-        self.update_state(id, state)
+        self.update_state(vid, state)

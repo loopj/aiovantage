@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -20,25 +20,29 @@ classifiers = [
 ]
 dependencies = [
     "xsdata==23.5",
-    "typing_extensions>=4.4.0,<5; python_version < '3.12'",
+    "typing_extensions>=4.6.3,<5.0",
 ]
 dynamic = ["version"]
 
 [tool.setuptools_scm]
 
-[tool.isort]
-profile = "black"
-
 [tool.mypy]
-files = "src"
-mypy_path = "src"
-python_version = "3.8"
-namespace_packages = true
-explicit_package_bases = true
-implicit_reexport = true
-show_error_codes = true
 strict = true
-enable_error_code = [
-    "redundant-expr",
-    "truthy-bool",
+
+[tool.ruff]
+target-version = "py38"
+
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
 ]
+ignore = [
+    "E501",  # line too long, handled by black
+]
+
+[tool.ruff.mccabe]
+max-complexity = 15

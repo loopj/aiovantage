@@ -31,7 +31,7 @@ from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects
 
 async with ConfigClient("hostname") as client:
-    loads = get_objects(client, type=["Load", "Button"])
+    loads = get_objects(client, types=["Load", "Button"])
 ```
 
 ### Lookup objects by id, using a helper

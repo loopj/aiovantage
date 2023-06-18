@@ -1,0 +1,25 @@
+name: "Lint"
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  lint:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout the repository"
+        uses: "actions/checkout@v3"
+      - name: "Set up Python"
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+      - name: "Install requirements"
+        run: pip install -r requirements.txt
+      - name: Lint
+        run: bash scripts/lint.sh

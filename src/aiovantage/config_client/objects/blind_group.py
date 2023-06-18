@@ -1,3 +1,5 @@
+"""BlindGroup object."""
+
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -8,6 +10,8 @@ from .location_object import LocationObject
 
 @dataclass
 class BlindGroup(LocationObject):
+    """BlindGroup object."""
+
     blind_ids: Optional[List[int]] = xml_element(
-        "Blind", metadata={"wrapper": "BlindTable"}, default=None
+        "Blind", wrapper="BlindTable", default=None
     )

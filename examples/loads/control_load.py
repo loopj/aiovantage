@@ -1,6 +1,4 @@
-"""
-Print a list of loads and allow the user to control them with the keyboard.
-"""
+"""Print a list of loads and allow the user to control them with the keyboard."""
 
 import argparse
 import asyncio
@@ -8,11 +6,10 @@ import logging
 import sys
 import termios
 import tty
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from typing import Iterator, Optional
 
 from aiovantage import Vantage
-
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -24,34 +21,32 @@ args = parser.parse_args()
 
 
 def parse_keypress() -> Optional[str]:
-    # Rudimentary keypress parser
-
-    c = sys.stdin.read(1)
-    if c == "\x1b":
+    """Rudimentary keypress parser."""
+    char = sys.stdin.read(1)
+    if char == "\x1b":
         seq = sys.stdin.read(2)
         if seq == "[A":
             return "KEY_UP"
-        elif seq == "[B":
+        if seq == "[B":
             return "KEY_DOWN"
-        else:
-            return None
-    else:
-        return c
+        return None
+
+    return char
 
 
 @contextmanager
-def cbreak_mode(fd: int) -> Iterator[None]:
-    # Context manager to read terminal input character by character
-
-    old_attrs = termios.tcgetattr(fd)
+def cbreak_mode(descriptor: int) -> Iterator[None]:
+    """Context manager to read terminal input character by character."""
+    old_attrs = termios.tcgetattr(descriptor)
     try:
-        tty.setcbreak(fd)
+        tty.setcbreak(descriptor)
         yield
     finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_attrs)
+        termios.tcsetattr(descriptor, termios.TCSADRAIN, old_attrs)
 
 
 async def main() -> None:
+    """Run code example."""
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -111,7 +106,5 @@ async def main() -> None:
                     break
 
 
-try:
+with suppress(KeyboardInterrupt):
     asyncio.run(main())
-except KeyboardInterrupt:
-    pass

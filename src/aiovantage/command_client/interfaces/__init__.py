@@ -1,3 +1,5 @@
+"""Comand client object interfaces."""
+
 from .blind import BlindInterface
 from .button import ButtonInterface
 from .color_temperature import ColorTemperatureInterface
