@@ -11,6 +11,7 @@ from types import TracebackType
 from typing import (
     Awaitable,
     Callable,
+    Coroutine,
     Dict,
     Iterable,
     List,
@@ -32,7 +33,7 @@ from .utils import tokenize_response
 KEEPALIVE_INTERVAL = 60
 
 # Type aliases for callbacks for event subscriptions
-EventCallback = Union[Callable[[Event], None], Callable[[Event], Awaitable[None]]]
+EventCallback = Callable[[Event], Union[None, Coroutine]]
 EventFilter = Callable[[Event], bool]
 EventSubscription = Tuple[EventCallback, Optional[EventFilter]]
 

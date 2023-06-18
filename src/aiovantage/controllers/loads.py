@@ -24,8 +24,9 @@ class LoadsController(StatefulController[Load], LoadInterface):
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the initial state of a load."""
 
-        state: Dict[str, Any] = {}
-        state["level"] = await LoadInterface.get_level(self, vid)
+        state: Dict[str, Any] = {
+            "level": await LoadInterface.get_level(self, vid),
+        }
 
         self.update_state(vid, state)
 

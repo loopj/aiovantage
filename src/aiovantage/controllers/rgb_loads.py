@@ -44,10 +44,11 @@ class RGBLoadsController(
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the initial state of an RGB load."""
 
-        rgb_load: RGBLoad = self[vid]
-        state: Dict[str, Any] = {}
-        state["level"] = await LoadInterface.get_level(self, vid)
+        state: Dict[str, Any] = {
+            "level": await LoadInterface.get_level(self, vid),
+        }
 
+        rgb_load: RGBLoad = self[vid]
         if rgb_load.is_rgb:
             state["hsl"] = await RGBLoadInterface.get_hsl(self, vid)
             state["rgb"] = await RGBLoadInterface.get_rgb(self, vid)

@@ -3,9 +3,9 @@
 import asyncio
 import logging
 import ssl
-import xml.etree.ElementTree as ET
 from types import TracebackType
 from typing import Any, Optional, Tuple, Type, Union
+from xml.etree import ElementTree
 
 from typing_extensions import Self
 from xsdata.formats.dataclass.parsers import XmlParser
@@ -175,7 +175,7 @@ class ConfigClient:
         self._logger.debug(response)
 
         # Parse the XML doc
-        tree = ET.fromstring(response)
+        tree = ElementTree.fromstring(response)
 
         # Extract the method element from XML doc
         method_el = tree.find(f"{method_cls.__name__}")
@@ -187,7 +187,7 @@ class ConfigClient:
 
         # Parse the method element with xsdata
         method = self._parser.parse(method_el, method_cls)
-        if method.return_value is None or method.return_value == "":
+        if not method.return_value:
             raise TypeError(
                 f"Response from {method_cls.interface}.{method_cls.__name__}"
                 f"did not contain a return value"

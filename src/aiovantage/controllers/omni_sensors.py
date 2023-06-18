@@ -22,8 +22,9 @@ class OmniSensorsController(StatefulController[OmniSensor]):
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the initial state of an omni sensor."""
 
-        state: Dict[str, Any] = {}
-        state["level"] = await self.get_level(vid)
+        state: Dict[str, Any] = {
+            "level": await self.get_level(vid),
+        }
 
         self.update_state(vid, state)
 
@@ -35,8 +36,9 @@ class OmniSensorsController(StatefulController[OmniSensor]):
         if status != omni_sensor.get.method:
             return
 
-        state: Dict[str, Any] = {}
-        state["level"] = self.parse_get_level_status(omni_sensor, args)
+        state: Dict[str, Any] = {
+            "level": self.parse_get_level_status(omni_sensor, args),
+        }
 
         self.update_state(vid, state)
 

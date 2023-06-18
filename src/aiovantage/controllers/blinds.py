@@ -24,8 +24,9 @@ class BlindsController(StatefulController[Blind], BlindInterface):
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the initial state of a blind."""
 
-        state: Dict[str, Any] = {}
-        state["position"] = await BlindInterface.get_position(self, vid)
+        state: Dict[str, Any] = {
+            "position": await BlindInterface.get_position(self, vid)
+        }
 
         self.update_state(vid, state)
 

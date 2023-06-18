@@ -24,9 +24,10 @@ class TasksController(StatefulController[Task], TaskInterface):
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the initial state of a task."""
 
-        state: Dict[str, Any] = {}
-        state["is_running"] = await TaskInterface.is_running(self, vid)
-        state["state"] = await TaskInterface.get_state(self, vid)
+        state: Dict[str, Any] = {
+            "is_running": await TaskInterface.is_running(self, vid),
+            "state": await TaskInterface.get_state(self, vid),
+        }
 
         self.update_state(vid, state)
 
