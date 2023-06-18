@@ -1,3 +1,5 @@
+"""Light sensor object."""
+
 from dataclasses import dataclass
 
 from .sensor import Sensor
@@ -5,4 +7,4 @@ from .sensor import Sensor
 
 @dataclass
 class LightSensor(Sensor):
-    pass
+    """Light sensor object."""

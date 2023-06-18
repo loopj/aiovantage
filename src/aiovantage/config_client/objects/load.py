@@ -1,3 +1,5 @@
+"""Load object."""
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -8,16 +10,18 @@ from .location_object import LocationObject
 
 @dataclass
 class Load(LocationObject):
+    """Load object."""
+
     load_type: str = xml_element("LoadType")
     power_profile_id: int = xml_element("PowerProfile")
 
     def __post_init__(self) -> None:
+        """Post init."""
         self.level: Optional[float] = None
 
     @property
     def is_relay(self) -> bool:
-        """Return whether the load is a relay."""
-
+        """Return True if the load is a relay."""
         return self.load_type in (
             "High Voltage Relay",
             "Low Voltage Relay",
@@ -25,24 +29,20 @@ class Load(LocationObject):
 
     @property
     def is_motor(self) -> bool:
-        """Return whether the load is a motor."""
-
+        """Return True if the load is a motor."""
         return self.load_type == "Motor"
 
     @property
     def is_light(self) -> bool:
-        """Return whether the load is a light."""
-
+        """Return True if the load is a light."""
         return not (self.is_relay or self.is_motor)
 
     @property
     def is_dimmable(self) -> bool:
-        """Return whether the load is dimmable."""
-
+        """Return True if the load is dimmable."""
         return not self.load_type.endswith("non-Dim")
 
     @property
     def is_on(self) -> bool:
-        """Return whether the load is on."""
-
+        """Return True if the load is on."""
         return bool(self.level)

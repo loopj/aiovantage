@@ -24,7 +24,9 @@ async def main() -> None:
     # Connect to the Vantage controller and print out details of each blind group
     async with Vantage(args.host, args.username, args.password) as vantage:
         async for blind_group in vantage.blind_groups:
-            print(f"[{blind_group.id}] '{blind_group.name}' {blind_group.blind_ids}")
+            print(f"[{blind_group.id}] '{blind_group.name}'")
+            async for blind in vantage.blind_groups.blinds(blind_group.id):
+                print(f"    [{blind.id}] '{blind.name}'")
 
 
 with contextlib.suppress(KeyboardInterrupt):

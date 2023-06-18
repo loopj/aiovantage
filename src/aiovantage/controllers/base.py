@@ -20,7 +20,7 @@ from typing import (
 )
 
 from aiovantage.command_client import CommandClient, Event, EventType
-from aiovantage.command_client.helpers import tokenize_response
+from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects
 from aiovantage.config_client.objects import SystemObject
@@ -91,7 +91,7 @@ class BaseController(QuerySet[T]):
     async def fetch_objects(self) -> None:
         """Fetch all objects managed by this controller."""
 
-        async for obj in get_objects(self.config_client, object_type=self.vantage_types):
+        async for obj in get_objects(self.config_client, types=self.vantage_types):
             self._items[obj.id] = cast(T, obj)
             self.emit(VantageEvent.OBJECT_ADDED, cast(T, obj))
 
@@ -150,18 +150,18 @@ class BaseController(QuerySet[T]):
         self,
         event_type: VantageEvent,
         obj: T,
-        user_data: Optional[Dict[str, Any]] = None,
+        data: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Emit an event to subscribers of this controller.
 
         Args:
             event_type: The type of event to emit.
             obj: The object that the event relates to.
-            user_data: User data to pass to the callback.
+            data: Data to pass to the callback.
         """
 
-        if user_data is None:
-            user_data = {}
+        if data is None:
+            data = {}
 
         # Grab a list of subscribers that care about this object
         subscribers = self._subscriptions + self._id_subscriptions.get(obj.id, [])
@@ -170,9 +170,9 @@ class BaseController(QuerySet[T]):
                 continue
 
             if iscoroutinefunction(callback):
-                asyncio.create_task(callback(event_type, obj, user_data))  # noqa: RUF006
+                asyncio.create_task(callback(event_type, obj, data))  # noqa: RUF006
             else:
-                callback(event_type, obj, user_data)
+                callback(event_type, obj, data)
 
 
 class StatefulController(BaseController[T]):

@@ -1,3 +1,5 @@
+"""LoadGroup object."""
+
 from dataclasses import dataclass
 from typing import List
 
@@ -8,4 +10,6 @@ from .location_object import LocationObject
 
 @dataclass
 class LoadGroup(LocationObject):
-    load_ids: List[int] = xml_element("Load", metadata={"wrapper": "LoadTable"})
+    """LoadGroup object."""
+
+    load_ids: List[int] = xml_element("Load", wrapper="LoadTable")

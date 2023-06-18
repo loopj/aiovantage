@@ -1,3 +1,5 @@
+"""Qube blind object."""
+
 from dataclasses import dataclass
 
 from .blind import Blind
@@ -5,4 +7,4 @@ from .blind import Blind
 
 @dataclass
 class QubeBlind(Blind):
-    pass
+    """Qube blind object."""

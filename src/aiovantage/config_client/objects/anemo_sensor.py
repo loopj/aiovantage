@@ -1,3 +1,5 @@
+"""AnemoSensor (wind sensor) object."""
+
 from dataclasses import dataclass
 
 from .sensor import Sensor
@@ -5,4 +7,4 @@ from .sensor import Sensor
 
 @dataclass
 class AnemoSensor(Sensor):
-    pass
+    """AnemoSensor (wind sensor) object."""

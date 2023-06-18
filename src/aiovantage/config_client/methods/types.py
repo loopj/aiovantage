@@ -1,3 +1,5 @@
+"""ObjectChoice type definition."""
+
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -7,6 +9,11 @@ from aiovantage.config_client.xml_dataclass import xml_attribute, xml_tag_from_c
 
 @dataclass
 class ObjectChoice:
+    """ObjectChoice type definition.
+
+    Wildcard type that can be used to represent any object type.
+    """
+
     id: Optional[int] = xml_attribute("VID", default=None)
     choice: Optional[object] = field(
         default=None,

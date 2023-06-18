@@ -1,3 +1,5 @@
+"""Equinox 40 Station."""
+
 from dataclasses import dataclass
 
 from .station_object import StationObject
@@ -5,6 +7,4 @@ from .station_object import StationObject
 
 @dataclass
 class EqCtrl(StationObject):
-    """Equinox 40 Station"""
-
-    pass
+    """Equinox 40 Station."""

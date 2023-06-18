@@ -1,12 +1,14 @@
+"""Duck typing for methods."""
+
 from typing import ClassVar, Optional, Protocol, TypeVar
 
-CallType = TypeVar("CallType")
-ReturnType = TypeVar("ReturnType")
+Call = TypeVar("Call")
+Return = TypeVar("Return")
 
 
-class Method(Protocol[CallType, ReturnType]):
-    """Duck typing for methods"""
+class Method(Protocol[Call, Return]):
+    """Duck typing for methods."""
 
     interface: ClassVar[str]
-    call: Optional[CallType]
-    return_value: Optional[ReturnType]
+    call: Optional[Call]
+    return_value: Optional[Return]

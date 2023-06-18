@@ -1,3 +1,5 @@
+"""Vantage object types."""
+
 from .anemo_sensor import AnemoSensor
 from .area import Area
 from .blind import Blind
@@ -32,8 +34,8 @@ from .station_object import StationObject
 from .system_object import SystemObject
 from .task import Task
 from .temperature import Temperature
-from .urtsi_2_group_child import URTSI_2_Group_CHILD
-from .urtsi_2_shade_child import URTSI_2_Shade_CHILD
+from .urtsi_2_group import URTSI2Group
+from .urtsi_2_shade import URTSI2Shade
 
 ALL_OBJECT_TYPES = (
     AnemoSensor,
@@ -70,8 +72,8 @@ ALL_OBJECT_TYPES = (
     SystemObject,
     Task,
     Temperature,
-    URTSI_2_Group_CHILD,
-    URTSI_2_Shade_CHILD,
+    URTSI2Group,
+    URTSI2Shade,
 )
 
 __all__ = [obj.__name__ for obj in ALL_OBJECT_TYPES]
