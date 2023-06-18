@@ -90,7 +90,6 @@ async def get_object_by_id(client: ConfigClient, vid: int) -> Any:
     Args:
         client: The ACI client instance
         vid: The Vantage ID of the object to fetch
-        base: The base class to validate the object against
 
     Returns:
         The object matching the specified id, or None if not found

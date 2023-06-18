@@ -151,25 +151,49 @@ class ConfigClient:
             return data.decode()
 
     async def request(
-        self, method: Type[Method[Call, Return]], params: Any = None
+        self, method_cls: Type[Method[Call, Return]], params: Any = None
     ) -> Return:
         """Marshall a request, send it to the ACI service, and yield a parsed object.
 
         Args:
-            method: The method class to use
+            method_cls: The method class to use
             params: The parameters instance to pass to the method
 
         Returns:
             The parsed response object
         """
 
-        request = self._marshall_request(method, params)
+        # Build the method object
+        method = method_cls()
+        method.call = params
+
+        # Render the method object to XML with xsdata
+        request = self._serializer.render(method)
         self._logger.debug(request)
 
         response = await self.raw_request(method.interface, request)
         self._logger.debug(response)
 
-        return self._unmarshall_response(method, response)
+        # Parse the XML doc
+        tree = ET.fromstring(response)
+
+        # Extract the method element from XML doc
+        method_el = tree.find(f"{method_cls.__name__}")
+        if method_el is None:
+            raise ValueError(
+                f"Response from {method_cls.interface} did not contain a "
+                f"<{method_cls.__name__}> element"
+            )
+
+        # Parse the method element with xsdata
+        method = self._parser.parse(method_el, method_cls)
+        if method.return_value is None or method.return_value == "":
+            raise TypeError(
+                f"Response from {method_cls.interface}.{method_cls.__name__}"
+                f"did not contain a return value"
+            )
+
+        return method.return_value
 
     async def _get_connection(self) -> Connection:
         """Get a connection to the ACI service, authenticating if necessary."""
@@ -201,44 +225,6 @@ class ConfigClient:
             raise ClientConnectionError from err
 
         return connection
-
-    def _marshall_request(
-        self, method_cls: Type[Method[Call, Return]], params: Any
-    ) -> str:
-        # Serialize the request to XML using xsdata
-
-        # Build the method object
-        method = method_cls()
-        method.call = params
-
-        # Render the method object to XML with xsdata
-        return self._serializer.render(method)
-
-    def _unmarshall_response(
-        self, method_cls: Type[Method[Call, Return]], response_str: str
-    ) -> Return:
-        # Deserialize the response from XML using xsdata
-
-        # Parse the XML doc
-        tree = ET.fromstring(response_str)
-
-        # Extract the method element from XML doc
-        method_el = tree.find(f"{method_cls.__name__}")
-        if method_el is None:
-            raise ValueError(
-                f"Response from {method_cls.interface} did not contain a "
-                f"<{method_cls.__name__}> element"
-            )
-
-        # Parse the method element with xsdata
-        method = self._parser.parse(method_el, method_cls)
-        if method.return_value is None or method.return_value == "":
-            raise TypeError(
-                f"Response from {method_cls.interface}.{method_cls.__name__}"
-                f"did not contain a return value"
-            )
-
-        return method.return_value
 
     async def _login(self) -> None:
         # Authenticate if necessary

@@ -85,10 +85,10 @@ class ButtonInterface(Interface):
         state = args[0]
         if state == "RELEASE":
             return False
-        elif state == "PRESS":
+        if state == "PRESS":
             return True
-        else:
-            raise ValueError(f"Invalid button state name: {state}")
+
+        raise ValueError(f"Invalid button state name: {state}")
 
     @classmethod
     def parse_get_state_status(cls, args: Sequence[str]) -> bool:

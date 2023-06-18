@@ -1,10 +1,17 @@
 """ObjectChoice type definition."""
 
+import inspect
 from dataclasses import dataclass, field
 from typing import Optional
 
-from aiovantage.config_client.objects import ALL_OBJECT_TYPES
+import aiovantage.config_client.objects
 from aiovantage.config_client.xml_dataclass import xml_attribute, xml_tag_from_class
+
+# Get all Vantage object from aiovantage.config_client.objects
+ALL_OBJECT_TYPES = [
+    item
+    for _, item in inspect.getmembers(aiovantage.config_client.objects, inspect.isclass)
+]
 
 
 @dataclass

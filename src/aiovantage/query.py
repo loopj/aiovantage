@@ -14,11 +14,7 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Self
-
 T = TypeVar("T")
-
-FilterType = Callable[[T], Any]
 
 
 class QuerySet(Iterable[T], AsyncIterator[T]):
@@ -48,7 +44,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         self.__iterator: Optional[Iterator[T]] = None
 
         if filters is None:
-            self.__filters: List[FilterType] = []
+            self.__filters: List[Callable[[T], Any]] = []
         else:
             self.__filters = filters
 
@@ -80,19 +76,19 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         except StopIteration as exc:
             raise StopAsyncIteration from exc
 
-    def add_filter(self, filter_fn: FilterType) -> None:
+    def add_filter(self, filter_fn: Callable[[T], Any]) -> None:
         """Add a filter to the queryset."""
         self.__filters.append(filter_fn)
 
     @overload
-    def filter(self, match: FilterType) -> Self:
+    def filter(self, match: Callable[[T], Any]) -> "QuerySet[T]":
         ...
 
     @overload
-    def filter(self, **kwargs: Any) -> Self:
+    def filter(self, **kwargs: Any) -> "QuerySet[T]":
         ...
 
-    def filter(self, *args: Any, **kwargs: Any) -> Self:
+    def filter(self, *args: Any, **kwargs: Any) -> "QuerySet[T]":
         """Return a queryset of items that match the given filter."""
         queryset = QuerySet(self.__data, self.__populate, self.__filters.copy())
 
@@ -114,7 +110,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         ...
 
     @overload
-    def get(self, match: FilterType) -> Optional[T]:
+    def get(self, match: Callable[[T], Any]) -> Optional[T]:
         ...
 
     @overload
@@ -136,7 +132,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         ...
 
     @overload
-    async def aget(self, match: FilterType) -> Optional[T]:
+    async def aget(self, match: Callable[[T], Any]) -> Optional[T]:
         ...
 
     @overload

@@ -1,11 +1,11 @@
 """Client to communicate with the Host Command service."""
 
 import asyncio
+import logging
 from collections import defaultdict
 from contextlib import suppress
 from decimal import Decimal
 from inspect import iscoroutinefunction
-import logging
 from ssl import SSLContext
 from types import TracebackType
 from typing import (
@@ -25,9 +25,8 @@ from typing_extensions import Self
 from .connection import CommandConnection
 from .errors import ClientConnectionError, ClientError, ClientTimeoutError
 from .events import Event, EventType
-from .utils import tokenize_response
 from .response import CommandResponse
-
+from .utils import tokenize_response
 
 # Constants
 KEEPALIVE_INTERVAL = 60

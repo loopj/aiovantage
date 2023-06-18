@@ -13,13 +13,13 @@ from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.objects import SystemObject
 from aiovantage.controllers.areas import AreasController
 from aiovantage.controllers.base import EventCallback
-from aiovantage.controllers.blinds import BlindsController
 from aiovantage.controllers.blind_groups import BlindGroupsController
+from aiovantage.controllers.blinds import BlindsController
 from aiovantage.controllers.buttons import ButtonsController
 from aiovantage.controllers.dry_contacts import DryContactsController
 from aiovantage.controllers.gmem import GMemController
-from aiovantage.controllers.loads import LoadsController
 from aiovantage.controllers.load_groups import LoadGroupsController
+from aiovantage.controllers.loads import LoadsController
 from aiovantage.controllers.masters import MastersController
 from aiovantage.controllers.omni_sensors import OmniSensorsController
 from aiovantage.controllers.rgb_loads import RGBLoadsController

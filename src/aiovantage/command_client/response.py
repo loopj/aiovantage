@@ -5,6 +5,7 @@ from typing import List
 
 from .utils import tokenize_response
 
+
 @dataclass
 class CommandResponse:
     """Simple wrapper for command responses from the Vantage Host Command service."""

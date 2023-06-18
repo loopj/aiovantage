@@ -2,11 +2,11 @@
 
 import argparse
 import asyncio
-from contextlib import contextmanager, suppress
 import logging
 import sys
 import termios
 import tty
+from contextlib import contextmanager, suppress
 from typing import Iterator, Optional
 
 from aiovantage import Vantage

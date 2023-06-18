@@ -161,7 +161,9 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBW <red> <green> <blue> <white>
         await self.invoke(vid, "RGBLoad.SetRGBW", red, green, blue, white)
 
-    async def set_hsl(self, vid: int, hue: int, saturation: int, lightness: int) -> None:
+    async def set_hsl(
+        self, vid: int, hue: int, saturation: int, lightness: int
+    ) -> None:
         """Set the color of an HSL load.
 
         Args:
@@ -238,7 +240,7 @@ class RGBLoadInterface(Interface):
         value = int(args[0])
         channel = int(args[1])
 
-        return (channel, value)
+        return channel, value
 
     @classmethod
     def parse_get_color_status(cls, args: Sequence[str]) -> bytearray:

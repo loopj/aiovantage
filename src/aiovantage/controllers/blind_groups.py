@@ -20,7 +20,7 @@ class BlindGroupsController(BaseController[BlindGroup], BlindInterface):
         if blind_group.blind_ids is not None:
             # Some blind groups have a list of blind ids, use that to filter
             return self._vantage.blinds.filter(
-                lambda blind: blind.id in blind_group.blind_ids
+                lambda blind: blind.id in blind_group.blind_ids  # type: ignore[operator]
             )
 
         # Otherwise, use the parent_id to filter

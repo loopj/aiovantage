@@ -1,8 +1,8 @@
 """A connection to the Vantage Host Command service."""
 
 import asyncio
-from decimal import Decimal
 import logging
+from decimal import Decimal
 from ssl import SSLContext
 from types import TracebackType
 from typing import AsyncIterator, List, Optional, Set, Type, Union
