@@ -1,0 +1,13 @@
+{
+    "cSpell.words": [
+        "asyncio",
+        "isort",
+        "pylance",
+        "pylint",
+        "pympler",
+        "pyvantage",
+    ],
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-issue-config.json": "file:./.github/ISSUE_TEMPLATE/config.yml"
+    }
+}
