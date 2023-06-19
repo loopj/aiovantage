@@ -1,11 +1,15 @@
 {
     "cSpell.words": [
+        "aiohue",
+        "aiovantage",
         "asyncio",
+        "gmem",
         "isort",
+        "omni",
         "pylance",
         "pylint",
         "pympler",
-        "pyvantage",
+        "pyvantage"
     ],
     "yaml.schemas": {
         "https://json.schemastore.org/github-issue-config.json": "file:./.github/ISSUE_TEMPLATE/config.yml"
