@@ -37,6 +37,7 @@ def xml_text(**kwargs: Any) -> Any:
 def xml_tag_from_class(cls: Type[Any]) -> str:
     """Get the XML tag name for a class."""
 
+    # TODO: Cannot access member "Meta" for type "type" Member "Meta" is unknown
     meta = cls.Meta if "Meta" in cls.__dict__ else None
     name = getattr(meta, "name", cls.__qualname__)
 

@@ -236,6 +236,7 @@ class CommandConnection:
                     self._put_event(message)
                 else:
                     self._response_buffer.append(message)
+            # TODO: Catching too general exception Exception
             except Exception as exc:
                 self._put_response(exc, warn=False)
                 self._put_event(exc)

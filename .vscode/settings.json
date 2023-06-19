@@ -1,15 +1,36 @@
 {
     "cSpell.words": [
+        "ADDSTATUS",
+        "aget",
         "aiohue",
         "aiovantage",
+        "Anemo",
         "asyncio",
+        "DELSTATUS",
+        "ELENABLE",
+        "ELLOG",
+        "GETVARIABLE",
         "gmem",
         "isort",
+        "KEEPALIVE",
+        "LISTSTATUS",
         "omni",
+        "Omnisensor",
         "pylance",
         "pylint",
         "pympler",
-        "pyvantage"
+        "pyvantage",
+        "qualname",
+        "qube",
+        "rcode",
+        "RGBW",
+        "rootfs",
+        "SETVARIABLE",
+        "Somfy",
+        "STATUSEX",
+        "unsub",
+        "urtsi",
+        "xsdata"
     ],
     "yaml.schemas": {
         "https://json.schemastore.org/github-issue-config.json": "file:./.github/ISSUE_TEMPLATE/config.yml"

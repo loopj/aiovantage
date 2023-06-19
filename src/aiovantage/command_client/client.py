@@ -189,6 +189,7 @@ class CommandClient:
         """
 
         # Support filtering by event type, a list of event types, or a predicate
+        # TODO: Declaration "filter_fn" is obscured by a declaration of the same name
         filter_fn: Optional[EventFilter]
         if isinstance(event_filter, EventType):
 
@@ -201,6 +202,7 @@ class CommandClient:
                 return event["tag"] in event_filter  # type: ignore[operator]
 
         else:
+            # TODO: Expression of type "EventFilter | None" cannot be assigned to declared type "(event: Event) -> bool"
             filter_fn = event_filter
 
         # Add the subscription
@@ -281,7 +283,7 @@ class CommandClient:
         if isinstance(object_ids, int):
             object_ids = (object_ids,)
 
-        # Filter recived status events by id
+        # Filter received status events by id
         def event_filter(event: Event) -> bool:
             return (
                 event["tag"] == EventType.STATUS
