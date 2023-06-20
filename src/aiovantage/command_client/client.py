@@ -198,7 +198,7 @@ class CommandClient:
         elif isinstance(event_filter, Iterable):
 
             def filter_fn(event: Event) -> bool:
-                return event["tag"] in event_filter  # type: ignore[operator]
+                return event["tag"] in event_filter
 
         else:
             filter_fn = event_filter
@@ -283,10 +283,7 @@ class CommandClient:
 
         # Filter recived status events by id
         def event_filter(event: Event) -> bool:
-            return (
-                event["tag"] == EventType.STATUS
-                and event["id"] in object_ids  # type: ignore[operator]
-            )
+            return event["tag"] == EventType.STATUS and event["id"] in object_ids
 
         # Add the subscription to the list
         remove_subscription = self.subscribe(callback, event_filter)
@@ -301,7 +298,7 @@ class CommandClient:
         # Return an unsubscribe callback
         async def unsubscribe() -> None:
             with suppress(ClientConnectionError):
-                for object_id in object_ids:  # type: ignore[union-attr]
+                for object_id in object_ids:
                     self._subscribed_objects[object_id] -= 1
                     if self._subscribed_objects[object_id] == 0:
                         await conn.command("DELSTATUS", object_id)
@@ -333,8 +330,13 @@ class CommandClient:
         # Add the subscription to the list
         remove_subscription = self.subscribe(callback, EventType.EVENT_LOG)
 
-        # Ask the controller to start sending event logs for these types
+        # Get the connection
         conn = await self.connection()
+
+        # Enable the event log
+        await conn.command("ELAGG ON")
+
+        # Ask the controller to start sending event logs for these types
         for log_type in log_types:
             self._subscribed_event_logs[log_type] += 1
             if self._subscribed_event_logs[log_type] == 1:
