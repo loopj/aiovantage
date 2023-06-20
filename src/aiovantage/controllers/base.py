@@ -139,7 +139,7 @@ class BaseController(QuerySet[T]):
             if id_filter is None:
                 self._subscriptions.remove(subscription)
             else:
-                for vid in id_filter:  # type: ignore[union-attr]
+                for vid in id_filter:
                     if vid not in self._id_subscriptions:
                         continue
                     self._id_subscriptions[vid].remove(subscription)

@@ -30,7 +30,7 @@ Commit `src/aiovantage/__about.py` to source control.
 
 ```console
 $ git add src/aiovantage/__about__.py
-$ git commit -m "Preparing for release"
+$ git commit -m "Preparing release `hatch version`"
 ```
 
 Tag the release
