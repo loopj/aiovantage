@@ -283,10 +283,7 @@ class CommandClient:
 
         # Filter recived status events by id
         def event_filter(event: Event) -> bool:
-            return (
-                event["tag"] == EventType.STATUS
-                and event["id"] in object_ids
-            )
+            return event["tag"] == EventType.STATUS and event["id"] in object_ids
 
         # Add the subscription to the list
         remove_subscription = self.subscribe(callback, event_filter)
