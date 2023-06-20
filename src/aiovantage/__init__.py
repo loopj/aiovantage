@@ -46,7 +46,7 @@ class Vantage:
 
         # Set up config and command clients
         self._config_client = ConfigClient(
-            host, username, password, use_ssl=use_ssl, port=config_port
+            host, username, password, ssl=use_ssl, port=config_port
         )
 
         self._command_client = CommandClient(
