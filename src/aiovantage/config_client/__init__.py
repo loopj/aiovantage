@@ -16,11 +16,19 @@ The service is discoverable via mDNS as `_aci._tcp.local` and/or
 """
 
 from .client import ConfigClient
-from .errors import ClientConnectionError, ClientError, ClientTimeoutError
+from .connection import ConfigConnection
+from .errors import (
+    ClientConnectionError,
+    ClientError,
+    ClientTimeoutError,
+    LoginFailedError,
+)
 
 __all__ = [
     "ConfigClient",
+    "ConfigConnection",
     "ClientConnectionError",
     "ClientError",
     "ClientTimeoutError",
+    "LoginFailedError",
 ]

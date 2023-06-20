@@ -13,3 +13,7 @@ class ClientConnectionError(ClientError):
 
 class ClientTimeoutError(asyncio.TimeoutError, ClientConnectionError):
     """Exception for command client connection errors caused by timeouts."""
+
+
+class LoginFailedError(ClientError):
+    """Login failed."""
