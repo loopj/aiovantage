@@ -333,8 +333,13 @@ class CommandClient:
         # Add the subscription to the list
         remove_subscription = self.subscribe(callback, EventType.EVENT_LOG)
 
-        # Ask the controller to start sending event logs for these types
+        # Get the connection
         conn = await self.connection()
+
+        # Enable the event log
+        await conn.command("ELAGG ON")
+
+        # Ask the controller to start sending event logs for these types
         for log_type in log_types:
             self._subscribed_event_logs[log_type] += 1
             if self._subscribed_event_logs[log_type] == 1:
