@@ -1,25 +1,19 @@
 """Prints out the id, name, and members of each load group in the Vantage controller."""
 
-import argparse
 import asyncio
 import contextlib
-import logging
 
 from aiovantage import Vantage
 
+from debug_logging import configure_logging, parse_arguments
+
 # Grab connection info from command line arguments
-parser = argparse.ArgumentParser(description="aiovantage example")
-parser.add_argument("host", help="hostname of Vantage controller")
-parser.add_argument("--username", help="username for Vantage controller")
-parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--debug", help="enable debug logging", action="store_true")
-args = parser.parse_args()
+args = parse_arguments()
 
 
 async def main() -> None:
     """Run code example."""
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    configure_logging(args.debug)
 
     # Connect to the Vantage controller and print out the name and level of each load
     async with Vantage(args.host, args.username, args.password) as vantage:
@@ -29,4 +23,4 @@ async def main() -> None:
 
 
 with contextlib.suppress(KeyboardInterrupt):
-    asyncio.run(main())
+    asyncio.run(main(), debug=args.debug)

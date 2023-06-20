@@ -1,26 +1,20 @@
 """Example of using the get_objects helper to dump all objects of a given type."""
 
-import argparse
 import asyncio
 import contextlib
-import logging
 
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects
 
+from debug_logging import configure_logging, parse_arguments
+
 # Grab connection info from command line arguments
-parser = argparse.ArgumentParser(description="aiovantage example")
-parser.add_argument("host", help="hostname of Vantage controller")
-parser.add_argument("--username", help="username for Vantage controller")
-parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--debug", help="enable debug logging", action="store_true")
-args = parser.parse_args()
+args = parse_arguments()
 
 
 async def main() -> None:
     """Run code example."""
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    configure_logging(args.debug)
 
     async with ConfigClient(args.host, args.username, args.password) as client:
         # Dump all Areas using the get_objects helper
@@ -43,4 +37,4 @@ async def main() -> None:
 
 
 with contextlib.suppress(KeyboardInterrupt):
-    asyncio.run(main())
+    asyncio.run(main(), debug=args.debug)

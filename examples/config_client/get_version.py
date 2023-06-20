@@ -1,25 +1,19 @@
 """Example of using the ConfigClient to get the Vantage version."""
-import argparse
 import asyncio
 import contextlib
-import logging
 
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.methods.introspection import GetVersion
 
+from debug_logging import configure_logging, parse_arguments
+
 # Grab connection info from command line arguments
-parser = argparse.ArgumentParser(description="aiovantage example")
-parser.add_argument("host", help="hostname of Vantage controller")
-parser.add_argument("--username", help="username for Vantage controller")
-parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--debug", help="enable debug logging", action="store_true")
-args = parser.parse_args()
+args = parse_arguments()
 
 
 async def main() -> None:
     """Run code example."""
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    configure_logging(args.debug)
 
     async with ConfigClient(args.host, args.username, args.password) as client:
         # Simple RPC request without any params (IIntrospection.GetVersion)
@@ -28,4 +22,4 @@ async def main() -> None:
 
 
 with contextlib.suppress(KeyboardInterrupt):
-    asyncio.run(main())
+    asyncio.run(main(), debug=args.debug)

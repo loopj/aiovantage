@@ -1,19 +1,14 @@
 """Use a CommandClient to subscribe to status updates for LOAD objects."""
 
-import argparse
 import asyncio
 import contextlib
-import logging
 
 from aiovantage.command_client import CommandClient, Event, EventType
 
+from debug_logging import configure_logging, parse_arguments
+
 # Grab connection info from command line arguments
-parser = argparse.ArgumentParser(description="aiovantage example")
-parser.add_argument("host", help="hostname of Vantage controller")
-parser.add_argument("--username", help="username for Vantage controller")
-parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--debug", help="enable debug logging", action="store_true")
-args = parser.parse_args()
+args = parse_arguments()
 
 
 def command_client_callback(event: Event) -> None:
@@ -30,8 +25,7 @@ def command_client_callback(event: Event) -> None:
 
 async def main() -> None:
     """Run code example."""
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    configure_logging(args.debug)
 
     # Create a Host Command client
     async with CommandClient(args.host, args.username, args.password) as client:
@@ -49,4 +43,4 @@ async def main() -> None:
 
 
 with contextlib.suppress(KeyboardInterrupt):
-    asyncio.run(main())
+    asyncio.run(main(), debug=args.debug)

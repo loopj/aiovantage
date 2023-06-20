@@ -1,8 +1,8 @@
 """Print a list of loads and allow the user to control them with the keyboard."""
 
-import argparse
+# TODO: termios is not available on Windows
+ 
 import asyncio
-import logging
 import sys
 import termios
 import tty
@@ -11,13 +11,10 @@ from typing import Iterator, Optional
 
 from aiovantage import Vantage
 
+from debug_logging import configure_logging, parse_arguments
+
 # Grab connection info from command line arguments
-parser = argparse.ArgumentParser(description="aiovantage example")
-parser.add_argument("host", help="hostname of Vantage controller")
-parser.add_argument("--username", help="username for Vantage controller")
-parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--debug", help="enable debug logging", action="store_true")
-args = parser.parse_args()
+args = parse_arguments()
 
 
 def parse_keypress() -> Optional[str]:
@@ -47,8 +44,7 @@ def cbreak_mode(descriptor: int) -> Iterator[None]:
 
 async def main() -> None:
     """Run code example."""
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    configure_logging(args.debug)
 
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the available loads
@@ -107,4 +103,4 @@ async def main() -> None:
 
 
 with suppress(KeyboardInterrupt):
-    asyncio.run(main())
+    asyncio.run(main(), debug=args.debug)

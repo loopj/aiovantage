@@ -1,22 +1,16 @@
 """Print a tree of objects in the Vantage system."""
 
-import argparse
 import asyncio
 import contextlib
-import logging
 from typing import Optional
 
 from aiovantage import Vantage
 from aiovantage.config_client.objects import Area, Load
 
-# Grab connection info from command line arguments
-parser = argparse.ArgumentParser(description="aiovantage example")
-parser.add_argument("host", help="hostname of Vantage controller")
-parser.add_argument("--username", help="username for Vantage controller")
-parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--debug", help="enable debug logging", action="store_true")
-args = parser.parse_args()
+from debug_logging import configure_logging, parse_arguments
 
+# Grab connection info from command line arguments
+args = parse_arguments()
 
 # Some ANSI escape codes for pretty printing
 RESET = "\033[0m"
@@ -96,8 +90,7 @@ def print_area(vantage: Vantage, area: Optional[Area], indent: int = 0) -> None:
 
 async def main() -> None:
     """Run code example."""
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    configure_logging(args.debug)
 
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
@@ -109,4 +102,4 @@ async def main() -> None:
 
 
 with contextlib.suppress(KeyboardInterrupt):
-    asyncio.run(main())
+    asyncio.run(main(), debug=args.debug)

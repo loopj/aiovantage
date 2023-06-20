@@ -1,21 +1,16 @@
 """Fetch all buttons from the Vantage controller, and print out any state changes."""
 
-import argparse
 import asyncio
 import contextlib
-import logging
 from typing import Any, Dict
 
 from aiovantage import Vantage, VantageEvent
 from aiovantage.config_client.objects import Button
 
+from debug_logging import configure_logging, parse_arguments
+
 # Grab connection info from command line arguments
-parser = argparse.ArgumentParser(description="aiovantage example")
-parser.add_argument("host", help="hostname of Vantage controller")
-parser.add_argument("--username", help="username for Vantage controller")
-parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--debug", help="enable debug logging", action="store_true")
-args = parser.parse_args()
+args = parse_arguments()
 
 
 def callback(event: VantageEvent, obj: Button, data: Dict[str, Any]) -> None:
@@ -31,8 +26,7 @@ def callback(event: VantageEvent, obj: Button, data: Dict[str, Any]) -> None:
 
 async def main() -> None:
     """Run code example."""
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    configure_logging(args.debug)
 
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all buttons
@@ -46,4 +40,4 @@ async def main() -> None:
 
 
 with contextlib.suppress(KeyboardInterrupt):
-    asyncio.run(main())
+    asyncio.run(main(), debug=args.debug)

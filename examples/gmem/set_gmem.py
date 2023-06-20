@@ -1,27 +1,19 @@
 """Set the value of a variable on the Vantage controller."""
 
-import argparse
 import asyncio
 import contextlib
-import logging
 
 from aiovantage import Vantage
 
+from debug_logging import configure_logging, parse_arguments
+
 # Grab connection info from command line arguments
-parser = argparse.ArgumentParser(description="aiovantage example")
-parser.add_argument("host", help="hostname of Vantage controller")
-parser.add_argument("id", help="GMem id to set")
-parser.add_argument("value", help="value to set GMem to")
-parser.add_argument("--username", help="username for Vantage controller")
-parser.add_argument("--password", help="password for Vantage controller")
-parser.add_argument("--debug", help="enable debug logging", action="store_true")
-args = parser.parse_args()
+args = parse_arguments()
 
 
 async def main() -> None:
     """Run code example."""
-    if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+    configure_logging(args.debug)
 
     # Connect to the Vantage controller and print out the name and value of each GMem
     async with Vantage(args.host, args.username, args.password) as vantage:
@@ -33,10 +25,11 @@ async def main() -> None:
                 print(f"GMem object with id '{gmem_id}' does not exist")
                 return
         except ValueError:
-            print(f"Couldn't parse object id '{gmem_id}'")
+            print(f"Couldn't parse object id 'gmem_id'")
             return
 
         # Convert the value to the correct type
+        # TODO: Unresolved attribute reference 'lower' for class 'bool'
         if gmem.is_bool:
             if args.value.lower() in ("true", "1", "on"):
                 args.value = True
@@ -58,4 +51,4 @@ async def main() -> None:
 
 
 with contextlib.suppress(KeyboardInterrupt):
-    asyncio.run(main())
+    asyncio.run(main(), debug=args.debug)
