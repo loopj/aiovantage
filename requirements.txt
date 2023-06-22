@@ -1,0 +1,6 @@
+black
+flask
+mypy
+ruff
+typing_extensions
+xsdata

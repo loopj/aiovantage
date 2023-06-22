@@ -6,7 +6,6 @@ Uses a "controller" pattern inspired heavily by the [aiohue](https://github.com/
 
 This open-source, non-commercial library is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Vantage, and is provided for interoperability purposes only.
 
-
 ## Example
 
 ```python
@@ -19,14 +18,13 @@ async with Vantage("192.168.1.2", "username", "password") as vantage:
 
 See the [examples](examples) folder for more examples.
 
-
 ## Features
+
 - Uses Python asyncio for non-blocking I/O.
 - Exposes "controllers" to make fetching and controlling various objects easy.
 - Uses SSL connections by default, with automatic reconnection.
 - Fetch objects lazily (with `async for obj in controller`).
 - Alternatively, eager-fetch objects with `controller.initialize`.
-
 
 ## Supported objects types
 
@@ -48,7 +46,6 @@ The following interfaces/controllers are currently supported.
 | Tasks         | Vantage tasks         | `vantage.tasks`           | [Examples](examples/tasks)        |
 
 If you have an object that you expect to show up in one of these controllers, but it is missing, please let me know in an issue.
-
 
 ## Installation
 

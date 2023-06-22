@@ -21,6 +21,7 @@ class ObjectChoice:
     Wildcard type that can be used to represent any object type.
     """
 
+    # TODO: Attribute name "id" doesn't conform to snake_case naming style
     id: Optional[int] = xml_attribute("VID", default=None)
     choice: Optional[object] = field(
         default=None,

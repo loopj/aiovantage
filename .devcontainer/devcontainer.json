@@ -1,0 +1,42 @@
+// https://aka.ms/devcontainer.json
+{
+	"name": "aiovantage",
+	"image": "mcr.microsoft.com/devcontainers/python:0-3.11",
+	"postCreateCommand": "scripts/setup",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"bierner.markdown-emoji",
+				"DavidAnson.vscode-markdownlint",
+				"dbaeumer.vscode-eslint",
+				"github.vscode-github-actions",
+				"github.vscode-pull-request-github",
+				"ms-python.black-formatter",
+				"ms-python.isort",
+				"ms-python.pylint",
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"ms-vscode.live-server",
+				"redhat.vscode-yaml",
+				"ryanluker.vscode-coverage-gutters",
+				"streetsidesoftware.code-spell-checker",
+				"tamasfe.even-better-toml",
+				"VisualStudioExptTeam.vscodeintellicode",
+				"yzhang.markdown-all-in-one"
+			],
+			"settings": {
+				"files.eol": "\n",
+				"editor.tabSize": 4,
+				"files.trimTrailingWhitespace": true,
+				"[markdown]": {
+					"files.trimTrailingWhitespace": false
+				},
+				"[python]": {
+					"editor.defaultFormatter": "ms-python.black-formatter",
+					"editor.formatOnSave": true
+				}
+			}
+		}
+	},
+	"remoteUser": "vscode"
+}

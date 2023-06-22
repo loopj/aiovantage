@@ -21,7 +21,6 @@ object types, available in [`objects`](objects).
 Additionally, a few helper functions for fetching objects are provided by
 [`helpers.py`](helpers.py).
 
-
 ## Examples
 
 ### Lookup objects by type, using a helper
@@ -44,7 +43,6 @@ async with ConfigClient("hostname") as client:
     objects = get_objects_by_id(client, [118])
 ```
 
-
 ### Make a request using a method class
 
 ```python
@@ -54,7 +52,6 @@ from aiovantage.config_client.methods.introspection import GetVersion
 async with ConfigClient("hostname") as client:
     version = await client.request(GetVersion)
 ```
-
 
 ### Make a request using a method class, with params
 
