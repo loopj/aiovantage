@@ -32,6 +32,9 @@ Source = "https://github.com/loopj/aiovantage"
 [tool.hatch.version]
 path = "src/aiovantage/__about__.py"
 
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11"]
+
 [tool.hatch.envs.lint]
 dependencies = [
   "black==23.3.0",
@@ -65,12 +68,15 @@ skip-string-normalization = true
 [tool.ruff]
 target-version = "py38"
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "C",  # flake8-comprehensions
-    "B",  # flake8-bugbear
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "C",    # flake8-comprehensions
+    "B",    # flake8-bugbear
+    "Q",    # flake8-quotes
+    "UP",   # pyupgrade
+    "C90",  # mccabe
 ]
 ignore = [
     "E501",  # line too long, handled by black

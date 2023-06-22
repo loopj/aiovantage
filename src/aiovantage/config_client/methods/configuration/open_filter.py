@@ -11,7 +11,7 @@ class OpenFilter:
     """IConfiguration.OpenFilter method definition."""
 
     interface: ClassVar[str] = "IConfiguration"
-    call: Optional["Params"] = xml_element("call", default=None)
+    call: Optional["OpenFilter.Params"] = xml_element("call", default=None)
     return_value: Optional[int] = xml_element("return", default=None)
 
     # @dataclass

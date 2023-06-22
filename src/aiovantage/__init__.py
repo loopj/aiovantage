@@ -8,7 +8,7 @@ from typing import Callable, Optional, Type
 
 from typing_extensions import Self
 
-from aiovantage.command_client import CommandClient
+from aiovantage.command_client import CommandClient, EventStream
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.objects import SystemObject
 from aiovantage.controllers.areas import AreasController
@@ -44,12 +44,16 @@ class Vantage:
     ) -> None:
         """Initialize the Vantage instance."""
 
-        # Set up config and command clients
+        # Set up clients
         self._config_client = ConfigClient(
             host, username, password, ssl=use_ssl, port=config_port
         )
 
         self._command_client = CommandClient(
+            host, username, password, ssl=use_ssl, port=command_port
+        )
+
+        self._event_stream = EventStream(
             host, username, password, ssl=use_ssl, port=command_port
         )
 
@@ -70,6 +74,7 @@ class Vantage:
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
+        await self.event_stream.start()
         return self
 
     async def __aexit__(
@@ -92,6 +97,11 @@ class Vantage:
     def command_client(self) -> CommandClient:
         """Return the command client."""
         return self._command_client
+
+    @property
+    def event_stream(self) -> EventStream:
+        """Return the event stream."""
+        return self._event_stream
 
     @property
     def areas(self) -> AreasController:
@@ -162,7 +172,8 @@ class Vantage:
         """Close the clients."""
 
         self.config_client.close()
-        await self.command_client.close()
+        self.command_client.close()
+        await self.event_stream.stop()
 
     async def initialize(self) -> None:
         """Fetch all objects from the controllers."""

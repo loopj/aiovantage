@@ -16,9 +16,9 @@ class TasksController(StatefulController[Task], TaskInterface):
     # Fetch the following object types from Vantage
     vantage_types = ("Task",)
 
-    # Subscribe to status updates from the event log for the following methods
-    event_log_status = True
-    event_log_status_methods = ("Task.IsRunning", "Task.GetState")
+    # Subscribe to status updates from the Enhanced Log for the following methods
+    enhanced_log_status = True
+    enhanced_log_status_methods = ("Task.IsRunning", "Task.GetState")
 
     @override
     async def fetch_object_state(self, vid: int) -> None:

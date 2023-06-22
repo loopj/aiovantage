@@ -2,23 +2,9 @@
 
 import re
 from decimal import Decimal
-from ssl import CERT_NONE, PROTOCOL_TLS_CLIENT, SSLContext
 from typing import Sequence, Union
 
 TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\S+)')
-
-
-def create_ssl_context() -> SSLContext:
-    """SSL context that doesn't verify hostname or certificate.
-
-    We don't have a local issuer certificate to check against, and we'll most likely be
-    connecting to an IP address, so we can't check the hostname.
-    """
-
-    context = SSLContext(PROTOCOL_TLS_CLIENT)
-    context.check_hostname = False
-    context.verify_mode = CERT_NONE
-    return context
 
 
 def tokenize_response(string: str) -> Sequence[str]:
@@ -47,7 +33,7 @@ def tokenize_response(string: str) -> Sequence[str]:
 
 
 def encode_params(
-    *params: Union[str, int, float, Decimal, bool], force_quotes: bool = False
+    *params: Union[str, int, float, Decimal], force_quotes: bool = False
 ) -> str:
     """Encode a list of parameters for sending to the Host Command service.
 
@@ -71,8 +57,6 @@ def encode_params(
                 encoded_params.append(f'"{value}"')
             else:
                 encoded_params.append(value)
-        elif isinstance(value, bool):
-            encoded_params.append(str(int(value)))
         elif isinstance(value, (int, float, Decimal)):
             encoded_params.append(str(value))
         else:
