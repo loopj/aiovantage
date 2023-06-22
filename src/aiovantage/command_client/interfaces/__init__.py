@@ -1,5 +1,6 @@
 """Comand client object interfaces."""
 
+from .anemo_sensor import AnemoSensorInterface
 from .blind import BlindInterface
 from .button import ButtonInterface
 from .color_temperature import ColorTemperatureInterface
@@ -13,6 +14,7 @@ from .task import TaskInterface
 from .temperature import TemperatureInterface
 
 __all__ = [
+    "AnemoSensorInterface",
     "BlindInterface",
     "ButtonInterface",
     "ColorTemperatureInterface",

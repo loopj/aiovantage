@@ -11,6 +11,7 @@ from typing_extensions import Self
 from aiovantage.command_client import CommandClient, EventStream
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.objects import SystemObject
+from aiovantage.controllers.anemo_sensors import AnemoSensorsController
 from aiovantage.controllers.areas import AreasController
 from aiovantage.controllers.base import EventCallback
 from aiovantage.controllers.blind_groups import BlindGroupsController
@@ -59,6 +60,7 @@ class Vantage:
         )
 
         # Set up controllers
+        self._anemo_sensors = AnemoSensorsController(self)
         self._areas = AreasController(self)
         self._blinds = BlindsController(self)
         self._blind_groups = BlindGroupsController(self)
@@ -104,6 +106,11 @@ class Vantage:
     def event_stream(self) -> EventStream:
         """Return the event stream."""
         return self._event_stream
+
+    @property
+    def anemo_sensors(self) -> AnemoSensorsController:
+        """Return the AnemoSensors controller for managing anemo sensors."""
+        return self._anemo_sensors
 
     @property
     def areas(self) -> AreasController:
@@ -186,6 +193,7 @@ class Vantage:
         """Fetch all objects from the controllers."""
 
         await asyncio.gather(
+            self._anemo_sensors.initialize(),
             self._areas.initialize(),
             self._blinds.initialize(),
             self._blind_groups.initialize(),
@@ -209,6 +217,7 @@ class Vantage:
         """
 
         unsubscribes = [
+            self.anemo_sensors.subscribe(callback),
             self.areas.subscribe(callback),
             self.blinds.subscribe(callback),
             self.blind_groups.subscribe(callback),

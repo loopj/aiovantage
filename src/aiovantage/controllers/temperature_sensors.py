@@ -27,7 +27,7 @@ class TemperatureSensorsController(
         """Fetch the initial state of a temperature sensor."""
 
         state: Dict[str, Any] = {
-            "value": await TemperatureInterface.get_value(self, vid)
+            "value": await TemperatureInterface.get_value(self, vid),
         }
 
         self.update_state(vid, state)
