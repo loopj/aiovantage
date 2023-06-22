@@ -26,9 +26,9 @@ class RGBLoadsController(
     # Fetch the following object types from Vantage
     vantage_types = ("Vantage.DGColorLoad", "Vantage.DDGColorLoad")
 
-    # Subscribe to status updates from the event log for the following methods
-    event_log_status = True
-    event_log_status_methods = (
+    # Subscribe to status updates from the Enhanced Log for the following methods
+    enhanced_log_status = True
+    enhanced_log_status_methods = (
         "RGBLoad.GetHSL",
         "RGBLoad.GetRGB",
         "RGBLoad.GetRGBW",

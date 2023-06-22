@@ -64,7 +64,7 @@ async with CommandClient("10.2.0.103") as client:
 from aiovantage.command_client import Event, EventStream, EventType
 
 def callback(event: Event) -> None:
-    assert event["tag"] == EventType.STATUS
+    assert event["type"] == EventType.STATUS
     print(f"Load {event['id']} changed state")
 
 events = EventStream("10.2.0.103")

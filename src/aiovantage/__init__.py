@@ -74,7 +74,7 @@ class Vantage:
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
-        await self.event_stream.initialize()
+        await self.event_stream.start()
         return self
 
     async def __aexit__(

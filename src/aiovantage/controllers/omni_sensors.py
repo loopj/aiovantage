@@ -15,8 +15,8 @@ class OmniSensorsController(StatefulController[OmniSensor]):
     # Fetch the following object types from Vantage
     vantage_types = ("OmniSensor",)
 
-    # Subscribe to status updates from the event log
-    event_log_status = True
+    # Subscribe to status updates from the Enhanced Log
+    enhanced_log_status = True
 
     @override
     async def fetch_object_state(self, vid: int) -> None:

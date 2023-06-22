@@ -16,9 +16,9 @@ class BlindsController(StatefulController[Blind], BlindInterface):
     # Fetch the following object types from Vantage
     vantage_types = ("QISBlind", "QubeBlind", "RelayBlind", "Somfy.URTSI_2_Shade_CHILD")
 
-    # Subscribe to status updates from the event log for the following methods
-    event_log_status = True
-    event_log_status_methods = ("Blind.GetPosition",)
+    # Subscribe to status updates from the Enhanced Log for the following methods
+    enhanced_log_status = True
+    enhanced_log_status_methods = ("Blind.GetPosition",)
 
     @override
     async def fetch_object_state(self, vid: int) -> None:

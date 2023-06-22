@@ -1,22 +1,17 @@
-"""Base async TCP connection class."""
+"""Wrapper for an asyncio connection to a Vantage controller."""
 
 import asyncio
 from ssl import CERT_NONE, SSLContext, create_default_context
-from types import TracebackType
-from typing import ClassVar, Optional, Type, Union
-
-from typing_extensions import Self
+from typing import ClassVar, Optional, Union
 
 from .errors import ClientConnectionError, ClientTimeoutError
 
 
 class BaseConnection:
-    """Base async TCP connection class."""
+    """Wrapper for an asyncio connection to a Vantage controller."""
 
     default_port: ClassVar[int]
     default_ssl_port: ClassVar[int]
-    default_conn_timeout: ClassVar[float]
-    default_read_timeout: ClassVar[float]
     buffer_limit: ClassVar[int] = 2**16
 
     def __init__(
@@ -25,15 +20,12 @@ class BaseConnection:
         port: Optional[int] = None,
         ssl: Union[SSLContext, bool] = True,
         conn_timeout: Optional[float] = None,
-        read_timeout: Optional[float] = None,
     ) -> None:
         """Initialize the connection."""
         self._host = host
-        self._conn_timeout = conn_timeout or self.default_conn_timeout
-        self._read_timeout = read_timeout or self.default_read_timeout
+        self._conn_timeout = conn_timeout
         self._reader: Optional[asyncio.StreamReader] = None
         self._writer: Optional[asyncio.StreamWriter] = None
-        self._lock = asyncio.Lock()
 
         # Set up the SSL context
         self._ssl: Optional[SSLContext]
@@ -55,25 +47,8 @@ class BaseConnection:
         else:
             self._port = port
 
-    async def __aenter__(self) -> Self:
-        """Return context manager."""
-        await self.open()
-        return self
-
-    async def __aexit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        traceback: Optional[TracebackType],
-    ) -> None:
-        """Exit context manager."""
-        self.close()
-
-        if exc_val:
-            raise exc_val
-
     async def open(self) -> None:
-        """Open a connection."""
+        """Open the connection."""
 
         # If we're already connected, do nothing
         if self._writer is not None and not self._writer.is_closing():
@@ -92,7 +67,7 @@ class BaseConnection:
             )
         except asyncio.TimeoutError as exc:
             raise ClientTimeoutError(
-                f"Timout connecting to {self._host}:{self._port}"
+                f"Timeout connecting to {self._host}:{self._port}"
             ) from exc
         except OSError as exc:
             raise ClientConnectionError(
@@ -101,7 +76,6 @@ class BaseConnection:
 
     def close(self) -> None:
         """Close the connection."""
-
         if self._writer is not None and not self._writer.is_closing():
             self._writer.close()
             self._writer = None
@@ -121,43 +95,45 @@ class BaseConnection:
         """Return whether the connection is closed."""
         return self._writer is None or self._writer.is_closing()
 
-    async def write(self, request: str) -> None:
-        """Send a plaintext message."""
+    async def write(self, message: str) -> None:
+        """Send a plaintext message.
+
+        Args:
+            message: The message to send, as a string.
+        """
 
         # Make sure we're connected
         if self._writer is None or self._writer.is_closing():
             raise ClientConnectionError("Client not connected.")
 
+        # Send the request
         try:
-            # Send the request
-            self._writer.write(request.encode())
+            self._writer.write(message.encode())
             await self._writer.drain()
-
         except OSError as err:
             raise ClientConnectionError from err
 
-    async def readuntil(self, end_token: str = "\n") -> str:
-        """Read a plaintext message."""
+    async def readuntil(self, separator: bytes, timeout: Optional[float] = None) -> str:
+        """Read data until the separator is found or the optional timeout is reached.
+
+        Args:
+            separator: The separator to read until.
+            timeout: The optional timeout in seconds.
+
+        Returns:
+            The data read, as a string.
+        """
 
         # Make sure we're connected
         if self._reader is None or self.closed:
             raise ClientConnectionError("Client not connected.")
 
+        # Read the response, with optional timeout
         try:
-            # Read the response
-            data = await self._reader.readuntil(end_token.encode())
-
+            data = await asyncio.wait_for(self._reader.readuntil(separator), timeout)
         except (OSError, asyncio.IncompleteReadError) as err:
             raise ClientConnectionError from err
-
-        return data.decode()
-
-    async def readuntil_with_timeout(self, end_token: str = "\n") -> str:
-        """Read a plaintext message, with a timeout."""
-
-        try:
-            data = await asyncio.wait_for(self.readuntil(end_token), self._read_timeout)
         except asyncio.TimeoutError as err:
             raise ClientTimeoutError from err
 
-        return data
+        return data.decode()

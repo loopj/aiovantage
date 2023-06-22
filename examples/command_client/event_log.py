@@ -18,9 +18,9 @@ args = parser.parse_args()
 
 def command_client_callback(event: Event) -> None:
     """Print out the log message for each event."""
-    if event["tag"] == EventType.ENHANCED_LOG:
+    if event["type"] == EventType.ENHANCED_LOG:
         print(event["log"])
-    elif event["tag"] == EventType.CONNECTED:
+    elif event["type"] == EventType.CONNECTED:
         print("Connected and monitoring for log events...")
 
 

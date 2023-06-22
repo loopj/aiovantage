@@ -21,13 +21,11 @@ class CommandConnection(BaseConnection):
 
     default_port = 3001
     default_ssl_port = 3010
-    default_conn_timeout = 5.0
-    default_read_timeout = 5.0
 
 
 @dataclass
 class CommandResponse:
-    """Simple wrapper for command responses from the Vantage Host Command service."""
+    """Wrapper for command responses from the Vantage Host Command service."""
 
     command: str
     """The command that was sent."""
@@ -53,10 +51,7 @@ class CommandResponse:
 
 
 class CommandClient:
-    """Client to send commands to the Vantage Host Command service.
-
-    Handles opening the connection, sending commands and parsing responses.
-    """
+    """Client to send commands to the Vantage Host Command service."""
 
     def __init__(
         self,
@@ -70,17 +65,10 @@ class CommandClient:
         read_timeout: float = 30,
     ) -> None:
         """Initialize the client."""
-
+        self._connection = CommandConnection(host, port, ssl, conn_timeout)
         self._username = username
         self._password = password
-        self._delimiter = "\r\n"
-        self._connection = CommandConnection(
-            host,
-            port=port,
-            ssl=ssl,
-            conn_timeout=conn_timeout,
-            read_timeout=read_timeout,
-        )
+        self._read_timeout = read_timeout
         self._connection_lock = asyncio.Lock()
         self._command_lock = asyncio.Lock()
         self._logger = logging.getLogger(__name__)
@@ -109,6 +97,7 @@ class CommandClient:
         command: str,
         *params: Union[str, int, float, Decimal],
         force_quotes: bool = False,
+        connection: Optional[CommandConnection] = None,
     ) -> CommandResponse:
         """Send a command to the Host Command service and wait for a response.
 
@@ -119,29 +108,30 @@ class CommandClient:
             command: The command to send, should be a single word string.
             params: The parameters to send with the command.
             force_quotes: Whether to force string params to be wrapped in double quotes.
+            connection: The connection to use, if not the default.
 
         Returns:
             A CommandResponse instance.
         """
 
         # Get a connection to the Host Command service
-        conn = await self.get_connection()
+        conn = connection or await self.get_connection()
 
         # Build the request string, encoding the parameters if necessary
         if params:
-            request = f"{command} {encode_params(*params, force_quotes=force_quotes)}"
+            request = f"{command} {encode_params(*params, force_quotes=force_quotes)}\n"
         else:
-            request = command
+            request = f"{command}\n"
 
         # Send the command
         async with self._command_lock:
             self._logger.debug("Sending command: %s", request)
-            await conn.write(f"{command} {encode_params(*params)}\n")
+            await conn.write(request)
 
             # Read the response
             response_lines = []
             while True:
-                response_line = await conn.readuntil_with_timeout(self._delimiter)
+                response_line = await conn.readuntil(b'\r\n', self._read_timeout)
                 response_line = response_line.rstrip()
 
                 # Handle error codes
@@ -172,12 +162,17 @@ class CommandClient:
 
                 # Authenticate the new connection if we have credentials
                 if self._username is not None and self._password is not None:
-                    await self.command("LOGIN", self._username, self._password)
+                    await self.command(
+                        "LOGIN",
+                        self._username,
+                        self._password,
+                        connection=self._connection,
+                    )
 
             return self._connection
 
     def _parse_command_error(self, message: str) -> CommandError:
-        """Parse a command error from a message."""
+        # Parse a command error from a message.
         tag, error_message = message.split(" ", 1)
         _, _, error_code_str = tag.split(":")
         error_code = int(error_code_str)

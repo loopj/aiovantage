@@ -15,6 +15,7 @@ The service is discoverable via mDNS as `_aci._tcp.local` and/or
 `_secure_aci._tcp.local`.
 """
 
+import asyncio
 import logging
 from ssl import SSLContext
 from types import TracebackType
@@ -39,19 +40,7 @@ class ConfigConnection(BaseConnection):
 
     default_port = 2001
     default_ssl_port = 2010
-    default_conn_timeout = 5.0
-    default_read_timeout = 30.0
     buffer_limit = 2**20
-
-    async def request(self, interface: str, payload: str) -> str:
-        """Send a request and return the response."""
-
-        async with self._lock:
-            # Send the request
-            await self.write(f"<{interface}>{payload}</{interface}>")
-
-            # Read the response
-            return await self.readuntil_with_timeout(f"</{interface}>")
 
 
 class ConfigClient:
@@ -73,16 +62,10 @@ class ConfigClient:
         read_timeout: float = 30,
     ) -> None:
         """Initialize the client."""
-
+        self._connection = ConfigConnection(host, port, ssl, conn_timeout)
         self._username = username
         self._password = password
-        self._connection = ConfigConnection(
-            host,
-            port=port,
-            ssl=ssl,
-            conn_timeout=conn_timeout,
-            read_timeout=read_timeout,
-        )
+        self._read_timeout = read_timeout
 
         self._serializer = XmlSerializer(
             config=SerializerConfig(xml_declaration=False),
@@ -92,7 +75,8 @@ class ConfigClient:
             config=ParserConfig(fail_on_unknown_properties=False),
             handler=XmlEventHandler,
         )
-
+        self._connection_lock = asyncio.Lock()
+        self._request_lock = asyncio.Lock()
         self._logger = logging.getLogger(__name__)
 
     async def __aenter__(self) -> Self:
@@ -107,7 +91,6 @@ class ConfigClient:
     ) -> None:
         """Exit context manager."""
         self.close()
-
         if exc_val:
             raise exc_val
 
@@ -119,19 +102,21 @@ class ConfigClient:
         self,
         method_cls: Type[Method[Call, Return]],
         params: Optional[Call] = None,
+        connection: Optional[ConfigConnection] = None,
     ) -> Return:
         """Marshall a request, send it to the ACI service, and return a parsed object.
 
         Args:
-            method_cls: The method class to use
-            params: The parameters instance to pass to the method
+            method_cls: The request method class to use.
+            params: The parameters to pass to the method.
+            connection: The connection to use, if not the default.
 
         Returns:
             The parsed response object
         """
 
         # Open the connection if it's closed
-        await self._ensure_connected()
+        conn = connection or await self.get_connection()
 
         # Build the method object
         method = method_cls()
@@ -141,7 +126,13 @@ class ConfigClient:
         # Render the method object to XML with xsdata
         request = self._serializer.render(method)
         self._logger.debug(request)
-        response = await self._connection.request(method.interface, request)
+
+        # Send the request and read the response
+        async with self._request_lock:
+            await conn.write(f"<{method.interface}>{request}</{method.interface}>")
+            response = await conn.readuntil(
+                f"</{method.interface}>".encode(), timeout=self._read_timeout
+            )
         self._logger.debug(response)
 
         # Parse the XML doc and extract the method element
@@ -162,17 +153,21 @@ class ConfigClient:
 
         return method.return_value
 
-    async def _ensure_connected(self) -> None:
-        # Ensure the connection is open.
+    async def get_connection(self) -> ConfigConnection:
+        """Get a connection to the ACI service."""
+        async with self._connection_lock:
+            if self._connection.closed:
+                await self._connection.open()
 
-        if self._connection.closed:
-            await self._connection.open()
+                # Log in if we have credentials
+                if self._username is not None and self._password is not None:
+                    success = await self.request(
+                        Login,
+                        Login.Params(self._username, self._password),
+                        self._connection,
+                    )
 
-            # Log in if we have credentials
-            if self._username is not None and self._password is not None:
-                success = await self.request(
-                    Login, Login.Params(self._username, self._password)
-                )
+                    if not success:
+                        raise LoginFailedError("Login failed, bad username or password")
 
-                if not success:
-                    raise LoginFailedError("Login failed, bad username or password")
+            return self._connection

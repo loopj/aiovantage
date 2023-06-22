@@ -41,8 +41,8 @@ EventSubscription = Tuple[EventCallback[T], Optional[Iterable[VantageEvent]]]
 class BaseController(QuerySet[T]):
     """Base controller for Vantage objects."""
 
-    # The Vantage object types that this controller handles
     vantage_types: Tuple[str, ...]
+    """The Vantage object types that this controller handles."""
 
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize instance."""
@@ -183,14 +183,14 @@ class BaseController(QuerySet[T]):
 class StatefulController(BaseController[T]):
     """Base controller for Vantage objects that have state."""
 
-    # Which Vantage status types this controller handles, if any
     status_types: Optional[Tuple[str, ...]] = None
+    """Which Vantage status types this controller handles, if any."""
 
-    # Should we subscribe to status updates from the event log?
-    event_log_status: bool = False
+    enhanced_log_status: bool = False
+    """Should this controller subscribe to updates from the Enhanced Log."""
 
-    # Which status methods this controller handles from the event log
-    event_log_status_methods: Optional[Tuple[str, ...]] = None
+    enhanced_log_status_methods: Optional[Tuple[str, ...]] = None
+    """Which status methods this controller handles from the Enhanced Log."""
 
     @abstractmethod
     async def fetch_object_state(self, vid: int) -> None:
@@ -235,21 +235,21 @@ class StatefulController(BaseController[T]):
         if not self._items:
             return
 
-        # Subscribe to object state updates from the event log
-        if self.event_log_status:
-            await self.event_stream.subscribe_enhanced_log(
-                self._handle_command_client_event, "STATUS"
-            )
-            await self.event_stream.subscribe_enhanced_log(
-                self._handle_command_client_event, "STATUSEX"
-            )
-
         # Subscribe to "STATUS {type}" updates, if this controller cares about them
         if self.status_types:
             for status_type in self.status_types:
                 await self.event_stream.subscribe_status(
                     self._handle_command_client_event, status_type
                 )
+
+        # Subscribe to object status updates from the "Enhanced Log"
+        if self.enhanced_log_status:
+            await self.event_stream.subscribe_enhanced_log(
+                self._handle_command_client_event, "STATUS"
+            )
+            await self.event_stream.subscribe_enhanced_log(
+                self._handle_command_client_event, "STATUSEX"
+            )
 
         self._logger.info("%s subscribed to updates", self.__class__.__name__)
 
@@ -285,27 +285,27 @@ class StatefulController(BaseController[T]):
             )
 
     async def _handle_command_client_event(self, event: Event) -> None:
-        # Handle status update events from the command client
-
-        if event["tag"] == EventType.STATUS:
-            # Handle "STATUS {type}" events
-
+        # Handle object update events from the event stream
+        if event["type"] == EventType.STATUS:
+            # Ignore events for objects that this controller doesn't manage
             if event["id"] not in self._items:
                 return
 
+            # Pass the event to the controller
             self.handle_object_update(event["id"], event["status_type"], event["args"])
 
-        elif event["tag"] == EventType.ENHANCED_LOG:
-            # Handle event log events
-
-            # Filter out events that this controller doesn't care about
+        elif event["type"] == EventType.ENHANCED_LOG:
+            # STATUS/STATUSEX logs can be tokenized the same as command responses
             id_str, method, *args = tokenize_response(event["log"])
+
+            # Ignore events with methods that this controller doesn't care about
             if (
-                self.event_log_status_methods
-                and method not in self.event_log_status_methods
+                self.enhanced_log_status_methods
+                and method not in self.enhanced_log_status_methods
             ):
                 return
 
+            # Ignore events for objects that this controller doesn't manage
             vid = int(id_str)
             if vid not in self._items:
                 return
@@ -313,8 +313,6 @@ class StatefulController(BaseController[T]):
             # Pass the event to the controller
             self.handle_object_update(vid, method, args)
 
-        elif event["tag"] == EventType.RECONNECTED:
-            # Handle reconnect events
-
-            # Fetch the full state
+        elif event["type"] == EventType.RECONNECTED:
+            # Fetch the full state of all objects after reconnecting
             await self.fetch_full_state()
