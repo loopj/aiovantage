@@ -105,7 +105,7 @@ async def main() -> None:
         await vantage.initialize()
 
         # Recursively print the root area and all its children
-        print_area(vantage, vantage.areas.root)
+        print_area(vantage, vantage.areas.get(area_id=0))
 
 
 with contextlib.suppress(KeyboardInterrupt):
