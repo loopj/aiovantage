@@ -25,6 +25,7 @@ from aiovantage.controllers.omni_sensors import OmniSensorsController
 from aiovantage.controllers.rgb_loads import RGBLoadsController
 from aiovantage.controllers.stations import StationsController
 from aiovantage.controllers.tasks import TasksController
+from aiovantage.controllers.temperature_sensors import TemperatureSensorsController
 
 from .events import VantageEvent
 
@@ -71,6 +72,7 @@ class Vantage:
         self._omni_sensors = OmniSensorsController(self)
         self._stations = StationsController(self)
         self._tasks = TasksController(self)
+        self._temperature_sensors = TemperatureSensorsController(self)
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -168,6 +170,11 @@ class Vantage:
         """Return the Tasks controller for managing tasks."""
         return self._tasks
 
+    @property
+    def temperature_sensors(self) -> TemperatureSensorsController:
+        """Return the TemperatureSensors controller for managing temperature sensors."""
+        return self._temperature_sensors
+
     async def close(self) -> None:
         """Close the clients."""
 
@@ -191,6 +198,7 @@ class Vantage:
             self._omni_sensors.initialize(),
             self._stations.initialize(),
             self._tasks.initialize(),
+            self._temperature_sensors.initialize(),
         )
 
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
@@ -213,6 +221,7 @@ class Vantage:
             self.omni_sensors.subscribe(callback),
             self.stations.subscribe(callback),
             self.tasks.subscribe(callback),
+            self.temperature_sensors.subscribe(callback),
         ]
 
         def unsubscribe() -> None:

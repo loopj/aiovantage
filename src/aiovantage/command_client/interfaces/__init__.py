@@ -10,6 +10,7 @@ from .object import ObjectInterface
 from .rgb_load import RGBLoadInterface
 from .sensor import SensorInterface
 from .task import TaskInterface
+from .temperature import TemperatureInterface
 
 __all__ = [
     "BlindInterface",
@@ -22,4 +23,5 @@ __all__ = [
     "RGBLoadInterface",
     "SensorInterface",
     "TaskInterface",
+    "TemperatureInterface",
 ]
