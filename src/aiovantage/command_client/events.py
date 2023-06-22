@@ -332,7 +332,8 @@ class EventStream:
 
     async def _enable_status(self, status_type: str) -> None:
         # Enable status updates on the controller for a particular status type.
-        await self._send(f"STATUS {status_type}")
+        with suppress(ClientConnectionError):
+            await self._send(f"STATUS {status_type}")
 
     async def _disable_status(self, status_type: str) -> None:
         # Note: there's no nice way to ask the Host Command service to stop
@@ -341,9 +342,10 @@ class EventStream:
 
     async def _enable_enhanced_log(self, log_type: str) -> None:
         # Enable enhanced logging on the controller for a particular log type.
-        await self._send("ELAGG 1 ON")
-        await self._send(f"ELENABLE {log_type} ON")
-        await self._send(f"ELLOG {log_type} ON")
+        with suppress(ClientConnectionError):
+            await self._send("ELAGG 1 ON")
+            await self._send(f"ELENABLE {log_type} ON")
+            await self._send(f"ELLOG {log_type} ON")
 
     async def _disable_enhanced_log(self, log_type: str) -> None:
         # Disable enhanced logging on the controller for a particular log type.
