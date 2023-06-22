@@ -12,29 +12,13 @@ port has been opened by the firewall on the controller.
 The service is discoverable via mDNS as `_hc._tcp.local` and/or `_secure_hc._tcp.local`.
 """
 
-from .client import CommandClient
-from .connection import CommandConnection
-from .errors import (
-    ClientConnectionError,
-    ClientError,
-    ClientTimeoutError,
-    CommandError,
-    LoginFailedError,
-    LoginRequiredError,
-)
-from .events import Event, EventType
-from .response import CommandResponse
+from .commands import CommandClient, CommandResponse
+from .events import Event, EventStream, EventType
 
 __all__ = [
-    "ClientConnectionError",
-    "ClientError",
-    "ClientTimeoutError",
     "CommandClient",
-    "CommandConnection",
-    "CommandError",
     "CommandResponse",
     "Event",
+    "EventStream",
     "EventType",
-    "LoginFailedError",
-    "LoginRequiredError",
 ]

@@ -19,7 +19,7 @@ from typing import (
     cast,
 )
 
-from aiovantage.command_client import CommandClient, Event, EventType
+from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects
@@ -77,6 +77,11 @@ class BaseController(QuerySet[T]):
     def command_client(self) -> CommandClient:
         """Return the command client instance."""
         return self._vantage.command_client
+
+    @property
+    def event_stream(self) -> EventStream:
+        """Return the event stream instance."""
+        return self._vantage.event_stream
 
     async def initialize(self) -> None:
         """Initialize a stateless controller by populating the objects it manages."""
@@ -209,7 +214,7 @@ class StatefulController(BaseController[T]):
         await self.fetch_full_state()
         await self.subscribe_to_updates()
 
-        self.command_client.subscribe(
+        self.event_stream.subscribe(
             self._handle_command_client_event, EventType.RECONNECTED
         )
 
@@ -232,15 +237,19 @@ class StatefulController(BaseController[T]):
 
         # Subscribe to object state updates from the event log
         if self.event_log_status:
-            await self.command_client.subscribe_event_log(
-                self._handle_command_client_event, ("STATUS", "STATUSEX")
+            await self.event_stream.subscribe_enhanced_log(
+                self._handle_command_client_event, "STATUS"
+            )
+            await self.event_stream.subscribe_enhanced_log(
+                self._handle_command_client_event, "STATUSEX"
             )
 
         # Subscribe to "STATUS {type}" updates, if this controller cares about them
         if self.status_types:
-            await self.command_client.subscribe_status(
-                self._handle_command_client_event, self.status_types
-            )
+            for status_type in self.status_types:
+                await self.event_stream.subscribe_status(
+                    self._handle_command_client_event, status_type
+                )
 
         self._logger.info("%s subscribed to updates", self.__class__.__name__)
 
@@ -286,7 +295,7 @@ class StatefulController(BaseController[T]):
 
             self.handle_object_update(event["id"], event["status_type"], event["args"])
 
-        elif event["tag"] == EventType.EVENT_LOG:
+        elif event["tag"] == EventType.ENHANCED_LOG:
             # Handle event log events
 
             # Filter out events that this controller doesn't care about

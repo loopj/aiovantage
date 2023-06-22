@@ -5,7 +5,7 @@ import asyncio
 import contextlib
 import logging
 
-from aiovantage.command_client import CommandClient, Event, EventType
+from aiovantage.command_client import Event, EventStream, EventType
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -18,7 +18,7 @@ args = parser.parse_args()
 
 def command_client_callback(event: Event) -> None:
     """Print out the log message for each event."""
-    if event["tag"] == EventType.EVENT_LOG:
+    if event["tag"] == EventType.ENHANCED_LOG:
         print(event["log"])
     elif event["tag"] == EventType.CONNECTED:
         print("Connected and monitoring for log events...")
@@ -29,13 +29,13 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Create a Host Command client
-    async with CommandClient(args.host, args.username, args.password) as client:
+    # Create an EventStream client
+    async with EventStream(args.host, args.username, args.password) as events:
         # Subscribe to connection events
-        client.subscribe(command_client_callback, EventType.CONNECTED)
+        events.subscribe(command_client_callback, EventType.CONNECTED)
 
         # Subscribe to system log events
-        await client.subscribe_event_log(command_client_callback, "SYSTEM")
+        await events.subscribe_enhanced_log(command_client_callback, "SYSTEM")
 
         # Keep running for a while
         await asyncio.sleep(3600)

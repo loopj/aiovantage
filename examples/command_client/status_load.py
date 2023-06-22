@@ -5,7 +5,7 @@ import asyncio
 import contextlib
 import logging
 
-from aiovantage.command_client import CommandClient, Event, EventType
+from aiovantage.command_client import Event, EventStream, EventType
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -33,16 +33,16 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Create a Host Command client
-    async with CommandClient(args.host, args.username, args.password) as client:
+    # Create an EventStream client
+    async with EventStream(args.host, args.username, args.password) as events:
         # Subscribe to connection events
-        client.subscribe(
+        events.subscribe(
             command_client_callback,
             (EventType.CONNECTED, EventType.DISCONNECTED, EventType.RECONNECTED),
         )
 
         # Subscribe to status updates for LOAD objects (STATUS LOAD)
-        await client.subscribe_status(command_client_callback, "LOAD")
+        await events.subscribe_status(command_client_callback, "LOAD")
 
         # Keep running for a while
         await asyncio.sleep(3600)

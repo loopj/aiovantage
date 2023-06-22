@@ -61,12 +61,12 @@ async with CommandClient("10.2.0.103") as client:
 ### Subscribe to load events
 
 ```python
-from aiovantage.command_client import CommandClient, Event, EventType
+from aiovantage.command_client import Event, EventStream, EventType
 
 def callback(event: Event) -> None:
     assert event["tag"] == EventType.STATUS
     print(f"Load {event['id']} changed state")
 
-client = CommandClient("10.2.0.103")
-await client.subscribe_status(callback, "LOAD")
+events = EventStream("10.2.0.103")
+await events.subscribe_status(callback, "LOAD")
 ```

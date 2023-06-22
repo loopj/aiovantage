@@ -1,4 +1,4 @@
-"""Config client exceptions."""
+"""Client exceptions."""
 
 import asyncio
 
@@ -15,5 +15,13 @@ class ClientTimeoutError(asyncio.TimeoutError, ClientConnectionError):
     """Exception for command client connection errors caused by timeouts."""
 
 
-class LoginFailedError(ClientError):
+class CommandError(ClientError):
+    """Base exception for errors returned by the Host Command service."""
+
+
+class LoginFailedError(CommandError):
     """Login failed."""
+
+
+class LoginRequiredError(CommandError):
+    """Login is required to perform this command."""
