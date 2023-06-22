@@ -68,12 +68,15 @@ skip-string-normalization = true
 [tool.ruff]
 target-version = "py38"
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "C",  # flake8-comprehensions
-    "B",  # flake8-bugbear
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "C",    # flake8-comprehensions
+    "B",    # flake8-bugbear
+    "Q",    # flake8-quotes
+    "UP",   # pyupgrade
+    "C90",  # mccabe
 ]
 ignore = [
     "E501",  # line too long, handled by black

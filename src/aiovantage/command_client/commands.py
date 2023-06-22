@@ -131,7 +131,7 @@ class CommandClient:
             # Read the response
             response_lines = []
             while True:
-                response_line = await conn.readuntil(b'\r\n', self._read_timeout)
+                response_line = await conn.readuntil(b"\r\n", self._read_timeout)
                 response_line = response_line.rstrip()
 
                 # Handle error codes

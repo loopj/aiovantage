@@ -45,23 +45,30 @@ class EventType(Enum):
 
 
 # Typed dictionaries for events
-ConnectEvent = TypedDict("ConnectEvent", {"type": Literal[EventType.CONNECTED]})
-DisconnectEvent = TypedDict(
-    "DisconnectEvent", {"type": Literal[EventType.DISCONNECTED]}
-)
-ReconnectEvent = TypedDict("ReconnectEvent", {"type": Literal[EventType.RECONNECTED]})
-StatusEvent = TypedDict(
-    "StatusEvent",
-    {
-        "type": Literal[EventType.STATUS],
-        "id": int,
-        "status_type": str,
-        "args": Sequence[str],
-    },
-)
-EnhancedLogEvent = TypedDict(
-    "EnhancedLogEvent", {"type": Literal[EventType.ENHANCED_LOG], "log": str}
-)
+class ConnectEvent(TypedDict):
+    type: Literal[EventType.CONNECTED]
+
+
+class DisconnectEvent(TypedDict):
+    type: Literal[EventType.DISCONNECTED]
+
+
+class ReconnectEvent(TypedDict):
+    type: Literal[EventType.RECONNECTED]
+
+
+class StatusEvent(TypedDict):
+    type: Literal[EventType.STATUS]
+    id: int
+    status_type: str
+    args: Sequence[str]
+
+
+class EnhancedLogEvent(TypedDict):
+    type: Literal[EventType.ENHANCED_LOG]
+    log: str
+
+
 Event = Union[
     ConnectEvent, DisconnectEvent, ReconnectEvent, StatusEvent, EnhancedLogEvent
 ]
