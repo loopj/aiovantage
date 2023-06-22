@@ -11,8 +11,9 @@ from typing import (
     List,
     Optional,
     TypeVar,
-    overload,
 )
+
+from typing_extensions import overload
 
 T = TypeVar("T")
 

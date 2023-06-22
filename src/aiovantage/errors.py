@@ -4,19 +4,19 @@ import asyncio
 
 
 class ClientError(Exception):
-    """Base exception for config client."""
+    """Base exception for clients."""
 
 
 class ClientConnectionError(ClientError):
-    """Exception for config client connection errors."""
+    """Exception for client connection errors."""
 
 
 class ClientTimeoutError(asyncio.TimeoutError, ClientConnectionError):
-    """Exception for command client connection errors caused by timeouts."""
+    """Exception for client connection errors caused by timeouts."""
 
 
 class CommandError(ClientError):
-    """Base exception for errors returned by the Host Command service."""
+    """Base exception for errors caused by sending commands or requests."""
 
 
 class LoginFailedError(CommandError):

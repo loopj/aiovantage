@@ -84,7 +84,7 @@ class EventStream:
         *,
         ssl: Union[SSLContext, bool] = True,
         port: Optional[int] = None,
-        conn_timeout: float = 5,
+        conn_timeout: float = 30,
     ) -> None:
         """Initialize the client."""
         self._connection = CommandConnection(host, port, ssl, conn_timeout)

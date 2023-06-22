@@ -58,8 +58,8 @@ class ConfigClient:
         *,
         ssl: Union[SSLContext, bool] = True,
         port: Optional[int] = None,
-        conn_timeout: float = 5,
-        read_timeout: float = 30,
+        conn_timeout: float = 30,
+        read_timeout: float = 60,
     ) -> None:
         """Initialize the client."""
         self._connection = ConfigConnection(host, port, ssl, conn_timeout)
