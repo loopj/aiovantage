@@ -32,6 +32,9 @@ Source = "https://github.com/loopj/aiovantage"
 [tool.hatch.version]
 path = "src/aiovantage/__about__.py"
 
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11"]
+
 [tool.hatch.envs.lint]
 dependencies = [
   "black==23.3.0",
