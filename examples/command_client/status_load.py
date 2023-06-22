@@ -42,7 +42,7 @@ async def main() -> None:
         )
 
         # Subscribe to status updates for LOAD objects (STATUS LOAD)
-        await events.subscribe_status(command_client_callback, "LOAD")
+        events.subscribe_status(command_client_callback, "LOAD")
 
         # Keep running for a while
         await asyncio.sleep(3600)

@@ -9,7 +9,6 @@ from inspect import iscoroutinefunction
 from ssl import SSLContext
 from types import TracebackType
 from typing import (
-    Awaitable,
     Callable,
     Coroutine,
     Dict,
@@ -95,6 +94,7 @@ class EventStream:
         self._status_subscribers: Dict[str, int] = defaultdict(int)
         self._enhanced_log_subscribers: Dict[str, int] = defaultdict(int)
         self._connection_lock = asyncio.Lock()
+        self._command_queue: asyncio.Queue[str] = asyncio.Queue()
         self._logger = logging.getLogger(__name__)
 
     async def __aenter__(self) -> Self:
@@ -117,6 +117,7 @@ class EventStream:
         """Initialize the event stream."""
         await self.get_connection()
         self._tasks.append(asyncio.create_task(self._message_handler()))
+        self._tasks.append(asyncio.create_task(self._command_handler()))
         self._tasks.append(asyncio.create_task(self._keepalive()))
 
     async def stop(self) -> None:
@@ -171,9 +172,9 @@ class EventStream:
 
         return unsubscribe
 
-    async def subscribe_status(
+    def subscribe_status(
         self, callback: EventCallback, status_type: str
-    ) -> Callable[[], Awaitable[None]]:
+    ) -> Callable[[], None]:
         """Subscribe to "Status" events from the Host Command service.
 
         Args:
@@ -187,7 +188,7 @@ class EventStream:
         # Enable this status type if it's not already enabled
         self._status_subscribers[status_type] += 1
         if self._status_subscribers[status_type] == 1:
-            await self._enable_status(status_type)
+            self._enable_status(status_type)
 
         # Subscribe, and return an unsubscribe callback
         remove_subscription = self.subscribe(
@@ -198,17 +199,17 @@ class EventStream:
             ),
         )
 
-        async def unsubscribe() -> None:
+        def unsubscribe() -> None:
             self._status_subscribers[status_type] -= 1
             if self._status_subscribers[status_type] == 0:
-                await self._disable_status(status_type)
+                self._disable_status(status_type)
             remove_subscription()
 
         return unsubscribe
 
-    async def subscribe_enhanced_log(
+    def subscribe_enhanced_log(
         self, callback: EventCallback, log_type: str
-    ) -> Callable[[], Awaitable[None]]:
+    ) -> Callable[[], None]:
         """Subscribe to "Enhanced Log" events from the Host Command service.
 
         Args:
@@ -222,15 +223,15 @@ class EventStream:
         # Enable this log type if it's not already enabled
         self._enhanced_log_subscribers[log_type] += 1
         if self._enhanced_log_subscribers[log_type] == 1:
-            await self._enable_enhanced_log(log_type)
+            self._enable_enhanced_log(log_type)
 
         # Subscribe, and return an unsubscribe callback
         remove_subscription = self.subscribe(callback, EventType.ENHANCED_LOG)
 
-        async def unsubscribe() -> None:
+        def unsubscribe() -> None:
             self._enhanced_log_subscribers[log_type] -= 1
             if self._enhanced_log_subscribers[log_type] == 0:
-                await self._disable_enhanced_log(log_type)
+                self._disable_enhanced_log(log_type)
             remove_subscription()
 
         return unsubscribe
@@ -263,7 +264,7 @@ class EventStream:
                     self.emit({"type": EventType.CONNECTED})
                 else:
                     self.emit({"type": EventType.RECONNECTED})
-                    await self._resubscribe()
+                    self._resubscribe()
                 connect_attempts = 1
 
                 # Wait for new messages
@@ -278,6 +279,12 @@ class EventStream:
 
             # If we get here, the connection was lost
             self.emit({"type": EventType.DISCONNECTED})
+
+            # Clear the command queue
+            with suppress(asyncio.QueueEmpty):
+                while not self._command_queue.empty():
+                    self._command_queue.get_nowait()
+                    self._command_queue.task_done()
 
             # Attempt to reconnect, with backoff
             reconnect_wait = min(2 * connect_attempts, 600)
@@ -296,6 +303,16 @@ class EventStream:
 
             await asyncio.sleep(reconnect_wait)
 
+    async def _command_handler(self) -> None:
+        # Handle outgoing commands to the Host Command service.
+        while True:
+            try:
+                command = await self._command_queue.get()
+                await self._send(command)
+                self._command_queue.task_done()
+            except ClientError as err:
+                self._logger.debug("Error while sending command: %s", str(err))
+
     async def _keepalive(self) -> None:
         # Send a periodic "ECHO" keepalive command.
         while True:
@@ -305,6 +322,11 @@ class EventStream:
                 await self._send("ECHO")
             except ClientError as err:
                 self._logger.debug("Error while sending keepalive: %s", str(err))
+
+    async def _send(self, message: str) -> None:
+        # Send a plaintext message to the Host Command service."""
+        self._logger.debug("Sending message: %s", message)
+        await self._connection.write(f"{message}\n")
 
     def _parse_message(self, message: str) -> None:
         # Parse a message from the Host Command service.
@@ -325,39 +347,37 @@ class EventStream:
         elif message.startswith("R:ERROR"):
             self._logger.error("Error message from EventStream: %s", message)
 
-    async def _send(self, message: str) -> None:
-        # Send a plaintext message to the Host Command service."""
-        self._logger.debug("Sending message: %s", message)
-        await self._connection.write(f"{message}\n")
+    def _queue_command(self, command: str) -> None:
+        # Queue a command to be sent to the Host Command service.
+        self._command_queue.put_nowait(command)
 
-    async def _enable_status(self, status_type: str) -> None:
+    def _enable_status(self, status_type: str) -> None:
         # Enable status updates on the controller for a particular status type.
-        with suppress(ClientConnectionError):
-            await self._send(f"STATUS {status_type}")
+        self._queue_command(f"STATUS {status_type}")
 
-    async def _disable_status(self, status_type: str) -> None:
-        # Note: there's no nice way to ask the Host Command service to stop
-        # sending status events of a single type.
-        pass
+    def _disable_status(self, status_type: str) -> None:
+        # Disable status updates on the controller for a particular status type.
+        self._queue_command("STATUS NONE")
+        for status_type, count in self._status_subscribers.items():
+            if count > 0:
+                self._queue_command(f"STATUS {status_type}")
 
-    async def _enable_enhanced_log(self, log_type: str) -> None:
+    def _enable_enhanced_log(self, log_type: str) -> None:
         # Enable enhanced logging on the controller for a particular log type.
-        with suppress(ClientConnectionError):
-            await self._send("ELAGG 1 ON")
-            await self._send(f"ELENABLE {log_type} ON")
-            await self._send(f"ELLOG {log_type} ON")
+        self._queue_command("ELAGG 1 ON")
+        self._queue_command(f"ELENABLE {log_type} ON")
+        self._queue_command(f"ELLOG {log_type} ON")
 
-    async def _disable_enhanced_log(self, log_type: str) -> None:
+    def _disable_enhanced_log(self, log_type: str) -> None:
         # Disable enhanced logging on the controller for a particular log type.
-        with suppress(ClientConnectionError):
-            await self._send(f"ELLOG {log_type} OFF")
+        self._queue_command(f"ELLOG {log_type} OFF")
 
-    async def _resubscribe(self) -> None:
+    def _resubscribe(self) -> None:
         # Re-subscribe to events after a reconnection.
         for status_type, count in self._status_subscribers.items():
             if count > 0:
-                await self._enable_status(status_type)
+                self._enable_status(status_type)
 
         for log_type, count in self._enhanced_log_subscribers.items():
             if count > 0:
-                await self._enable_enhanced_log(log_type)
+                self._enable_enhanced_log(log_type)

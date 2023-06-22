@@ -119,14 +119,14 @@ class CommandClient:
 
         # Build the request string, encoding the parameters if necessary
         if params:
-            request = f"{command} {encode_params(*params, force_quotes=force_quotes)}\n"
+            request = f"{command} {encode_params(*params, force_quotes=force_quotes)}"
         else:
-            request = f"{command}\n"
+            request = command
 
         # Send the command
         async with self._command_lock:
             self._logger.debug("Sending command: %s", request)
-            await conn.write(request)
+            await conn.write(f"{request}\n")
 
             # Read the response
             response_lines = []

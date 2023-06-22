@@ -212,11 +212,9 @@ class StatefulController(BaseController[T]):
 
         await self.fetch_objects()
         await self.fetch_full_state()
-        await self.subscribe_to_updates()
+        self.subscribe_to_updates()
 
-        self.event_stream.subscribe(
-            self._handle_command_client_event, EventType.RECONNECTED
-        )
+        self.event_stream.subscribe(self._handle_event, EventType.RECONNECTED)
 
         self._initialized = True
 
@@ -229,7 +227,7 @@ class StatefulController(BaseController[T]):
 
         self._logger.info("%s fetched full state", self.__class__.__name__)
 
-    async def subscribe_to_updates(self) -> None:
+    def subscribe_to_updates(self) -> None:
         """Subscribe to state updates for objects managed by this controller."""
 
         if not self._items:
@@ -238,18 +236,12 @@ class StatefulController(BaseController[T]):
         # Subscribe to "STATUS {type}" updates, if this controller cares about them
         if self.status_types:
             for status_type in self.status_types:
-                await self.event_stream.subscribe_status(
-                    self._handle_command_client_event, status_type
-                )
+                self.event_stream.subscribe_status(self._handle_event, status_type)
 
-        # Subscribe to object status updates from the "Enhanced Log"
+        # Subscribe to object status events from the "Enhanced Log"
         if self.enhanced_log_status:
-            await self.event_stream.subscribe_enhanced_log(
-                self._handle_command_client_event, "STATUS"
-            )
-            await self.event_stream.subscribe_enhanced_log(
-                self._handle_command_client_event, "STATUSEX"
-            )
+            self.event_stream.subscribe_enhanced_log(self._handle_event, "STATUS")
+            self.event_stream.subscribe_enhanced_log(self._handle_event, "STATUSEX")
 
         self._logger.info("%s subscribed to updates", self.__class__.__name__)
 
@@ -284,8 +276,8 @@ class StatefulController(BaseController[T]):
                 {"attrs_changed": attrs_changed},
             )
 
-    async def _handle_command_client_event(self, event: Event) -> None:
-        # Handle object update events from the event stream
+    async def _handle_event(self, event: Event) -> None:
+        # Handle events from the event stream
         if event["type"] == EventType.STATUS:
             # Ignore events for objects that this controller doesn't manage
             if event["id"] not in self._items:

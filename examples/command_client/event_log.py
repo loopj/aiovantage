@@ -35,7 +35,7 @@ async def main() -> None:
         events.subscribe(command_client_callback, EventType.CONNECTED)
 
         # Subscribe to system log events
-        await events.subscribe_enhanced_log(command_client_callback, "SYSTEM")
+        events.subscribe_enhanced_log(command_client_callback, "SYSTEM")
 
         # Keep running for a while
         await asyncio.sleep(3600)
