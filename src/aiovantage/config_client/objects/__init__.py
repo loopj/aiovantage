@@ -29,13 +29,15 @@ from .relay_blind import RelayBlind
 from .rgb_load import RGBLoad
 from .scene_point_relay import ScenePointRelay
 from .sensor import Sensor
+from .somfy.rs485_group import RS485Group
+from .somfy.rs485_shade import RS485Shade
+from .somfy.urtsi_2_group import URTSI2Group
+from .somfy.urtsi_2_shade import URTSI2Shade
 from .station_bus import StationBus
 from .station_object import StationObject
 from .system_object import SystemObject
 from .task import Task
 from .temperature import Temperature
-from .urtsi_2_group import URTSI2Group
-from .urtsi_2_shade import URTSI2Shade
 
 __all__ = [
     "AnemoSensor",
@@ -65,6 +67,8 @@ __all__ = [
     "QubeBlind",
     "RelayBlind",
     "RGBLoad",
+    "RS485Group",
+    "RS485Shade",
     "ScenePointRelay",
     "Sensor",
     "StationBus",

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from .blind_group import BlindGroup
+from aiovantage.config_client.objects.blind_group import BlindGroup
 
 
 @dataclass
