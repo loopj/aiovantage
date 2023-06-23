@@ -21,8 +21,9 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out details of each blind group
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
+        # Print out details of each blind group
         async for blind_group in vantage.blind_groups:
             print(f"[{blind_group.id}] '{blind_group.name}'")
             async for blind in vantage.blind_groups.blinds(blind_group.id):
