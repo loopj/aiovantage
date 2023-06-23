@@ -1,18 +1,16 @@
-"""Controller holding and managing Vantage temperature sensors."""
+"""Controller holding and managing Vantage anemo (wind) sensors."""
 
 from typing import Any, Dict, Sequence
 
 from typing_extensions import override
 
-from aiovantage.command_client.interfaces import AnemoSensorInterface, SensorInterface
+from aiovantage.command_client.interfaces import AnemoSensorInterface
 from aiovantage.config_client.objects import AnemoSensor
 
 from .base import StatefulController
 
 
-class AnemoSensorsController(
-    StatefulController[AnemoSensor], AnemoSensorInterface, SensorInterface
-):
+class AnemoSensorsController(StatefulController[AnemoSensor], AnemoSensorInterface):
     """Controller holding and managing Vantage anemo (wind) sensors."""
 
     # Fetch the following object types from Vantage

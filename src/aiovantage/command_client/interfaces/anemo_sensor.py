@@ -1,4 +1,4 @@
-"""Interface for querying and controlling amemo (wind) sensors."""
+"""Interface for querying and controlling anemo (wind) sensors."""
 
 from decimal import Decimal
 from typing import Sequence
@@ -17,7 +17,7 @@ class AnemoSensorInterface(Interface):
         """
 
         # INVOKE <id> AnemoSensor.GetSpeed
-        # -> R:INVOKE <id> <temp> AnemoSensor.GetSpeed
+        # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
         response = await self.invoke(vid, "AnemoSensor.GetSpeed")
         level = Decimal(response.args[1])
 

@@ -19,6 +19,7 @@ from aiovantage.controllers.blinds import BlindsController
 from aiovantage.controllers.buttons import ButtonsController
 from aiovantage.controllers.dry_contacts import DryContactsController
 from aiovantage.controllers.gmem import GMemController
+from aiovantage.controllers.light_sensors import LightSensorsController
 from aiovantage.controllers.load_groups import LoadGroupsController
 from aiovantage.controllers.loads import LoadsController
 from aiovantage.controllers.masters import MastersController
@@ -67,6 +68,7 @@ class Vantage:
         self._buttons = ButtonsController(self)
         self._dry_contacts = DryContactsController(self)
         self._gmem = GMemController(self)
+        self._light_sensors = LightSensorsController(self)
         self._loads = LoadsController(self)
         self._load_groups = LoadGroupsController(self)
         self._masters = MastersController(self)
@@ -138,6 +140,11 @@ class Vantage:
         return self._dry_contacts
 
     @property
+    def light_sensors(self) -> LightSensorsController:
+        """Return the LightSensors controller for managing light sensors."""
+        return self._light_sensors
+
+    @property
     def loads(self) -> LoadsController:
         """Return the Load controller for managing loads (lights, fans, etc)."""
         return self._loads
@@ -200,6 +207,7 @@ class Vantage:
             self._buttons.initialize(),
             self._dry_contacts.initialize(),
             self._gmem.initialize(),
+            self._light_sensors.initialize(),
             self._loads.initialize(),
             self._masters.initialize(),
             self._rgb_loads.initialize(),
@@ -224,6 +232,7 @@ class Vantage:
             self.buttons.subscribe(callback),
             self.dry_contacts.subscribe(callback),
             self.gmem.subscribe(callback),
+            self.light_sensors.subscribe(callback),
             self.loads.subscribe(callback),
             self.masters.subscribe(callback),
             self.rgb_loads.subscribe(callback),
