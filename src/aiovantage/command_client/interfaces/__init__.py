@@ -1,4 +1,4 @@
-"""Comand client object interfaces."""
+"""Command client object interfaces."""
 
 from .blind import BlindInterface
 from .button import ButtonInterface
