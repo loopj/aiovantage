@@ -2,11 +2,11 @@
 
 from dataclasses import dataclass
 
-from .blind import Blind
+from aiovantage.config_client.objects.blind import Blind
 
 
 @dataclass
-class URTSI2Shade(Blind):  # pylint: disable=invalid-name
+class URTSI2Shade(Blind):
     """Somfy URTSI 2 blind."""
 
     class Meta:
