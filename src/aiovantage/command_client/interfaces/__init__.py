@@ -11,6 +11,7 @@ from .load import LoadInterface
 from .object import ObjectInterface
 from .rgb_load import RGBLoadInterface
 from .sensor import SensorInterface
+from .sounder import SounderInterface
 from .task import TaskInterface
 from .temperature import TemperatureInterface
 
@@ -26,6 +27,7 @@ __all__ = [
     "ObjectInterface",
     "RGBLoadInterface",
     "SensorInterface",
+    "SounderInterface",
     "TaskInterface",
     "TemperatureInterface",
 ]
