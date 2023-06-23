@@ -21,7 +21,9 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
+        # Print out the id and name of each station
         async for station in vantage.stations:
             print(f"[{station.id}] '{station.name}'")
 

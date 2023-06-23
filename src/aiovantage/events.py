@@ -1,3 +1,5 @@
+"""Vantage events."""
+
 from enum import Enum
 
 

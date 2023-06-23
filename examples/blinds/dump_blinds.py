@@ -21,8 +21,9 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and level of each load
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
+        # Print out the id and name of each blind
         async for blind in vantage.blinds:
             print(f"[{blind.id}] '{blind.name}'")
 

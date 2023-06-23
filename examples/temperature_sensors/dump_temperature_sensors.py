@@ -1,4 +1,4 @@
-"""Prints out the id, name, and level of each omni sensor in the Vantage controller."""
+"""Prints out the id, name, and value of each temperature sensor in the Vantage controller."""
 
 import argparse
 import asyncio
@@ -21,8 +21,9 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and level of each load
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
+        # Print out the id, name, and value of each load
         async for sensor in vantage.temperature_sensors:
             print(f"[{sensor.id}] '{sensor.name}' = {sensor.value}")
 

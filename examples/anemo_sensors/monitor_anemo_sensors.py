@@ -1,4 +1,4 @@
-"""Fetch all omni sensors from the Vantage controller, and print any state changes."""
+"""Fetch all anemo sensors from the Vantage controller, and print any state changes."""
 
 import argparse
 import asyncio
@@ -34,6 +34,7 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all sensors
         vantage.anemo_sensors.subscribe(callback)

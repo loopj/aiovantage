@@ -23,7 +23,7 @@ async def main() -> None:
 
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Print some details about each dry contact
+        # Print out the id and name of each dry contact
         async for dry_contact in vantage.dry_contacts:
             print(f"[{dry_contact.id}] name='{dry_contact.name}' ")
 

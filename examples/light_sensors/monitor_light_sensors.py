@@ -1,4 +1,4 @@
-"""Fetch all omni sensors from the Vantage controller, and print any state changes."""
+"""Fetch all light sensors from the Vantage controller, and print any state changes."""
 
 import argparse
 import asyncio

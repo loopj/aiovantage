@@ -21,8 +21,9 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and level of each load
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
+        # Print out the id, name, and members of each load group
         async for load_group in vantage.load_groups:
             print(load_group)
             print(f"[{load_group.id}] '{load_group.name}' {load_group.load_ids}")
