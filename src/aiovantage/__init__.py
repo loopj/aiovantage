@@ -11,6 +11,7 @@ from typing_extensions import Self
 from aiovantage.command_client import CommandClient, EventStream
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.objects import SystemObject
+from aiovantage.controllers.anemo_sensors import AnemoSensorsController
 from aiovantage.controllers.areas import AreasController
 from aiovantage.controllers.base import EventCallback
 from aiovantage.controllers.blind_groups import BlindGroupsController
@@ -18,6 +19,7 @@ from aiovantage.controllers.blinds import BlindsController
 from aiovantage.controllers.buttons import ButtonsController
 from aiovantage.controllers.dry_contacts import DryContactsController
 from aiovantage.controllers.gmem import GMemController
+from aiovantage.controllers.light_sensors import LightSensorsController
 from aiovantage.controllers.load_groups import LoadGroupsController
 from aiovantage.controllers.loads import LoadsController
 from aiovantage.controllers.masters import MastersController
@@ -25,6 +27,7 @@ from aiovantage.controllers.omni_sensors import OmniSensorsController
 from aiovantage.controllers.rgb_loads import RGBLoadsController
 from aiovantage.controllers.stations import StationsController
 from aiovantage.controllers.tasks import TasksController
+from aiovantage.controllers.temperature_sensors import TemperatureSensorsController
 
 from .events import VantageEvent
 
@@ -58,12 +61,14 @@ class Vantage:
         )
 
         # Set up controllers
+        self._anemo_sensors = AnemoSensorsController(self)
         self._areas = AreasController(self)
         self._blinds = BlindsController(self)
         self._blind_groups = BlindGroupsController(self)
         self._buttons = ButtonsController(self)
         self._dry_contacts = DryContactsController(self)
         self._gmem = GMemController(self)
+        self._light_sensors = LightSensorsController(self)
         self._loads = LoadsController(self)
         self._load_groups = LoadGroupsController(self)
         self._masters = MastersController(self)
@@ -71,6 +76,7 @@ class Vantage:
         self._omni_sensors = OmniSensorsController(self)
         self._stations = StationsController(self)
         self._tasks = TasksController(self)
+        self._temperature_sensors = TemperatureSensorsController(self)
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -104,6 +110,11 @@ class Vantage:
         return self._event_stream
 
     @property
+    def anemo_sensors(self) -> AnemoSensorsController:
+        """Return the AnemoSensors controller for managing anemo sensors."""
+        return self._anemo_sensors
+
+    @property
     def areas(self) -> AreasController:
         """Return the Areas controller for managing areas."""
         return self._areas
@@ -127,6 +138,11 @@ class Vantage:
     def dry_contacts(self) -> DryContactsController:
         """Return the DryContacts controller for managing dry contacts."""
         return self._dry_contacts
+
+    @property
+    def light_sensors(self) -> LightSensorsController:
+        """Return the LightSensors controller for managing light sensors."""
+        return self._light_sensors
 
     @property
     def loads(self) -> LoadsController:
@@ -168,6 +184,11 @@ class Vantage:
         """Return the Tasks controller for managing tasks."""
         return self._tasks
 
+    @property
+    def temperature_sensors(self) -> TemperatureSensorsController:
+        """Return the TemperatureSensors controller for managing temperature sensors."""
+        return self._temperature_sensors
+
     async def close(self) -> None:
         """Close the clients."""
 
@@ -179,18 +200,21 @@ class Vantage:
         """Fetch all objects from the controllers."""
 
         await asyncio.gather(
+            self._anemo_sensors.initialize(),
             self._areas.initialize(),
             self._blinds.initialize(),
             self._blind_groups.initialize(),
             self._buttons.initialize(),
             self._dry_contacts.initialize(),
             self._gmem.initialize(),
+            self._light_sensors.initialize(),
             self._loads.initialize(),
             self._masters.initialize(),
             self._rgb_loads.initialize(),
             self._omni_sensors.initialize(),
             self._stations.initialize(),
             self._tasks.initialize(),
+            self._temperature_sensors.initialize(),
         )
 
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
@@ -201,18 +225,21 @@ class Vantage:
         """
 
         unsubscribes = [
+            self.anemo_sensors.subscribe(callback),
             self.areas.subscribe(callback),
             self.blinds.subscribe(callback),
             self.blind_groups.subscribe(callback),
             self.buttons.subscribe(callback),
             self.dry_contacts.subscribe(callback),
             self.gmem.subscribe(callback),
+            self.light_sensors.subscribe(callback),
             self.loads.subscribe(callback),
             self.masters.subscribe(callback),
             self.rgb_loads.subscribe(callback),
             self.omni_sensors.subscribe(callback),
             self.stations.subscribe(callback),
             self.tasks.subscribe(callback),
+            self.temperature_sensors.subscribe(callback),
         ]
 
         def unsubscribe() -> None:

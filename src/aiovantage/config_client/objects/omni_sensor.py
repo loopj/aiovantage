@@ -1,6 +1,8 @@
 """OmniSensor object."""
 
 from dataclasses import dataclass
+from decimal import Decimal
+from typing import Union
 
 from aiovantage.config_client.xml_dataclass import xml_attribute, xml_element
 
@@ -28,6 +30,10 @@ class OmniSensor(Sensor):
 
     get: GetMethodType = xml_element("Get")
     parent_id: int = xml_element("Parent")
+
+    def __post_init__(self) -> None:
+        """Post init."""
+        self.level: Union[int, Decimal, None] = None
 
     @property
     def is_current_sensor(self) -> bool:

@@ -34,11 +34,12 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Subscribe to updates for all GMem objects
+        # Subscribe to updates for all variables
         vantage.gmem.subscribe(callback)
 
-        # Fetch all known GMem objects from the controller
+        # Fetch all known variables from the controller
         await vantage.gmem.initialize()
 
         # Keep running for a while

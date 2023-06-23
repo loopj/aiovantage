@@ -21,8 +21,9 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and level of each load
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
+        # Print out the id, name, and state of each RGB load
         async for rgb_load in vantage.rgb_loads:
             print(
                 f"[{rgb_load.id}] '{rgb_load.name}' "
