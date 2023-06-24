@@ -9,7 +9,6 @@ from typing import Optional
 from aiovantage import Vantage
 from aiovantage.config_client.objects import Area, Load
 
-
 # Some ANSI escape codes for pretty printing
 RESET = "\033[0m"
 RED = "\033[31m"
@@ -109,7 +108,7 @@ def configure_logging(log_args: argparse.Namespace) -> None:
         ],
     )
     if log_args.log:
-        logging.getLogger().addHandler(logging.FileHandler(filename=args.log, mode='w'))
+        logging.getLogger().addHandler(logging.FileHandler(filename=args.log, mode="w"))
 
 
 # Parse command line args and configure logging

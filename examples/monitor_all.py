@@ -45,7 +45,7 @@ def configure_logging(log_args: argparse.Namespace) -> None:
         ],
     )
     if log_args.log:
-        logging.getLogger().addHandler(logging.FileHandler(filename=args.log, mode='w'))
+        logging.getLogger().addHandler(logging.FileHandler(filename=args.log, mode="w"))
 
 
 # Parse command line args and configure logging
