@@ -68,5 +68,5 @@ def callback(event: Event) -> None:
     print(f"Load {event['id']} changed state")
 
 events = EventStream("10.2.0.103")
-await events.subscribe_status(callback, "LOAD")
+events.subscribe_status(callback, "LOAD")
 ```

@@ -14,7 +14,13 @@ class BlindsController(StatefulController[Blind], BlindInterface):
     """Controller holding and managing Vantage blinds."""
 
     # Fetch the following object types from Vantage
-    vantage_types = ("QISBlind", "QubeBlind", "RelayBlind", "Somfy.URTSI_2_Shade_CHILD")
+    vantage_types = (
+        "QISBlind",
+        "QubeBlind",
+        "RelayBlind",
+        "Somfy.RS-485_Shade_CHILD",
+        "Somfy.URTSI_2_Shade_CHILD",
+    )
 
     # Subscribe to status updates from the Enhanced Log for the following methods
     enhanced_log_status = True

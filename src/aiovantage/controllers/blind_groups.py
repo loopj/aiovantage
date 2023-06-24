@@ -11,7 +11,11 @@ class BlindGroupsController(BaseController[BlindGroup], BlindInterface):
     """Controller holding and managing Vantage blind groups."""
 
     # Fetch the following object types from Vantage
-    vantage_types = ("BlindGroup", "Somfy.URTSI_2_Group_CHILD")
+    vantage_types = (
+        "BlindGroup",
+        "Somfy.RS-485_Group_CHILD",
+        "Somfy.URTSI_2_Group_CHILD",
+    )
 
     def blinds(self, vid: int) -> QuerySet[Blind]:
         """Return a queryset of all blinds in this blind group."""
