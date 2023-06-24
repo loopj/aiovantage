@@ -34,11 +34,12 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Subscribe to updates for all loads
+        # Subscribe to updates for all blinds
         vantage.blinds.subscribe(callback)
 
-        # Fetch all known loads from the controller
+        # Fetch all known blinds from the controller
         await vantage.blinds.initialize()
 
         # Keep running for a while

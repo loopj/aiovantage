@@ -1,4 +1,4 @@
-"""Prints out the id and name of each station in the Vantage controller."""
+"""Prints out the id, name, and speed of each anemo sensor in the Vantage controller."""
 
 import argparse
 import asyncio
@@ -23,9 +23,9 @@ async def main() -> None:
 
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Print out the id and name of each station
-        async for station in vantage.stations:
-            print(f"[{station.id}] '{station.name}'")
+        # Print out the id, name, and speed of each anemo sensor
+        async for sensor in vantage.anemo_sensors:
+            print(f"[{sensor.id}] '{sensor.name}' = {sensor.speed}")
 
 
 with contextlib.suppress(KeyboardInterrupt):

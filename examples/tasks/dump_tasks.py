@@ -1,4 +1,4 @@
-"""Prints out the id, name, and running state of each task in the Vantage controller."""
+"""Prints out the id, name, and state of each task in the Vantage controller."""
 
 import argparse
 import asyncio
@@ -21,8 +21,9 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and value of each GMem
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
+        # Print out the id, name, and state of each task
         async for task in vantage.tasks:
             print(f"[{task.id}] '{task.name}' is_running={task.is_running}")
 
