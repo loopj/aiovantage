@@ -43,7 +43,7 @@ dependencies = [
 ]
 
 [tool.hatch.envs.lint]
-templatge = "dev"
+template = "dev"
 
 [tool.hatch.envs.lint.scripts]
 typing = "mypy --install-types --non-interactive {args:.}"
