@@ -4,6 +4,7 @@ First off, thanks for taking the time to contribute!
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+## Table of Contents
 
 - [🔨 Set up Development Environment](#-set-up-development-environment)
 - [✨ Submit your work](#-submit-your-work)
