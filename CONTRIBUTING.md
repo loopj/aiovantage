@@ -4,9 +4,8 @@ First off, thanks for taking the time to contribute!
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-## Table of Contents
 
-- [🛠️ Set up Development Environment](#-set-up-development-environment)
+- [🔨 Set up Development Environment](#-set-up-development-environment)
 - [✨ Submit your work](#-submit-your-work)
 - [🎨 Style guidelines](#-style-guidelines)
 - [📦️ Build a package](#%EF%B8%8F-build-a-package)
@@ -14,7 +13,7 @@ First off, thanks for taking the time to contribute!
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## 🛠️ Set up Development Environment
+## 🔨 Set up Development Environment
 
 `aiovantage` uses [Hatch](https://hatch.pypa.io/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
 
