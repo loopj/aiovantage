@@ -23,6 +23,7 @@ from aiovantage.controllers.light_sensors import LightSensorsController
 from aiovantage.controllers.load_groups import LoadGroupsController
 from aiovantage.controllers.loads import LoadsController
 from aiovantage.controllers.masters import MastersController
+from aiovantage.controllers.modules import ModulesController
 from aiovantage.controllers.omni_sensors import OmniSensorsController
 from aiovantage.controllers.rgb_loads import RGBLoadsController
 from aiovantage.controllers.stations import StationsController
@@ -72,6 +73,7 @@ class Vantage:
         self._loads = LoadsController(self)
         self._load_groups = LoadGroupsController(self)
         self._masters = MastersController(self)
+        self._modules = ModulesController(self)
         self._rgb_loads = RGBLoadsController(self)
         self._omni_sensors = OmniSensorsController(self)
         self._stations = StationsController(self)
@@ -160,6 +162,11 @@ class Vantage:
         return self._masters
 
     @property
+    def modules(self) -> ModulesController:
+        """Return the Modules controller for managing modules."""
+        return self._modules
+
+    @property
     def gmem(self) -> GMemController:
         """Return the GMem controller for managing global memory."""
         return self._gmem
@@ -210,6 +217,7 @@ class Vantage:
             self._light_sensors.initialize(),
             self._loads.initialize(),
             self._masters.initialize(),
+            self._modules.initialize(),
             self._rgb_loads.initialize(),
             self._omni_sensors.initialize(),
             self._stations.initialize(),
@@ -235,6 +243,7 @@ class Vantage:
             self.light_sensors.subscribe(callback),
             self.loads.subscribe(callback),
             self.masters.subscribe(callback),
+            self.modules.subscribe(callback),
             self.rgb_loads.subscribe(callback),
             self.omni_sensors.subscribe(callback),
             self.stations.subscribe(callback),
