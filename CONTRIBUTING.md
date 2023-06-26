@@ -17,7 +17,7 @@ First off, thanks for taking the time to contribute!
 
 ### Using `hatch`
 
-`aiovantage` uses [Hatch](https://hatch.pypa.io/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
+aiovantage uses [Hatch](https://hatch.pypa.io/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
 
 If you'd like to run a command in a virtual environment with development dependencies available, prefix it with `hatch -e dev run`. For example,
 
