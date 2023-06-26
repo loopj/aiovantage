@@ -4,7 +4,6 @@ First off, thanks for taking the time to contribute!
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-## Table of Contents
 
 - [🔨 Set up Development Environment](#-set-up-development-environment)
 - [✨ Submit your work](#-submit-your-work)
@@ -16,18 +15,22 @@ First off, thanks for taking the time to contribute!
 
 ## 🔨 Set up Development Environment
 
+### Using `hatch`
+
 `aiovantage` uses [Hatch](https://hatch.pypa.io/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
 
-If you'd like to run a command in a virtual environment, prefix it with `hatch run`. For example, to run a script, execute the following command:
+If you'd like to run a command in a virtual environment with development dependencies available, prefix it with `hatch -e dev run`. For example,
 
 ```bash
-hatch run python examples/dump_system.py hostname
+hatch -e dev run python examples/dump_system.py hostname
 ```
 
-If you'd like to run a command with development dependencies available, prefix it with `hatch -e dev run`. For example,
+### Manually
+
+If you'd prefer to manage your own python environment, you can install the development dependencies manually.
 
 ```bash
-hatch -e dev run pip list -v
+pip install -e ".[dev]"
 ```
 
 ## ✨ Submit your work
