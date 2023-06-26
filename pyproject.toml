@@ -29,6 +29,13 @@ Documentation = "https://github.com/loopj/aiovantage#readme"
 Issues = "https://github.com/loopj/aiovantage/issues"
 Source = "https://github.com/loopj/aiovantage"
 
+[project.optional-dependencies]
+dev = [
+    "black==23.3.0",
+    "mypy==1.4.1",
+    "ruff==0.0.272",
+]
+
 [tool.hatch.version]
 path = "src/aiovantage/__about__.py"
 
@@ -36,14 +43,10 @@ path = "src/aiovantage/__about__.py"
 python = ["3.8", "3.9", "3.10", "3.11"]
 
 [tool.hatch.envs.dev]
-dependencies = [
-  "black==23.3.0",
-  "mypy==1.4.1",
-  "ruff==0.0.272",
-]
+features = ["dev"]
 
 [tool.hatch.envs.lint]
-template = "dev"
+features = ["dev"]
 
 [tool.hatch.envs.lint.scripts]
 typing = "mypy --install-types --non-interactive {args:.}"

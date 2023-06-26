@@ -16,7 +16,19 @@ First off, thanks for taking the time to contribute!
 
 ## 🛠️ Set up Development Environment
 
-`aiovantage` uses [Hatch](https://hatch.pypa.io/) to run scripts, create reproducible builds and environments, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
+`aiovantage` uses [Hatch](https://hatch.pypa.io/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
+
+If you'd like to run a command in a virtual environment, prefix it with `hatch run`. For example, to run a script, execute the following command:
+
+```bash
+hatch run python examples/dump_system.py hostname
+```
+
+If you'd like to run a command with development dependencies available, prefix it with `hatch -e dev run`. For example,
+
+```bash
+hatch -e dev run pip list -v
+```
 
 ## ✨ Submit your work
 
