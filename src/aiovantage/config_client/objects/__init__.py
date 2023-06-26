@@ -20,6 +20,8 @@ from .load import Load
 from .load_group import LoadGroup
 from .location_object import LocationObject
 from .master import Master
+from .module import Module
+from .module_gen2 import ModuleGen2
 from .omni_sensor import OmniSensor
 from .power_profile import PowerProfile
 from .pwm_power_profile import PWMPowerProfile
@@ -60,6 +62,8 @@ __all__ = [
     "LoadGroup",
     "LocationObject",
     "Master",
+    "Module",
+    "ModuleGen2",
     "OmniSensor",
     "PowerProfile",
     "PWMPowerProfile",
