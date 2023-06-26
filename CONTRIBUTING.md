@@ -32,7 +32,9 @@ hatch -e dev run pip list -v
 
 ## ✨ Submit your work
 
-Good pull requests, whether patches, improvements, or new features, are a fantastic help. They should remain focused in scope and avoid containing unrelated commits. If your contribution involves a significant amount of work or substantial changes to any part of the project, please open an issue to discuss it first. This will help avoid any wasted or duplicate effort. If you're unsure about whether a contribution is appropriate, feel free to ask!
+Submit your improvements, fixes, and new features to one at a time, using GitHub [Pull Requests](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
+
+Good pull requests remain focused in scope and avoid containing unrelated commits. If your contribution involves a significant amount of work or substantial changes to any part of the project, please open an issue to discuss it first to avoid any wasted or duplicate effort.
 
 ## 🎨 Style guidelines
 
