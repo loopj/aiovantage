@@ -180,65 +180,77 @@ class EventStream:
         return unsubscribe
 
     def subscribe_status(
-        self, callback: EventCallback, status_type: str
+        self, callback: EventCallback, status_types: Union[str, Iterable[str]]
     ) -> Callable[[], None]:
         """Subscribe to "Status" events from the Host Command service.
 
         Args:
             callback: The callback to invoke when an event is received.
-            status_type: The type of status to subscribe to.
+            status_types: The status types to subscribe to status events for.
 
         Returns:
             A coroutine that can be used to unsubscribe from status events.
         """
 
+        # Support both a single status type and a list of status types
+        if isinstance(status_types, str):
+            status_types = (status_types,)
+
         # Enable this status type if it's not already enabled
-        self._status_subscribers[status_type] += 1
-        if self._status_subscribers[status_type] == 1:
-            self._enable_status(status_type)
+        for status_type in status_types:
+            self._status_subscribers[status_type] += 1
+            if self._status_subscribers[status_type] == 1:
+                self._enable_status(status_type)
 
         # Subscribe, and return an unsubscribe callback
         remove_subscription = self.subscribe(
             callback,
             lambda event: (
                 event["type"] == EventType.STATUS
-                and event["status_type"] == status_type
+                and event["status_type"] in status_type
             ),
         )
 
         def unsubscribe() -> None:
-            self._status_subscribers[status_type] -= 1
-            if self._status_subscribers[status_type] == 0:
-                self._disable_status(status_type)
+            for status_type in status_types:
+                self._status_subscribers[status_type] -= 1
+                if self._status_subscribers[status_type] == 0:
+                    self._disable_status(status_type)
             remove_subscription()
 
         return unsubscribe
 
     def subscribe_enhanced_log(
-        self, callback: EventCallback, log_type: str
+        self, callback: EventCallback, log_types: Union[str, Iterable[str]]
     ) -> Callable[[], None]:
         """Subscribe to "Enhanced Log" events from the Host Command service.
 
         Args:
             callback: The callback to invoke when an event is received.
-            log_type: The type of log to subscribe to.
+            log_types: The event log types to subscribe to.
 
         Returns:
             A coroutine that can be used to unsubscribe from log events.
         """
 
+        # Support both a single log type and a list of log types
+        if isinstance(log_types, str):
+            log_types = (log_types,)
+
         # Enable this log type if it's not already enabled
-        self._enhanced_log_subscribers[log_type] += 1
-        if self._enhanced_log_subscribers[log_type] == 1:
-            self._enable_enhanced_log(log_type)
+        for log_type in log_types:
+            self._enhanced_log_subscribers[log_type] += 1
+            if self._enhanced_log_subscribers[log_type] == 1:
+                self._enable_enhanced_log(log_type)
 
         # Subscribe, and return an unsubscribe callback
         remove_subscription = self.subscribe(callback, EventType.ENHANCED_LOG)
 
         def unsubscribe() -> None:
-            self._enhanced_log_subscribers[log_type] -= 1
-            if self._enhanced_log_subscribers[log_type] == 0:
-                self._disable_enhanced_log(log_type)
+            for log_type in log_types:
+                self._enhanced_log_subscribers[log_type] -= 1
+                if self._enhanced_log_subscribers[log_type] == 0:
+                    self._disable_enhanced_log(log_type)
             remove_subscription()
 
         return unsubscribe

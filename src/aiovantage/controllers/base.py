@@ -235,13 +235,13 @@ class StatefulController(BaseController[T]):
 
         # Subscribe to "STATUS {type}" updates, if this controller cares about them
         if self.status_types:
-            for status_type in self.status_types:
-                self.event_stream.subscribe_status(self._handle_event, status_type)
+            self.event_stream.subscribe_status(self._handle_event, self.status_types)
 
         # Subscribe to object status events from the "Enhanced Log"
         if self.enhanced_log_status:
-            self.event_stream.subscribe_enhanced_log(self._handle_event, "STATUS")
-            self.event_stream.subscribe_enhanced_log(self._handle_event, "STATUSEX")
+            self.event_stream.subscribe_enhanced_log(
+                self._handle_event, ("STATUS", "STATUSEX")
+            )
 
         self._logger.info("%s subscribed to updates", self.__class__.__name__)
 
