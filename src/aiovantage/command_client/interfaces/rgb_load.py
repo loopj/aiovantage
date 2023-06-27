@@ -119,7 +119,7 @@ class RGBLoadInterface(Interface):
 
         return color
 
-    async def set_rgb(self, vid: int, red: int, green: int, blue: int) -> None:
+    async def set_rgb(self, vid: int, red: float, green: float, blue: float) -> None:
         """Set the color of an RGB load.
 
         Args:
@@ -139,7 +139,7 @@ class RGBLoadInterface(Interface):
         await self.invoke(vid, "RGBLoad.SetRGB", red, green, blue)
 
     async def set_rgbw(
-        self, vid: int, red: int, green: int, blue: int, white: int
+        self, vid: int, red: float, green: float, blue: float, white: float
     ) -> None:
         """Set the color of an RGBW load.
 
@@ -162,7 +162,7 @@ class RGBLoadInterface(Interface):
         await self.invoke(vid, "RGBLoad.SetRGBW", red, green, blue, white)
 
     async def set_hsl(
-        self, vid: int, hue: int, saturation: int, lightness: int
+        self, vid: int, hue: float, saturation: float, lightness: float
     ) -> None:
         """Set the color of an HSL load.
 
@@ -183,7 +183,7 @@ class RGBLoadInterface(Interface):
         await self.invoke(vid, "RGBLoad.SetHSL", hue, saturation, lightness)
 
     async def dissolve_rgb(
-        self, vid: int, red: int, green: int, blue: int, seconds: int
+        self, vid: int, red: float, green: float, blue: float, seconds: float
     ) -> None:
         """Transition the color of an RGB load over a number of seconds.
 
@@ -205,7 +205,7 @@ class RGBLoadInterface(Interface):
         await self.invoke(vid, "RGBLoad.DissolveRGB", red, green, blue, seconds)
 
     async def dissolve_hsl(
-        self, vid: int, hue: int, saturation: int, lightness: int, seconds: int
+        self, vid: int, hue: float, saturation: float, lightness: float, seconds: float
     ) -> None:
         """Transition the color of an HSL load over a number of seconds.
 
