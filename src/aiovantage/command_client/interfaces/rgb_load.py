@@ -31,7 +31,9 @@ class RGBLoadInterface(Interface):
             The value of the RGBW color as a tuple of (red, green, blue, white).
         """
 
-        return tuple([await self.get_rgb_channel(vid, channel) for channel in range(4)])
+        return tuple(
+            [await self.get_rgbw_channel(vid, channel) for channel in range(4)]
+        )
 
     async def get_hsl(self, vid: int) -> Tuple[int, ...]:
         """Get the HSL color of a load from the controller.
@@ -203,6 +205,23 @@ class RGBLoadInterface(Interface):
         # INVOKE <id> RGBLoad.DissolveRGB <red> <green> <blue>
         # -> R:INVOKE <id> <rcode> RGBLoad.DissolveRGB <red> <green> <blue>
         await self.invoke(vid, "RGBLoad.DissolveRGB", red, green, blue, seconds)
+
+    async def set_rgb_component(self, vid: int, channel: int, value: float) -> None:
+        """
+        Set a single RGB(W) color channel of a load.
+
+        Args:
+            vid: The Vantage ID of the RGB load.
+            channel: The channel to set the color of.
+            value: The value to set the channel to, 0-255.
+        """
+
+        # Clamp levels to 0-255, ensure they're integers
+        value = int(max(min(value, 255), 0))
+
+        # INVOKE <id> RGBLoad.SetRGBComponent <channel> <value>
+        # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBComponent <channel> <value>
+        await self.invoke(vid, "RGBLoad.SetRGBComponent", channel, value)
 
     async def dissolve_hsl(
         self, vid: int, hue: float, saturation: float, lightness: float, seconds: float

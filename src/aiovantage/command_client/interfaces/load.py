@@ -1,6 +1,6 @@
 """Interface for querying and controlling loads."""
 
-from enum import Enum
+from enum import IntEnum
 from typing import Sequence
 
 from .base import Interface
@@ -9,7 +9,7 @@ from .base import Interface
 class LoadInterface(Interface):
     """Interface for querying and controlling loads."""
 
-    class RampType(Enum):
+    class RampType(IntEnum):
         """The type of ramp to perform."""
 
         STOP = 2
@@ -99,7 +99,7 @@ class LoadInterface(Interface):
 
         # INVOKE <id> Load.Ramp <type> <seconds> <level>
         # -> R:INVOKE <id> <rcode> Load.Ramp <type> <seconds> <level>
-        await self.invoke(vid, "Load.Ramp", ramp_type.value, seconds, level)
+        await self.invoke(vid, "Load.Ramp", ramp_type, seconds, level)
 
     @classmethod
     def parse_load_status(cls, args: Sequence[str]) -> float:
