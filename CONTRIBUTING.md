@@ -41,17 +41,20 @@ Good pull requests remain focused in scope and avoid containing unrelated commit
 
 ## 🎨 Style guidelines
 
-We use `mypy`, `ruff`, and `black` for code linting and formatting. Linting helps ensure code quality and consistency throughout the project.
+This project uses [pre-commit](https://pre-commit.com/) to run code linting and formatting checks before commits are made.
 
-To run linting locally, execute the following command:
+To install `pre-commit` and its associated hooks, run the following:
 
 ```bash
-hatch run lint:all
+pip install pre-commit
+pre-commit install
 ```
 
-This command will run the linting tools, checking for against the defined linting rules in the `pyproject.toml` file.
+To run our linters on the full code base, run the following command:
 
-While you're free to use your preferred linters or editor plugins, please ensure that your changes adhere to our linting rules and pass the CI checks.
+```bash
+pre-commit run --all-files
+```
 
 ## 📦️ Build a package
 
