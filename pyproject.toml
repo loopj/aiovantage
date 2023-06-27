@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "xsdata==23.5",
+    "xsdata==23.6",
     "typing_extensions>=4.6.3,<5.0",
 ]
 
@@ -33,7 +33,7 @@ Source = "https://github.com/loopj/aiovantage"
 dev = [
     "black==23.3.0",
     "mypy==1.4.1",
-    "ruff==0.0.272",
+    "ruff==0.0.275",
     "pre-commit==3.3.3",
 ]
 
@@ -50,7 +50,6 @@ features = ["dev"]
 features = ["dev"]
 
 [tool.hatch.envs.lint.scripts]
-typing = "mypy --install-types --non-interactive {args:.}"
 style = [
   "ruff {args:.}",
   "black --check --diff {args:.}",
@@ -58,12 +57,8 @@ style = [
 fmt = [
   "black {args:.}",
   "ruff --fix {args:.}",
-  "style",
 ]
-all = [
-  "style",
-  "typing",
-]
+typing = "mypy {args:.}"
 
 [tool.mypy]
 strict = true

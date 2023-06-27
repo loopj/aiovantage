@@ -15,7 +15,7 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies:
-          - xsdata==23.5
+          - xsdata==23.6
         args: []
 
   - repo: https://github.com/thlorenz/doctoc
