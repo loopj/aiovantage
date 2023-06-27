@@ -100,6 +100,8 @@ class EventStream:
         self._subscriptions: List[EventSubscription] = []
         self._status_subscribers: Dict[str, int] = defaultdict(int)
         self._enhanced_log_subscribers: Dict[str, int] = defaultdict(int)
+        self._start_lock = asyncio.Lock()
+        self._started = False
         self._connection_lock = asyncio.Lock()
         self._command_queue: asyncio.Queue[str] = asyncio.Queue()
         self._logger = logging.getLogger(__name__)
@@ -122,17 +124,25 @@ class EventStream:
 
     async def start(self) -> None:
         """Initialize the event stream."""
-        await self.get_connection()
-        self._tasks.append(asyncio.create_task(self._message_handler()))
-        self._tasks.append(asyncio.create_task(self._command_handler()))
-        self._tasks.append(asyncio.create_task(self._keepalive()))
+        async with self._start_lock:
+            if self._started:
+                return
+
+            await self.get_connection()
+            self._tasks.append(asyncio.create_task(self._message_handler()))
+            self._tasks.append(asyncio.create_task(self._command_handler()))
+            self._tasks.append(asyncio.create_task(self._keepalive()))
+
+            self._started = True
 
     async def stop(self) -> None:
         """Stop the event stream."""
-        for task in self._tasks:
-            task.cancel()
-        self._tasks.clear()
-        self._connection.close()
+        async with self._start_lock:
+            for task in self._tasks:
+                task.cancel()
+            self._tasks.clear()
+            self._connection.close()
+            self._started = False
 
     async def get_connection(self) -> CommandConnection:
         """Get a connection to the Host Command service."""

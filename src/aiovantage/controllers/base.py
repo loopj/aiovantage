@@ -212,7 +212,7 @@ class StatefulController(BaseController[T]):
 
         await self.fetch_objects()
         await self.fetch_full_state()
-        self.subscribe_to_updates()
+        await self.subscribe_to_updates()
 
         self.event_stream.subscribe(self._handle_event, EventType.RECONNECTED)
 
@@ -227,11 +227,14 @@ class StatefulController(BaseController[T]):
 
         self._logger.info("%s fetched full state", self.__class__.__name__)
 
-    def subscribe_to_updates(self) -> None:
+    async def subscribe_to_updates(self) -> None:
         """Subscribe to state updates for objects managed by this controller."""
 
         if not self._items:
             return
+
+        # Ensure that the event stream is running
+        await self.event_stream.start()
 
         # Subscribe to "STATUS {type}" updates, if this controller cares about them
         if self.status_types:
