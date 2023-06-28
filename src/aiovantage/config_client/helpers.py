@@ -1,5 +1,6 @@
 """Helper functions for fetching system objects."""
 
+from contextlib import suppress
 from typing import Any, AsyncIterator, Optional, Sequence
 
 from aiovantage.config_client import ConfigClient
@@ -9,6 +10,7 @@ from aiovantage.config_client.methods.configuration import (
     GetObject,
     OpenFilter,
 )
+from aiovantage.errors import ClientError, ClientResponseError
 
 
 async def get_objects(
@@ -39,6 +41,9 @@ async def get_objects(
         OpenFilter, OpenFilter.Params(object_types=types, xpath=xpath)
     )
 
+    if handle is None:
+        raise ClientResponseError("Failed to open filter")
+
     try:
         # Get the results
         while True:
@@ -46,17 +51,18 @@ async def get_objects(
                 GetFilterResults, GetFilterResults.Params(h_filter=handle)
             )
 
-            if not response.objects:
+            if not response:
                 break
 
-            for obj in response.objects:
+            for obj in response:
                 if obj.choice is None:
                     continue
 
                 yield obj.choice
     finally:
         # Close the filter
-        await client.request(CloseFilter, handle)
+        with suppress(ClientError):
+            await client.request(CloseFilter, handle)
 
 
 async def get_objects_by_id(
@@ -74,10 +80,10 @@ async def get_objects_by_id(
 
     # Open the filter
     response = await client.request(GetObject, GetObject.Params(vids=list(vids)))
-    if not response.objects:
+    if not response:
         return
 
-    for obj in response.objects:
+    for obj in response:
         if obj.choice is None:
             continue
 
