@@ -30,6 +30,7 @@ from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
 from aiovantage.config_client.methods import Call, Method, Return
+from aiovantage.config_client.methods.introspection import GetVersion
 from aiovantage.config_client.methods.login import Login
 from aiovantage.connection import BaseConnection
 from aiovantage.errors import ClientResponseError, LoginFailedError
@@ -184,3 +185,15 @@ class ConfigClient:
                         raise LoginFailedError("Login failed, bad username or password")
 
             return self._connection
+
+    @classmethod
+    async def is_auth_required(
+        cls,
+        host: str,
+        ssl: Union[SSLContext, bool] = True,
+        port: Optional[int] = None,
+    ) -> bool:
+        """Check if the ACI service requires authentication."""
+        async with ConfigClient(host, ssl=ssl, port=port) as client:
+            version = await client.request(GetVersion)
+            return version is None
