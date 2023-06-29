@@ -19,15 +19,12 @@ class GMemController(BaseController[GMem], GMemInterface):
     status_types = ("VARIABLE",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of a variable."""
+    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+        """Fetch the state properties of a variable."""
 
-        state: Dict[str, Any] = {}
-
-        raw_value = await self.get_value(vid)
-        state["value"] = self._parse_value(vid, raw_value)
-
-        self.update_state(vid, state)
+        return {
+            "value": self._parse_value(vid, await self.get_value(vid)),
+        }
 
     @override
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:

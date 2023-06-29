@@ -21,14 +21,12 @@ class LightSensorsController(BaseController[LightSensor], LightSensorInterface):
     enhanced_log_status_methods = ("LightSensor.GetLevel",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of a light sensor."""
+    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+        """Fetch the state properties of a light sensor."""
 
-        state: Dict[str, Any] = {
+        return {
             "level": await LightSensorInterface.get_level(self, vid),
         }
-
-        self.update_state(vid, state)
 
     @override
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:

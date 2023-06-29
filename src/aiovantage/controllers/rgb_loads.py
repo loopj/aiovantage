@@ -41,8 +41,8 @@ class RGBLoadsController(
         self._temp_color_map: Dict[int, List[int]] = {}
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of an RGB load."""
+    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+        """Fetch the state properties of an RGB load."""
 
         state: Dict[str, Any] = {
             "level": await LoadInterface.get_level(self, vid),
@@ -59,7 +59,7 @@ class RGBLoadsController(
                 self, vid
             )
 
-        self.update_state(vid, state)
+        return state
 
     @override
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:

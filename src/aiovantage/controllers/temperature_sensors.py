@@ -21,14 +21,12 @@ class TemperatureSensorsController(BaseController[Temperature], TemperatureInter
     enhanced_log_status_methods = ("Temperature.GetValue",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of a temperature sensor."""
+    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+        """Fetch the state properties of a temperature sensor."""
 
-        state: Dict[str, Any] = {
+        return {
             "value": await TemperatureInterface.get_value(self, vid),
         }
-
-        self.update_state(vid, state)
 
     @override
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:

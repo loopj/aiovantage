@@ -27,14 +27,12 @@ class BlindsController(BaseController[Blind], BlindInterface):
     enhanced_log_status_methods = ("Blind.GetPosition",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of a blind."""
+    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+        """Fetch the state properties of a blind."""
 
-        state: Dict[str, Any] = {
-            "position": await BlindInterface.get_position(self, vid)
+        return {
+            "position": await BlindInterface.get_position(self, vid),
         }
-
-        self.update_state(vid, state)
 
     @override
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:

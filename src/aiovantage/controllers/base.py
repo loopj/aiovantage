@@ -76,8 +76,9 @@ class BaseController(QuerySet[T]):
         """Return True if the object with the given Vantage ID exists."""
         return vid in self._items
 
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of an object."""
+    async def fetch_object_state(self, _vid: int) -> Dict[str, Any]:
+        """Fetch the state of an object."""
+        return {}
 
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
         """Handle state changes for an object."""
@@ -107,12 +108,15 @@ class BaseController(QuerySet[T]):
         # Fetch all objects managed by this controller
         async for obj in get_objects(self.config_client, types=self.vantage_types):
             if obj.id not in prev_ids:
-                # This is a new object, add it to the controller and notify subscribers
+                # This is a new object, add it to the controller
                 self._items[obj.id] = obj
-                self.emit(VantageEvent.OBJECT_ADDED, obj)
 
                 # Fetch the initial state of the object
-                await self.fetch_object_state(obj.id)
+                state = await self.fetch_object_state(obj.id)
+                self._set_state(obj, state)
+
+                # Notify subscribers that a new object was added
+                self.emit(VantageEvent.OBJECT_ADDED, obj)
             else:
                 # This is an existing object, check if any attributes have changed
                 prev_obj = self._items[obj.id]
@@ -225,12 +229,11 @@ class BaseController(QuerySet[T]):
 
         Args:
             vid: The Vantage ID of the object to update.
-            state: A dictionary of attributes to update.
+            state: The new state of the object.
         """
 
-        # Get the object, skip if it doesn't exist
-        obj = self.get(vid)
-        if obj is None:
+        # Ignore updates for objects that this controller doesn't manage
+        if (obj := self._items.get(vid)) is None:
             return
 
         # Check if any of the attributes changed and update them
@@ -250,6 +253,14 @@ class BaseController(QuerySet[T]):
                 obj,
                 {"attrs_changed": attrs_changed},
             )
+
+    def _set_state(self, obj: T, state: Dict[str, Any]) -> None:
+        # Set the state properties of an object.
+        for key, value in state.items():
+            try:
+                setattr(obj, key, value)
+            except AttributeError:
+                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
 
     async def _subscribe_to_event_stream(self) -> None:
         # Ensure that the event stream is running
@@ -302,6 +313,6 @@ class BaseController(QuerySet[T]):
 
         elif event["type"] == EventType.RECONNECTED:
             # Fetch the full state of all objects after reconnecting
-            await asyncio.gather(
-                *[self.fetch_object_state(obj.id) for obj in self._items.values()]
-            )
+            for obj in self._items.values():
+                state = await self.fetch_object_state(obj.id)
+                self.update_state(obj.id, state)

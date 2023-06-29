@@ -19,14 +19,12 @@ class OmniSensorsController(BaseController[OmniSensor]):
     enhanced_log_status = True
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of an omni sensor."""
+    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+        """Fetch the state properties of an omni sensor."""
 
-        state: Dict[str, Any] = {
+        return {
             "level": await self.get_level(vid),
         }
-
-        self.update_state(vid, state)
 
     @override
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:

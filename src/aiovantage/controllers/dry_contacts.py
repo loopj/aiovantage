@@ -20,10 +20,6 @@ class DryContactsController(BaseController[DryContact], ButtonInterface):
     status_types = ("BTN",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of a dry contact."""
-
-    @override
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
         """Handle state changes for a dry contact."""
 

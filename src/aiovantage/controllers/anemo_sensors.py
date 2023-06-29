@@ -21,14 +21,12 @@ class AnemoSensorsController(BaseController[AnemoSensor], AnemoSensorInterface):
     enhanced_log_status_methods = ("AnemoSensor.GetSpeed",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of an anemo sensor."""
+    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+        """Fetch the state properties of an anemo sensor."""
 
-        state: Dict[str, Any] = {
+        return {
             "speed": await AnemoSensorInterface.get_speed(self, vid),
         }
-
-        self.update_state(vid, state)
 
     @override
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:

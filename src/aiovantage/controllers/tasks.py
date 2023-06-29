@@ -21,15 +21,13 @@ class TasksController(BaseController[Task], TaskInterface):
     enhanced_log_status_methods = ("Task.IsRunning", "Task.GetState")
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of a task."""
+    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+        """Fetch the state properties of a task."""
 
-        state: Dict[str, Any] = {
+        return {
             "is_running": await TaskInterface.is_running(self, vid),
             "state": await TaskInterface.get_state(self, vid),
         }
-
-        self.update_state(vid, state)
 
     @override
     def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
