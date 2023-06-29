@@ -1,7 +1,7 @@
 """Controller holding and managing Vantage omni sensors."""
 
 from decimal import Decimal
-from typing import Any, Dict, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 from typing_extensions import override
 
@@ -19,7 +19,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
     enhanced_log_status = True
 
     @override
-    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
         """Fetch the state properties of an omni sensor."""
 
         return {
@@ -27,18 +27,18 @@ class OmniSensorsController(BaseController[OmniSensor]):
         }
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(
+        self, vid: int, status: str, args: Sequence[str]
+    ) -> Optional[Dict[str, Any]]:
         """Handle state changes for an omni sensor."""
 
         omni_sensor: OmniSensor = self[vid]
         if status != omni_sensor.get.method:
-            return
+            return None
 
-        state: Dict[str, Any] = {
+        return {
             "level": self.parse_get_level_status(omni_sensor, args),
         }
-
-        self.update_state(vid, state)
 
     async def get_level(self, vid: int, cached: bool = False) -> Union[int, Decimal]:
         """Get the level of an OmniSensor.

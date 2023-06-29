@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage light sensors."""
 
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 from typing_extensions import override
 
@@ -21,7 +21,7 @@ class LightSensorsController(BaseController[LightSensor], LightSensorInterface):
     enhanced_log_status_methods = ("LightSensor.GetLevel",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
         """Fetch the state properties of a light sensor."""
 
         return {
@@ -29,11 +29,14 @@ class LightSensorsController(BaseController[LightSensor], LightSensorInterface):
         }
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(
+        self, _vid: int, status: str, args: Sequence[str]
+    ) -> Optional[Dict[str, Any]]:
         """Handle state changes for a light sensor."""
 
-        state: Dict[str, Any] = {}
         if status == "LightSensor.GetLevel":
-            state["level"] = LightSensorInterface.parse_get_level_status(args)
+            return {
+                "level": LightSensorInterface.parse_get_level_status(args),
+            }
 
-        self.update_state(vid, state)
+        return None

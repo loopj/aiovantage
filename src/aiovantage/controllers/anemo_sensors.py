@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage anemo (wind) sensors."""
 
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 from typing_extensions import override
 
@@ -21,7 +21,7 @@ class AnemoSensorsController(BaseController[AnemoSensor], AnemoSensorInterface):
     enhanced_log_status_methods = ("AnemoSensor.GetSpeed",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
         """Fetch the state properties of an anemo sensor."""
 
         return {
@@ -29,11 +29,14 @@ class AnemoSensorsController(BaseController[AnemoSensor], AnemoSensorInterface):
         }
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(
+        self, _vid: int, status: str, args: Sequence[str]
+    ) -> Optional[Dict[str, Any]]:
         """Handle state changes for an anemo sensor."""
 
-        state: Dict[str, Any] = {}
-        if status == "AnemoSensor.GetSpeed":
-            state["speed"] = AnemoSensorInterface.parse_get_speed_status(args)
+        if status != "AnemoSensor.GetSpeed":
+            return None
 
-        self.update_state(vid, state)
+        return {
+            "speed": AnemoSensorInterface.parse_get_speed_status(args),
+        }

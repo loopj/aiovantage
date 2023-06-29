@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage tasks."""
 
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 from typing_extensions import override
 
@@ -21,7 +21,7 @@ class TasksController(BaseController[Task], TaskInterface):
     enhanced_log_status_methods = ("Task.IsRunning", "Task.GetState")
 
     @override
-    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
         """Fetch the state properties of a task."""
 
         return {
@@ -30,14 +30,19 @@ class TasksController(BaseController[Task], TaskInterface):
         }
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(
+        self, _vid: int, status: str, args: Sequence[str]
+    ) -> Optional[Dict[str, Any]]:
         """Handle state changes for a task."""
 
-        state: Dict[str, Any] = {}
         if status == "Task.IsRunning":
-            state["is_running"] = TaskInterface.parse_is_running_status(args)
+            return {
+                "is_running": TaskInterface.parse_is_running_status(args),
+            }
 
-        elif status == "Task.GetState":
-            state["state"] = TaskInterface.parse_get_state_status(args)
+        if status == "Task.GetState":
+            return {
+                "state": TaskInterface.parse_get_state_status(args),
+            }
 
-        self.update_state(vid, state)
+        return None

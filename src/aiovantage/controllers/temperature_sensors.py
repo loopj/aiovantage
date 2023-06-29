@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage temperature sensors."""
 
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 from typing_extensions import override
 
@@ -21,7 +21,7 @@ class TemperatureSensorsController(BaseController[Temperature], TemperatureInter
     enhanced_log_status_methods = ("Temperature.GetValue",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
         """Fetch the state properties of a temperature sensor."""
 
         return {
@@ -29,11 +29,14 @@ class TemperatureSensorsController(BaseController[Temperature], TemperatureInter
         }
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(
+        self, _vid: int, status: str, args: Sequence[str]
+    ) -> Optional[Dict[str, Any]]:
         """Handle state changes for a temperature sensor."""
 
-        state: Dict[str, Any] = {}
-        if status == "Temperature.GetValue":
-            state["value"] = TemperatureInterface.parse_get_value_status(args)
+        if status != "Temperature.GetValue":
+            return None
 
-        self.update_state(vid, state)
+        return {
+            "value": TemperatureInterface.parse_get_value_status(args),
+        }

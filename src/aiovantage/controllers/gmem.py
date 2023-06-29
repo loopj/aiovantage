@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage variables."""
 
-from typing import Any, Dict, Sequence, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 from typing_extensions import override
 
@@ -19,7 +19,7 @@ class GMemController(BaseController[GMem], GMemInterface):
     status_types = ("VARIABLE",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
         """Fetch the state properties of a variable."""
 
         return {
@@ -27,15 +27,17 @@ class GMemController(BaseController[GMem], GMemInterface):
         }
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(
+        self, vid: int, status: str, args: Sequence[str]
+    ) -> Optional[Dict[str, Any]]:
         """Handle state changes for a variable."""
 
-        state: Dict[str, Any] = {}
-        if status == "VARIABLE":
-            raw_value = GMemInterface.parse_variable_status(args)
-            state["value"] = self._parse_value(vid, raw_value)
+        if status != "VARIABLE":
+            return None
 
-        self.update_state(vid, state)
+        return {
+            "value": self._parse_value(vid, GMemInterface.parse_variable_status(args)),
+        }
 
     def _parse_value(self, vid: int, value: str) -> Union[int, str, bool]:
         # Parse the results of a GMem lookup into the expected type.

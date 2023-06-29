@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage buttons."""
 
-from typing import Any, Dict, Sequence
+from typing import Any, Dict, Optional, Sequence
 
 from typing_extensions import override
 
@@ -20,11 +20,14 @@ class ButtonsController(BaseController[Button], ButtonInterface):
     status_types = ("BTN",)
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(
+        self, _vid: int, status: str, args: Sequence[str]
+    ) -> Optional[Dict[str, Any]]:
         """Handle state changes for a button."""
 
-        state: Dict[str, Any] = {}
-        if status == "BTN":
-            state["pressed"] = ButtonInterface.parse_btn_status(args)
+        if status != "BTN":
+            return None
 
-        self.update_state(vid, state)
+        return {
+            "pressed": ButtonInterface.parse_btn_status(args),
+        }

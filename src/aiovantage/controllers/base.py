@@ -76,12 +76,15 @@ class BaseController(QuerySet[T]):
         """Return True if the object with the given Vantage ID exists."""
         return vid in self._items
 
-    async def fetch_object_state(self, _vid: int) -> Dict[str, Any]:
-        """Fetch the state of an object."""
-        return {}
+    async def fetch_object_state(self, _vid: int) -> Optional[Dict[str, Any]]:
+        """Fetch the full state of an object."""
+        return None
 
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
-        """Handle state changes for an object."""
+    def parse_object_update(
+        self, _vid: int, _status: str, _args: Sequence[str]
+    ) -> Optional[Dict[str, Any]]:
+        """Parse updates from the event stream for an object."""
+        return None
 
     @property
     def config_client(self) -> ConfigClient:
@@ -224,13 +227,25 @@ class BaseController(QuerySet[T]):
             else:
                 callback(event_type, obj, data)
 
-    def update_state(self, vid: int, state: Dict[str, Any]) -> None:
-        """Update the state of an object and notify subscribers if it changed.
+    def _set_state(self, obj: T, state: Optional[Dict[str, Any]]) -> None:
+        # Set the state properties of an object.
 
-        Args:
-            vid: The Vantage ID of the object to update.
-            state: The new state of the object.
-        """
+        # Ignore empty states
+        if state is None:
+            return
+
+        for key, value in state.items():
+            try:
+                setattr(obj, key, value)
+            except AttributeError:
+                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
+
+    def _update_state(self, vid: int, state: Optional[Dict[str, Any]]) -> None:
+        """Update the state of an object and notify subscribers if it changed."""
+
+        # Ignore empty states
+        if state is None:
+            return
 
         # Ignore updates for objects that this controller doesn't manage
         if (obj := self._items.get(vid)) is None:
@@ -254,14 +269,6 @@ class BaseController(QuerySet[T]):
                 {"attrs_changed": attrs_changed},
             )
 
-    def _set_state(self, obj: T, state: Dict[str, Any]) -> None:
-        # Set the state properties of an object.
-        for key, value in state.items():
-            try:
-                setattr(obj, key, value)
-            except AttributeError:
-                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
-
     async def _subscribe_to_event_stream(self) -> None:
         # Ensure that the event stream is running
         await self.event_stream.start()
@@ -284,13 +291,18 @@ class BaseController(QuerySet[T]):
 
     async def _handle_event(self, event: Event) -> None:
         # Handle events from the event stream
+        # pylint: disable=assignment-from-none
+
         if event["type"] == EventType.STATUS:
             # Ignore events for objects that this controller doesn't manage
             if event["id"] not in self._items:
                 return
 
             # Pass the event to the controller
-            self.handle_object_update(event["id"], event["status_type"], event["args"])
+            state = self.parse_object_update(
+                event["id"], event["status_type"], event["args"]
+            )
+            self._update_state(event["id"], state)
 
         elif event["type"] == EventType.ENHANCED_LOG:
             # STATUS/STATUSEX logs can be tokenized the same as command responses
@@ -309,10 +321,11 @@ class BaseController(QuerySet[T]):
                 return
 
             # Pass the event to the controller
-            self.handle_object_update(vid, method, args)
+            state = self.parse_object_update(vid, method, args)
+            self._update_state(vid, state)
 
         elif event["type"] == EventType.RECONNECTED:
             # Fetch the full state of all objects after reconnecting
             for obj in self._items.values():
                 state = await self.fetch_object_state(obj.id)
-                self.update_state(obj.id, state)
+                self._update_state(obj.id, state)

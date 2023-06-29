@@ -41,7 +41,7 @@ class RGBLoadsController(
         self._temp_color_map: Dict[int, List[int]] = {}
 
     @override
-    async def fetch_object_state(self, vid: int) -> Dict[str, Any]:
+    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
         """Fetch the state properties of an RGB load."""
 
         state: Dict[str, Any] = {
@@ -62,7 +62,9 @@ class RGBLoadsController(
         return state
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(
+        self, vid: int, status: str, args: Sequence[str]
+    ) -> Optional[Dict[str, Any]]:
         """Handle state changes for an RGB load."""
 
         rgb_load: RGBLoad = self[vid]
@@ -88,7 +90,7 @@ class RGBLoadsController(
         elif status == "ColorTemperature.Get" and rgb_load.is_cct:
             state["color_temp"] = ColorTemperatureInterface.parse_get_status(args)
 
-        self.update_state(vid, state)
+        return state
 
     @property
     def on(self) -> QuerySet[RGBLoad]:
