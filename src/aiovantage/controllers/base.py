@@ -101,7 +101,12 @@ class BaseController(QuerySet[T]):
         """Return the event stream instance."""
         return self._vantage.event_stream
 
-    async def initialize(self) -> None:
+    @property
+    def stateful(self) -> bool:
+        """Return True if this controller manages stateful objects."""
+        return self.status_types is not None or self.enhanced_log_status
+
+    async def initialize(self, fetch_state: bool = True) -> None:
         """Populate objects and fetch their initial state."""
 
         # Save the previous set of object IDs, for comparison later
@@ -114,9 +119,9 @@ class BaseController(QuerySet[T]):
                 # This is a new object, add it to the controller
                 self._items[obj.id] = obj
 
-                # Fetch the initial state of the object
-                state = await self.fetch_object_state(obj.id)
-                self._set_state(obj, state)
+                # Fetch the state of the object
+                if self.stateful and fetch_state:
+                    self._set_state(obj, await self.fetch_object_state(obj.id))
 
                 # Notify subscribers that a new object was added
                 self.emit(VantageEvent.OBJECT_ADDED, obj)
@@ -147,9 +152,24 @@ class BaseController(QuerySet[T]):
             obj = self._items.pop(vid)
             self.emit(VantageEvent.OBJECT_REMOVED, obj)
 
+        # Subscribe to the event stream if this is the first subscription
+        if self.stateful and fetch_state and not self._subscribed_to_event_stream:
+            await self._subscribe_to_event_stream()
+
         self._logger.info("%s initialized", self.__class__.__name__)
 
-    async def subscribe(
+    async def fetch_full_state(self, subscribe: bool = True) -> None:
+        """Fetch the full state of all objects managed by this controller."""
+        if not self.stateful:
+            return
+
+        for obj in self._items.values():
+            self._update_state(obj.id, await self.fetch_object_state(obj.id))
+
+        if subscribe and not self._subscribed_to_event_stream:
+            await self._subscribe_to_event_stream()
+
+    def subscribe(
         self,
         callback: EventCallback[T],
         id_filter: Union[int, Tuple[int], None] = None,
@@ -173,10 +193,6 @@ class BaseController(QuerySet[T]):
         # Handle single event filter
         if isinstance(event_filter, VantageEvent):
             event_filter = (event_filter,)
-
-        # Subscribe to the event stream if this is the first subscription
-        if not self._subscribed_to_event_stream:
-            await self._subscribe_to_event_stream()
 
         # Create the subscription
         subscription = (callback, event_filter)
@@ -326,6 +342,4 @@ class BaseController(QuerySet[T]):
 
         elif event["type"] == EventType.RECONNECTED:
             # Fetch the full state of all objects after reconnecting
-            for obj in self._items.values():
-                state = await self.fetch_object_state(obj.id)
-                self._update_state(obj.id, state)
+            await self.fetch_full_state()

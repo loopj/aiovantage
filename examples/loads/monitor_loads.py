@@ -37,7 +37,7 @@ async def main() -> None:
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all loads
-        await vantage.loads.subscribe(callback)
+        vantage.loads.subscribe(callback)
 
         # Fetch all known loads from the controller
         await vantage.loads.initialize()

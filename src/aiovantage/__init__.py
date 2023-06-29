@@ -211,38 +211,43 @@ class Vantage:
         self.command_client.close()
         self.event_stream.stop()
 
-    async def initialize(self) -> None:
-        """Fetch all objects from the controllers."""
+    async def initialize(self, fetch_state: bool = True) -> None:
+        """Fetch all objects from the controllers.
+
+        Args:
+            fetch_state: Whether to also fetch the state of each object.
+        """
 
         await asyncio.gather(
-            self._anemo_sensors.initialize(),
-            self._areas.initialize(),
-            self._blinds.initialize(),
-            self._blind_groups.initialize(),
-            self._buttons.initialize(),
-            self._dry_contacts.initialize(),
-            self._gmem.initialize(),
-            self._light_sensors.initialize(),
-            self._loads.initialize(),
-            self._masters.initialize(),
-            self._modules.initialize(),
-            self._rgb_loads.initialize(),
-            self._omni_sensors.initialize(),
-            self._stations.initialize(),
-            self._tasks.initialize(),
-            self._temperature_sensors.initialize(),
+            self._anemo_sensors.initialize(fetch_state),
+            self._areas.initialize(fetch_state),
+            self._blinds.initialize(fetch_state),
+            self._blind_groups.initialize(fetch_state),
+            self._buttons.initialize(fetch_state),
+            self._dry_contacts.initialize(fetch_state),
+            self._gmem.initialize(fetch_state),
+            self._light_sensors.initialize(fetch_state),
+            self._loads.initialize(fetch_state),
+            self._masters.initialize(fetch_state),
+            self._modules.initialize(fetch_state),
+            self._rgb_loads.initialize(fetch_state),
+            self._omni_sensors.initialize(fetch_state),
+            self._stations.initialize(fetch_state),
+            self._tasks.initialize(fetch_state),
+            self._temperature_sensors.initialize(fetch_state),
         )
 
-    async def subscribe(
-        self, callback: EventCallback[SystemObject]
-    ) -> Callable[[], None]:
+    def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
         """Subscribe to state changes for all objects.
+
+        Args:
+            callback: The callback to call when an object changes.
 
         Returns:
             A function to unsubscribe.
         """
 
-        unsubscribes = await asyncio.gather(
+        unsubscribes = [
             self.anemo_sensors.subscribe(callback),
             self.areas.subscribe(callback),
             self.blinds.subscribe(callback),
@@ -259,7 +264,7 @@ class Vantage:
             self.stations.subscribe(callback),
             self.tasks.subscribe(callback),
             self.temperature_sensors.subscribe(callback),
-        )
+        ]
 
         def unsubscribe() -> None:
             for unsub in unsubscribes:
