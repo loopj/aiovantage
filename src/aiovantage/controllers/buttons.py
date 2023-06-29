@@ -7,10 +7,10 @@ from typing_extensions import override
 from aiovantage.command_client.interfaces import ButtonInterface
 from aiovantage.config_client.objects import Button
 
-from .base import StatefulController
+from .base import BaseController
 
 
-class ButtonsController(StatefulController[Button], ButtonInterface):
+class ButtonsController(BaseController[Button], ButtonInterface):
     """Controller holding and managing Vantage buttons."""
 
     # Fetch the following object types from Vantage

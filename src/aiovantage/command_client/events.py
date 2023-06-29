@@ -118,7 +118,7 @@ class EventStream:
         traceback: Optional[TracebackType],
     ) -> None:
         """Exit context manager."""
-        await self.stop()
+        self.stop()
         if exc_val:
             raise exc_val
 
@@ -135,14 +135,13 @@ class EventStream:
 
             self._started = True
 
-    async def stop(self) -> None:
+    def stop(self) -> None:
         """Stop the event stream."""
-        async with self._start_lock:
-            for task in self._tasks:
-                task.cancel()
-            self._tasks.clear()
-            self._connection.close()
-            self._started = False
+        for task in self._tasks:
+            task.cancel()
+        self._tasks.clear()
+        self._connection.close()
+        self._started = False
 
     async def get_connection(self) -> CommandConnection:
         """Get a connection to the Host Command service."""

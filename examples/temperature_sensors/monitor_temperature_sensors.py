@@ -36,7 +36,7 @@ async def main() -> None:
 
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all sensors
-        vantage.temperature_sensors.subscribe(callback)
+        await vantage.temperature_sensors.subscribe(callback)
 
         # Fetch all known sensors from the controller
         await vantage.temperature_sensors.initialize()

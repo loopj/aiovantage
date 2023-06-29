@@ -36,7 +36,7 @@ async def main() -> None:
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to RGB load updates
-        vantage.rgb_loads.subscribe(callback)
+        await vantage.rgb_loads.subscribe(callback)
 
         # Fetch all known RGB loads from the controller
         await vantage.rgb_loads.initialize()

@@ -7,10 +7,10 @@ from typing_extensions import override
 from aiovantage.command_client.interfaces import LightSensorInterface
 from aiovantage.config_client.objects import LightSensor
 
-from .base import StatefulController
+from .base import BaseController
 
 
-class LightSensorsController(StatefulController[LightSensor], LightSensorInterface):
+class LightSensorsController(BaseController[LightSensor], LightSensorInterface):
     """Controller holding and managing Vantage light sensors."""
 
     # Fetch the following object types from Vantage

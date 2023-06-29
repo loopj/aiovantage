@@ -37,7 +37,7 @@ async def main() -> None:
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all sensors
-        vantage.omni_sensors.subscribe(callback)
+        await vantage.omni_sensors.subscribe(callback)
 
         # Fetch all known sensors from the controller
         await vantage.omni_sensors.initialize()

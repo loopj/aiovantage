@@ -2,7 +2,7 @@
 
 import asyncio
 import logging
-from abc import abstractmethod
+from dataclasses import fields
 from inspect import iscoroutinefunction
 from typing import (
     TYPE_CHECKING,
@@ -16,7 +16,6 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    cast,
 )
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
@@ -44,14 +43,23 @@ class BaseController(QuerySet[T]):
     vantage_types: Tuple[str, ...]
     """The Vantage object types that this controller handles."""
 
+    status_types: Optional[Tuple[str, ...]] = None
+    """Which Vantage status types this controller handles, if any."""
+
+    enhanced_log_status: bool = False
+    """Should this controller subscribe to updates from the Enhanced Log."""
+
+    enhanced_log_status_methods: Optional[Tuple[str, ...]] = None
+    """Which status methods this controller handles from the Enhanced Log."""
+
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize instance."""
         self._vantage = vantage
         self._items: Dict[int, T] = {}
         self._logger = logging.getLogger(__package__)
+        self._subscribed_to_event_stream = False
         self._subscriptions: List[EventSubscription[T]] = []
         self._id_subscriptions: Dict[int, List[EventSubscription[T]]] = {}
-        self._initialized = False
 
         QuerySet.__init__(self, self._items, self.initialize)
 
@@ -67,6 +75,12 @@ class BaseController(QuerySet[T]):
     def __contains__(self, vid: int) -> bool:
         """Return True if the object with the given Vantage ID exists."""
         return vid in self._items
+
+    async def fetch_object_state(self, vid: int) -> None:
+        """Fetch the initial state of an object."""
+
+    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+        """Handle state changes for an object."""
 
     @property
     def config_client(self) -> ConfigClient:
@@ -84,25 +98,51 @@ class BaseController(QuerySet[T]):
         return self._vantage.event_stream
 
     async def initialize(self) -> None:
-        """Initialize a stateless controller by populating the objects it manages."""
+        """Populate objects and fetch their initial state."""
 
-        if self._initialized:
-            return
+        # Save the previous set of object IDs, for comparison later
+        prev_ids = set(self._items.keys())
+        cur_ids = set()
 
-        await self.fetch_objects()
-
-        self._initialized = True
-
-    async def fetch_objects(self) -> None:
-        """Fetch all objects managed by this controller."""
-
+        # Fetch all objects managed by this controller
         async for obj in get_objects(self.config_client, types=self.vantage_types):
-            self._items[obj.id] = cast(T, obj)
-            self.emit(VantageEvent.OBJECT_ADDED, cast(T, obj))
+            if obj.id not in prev_ids:
+                # This is a new object, add it to the controller and notify subscribers
+                self._items[obj.id] = obj
+                self.emit(VantageEvent.OBJECT_ADDED, obj)
 
-        self._logger.info("%s fetched objects", self.__class__.__name__)
+                # Fetch the initial state of the object
+                await self.fetch_object_state(obj.id)
+            else:
+                # This is an existing object, check if any attributes have changed
+                prev_obj = self._items[obj.id]
+                attrs_changed = [
+                    field.name
+                    for field in fields(prev_obj)
+                    if getattr(prev_obj, field.name) != getattr(obj, field.name)
+                    and field.name != "mtime"
+                ]
 
-    def subscribe(
+                # If any attributes changed, update the object and notify subscribers
+                if attrs_changed:
+                    self._items[obj.id] = obj
+                    self.emit(
+                        VantageEvent.OBJECT_UPDATED,
+                        obj,
+                        {"attrs_changed": attrs_changed},
+                    )
+
+            # Keep track of which objects we've seen
+            cur_ids.add(obj.id)
+
+        # Handle objects that were removed
+        for vid in prev_ids - cur_ids:
+            obj = self._items.pop(vid)
+            self.emit(VantageEvent.OBJECT_REMOVED, obj)
+
+        self._logger.info("%s initialized", self.__class__.__name__)
+
+    async def subscribe(
         self,
         callback: EventCallback[T],
         id_filter: Union[int, Tuple[int], None] = None,
@@ -126,6 +166,10 @@ class BaseController(QuerySet[T]):
         # Handle single event filter
         if isinstance(event_filter, VantageEvent):
             event_filter = (event_filter,)
+
+        # Subscribe to the event stream if this is the first subscription
+        if not self._subscribed_to_event_stream:
+            await self._subscribe_to_event_stream()
 
         # Create the subscription
         subscription = (callback, event_filter)
@@ -152,10 +196,7 @@ class BaseController(QuerySet[T]):
         return unsubscribe
 
     def emit(
-        self,
-        event_type: VantageEvent,
-        obj: T,
-        data: Optional[Dict[str, Any]] = None,
+        self, event_type: VantageEvent, obj: T, data: Optional[Dict[str, Any]] = None
     ) -> None:
         """Emit an event to subscribers of this controller.
 
@@ -178,75 +219,6 @@ class BaseController(QuerySet[T]):
                 asyncio.create_task(callback(event_type, obj, data))  # noqa: RUF006
             else:
                 callback(event_type, obj, data)
-
-
-class StatefulController(BaseController[T]):
-    """Base controller for Vantage objects that have state."""
-
-    status_types: Optional[Tuple[str, ...]] = None
-    """Which Vantage status types this controller handles, if any."""
-
-    enhanced_log_status: bool = False
-    """Should this controller subscribe to updates from the Enhanced Log."""
-
-    enhanced_log_status_methods: Optional[Tuple[str, ...]] = None
-    """Which status methods this controller handles from the Enhanced Log."""
-
-    @abstractmethod
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of an object."""
-
-    @abstractmethod
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
-        """Handle state changes for an object."""
-
-    async def initialize(self) -> None:
-        """Initialize a stateful controller.
-
-        Populates the objects it manages, fetches their initial state, and subscribes
-        to state updates.
-        """
-
-        if self._initialized:
-            return
-
-        await self.fetch_objects()
-        await self.fetch_full_state()
-        await self.subscribe_to_updates()
-
-        self.event_stream.subscribe(self._handle_event, EventType.RECONNECTED)
-
-        self._initialized = True
-
-    async def fetch_full_state(self) -> None:
-        """Fetch the full state of all objects managed by this controller."""
-
-        await asyncio.gather(
-            *[self.fetch_object_state(obj.id) for obj in self._items.values()]
-        )
-
-        self._logger.info("%s fetched full state", self.__class__.__name__)
-
-    async def subscribe_to_updates(self) -> None:
-        """Subscribe to state updates for objects managed by this controller."""
-
-        if not self._items:
-            return
-
-        # Ensure that the event stream is running
-        await self.event_stream.start()
-
-        # Subscribe to "STATUS {type}" updates, if this controller cares about them
-        if self.status_types:
-            self.event_stream.subscribe_status(self._handle_event, self.status_types)
-
-        # Subscribe to object status events from the "Enhanced Log"
-        if self.enhanced_log_status:
-            self.event_stream.subscribe_enhanced_log(
-                self._handle_event, ("STATUS", "STATUSEX")
-            )
-
-        self._logger.info("%s subscribed to updates", self.__class__.__name__)
 
     def update_state(self, vid: int, state: Dict[str, Any]) -> None:
         """Update the state of an object and notify subscribers if it changed.
@@ -279,6 +251,26 @@ class StatefulController(BaseController[T]):
                 {"attrs_changed": attrs_changed},
             )
 
+    async def _subscribe_to_event_stream(self) -> None:
+        # Ensure that the event stream is running
+        await self.event_stream.start()
+
+        # Re-fetch the full state of all objects after reconnecting
+        self.event_stream.subscribe(self._handle_event, EventType.RECONNECTED)
+
+        # Subscribe to "STATUS {type}" updates, if this controller cares about them
+        if self.status_types:
+            self.event_stream.subscribe_status(self._handle_event, self.status_types)
+
+        # Subscribe to object status events from the "Enhanced Log"
+        if self.enhanced_log_status:
+            self.event_stream.subscribe_enhanced_log(
+                self._handle_event, ("STATUS", "STATUSEX")
+            )
+
+        self._subscribed_to_event_stream = True
+        self._logger.info("%s subscribed to event stream", self.__class__.__name__)
+
     async def _handle_event(self, event: Event) -> None:
         # Handle events from the event stream
         if event["type"] == EventType.STATUS:
@@ -310,4 +302,6 @@ class StatefulController(BaseController[T]):
 
         elif event["type"] == EventType.RECONNECTED:
             # Fetch the full state of all objects after reconnecting
-            await self.fetch_full_state()
+            await asyncio.gather(
+                *[self.fetch_object_state(obj.id) for obj in self._items.values()]
+            )

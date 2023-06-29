@@ -37,7 +37,7 @@ async def main() -> None:
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all dry contacts
-        vantage.dry_contacts.subscribe(callback)
+        await vantage.dry_contacts.subscribe(callback)
 
         # Fetch all known dry contacts from the controller
         await vantage.dry_contacts.initialize()

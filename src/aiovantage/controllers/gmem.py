@@ -6,10 +6,10 @@ from typing_extensions import override
 
 from aiovantage.command_client.interfaces import GMemInterface
 from aiovantage.config_client.objects import GMem
-from aiovantage.controllers.base import StatefulController
+from aiovantage.controllers.base import BaseController
 
 
-class GMemController(StatefulController[GMem], GMemInterface):
+class GMemController(BaseController[GMem], GMemInterface):
     """Controller holding and managing Vantage variables."""
 
     # Fetch the following object types from Vantage

@@ -12,11 +12,11 @@ from aiovantage.command_client.interfaces import (
 from aiovantage.config_client.objects import RGBLoad
 from aiovantage.query import QuerySet
 
-from .base import StatefulController
+from .base import BaseController
 
 
 class RGBLoadsController(
-    StatefulController[RGBLoad],
+    BaseController[RGBLoad],
     LoadInterface,
     RGBLoadInterface,
     ColorTemperatureInterface,

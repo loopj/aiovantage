@@ -38,7 +38,7 @@ async def main() -> None:
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all objects
-        vantage.subscribe(callback)
+        await vantage.subscribe(callback)
 
         # Fetch all known objects from the controller
         await vantage.initialize()

@@ -7,10 +7,10 @@ from typing_extensions import override
 from aiovantage.command_client.interfaces import TaskInterface
 from aiovantage.config_client.objects import Task
 
-from .base import StatefulController
+from .base import BaseController
 
 
-class TasksController(StatefulController[Task], TaskInterface):
+class TasksController(BaseController[Task], TaskInterface):
     """Controller holding and managing Vantage tasks."""
 
     # Fetch the following object types from Vantage

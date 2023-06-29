@@ -8,10 +8,10 @@ from aiovantage.command_client.interfaces import LoadInterface
 from aiovantage.config_client.objects import Load
 from aiovantage.query import QuerySet
 
-from .base import StatefulController
+from .base import BaseController
 
 
-class LoadsController(StatefulController[Load], LoadInterface):
+class LoadsController(BaseController[Load], LoadInterface):
     """Controller holding and managing Vantage loads."""
 
     # Fetch the following object types from Vantage

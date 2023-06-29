@@ -7,10 +7,10 @@ from typing_extensions import override
 from aiovantage.command_client.interfaces import AnemoSensorInterface
 from aiovantage.config_client.objects import AnemoSensor
 
-from .base import StatefulController
+from .base import BaseController
 
 
-class AnemoSensorsController(StatefulController[AnemoSensor], AnemoSensorInterface):
+class AnemoSensorsController(BaseController[AnemoSensor], AnemoSensorInterface):
     """Controller holding and managing Vantage anemo (wind) sensors."""
 
     # Fetch the following object types from Vantage

@@ -37,7 +37,7 @@ async def main() -> None:
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all blinds
-        vantage.blinds.subscribe(callback)
+        await vantage.blinds.subscribe(callback)
 
         # Fetch all known blinds from the controller
         await vantage.blinds.initialize()

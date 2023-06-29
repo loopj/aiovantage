@@ -7,10 +7,10 @@ from typing_extensions import override
 from aiovantage.command_client.interfaces import ButtonInterface
 from aiovantage.config_client.objects import DryContact
 
-from .base import StatefulController
+from .base import BaseController
 
 
-class DryContactsController(StatefulController[DryContact], ButtonInterface):
+class DryContactsController(BaseController[DryContact], ButtonInterface):
     """Controller holding and managing Vantage dry contacts."""
 
     # Fetch the following object types from Vantage

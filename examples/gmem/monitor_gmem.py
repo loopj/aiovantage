@@ -37,7 +37,7 @@ async def main() -> None:
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all variables
-        vantage.gmem.subscribe(callback)
+        await vantage.gmem.subscribe(callback)
 
         # Fetch all known variables from the controller
         await vantage.gmem.initialize()

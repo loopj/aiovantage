@@ -6,10 +6,10 @@ from typing import Any, Dict, Sequence, Union
 from typing_extensions import override
 
 from aiovantage.config_client.objects import OmniSensor
-from aiovantage.controllers.base import StatefulController
+from aiovantage.controllers.base import BaseController
 
 
-class OmniSensorsController(StatefulController[OmniSensor]):
+class OmniSensorsController(BaseController[OmniSensor]):
     """Controller holding and managing Vantage omni sensors."""
 
     # Fetch the following object types from Vantage

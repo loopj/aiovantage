@@ -46,7 +46,16 @@ class Vantage:
         config_port: Optional[int] = None,
         command_port: Optional[int] = None,
     ) -> None:
-        """Initialize the Vantage instance."""
+        """Initialize the Vantage instance.
+
+        Args:
+            host: The hostname or IP address of the Vantage controller.
+            username: The username to use for authentication.
+            password: The password to use for authentication.
+            use_ssl: Whether to use SSL for the connection.
+            config_port: The port to use for the config client.
+            command_port: The port to use for the command client.
+        """
 
         # Set up clients
         self._config_client = ConfigClient(
@@ -82,7 +91,6 @@ class Vantage:
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
-        await self.event_stream.start()
         return self
 
     async def __aexit__(
@@ -92,7 +100,7 @@ class Vantage:
         traceback: Optional[TracebackType],
     ) -> None:
         """Exit context manager."""
-        await self.close()
+        self.close()
         if exc_val:
             raise exc_val
 
@@ -196,12 +204,12 @@ class Vantage:
         """Return the TemperatureSensors controller for managing temperature sensors."""
         return self._temperature_sensors
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """Close the clients."""
 
         self.config_client.close()
         self.command_client.close()
-        await self.event_stream.stop()
+        self.event_stream.stop()
 
     async def initialize(self) -> None:
         """Fetch all objects from the controllers."""
@@ -225,14 +233,16 @@ class Vantage:
             self._temperature_sensors.initialize(),
         )
 
-    def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
+    async def subscribe(
+        self, callback: EventCallback[SystemObject]
+    ) -> Callable[[], None]:
         """Subscribe to state changes for all objects.
 
         Returns:
             A function to unsubscribe.
         """
 
-        unsubscribes = [
+        unsubscribes = await asyncio.gather(
             self.anemo_sensors.subscribe(callback),
             self.areas.subscribe(callback),
             self.blinds.subscribe(callback),
@@ -249,7 +259,7 @@ class Vantage:
             self.stations.subscribe(callback),
             self.tasks.subscribe(callback),
             self.temperature_sensors.subscribe(callback),
-        ]
+        )
 
         def unsubscribe() -> None:
             for unsub in unsubscribes:

@@ -7,10 +7,10 @@ from typing_extensions import override
 from aiovantage.command_client.interfaces import BlindInterface
 from aiovantage.config_client.objects import Blind
 
-from .base import StatefulController
+from .base import BaseController
 
 
-class BlindsController(StatefulController[Blind], BlindInterface):
+class BlindsController(BaseController[Blind], BlindInterface):
     """Controller holding and managing Vantage blinds."""
 
     # Fetch the following object types from Vantage

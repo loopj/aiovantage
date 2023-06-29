@@ -7,12 +7,10 @@ from typing_extensions import override
 from aiovantage.command_client.interfaces import TemperatureInterface
 from aiovantage.config_client.objects import Temperature
 
-from .base import StatefulController
+from .base import BaseController
 
 
-class TemperatureSensorsController(
-    StatefulController[Temperature], TemperatureInterface
-):
+class TemperatureSensorsController(BaseController[Temperature], TemperatureInterface):
     """Controller holding and managing Vantage temperature sensors."""
 
     # Fetch the following object types from Vantage
