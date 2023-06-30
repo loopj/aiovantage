@@ -60,8 +60,9 @@ class BaseController(QuerySet[T]):
         self._subscribed_to_event_stream = False
         self._subscriptions: List[EventSubscription[T]] = []
         self._id_subscriptions: Dict[int, List[EventSubscription[T]]] = {}
+        self._initialized = False
 
-        QuerySet.__init__(self, self._items, self.initialize)
+        QuerySet.__init__(self, self._items, self._lazy_initialize)
 
         self.__post_init__()
 
@@ -156,6 +157,7 @@ class BaseController(QuerySet[T]):
         if self.stateful and fetch_state and not self._subscribed_to_event_stream:
             await self._subscribe_to_event_stream()
 
+        self._initialized = True
         self._logger.info("%s initialized", self.__class__.__name__)
 
     async def fetch_full_state(self, subscribe: bool = True) -> None:
@@ -343,3 +345,7 @@ class BaseController(QuerySet[T]):
         elif event["type"] == EventType.RECONNECTED:
             # Fetch the full state of all objects after reconnecting
             await self.fetch_full_state()
+
+    async def _lazy_initialize(self) -> None:
+        if not self._initialized:
+            await self.initialize()
