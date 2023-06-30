@@ -23,10 +23,9 @@ class RGBLoadsController(
 ):
     """Controller holding and managing Vantage RGB loads."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("Vantage.DGColorLoad", "Vantage.DDGColorLoad")
+    """The Vantage object types that this controller will fetch."""
 
-    # Subscribe to status updates from the Enhanced Log for the following methods
     enhanced_log_status_methods = (
         "RGBLoad.GetHSL",
         "RGBLoad.GetRGB",
@@ -34,6 +33,7 @@ class RGBLoadsController(
         "ColorTemperature.Get",
         "Load.GetLevel",
     )
+    """Which status methods this controller handles from the Enhanced Log."""
 
     def __post_init__(self) -> None:
         """Post initialization hook."""
@@ -94,12 +94,12 @@ class RGBLoadsController(
         return None
 
     @property
-    def on(self) -> QuerySet[RGBLoad]:
+    def is_on(self) -> QuerySet[RGBLoad]:
         """Return a queryset of all RGB loads that are turned on."""
         return self.filter(lambda load: load.is_on)
 
     @property
-    def off(self) -> QuerySet[RGBLoad]:
+    def is_off(self) -> QuerySet[RGBLoad]:
         """Return a queryset of all RGB loads that are turned off."""
         return self.filter(lambda load: not load.is_on)
 

@@ -13,11 +13,11 @@ from .base import BaseController
 class TemperatureSensorsController(BaseController[Temperature], TemperatureInterface):
     """Controller holding and managing Vantage temperature sensors."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("Temperature",)
+    """The Vantage object types that this controller will fetch."""
 
-    # Subscribe to status updates from the Enhanced Log for the following methods
     enhanced_log_status_methods = ("Temperature.GetValue",)
+    """Which status methods this controller handles from the Enhanced Log."""
 
     @override
     async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:

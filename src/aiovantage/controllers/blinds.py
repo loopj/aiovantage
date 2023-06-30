@@ -13,7 +13,6 @@ from .base import BaseController, State
 class BlindsController(BaseController[Blind], BlindInterface):
     """Controller holding and managing Vantage blinds."""
 
-    # Fetch the following object types from Vantage
     vantage_types = (
         "QISBlind",
         "QubeBlind",
@@ -21,9 +20,10 @@ class BlindsController(BaseController[Blind], BlindInterface):
         "Somfy.RS-485_Shade_CHILD",
         "Somfy.URTSI_2_Shade_CHILD",
     )
+    """The Vantage object types that this controller will fetch."""
 
-    # Subscribe to status updates from the Enhanced Log for the following methods
     enhanced_log_status_methods = ("Blind.GetPosition",)
+    """Which status methods this controller handles from the Enhanced Log."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:

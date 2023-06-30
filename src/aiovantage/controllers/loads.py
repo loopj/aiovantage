@@ -14,11 +14,11 @@ from .base import BaseController, State
 class LoadsController(BaseController[Load], LoadInterface):
     """Controller holding and managing Vantage loads."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("Load",)
+    """The Vantage object types that this controller will fetch."""
 
-    # Get status updates from "STATUS LOAD"
     status_types = ("LOAD",)
+    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:
@@ -38,12 +38,12 @@ class LoadsController(BaseController[Load], LoadInterface):
         }
 
     @property
-    def on(self) -> QuerySet[Load]:
+    def is_on(self) -> QuerySet[Load]:
         """Return a queryset of all loads that are turned on."""
         return self.filter(lambda load: load.is_on)
 
     @property
-    def off(self) -> QuerySet[Load]:
+    def is_off(self) -> QuerySet[Load]:
         """Return a queryset of all loads that are turned off."""
         return self.filter(lambda load: not load.is_on)
 

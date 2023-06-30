@@ -13,11 +13,11 @@ from .base import BaseController, State
 class LightSensorsController(BaseController[LightSensor], LightSensorInterface):
     """Controller holding and managing Vantage light sensors."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("LightSensor",)
+    """The Vantage object types that this controller will fetch."""
 
-    # Subscribe to status updates from the Enhanced Log for the following methods
     enhanced_log_status_methods = ("LightSensor.GetLevel",)
+    """Which status methods this controller handles from the Enhanced Log."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:

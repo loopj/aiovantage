@@ -12,11 +12,11 @@ from aiovantage.controllers.base import BaseController, State
 class GMemController(BaseController[GMem], GMemInterface):
     """Controller holding and managing Vantage variables."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("GMem",)
+    """The Vantage object types that this controller will fetch."""
 
-    # Get status updates from "STATUS VARIABLE"
     status_types = ("VARIABLE",)
+    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:

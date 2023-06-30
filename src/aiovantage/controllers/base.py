@@ -48,7 +48,7 @@ class BaseController(QuerySet[T]):
     """The Vantage object types that this controller handles."""
 
     status_types: Optional[Tuple[str, ...]] = None
-    """Which Vantage status types this controller handles, if any."""
+    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     enhanced_log_status_methods: Optional[Union[Tuple[str, ...], Literal["*"]]] = None
     """Which status methods this controller handles from the Enhanced Log."""

@@ -12,11 +12,11 @@ from aiovantage.controllers.base import BaseController, State
 class OmniSensorsController(BaseController[OmniSensor]):
     """Controller holding and managing Vantage omni sensors."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("OmniSensor",)
+    """The Vantage object types that this controller will fetch."""
 
-    # Subscribe to status updates from the Enhanced Log for all methods
     enhanced_log_status_methods = "*"
+    """Which status methods this controller handles from the Enhanced Log."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:
@@ -62,12 +62,15 @@ class OmniSensorsController(BaseController[OmniSensor]):
                 return int(level)
 
             return level
-        else:
+
+        if omni_sensor.get.formula.return_type == "int":
             level = Decimal(response.args[1]) / 1000
             if omni_sensor.get.formula.level_type == "int":
                 return int(level)
 
             return level
+
+        raise ValueError(f"Unknown return type {omni_sensor.get.formula.return_type}")
 
     @classmethod
     def parse_get_level_status(

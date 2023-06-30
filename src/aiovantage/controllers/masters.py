@@ -8,5 +8,5 @@ from aiovantage.controllers.base import BaseController
 class MastersController(BaseController[Master], IntrospectionInterface):
     """Controller holding and managing Vantage controllers."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("Master",)
+    """The Vantage object types that this controller will fetch."""
