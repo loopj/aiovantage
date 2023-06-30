@@ -32,7 +32,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
     ) -> Optional[Dict[str, Any]]:
         """Handle state changes for an omni sensor."""
 
-        omni_sensor: OmniSensor = self[vid]
+        omni_sensor = self[vid]
         if status != omni_sensor.get.method:
             return None
 
@@ -51,9 +51,8 @@ class OmniSensorsController(BaseController[OmniSensor]):
             The level of the sensor.
         """
 
-        omni_sensor: OmniSensor = self[vid]
-
         # Figure out which get method to use, hardware or software (cached)
+        omni_sensor = self[vid]
         method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
 
         # INVOKE <id> <method>
@@ -63,16 +62,16 @@ class OmniSensorsController(BaseController[OmniSensor]):
         # Convert the level to the correct type
         if omni_sensor.get.formula.return_type == "fixed":
             level = Decimal(response.args[1])
-            if omni_sensor.get.formula.level_type == "fixed":
-                return level
-            else:
+            if omni_sensor.get.formula.level_type == "int":
                 return int(level)
+
+            return level
         else:
             level = Decimal(response.args[1]) / 1000
-            if omni_sensor.get.formula.level_type == "fixed":
-                return level
-            else:
+            if omni_sensor.get.formula.level_type == "int":
                 return int(level)
+
+            return level
 
     @classmethod
     def parse_get_level_status(
@@ -85,7 +84,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
         # STATUS ADD <id>
         # -> S:STATUS <id> <method> <value>
         level = Decimal(args[0]) / 1000
-        if omni_sensor.get.formula.level_type == "fixed":
-            return level
-        else:
+        if omni_sensor.get.formula.level_type == "int":
             return int(level)
+
+        return level
