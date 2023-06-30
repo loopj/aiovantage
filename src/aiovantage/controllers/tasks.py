@@ -1,13 +1,13 @@
 """Controller holding and managing Vantage tasks."""
 
-from typing import Any, Dict, Optional, Sequence
+from typing import Sequence
 
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import TaskInterface
 from aiovantage.config_client.objects import Task
 
-from .base import BaseController
+from .base import BaseController, State
 
 
 class TasksController(BaseController[Task], TaskInterface):
@@ -21,20 +21,16 @@ class TasksController(BaseController[Task], TaskInterface):
     enhanced_log_status_methods = ("Task.IsRunning", "Task.GetState")
 
     @override
-    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
+    async def fetch_object_state(self, vid: int) -> State:
         """Fetch the state properties of a task."""
-
         return {
             "is_running": await TaskInterface.is_running(self, vid),
             "state": await TaskInterface.get_state(self, vid),
         }
 
     @override
-    def parse_object_update(
-        self, _vid: int, status: str, args: Sequence[str]
-    ) -> Optional[Dict[str, Any]]:
+    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for a task."""
-
         if status == "Task.IsRunning":
             return {
                 "is_running": TaskInterface.parse_is_running_status(args),

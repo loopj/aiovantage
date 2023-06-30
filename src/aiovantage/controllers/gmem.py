@@ -1,12 +1,12 @@
 """Controller holding and managing Vantage variables."""
 
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Sequence, Union
 
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import GMemInterface
 from aiovantage.config_client.objects import GMem
-from aiovantage.controllers.base import BaseController
+from aiovantage.controllers.base import BaseController, State
 
 
 class GMemController(BaseController[GMem], GMemInterface):
@@ -19,19 +19,15 @@ class GMemController(BaseController[GMem], GMemInterface):
     status_types = ("VARIABLE",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
+    async def fetch_object_state(self, vid: int) -> State:
         """Fetch the state properties of a variable."""
-
         return {
             "value": self._parse_value(vid, await self.get_value(vid)),
         }
 
     @override
-    def parse_object_update(
-        self, vid: int, status: str, args: Sequence[str]
-    ) -> Optional[Dict[str, Any]]:
+    def parse_object_update(self, vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for a variable."""
-
         if status != "VARIABLE":
             return None
 
@@ -41,7 +37,6 @@ class GMemController(BaseController[GMem], GMemInterface):
 
     def _parse_value(self, vid: int, value: str) -> Union[int, str, bool]:
         # Parse the results of a GMem lookup into the expected type.
-
         gmem: GMem = self[vid]
 
         if gmem.is_bool:

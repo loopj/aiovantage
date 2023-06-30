@@ -1,13 +1,13 @@
 """Controller holding and managing Vantage dry contacts."""
 
-from typing import Any, Dict, Optional, Sequence
+from typing import Sequence
 
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import ButtonInterface
 from aiovantage.config_client.objects import DryContact
 
-from .base import BaseController
+from .base import BaseController, State
 
 
 class DryContactsController(BaseController[DryContact], ButtonInterface):
@@ -20,11 +20,8 @@ class DryContactsController(BaseController[DryContact], ButtonInterface):
     status_types = ("BTN",)
 
     @override
-    def parse_object_update(
-        self, _vid: int, status: str, args: Sequence[str]
-    ) -> Optional[Dict[str, Any]]:
+    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for a dry contact."""
-
         if status != "BTN":
             return None
 

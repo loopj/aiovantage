@@ -1,13 +1,13 @@
 """Controller holding and managing Vantage anemo (wind) sensors."""
 
-from typing import Any, Dict, Optional, Sequence
+from typing import Sequence
 
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import AnemoSensorInterface
 from aiovantage.config_client.objects import AnemoSensor
 
-from .base import BaseController
+from .base import BaseController, State
 
 
 class AnemoSensorsController(BaseController[AnemoSensor], AnemoSensorInterface):
@@ -21,19 +21,15 @@ class AnemoSensorsController(BaseController[AnemoSensor], AnemoSensorInterface):
     enhanced_log_status_methods = ("AnemoSensor.GetSpeed",)
 
     @override
-    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
+    async def fetch_object_state(self, vid: int) -> State:
         """Fetch the state properties of an anemo sensor."""
-
         return {
             "speed": await AnemoSensorInterface.get_speed(self, vid),
         }
 
     @override
-    def parse_object_update(
-        self, _vid: int, status: str, args: Sequence[str]
-    ) -> Optional[Dict[str, Any]]:
+    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for an anemo sensor."""
-
         if status != "AnemoSensor.GetSpeed":
             return None
 

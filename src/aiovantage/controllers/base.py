@@ -36,6 +36,9 @@ T = TypeVar("T", bound=SystemObject)
 EventCallback = Callable[[VantageEvent, T, Dict[str, Any]], None]
 EventSubscription = Tuple[EventCallback[T], Optional[Iterable[VantageEvent]]]
 
+# Type for state updates
+State = Optional[Dict[str, Any]]
+
 
 class BaseController(QuerySet[T]):
     """Base controller for Vantage objects."""

@@ -1,12 +1,12 @@
 """Controller holding and managing Vantage omni sensors."""
 
 from decimal import Decimal
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Sequence, Union
 
 from typing_extensions import override
 
 from aiovantage.config_client.objects import OmniSensor
-from aiovantage.controllers.base import BaseController
+from aiovantage.controllers.base import BaseController, State
 
 
 class OmniSensorsController(BaseController[OmniSensor]):
@@ -19,19 +19,15 @@ class OmniSensorsController(BaseController[OmniSensor]):
     enhanced_log_status = True
 
     @override
-    async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
+    async def fetch_object_state(self, vid: int) -> State:
         """Fetch the state properties of an omni sensor."""
-
         return {
             "level": await self.get_level(vid),
         }
 
     @override
-    def parse_object_update(
-        self, vid: int, status: str, args: Sequence[str]
-    ) -> Optional[Dict[str, Any]]:
+    def parse_object_update(self, vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for an omni sensor."""
-
         omni_sensor = self[vid]
         if status != omni_sensor.get.method:
             return None
