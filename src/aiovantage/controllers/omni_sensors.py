@@ -46,7 +46,6 @@ class OmniSensorsController(BaseController[OmniSensor]):
         Returns:
             The level of the sensor.
         """
-
         # Figure out which get method to use, hardware or software (cached)
         omni_sensor = self[vid]
         method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
@@ -77,7 +76,6 @@ class OmniSensorsController(BaseController[OmniSensor]):
         cls, omni_sensor: OmniSensor, args: Sequence[str]
     ) -> Union[int, Decimal]:
         """Parse an OmniSensor 'GetLevel' event, eg. 'PowerSensor.GetPower'."""
-
         # ELLOG STATUS ON
         # -> EL: <id> <method> <value>
         # STATUS ADD <id>

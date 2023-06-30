@@ -68,7 +68,7 @@ class BaseController(QuerySet[T]):
         self.__post_init__()
 
     def __post_init__(self) -> None:
-        """Post initialization hook."""
+        """Post initialization hook for subclasses."""
 
     def __getitem__(self, vid: int) -> T:
         """Return the object with the given Vantage ID."""
@@ -110,8 +110,6 @@ class BaseController(QuerySet[T]):
 
     async def initialize(self, fetch_state: bool = True) -> None:
         """Populate objects and fetch their initial state."""
-
-        # Save the previous set of object IDs, for comparison later
         prev_ids = set(self._items.keys())
         cur_ids = set()
 
@@ -188,12 +186,10 @@ class BaseController(QuerySet[T]):
         Returns:
             A function to unsubscribe from the callback.
         """
-
-        # Handle single ID filter
+        # Handle single ID filter or single event filter
         if isinstance(id_filter, int):
             id_filter = (id_filter,)
 
-        # Handle single event filter
         if isinstance(event_filter, VantageEvent):
             event_filter = (event_filter,)
 
@@ -231,7 +227,6 @@ class BaseController(QuerySet[T]):
             obj: The object that the event relates to.
             data: Data to pass to the callback.
         """
-
         if data is None:
             data = {}
 
@@ -248,8 +243,6 @@ class BaseController(QuerySet[T]):
 
     def _set_state(self, obj: T, state: Optional[Dict[str, Any]]) -> None:
         # Set the state properties of an object.
-
-        # Ignore empty states
         if state is None:
             return
 
@@ -261,8 +254,6 @@ class BaseController(QuerySet[T]):
 
     def _update_state(self, vid: int, state: Optional[Dict[str, Any]]) -> None:
         """Update the state of an object and notify subscribers if it changed."""
-
-        # Ignore empty states
         if state is None:
             return
 

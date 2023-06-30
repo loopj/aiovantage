@@ -14,7 +14,6 @@ class TaskInterface(Interface):
         Args:
             vid: The Vantage ID of the task.
         """
-
         # INVOKE <id> Task.IsRunning
         # -> R:INVOKE <id> <running (0/1)> Task.IsRunning
         response = await self.invoke(vid, "Task.IsRunning")
@@ -28,7 +27,6 @@ class TaskInterface(Interface):
         Args:
             vid: The Vantage ID of the task.
         """
-
         # INVOKE <id> Task.GetState
         # -> R:INVOKE <id> <state (0/1)> Task.GetState
         response = await self.invoke(vid, "Task.GetState")
@@ -42,7 +40,6 @@ class TaskInterface(Interface):
         Args:
             vid: The Vantage ID of the task.
         """
-
         # INVOKE <id> Task.Start <source> <event> <param1> <param2>
         # -> R:INVOKE <id> <rcode (0/1)> Task.Start <source> <event> <param1> <param2>
         await self.invoke(vid, "Task.Start")
@@ -53,7 +50,6 @@ class TaskInterface(Interface):
         Args:
             vid: The Vantage ID of the task.
         """
-
         # INVOKE <id> Task.Stop
         # -> R:INVOKE <id> <rcode> Task.Stop
         await self.invoke(vid, "Task.Stop")
@@ -68,7 +64,6 @@ class TaskInterface(Interface):
         Returns:
             The state of the task.
         """
-
         # STATUS TASK
         # -> S:TASK <id> <state (0/1)>
         return bool(int(args[0]))
@@ -83,7 +78,6 @@ class TaskInterface(Interface):
         Returns:
             The state of the task.
         """
-
         # ELLOG STATUS ON
         # -> EL: <id> Task.GetState <state (0/1)>
 
@@ -101,7 +95,6 @@ class TaskInterface(Interface):
         Returns:
             The running state of the task.
         """
-
         # ELLOG STATUS ON
         # -> EL: <id> Task.IsRunning <running (0/1)>
 

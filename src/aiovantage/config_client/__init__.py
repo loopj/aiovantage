@@ -115,7 +115,6 @@ class ConfigClient:
         Returns:
             The parsed response object
         """
-
         # Open the connection if it's closed
         conn = connection or await self.get_connection()
 

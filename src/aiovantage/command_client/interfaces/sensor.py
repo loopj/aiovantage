@@ -14,7 +14,6 @@ class SensorInterface(Interface):
         Args:
             vid: The Vantage ID of the sensor.
         """
-
         # INVOKE <id> Sensor.GetLevel
         # -> R:INVOKE <id> <level (0-100)> Sensor.GetLevel
         response = await self.invoke(vid, "Sensor.GetLevel")
@@ -32,7 +31,6 @@ class SensorInterface(Interface):
         Returns:
             The level of the sensor.
         """
-
         # ELLOG STATUS ON
         # -> EL: <id> Sensor.GetLevel <level>
 

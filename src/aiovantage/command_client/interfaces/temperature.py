@@ -15,7 +15,6 @@ class TemperatureInterface(Interface):
         Args:
             vid: The Vantage ID of the temperature sensor.
         """
-
         # INVOKE <id> Temperature.GetValue
         # -> R:INVOKE <id> <temp> Temperature.GetValue
         response = await self.invoke(vid, "Temperature.GetValue")
@@ -33,7 +32,6 @@ class TemperatureInterface(Interface):
         Returns:
             The level of the sensor.
         """
-
         # ELLOG STATUS ON
         # -> EL: <id> Temperature.GetValue <temp>
 

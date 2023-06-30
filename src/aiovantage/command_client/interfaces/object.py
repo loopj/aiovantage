@@ -18,7 +18,6 @@ class ObjectInterface(Interface):
         Returns:
             The modification time of the object, as a datetime object.
         """
-
         # INVOKE <id> Object.GetMTime
         # -> R:INVOKE <id> <mtime> Object.GetMTime
         response = await self.invoke(vid, "Object.GetMTime")
@@ -36,7 +35,6 @@ class ObjectInterface(Interface):
         Returns:
             The modification time of the object, as a datetime object.
         """
-
         # ELLOG STATUS ON
         # -> EL: <id> Object.GetMTime <mtime>
 

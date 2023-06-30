@@ -56,7 +56,6 @@ class Vantage:
             config_port: The port to use for the config client.
             command_port: The port to use for the command client.
         """
-
         # Set up clients
         self._config_client = ConfigClient(
             host, username, password, ssl=use_ssl, port=config_port
@@ -206,7 +205,6 @@ class Vantage:
 
     def close(self) -> None:
         """Close the clients."""
-
         self.config_client.close()
         self.command_client.close()
         self.event_stream.stop()
@@ -217,7 +215,6 @@ class Vantage:
         Args:
             fetch_state: Whether to also fetch the state of each object.
         """
-
         await asyncio.gather(
             self._anemo_sensors.initialize(fetch_state),
             self._areas.initialize(fetch_state),
@@ -246,7 +243,6 @@ class Vantage:
         Returns:
             A function to unsubscribe.
         """
-
         unsubscribes = [
             self.anemo_sensors.subscribe(callback),
             self.areas.subscribe(callback),

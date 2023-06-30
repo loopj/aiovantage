@@ -18,5 +18,5 @@ class Blind(LocationObject):
     type: Optional[str] = xml_attribute("ShadeType", default=None)
 
     def __post_init__(self) -> None:
-        """Post init."""
+        """Declare state attributes in post init."""
         self.position: Optional[Decimal] = None

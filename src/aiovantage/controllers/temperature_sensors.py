@@ -22,7 +22,6 @@ class TemperatureSensorsController(BaseController[Temperature], TemperatureInter
     @override
     async def fetch_object_state(self, vid: int) -> Optional[Dict[str, Any]]:
         """Fetch the state properties of a temperature sensor."""
-
         return {
             "value": await TemperatureInterface.get_value(self, vid),
         }
@@ -32,7 +31,6 @@ class TemperatureSensorsController(BaseController[Temperature], TemperatureInter
         self, _vid: int, status: str, args: Sequence[str]
     ) -> Optional[Dict[str, Any]]:
         """Handle state changes for a temperature sensor."""
-
         if status != "Temperature.GetValue":
             return None
 

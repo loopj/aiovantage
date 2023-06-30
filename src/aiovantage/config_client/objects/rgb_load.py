@@ -46,8 +46,7 @@ class RGBLoad(LocationObject):
     max_temp: int = xml_element("MaxTemp")
 
     def __post_init__(self) -> None:
-        """Post init."""
-
+        """Declare state attributes in post init."""
         self.hsl: Optional[Tuple[int, int, int]] = None
         self.rgb: Optional[Tuple[int, int, int]] = None
         self.rgbw: Optional[Tuple[int, int, int, int]] = None

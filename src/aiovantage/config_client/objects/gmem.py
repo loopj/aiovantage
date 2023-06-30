@@ -30,7 +30,7 @@ class GMem(SystemObject):
     tag: Tag = xml_element("Tag")
 
     def __post_init__(self) -> None:
-        """Post init."""
+        """Declare state attributes in post init."""
         self.value: Union[int, str, bool, None] = None
 
     @property

@@ -19,7 +19,6 @@ class BlindGroupsController(BaseController[BlindGroup], BlindInterface):
 
     def blinds(self, vid: int) -> QuerySet[Blind]:
         """Return a queryset of all blinds in this blind group."""
-
         blind_group = self[vid]
         if blind_group.blind_ids is not None:
             # Some blind groups have a list of blind ids, use that to filter

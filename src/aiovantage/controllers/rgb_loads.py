@@ -36,7 +36,7 @@ class RGBLoadsController(
     """Which status methods this controller handles from the Enhanced Log."""
 
     def __post_init__(self) -> None:
-        """Post initialization hook."""
+        """Initialize the map for building colors."""
         self._temp_color_map: Dict[int, List[int]] = {}
 
     @override

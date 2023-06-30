@@ -29,7 +29,6 @@ async def get_objects(
     Yields:
         The objects of the specified types
     """
-
     # Support both a single object type and a list of status types
     if isinstance(types, str):
         types = [types]
@@ -77,7 +76,6 @@ async def get_objects_by_id(
     Yields:
         The objects of the specified ids
     """
-
     # Open the filter
     response = await client.request(GetObject, GetObject.Params(vids=list(vids)))
     if not response:
@@ -100,7 +98,6 @@ async def get_object_by_id(client: ConfigClient, vid: int) -> Any:
     Returns:
         The object matching the specified id, or None if not found
     """
-
     try:
         return await get_objects_by_id(client, [vid]).__anext__()
     except StopAsyncIteration:

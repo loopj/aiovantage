@@ -79,6 +79,7 @@ select = [
     "Q",    # flake8-quotes
     "UP",   # pyupgrade
     "C90",  # mccabe
+    "D",    # pydocstyle
 ]
 ignore = [
     "E501",  # line too long, handled by black
@@ -89,3 +90,6 @@ known-first-party = ["aiovantage"]
 
 [tool.ruff.mccabe]
 max-complexity = 15
+
+[tool.ruff.pydocstyle]
+convention = "google"

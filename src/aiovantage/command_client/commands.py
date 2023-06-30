@@ -38,7 +38,6 @@ class CommandResponse:
 
     def __init__(self, data: List[str]) -> None:
         """Initialize a CommandResponse."""
-
         # Extract "data" lines from the response. These are any lines before the
         # "R:" line, from commands such as "HELP" and "LISTSTATUS".
         self.data, return_line = data[:-1], data[-1]
@@ -113,7 +112,6 @@ class CommandClient:
         Returns:
             A CommandResponse instance.
         """
-
         # Get a connection to the Host Command service
         conn = connection or await self.get_connection()
 
