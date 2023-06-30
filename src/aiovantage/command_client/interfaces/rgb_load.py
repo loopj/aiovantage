@@ -238,7 +238,6 @@ class RGBLoadInterface(Interface):
         """Parse an 'RGBLoad.GetRGB' event."""
         # ELLOG STATUSEX ON
         # -> EL: <id> RGBLoad.GetRGB <value> <channel>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> RGBLoad.GetRGB <value> <channel>
         value = int(args[0])
@@ -251,7 +250,6 @@ class RGBLoadInterface(Interface):
         """Parse an 'RGBLoad.GetColor' event."""
         # ELLOG STATUS ON
         # -> EL: <id> RGBLoad.GetColor <color>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> RGBLoad.GetColor <color>
         color = int(args[0])

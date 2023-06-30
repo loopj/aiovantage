@@ -34,7 +34,6 @@ class TemperatureInterface(Interface):
         """
         # ELLOG STATUS ON
         # -> EL: <id> Temperature.GetValue <temp>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> Temperature.GetValue <temp>
         return Decimal(args[0]) / 1000

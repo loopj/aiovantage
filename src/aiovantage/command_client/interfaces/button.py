@@ -96,7 +96,6 @@ class ButtonInterface(Interface):
         """
         # ELLOG STATUS ON
         # -> EL: <id> Button.GetState <state (0/1)>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> Button.GetState <state (0/1)>
         return bool(int(args[0]))

@@ -91,7 +91,6 @@ class BlindInterface(Interface):
         """Parse a 'Blind.GetPosition' event."""
         # ELLOG STATUS ON
         # -> EL: <id> Blind.GetPosition <position (0-100000)>
-
         # ADDSTATUS <id>
         # -> S:STATUS <id> Blind.GetPosition <position (0-100000)>
         position = Decimal(args[0]) / 1000
@@ -103,7 +102,6 @@ class BlindInterface(Interface):
         """Parse a 'Blind.GetBlindState' event."""
         # ADDSTATUS <id>
         # -> S:STATUS <id> Blind.GetBlindState <moving> <start> <end> <transitionTime> <startTime>
-
         # ELLOG STATUSEX ON
         # -> EL: <id> Blind.GetBlindState <moving> <start> <end> <transitionTime> <startTime>
         return cls.BlindState(

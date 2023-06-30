@@ -37,7 +37,6 @@ class ObjectInterface(Interface):
         """
         # ELLOG STATUS ON
         # -> EL: <id> Object.GetMTime <mtime>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> Object.GetMTime <mtime>
         return datetime.fromtimestamp(int(args[0]))

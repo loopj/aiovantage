@@ -51,7 +51,6 @@ class ColorTemperatureInterface(Interface):
         """
         # ELLOG STATUS ON
         # -> EL: <id> ColorTemperature.Get <temp>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> ColorTemperature.Get <temp>
         color_temp = int(args[0])

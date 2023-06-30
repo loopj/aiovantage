@@ -78,16 +78,6 @@ class BaseController(QuerySet[T]):
         """Return True if the object with the given Vantage ID exists."""
         return vid in self._items
 
-    async def fetch_object_state(self, _vid: int) -> Optional[Dict[str, Any]]:
-        """Fetch the full state of an object."""
-        return None
-
-    def parse_object_update(
-        self, _vid: int, _status: str, _args: Sequence[str]
-    ) -> Optional[Dict[str, Any]]:
-        """Parse updates from the event stream for an object."""
-        return None
-
     @property
     def config_client(self) -> ConfigClient:
         """Return the config client instance."""
@@ -107,6 +97,16 @@ class BaseController(QuerySet[T]):
     def stateful(self) -> bool:
         """Return True if this controller manages stateful objects."""
         return bool(self.status_types or self.enhanced_log_status_methods)
+
+    async def fetch_object_state(self, _vid: int) -> State:
+        """Fetch the full state of an object, should be overridden by subclasses."""
+        return None
+
+    def parse_object_update(
+        self, _vid: int, _status: str, _args: Sequence[str]
+    ) -> State:
+        """Parse updates from the event stream for an object, should be overridden by subclasses."""
+        return None
 
     async def initialize(self, fetch_state: bool = True) -> None:
         """Populate objects and fetch their initial state."""
@@ -169,6 +169,8 @@ class BaseController(QuerySet[T]):
 
         if subscribe and not self._subscribed_to_event_stream:
             await self._subscribe_to_event_stream()
+
+        self._logger.info("%s fetched state", self.__class__.__name__)
 
     def subscribe(
         self,
@@ -241,7 +243,7 @@ class BaseController(QuerySet[T]):
             else:
                 callback(event_type, obj, data)
 
-    def _set_state(self, obj: T, state: Optional[Dict[str, Any]]) -> None:
+    def _set_state(self, obj: T, state: State) -> None:
         # Set the state properties of an object.
         if state is None:
             return
@@ -252,7 +254,7 @@ class BaseController(QuerySet[T]):
             except AttributeError:
                 self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
 
-    def _update_state(self, vid: int, state: Optional[Dict[str, Any]]) -> None:
+    def _update_state(self, vid: int, state: State) -> None:
         """Update the state of an object and notify subscribers if it changed."""
         if state is None:
             return

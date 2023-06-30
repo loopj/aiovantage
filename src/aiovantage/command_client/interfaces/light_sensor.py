@@ -34,7 +34,6 @@ class LightSensorInterface(Interface):
         """
         # ELLOG STATUS ON
         # -> EL: <id> LightSensor.GetLevel <level>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> LightSensor.GetLevel <level>
         return Decimal(args[0]) / 1000

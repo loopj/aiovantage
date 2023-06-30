@@ -122,7 +122,6 @@ class LoadInterface(Interface):
         """
         # ELLOG STATUS ON
         # -> EL: <id> Load.GetLevel <level (0-100000)>
-
         # ADDSTATUS <id>
         # -> S:STATUS <id> Load.GetLevel <level (0-100000)>
         return float(args[0]) / 1000

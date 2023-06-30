@@ -34,7 +34,6 @@ class AnemoSensorInterface(Interface):
         """
         # ELLOG STATUS ON
         # -> EL: <id> AnemoSensor.GetSpeed <speed>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> AnemoSensor.GetSpeed <speed>
         return Decimal(args[0]) / 1000

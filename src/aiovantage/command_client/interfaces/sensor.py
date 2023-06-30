@@ -33,7 +33,6 @@ class SensorInterface(Interface):
         """
         # ELLOG STATUS ON
         # -> EL: <id> Sensor.GetLevel <level>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> Sensor.GetLevel <level>
         return int(args[0])
