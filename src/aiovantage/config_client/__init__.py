@@ -33,7 +33,7 @@ from aiovantage.config_client.methods import Call, Method, Return
 from aiovantage.config_client.methods.introspection import GetVersion
 from aiovantage.config_client.methods.login import Login
 from aiovantage.connection import BaseConnection
-from aiovantage.errors import ClientResponseError, LoginFailedError
+from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
 
 
 class ConfigConnection(BaseConnection):
@@ -172,8 +172,9 @@ class ConfigClient:
             if self._connection.closed:
                 await self._connection.open()
 
-                # Log in if we have credentials
+                # Ensure the connection is authenticated, if required
                 if self._username is not None and self._password is not None:
+                    # Log in if we have credentials
                     success = await self.request(
                         Login,
                         Login.Params(self._username, self._password),
@@ -182,6 +183,17 @@ class ConfigClient:
 
                     if not success:
                         raise LoginFailedError("Login failed, bad username or password")
+                else:
+                    # Check if login is required if we don't have credentials
+                    version = await self.request(
+                        GetVersion,
+                        connection=self._connection,
+                    )
+
+                    if version is None:
+                        raise LoginRequiredError(
+                            "Login required, but no credentials were provided"
+                        )
 
             return self._connection
 
