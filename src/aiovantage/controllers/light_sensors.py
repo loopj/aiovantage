@@ -17,7 +17,6 @@ class LightSensorsController(BaseController[LightSensor], LightSensorInterface):
     vantage_types = ("LightSensor",)
 
     # Subscribe to status updates from the Enhanced Log for the following methods
-    enhanced_log_status = True
     enhanced_log_status_methods = ("LightSensor.GetLevel",)
 
     @override

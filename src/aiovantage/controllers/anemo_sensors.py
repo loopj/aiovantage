@@ -17,7 +17,6 @@ class AnemoSensorsController(BaseController[AnemoSensor], AnemoSensorInterface):
     vantage_types = ("AnemoSensor",)
 
     # Subscribe to status updates from the Enhanced Log for the following methods
-    enhanced_log_status = True
     enhanced_log_status_methods = ("AnemoSensor.GetSpeed",)
 
     @override

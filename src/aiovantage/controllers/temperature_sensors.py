@@ -17,7 +17,6 @@ class TemperatureSensorsController(BaseController[Temperature], TemperatureInter
     vantage_types = ("Temperature",)
 
     # Subscribe to status updates from the Enhanced Log for the following methods
-    enhanced_log_status = True
     enhanced_log_status_methods = ("Temperature.GetValue",)
 
     @override

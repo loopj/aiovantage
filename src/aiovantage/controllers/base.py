@@ -11,6 +11,7 @@ from typing import (
     Dict,
     Iterable,
     List,
+    Literal,
     Optional,
     Sequence,
     Tuple,
@@ -49,10 +50,7 @@ class BaseController(QuerySet[T]):
     status_types: Optional[Tuple[str, ...]] = None
     """Which Vantage status types this controller handles, if any."""
 
-    enhanced_log_status: bool = False
-    """Should this controller subscribe to updates from the Enhanced Log."""
-
-    enhanced_log_status_methods: Optional[Tuple[str, ...]] = None
+    enhanced_log_status_methods: Optional[Union[Tuple[str, ...], Literal["*"]]] = None
     """Which status methods this controller handles from the Enhanced Log."""
 
     def __init__(self, vantage: "Vantage") -> None:
@@ -108,7 +106,7 @@ class BaseController(QuerySet[T]):
     @property
     def stateful(self) -> bool:
         """Return True if this controller manages stateful objects."""
-        return self.status_types is not None or self.enhanced_log_status
+        return bool(self.status_types or self.enhanced_log_status_methods)
 
     async def initialize(self, fetch_state: bool = True) -> None:
         """Populate objects and fetch their initial state."""
@@ -302,7 +300,7 @@ class BaseController(QuerySet[T]):
             self.event_stream.subscribe_status(self._handle_event, self.status_types)
 
         # Subscribe to object status events from the "Enhanced Log"
-        if self.enhanced_log_status:
+        if self.enhanced_log_status_methods:
             self.event_stream.subscribe_enhanced_log(
                 self._handle_event, ("STATUS", "STATUSEX")
             )
@@ -330,9 +328,12 @@ class BaseController(QuerySet[T]):
             id_str, method, *args = tokenize_response(event["log"])
 
             # Ignore events with methods that this controller doesn't care about
-            if (
+            if not (
                 self.enhanced_log_status_methods
-                and method not in self.enhanced_log_status_methods
+                and (
+                    self.enhanced_log_status_methods == "*"
+                    or method in self.enhanced_log_status_methods
+                )
             ):
                 return
 

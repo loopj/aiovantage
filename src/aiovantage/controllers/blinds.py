@@ -23,7 +23,6 @@ class BlindsController(BaseController[Blind], BlindInterface):
     )
 
     # Subscribe to status updates from the Enhanced Log for the following methods
-    enhanced_log_status = True
     enhanced_log_status_methods = ("Blind.GetPosition",)
 
     @override
