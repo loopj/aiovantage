@@ -169,22 +169,6 @@ class CommandClient:
 
             return self._connection
 
-    @classmethod
-    async def is_auth_required(
-        cls,
-        host: str,
-        ssl: Union[SSLContext, bool] = True,
-        port: Optional[int] = None,
-    ) -> bool:
-        """Check if the Host Command service requires authentication."""
-        try:
-            async with cls(host, ssl=ssl, port=port) as client:
-                await client.command("VERSION")
-        except LoginRequiredError:
-            return True
-
-        return False
-
     def _parse_command_error(self, message: str) -> CommandError:
         # Parse a command error from a message.
         tag, error_message = message.split(" ", 1)

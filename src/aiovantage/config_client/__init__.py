@@ -196,15 +196,3 @@ class ConfigClient:
                         )
 
             return self._connection
-
-    @classmethod
-    async def is_auth_required(
-        cls,
-        host: str,
-        ssl: Union[SSLContext, bool] = True,
-        port: Optional[int] = None,
-    ) -> bool:
-        """Check if the ACI service requires authentication."""
-        async with ConfigClient(host, ssl=ssl, port=port) as client:
-            version = await client.request(GetVersion)
-            return version is None
