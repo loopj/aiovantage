@@ -128,7 +128,7 @@ class ConfigClient:
             + self._serializer.render(method)
             + f"</{method.interface}>"
         )
-        self._logger.debug(request)
+        self._logger.debug("Sending request: %s", request)
 
         # Send the request and read the response
         async with self._request_lock:
@@ -136,7 +136,7 @@ class ConfigClient:
             response = await conn.readuntil(
                 f"</{method.interface}>\n".encode(), timeout=self._read_timeout
             )
-        self._logger.debug(response)
+        self._logger.debug("Received response: %s", response)
 
         # Parse the XML doc
         root = ElementTree.fromstring(response)

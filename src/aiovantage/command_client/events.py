@@ -143,6 +143,7 @@ class EventStream:
             self._tasks.append(asyncio.create_task(self._command_handler()))
             self._tasks.append(asyncio.create_task(self._keepalive()))
 
+            self._logger.debug("Started the event stream")
             self._started = True
 
     def stop(self) -> None:
@@ -151,6 +152,8 @@ class EventStream:
             task.cancel()
         self._tasks.clear()
         self._connection.close()
+
+        self._logger.debug("Stopped the event stream")
         self._started = False
 
     async def get_connection(self) -> CommandConnection:
