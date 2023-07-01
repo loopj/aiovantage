@@ -36,7 +36,6 @@ def xml_text(**kwargs: Any) -> Any:
 
 def xml_tag_from_class(cls: Type[Any]) -> str:
     """Get the XML tag name for a class."""
-
     meta = getattr(cls, "Meta", None)
     name = getattr(meta, "name", cls.__qualname__)
 

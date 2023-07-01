@@ -38,7 +38,6 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
                       dataset before using "async for" loops.
             filters: A list of filters to apply to the queryset.
         """
-
         self.__data = data
         self.__populate = populate
         self.__iterator: Optional[Iterator[T]] = None
@@ -119,7 +118,6 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
 
     def get(self, *args: Any, **kwargs: Any) -> Optional[T]:
         """Get the first object that matches the given filter."""
-
         # Handle the case where we're getting an object by key
         if len(args) == 1 and isinstance(args[0], int):
             return self.__data.get(args[0], kwargs.get("default", None))

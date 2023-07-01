@@ -11,7 +11,6 @@ class Task(SystemObject):
     """Task object."""
 
     def __post_init__(self) -> None:
-        """Post init."""
-
+        """Declare state attributes in post init."""
         self.is_running: Optional[bool] = None
         self.state: Optional[bool] = None

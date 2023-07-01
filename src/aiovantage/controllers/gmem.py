@@ -1,48 +1,42 @@
 """Controller holding and managing Vantage variables."""
 
-from typing import Any, Dict, Sequence, Union
+from typing import Sequence, Union
 
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import GMemInterface
 from aiovantage.config_client.objects import GMem
-from aiovantage.controllers.base import StatefulController
+from aiovantage.controllers.base import BaseController, State
 
 
-class GMemController(StatefulController[GMem], GMemInterface):
+class GMemController(BaseController[GMem], GMemInterface):
     """Controller holding and managing Vantage variables."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("GMem",)
+    """The Vantage object types that this controller will fetch."""
 
-    # Get status updates from "STATUS VARIABLE"
     status_types = ("VARIABLE",)
+    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of a variable."""
-
-        state: Dict[str, Any] = {}
-
-        raw_value = await self.get_value(vid)
-        state["value"] = self._parse_value(vid, raw_value)
-
-        self.update_state(vid, state)
+    async def fetch_object_state(self, vid: int) -> State:
+        """Fetch the state properties of a variable."""
+        return {
+            "value": self._parse_value(vid, await self.get_value(vid)),
+        }
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(self, vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for a variable."""
+        if status != "VARIABLE":
+            return None
 
-        state: Dict[str, Any] = {}
-        if status == "VARIABLE":
-            raw_value = GMemInterface.parse_variable_status(args)
-            state["value"] = self._parse_value(vid, raw_value)
-
-        self.update_state(vid, state)
+        return {
+            "value": self._parse_value(vid, GMemInterface.parse_variable_status(args)),
+        }
 
     def _parse_value(self, vid: int, value: str) -> Union[int, str, bool]:
         # Parse the results of a GMem lookup into the expected type.
-
         gmem: GMem = self[vid]
 
         if gmem.is_bool:

@@ -18,7 +18,6 @@ def tokenize_response(string: str) -> Sequence[str]:
     Returns:
         A list of string tokens.
     """
-
     tokens = []
     for match in TOKEN_PATTERN.finditer(string):
         token = match.group(0)
@@ -47,7 +46,6 @@ def encode_params(
     Returns:
         The encoded parameters, joined by spaces.
     """
-
     encoded_params = []
 
     for value in params:

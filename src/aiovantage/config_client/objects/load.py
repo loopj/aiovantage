@@ -16,7 +16,7 @@ class Load(LocationObject):
     power_profile_id: int = xml_element("PowerProfile")
 
     def __post_init__(self) -> None:
-        """Post init."""
+        """Declare state attributes in post init."""
         self.level: Optional[float] = None
 
     @property

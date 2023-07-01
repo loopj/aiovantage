@@ -7,5 +7,5 @@ from aiovantage.controllers.base import BaseController
 class AreasController(BaseController[Area]):
     """Controller holding and managing Vantage areas."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("Area",)
+    """The Vantage object types that this controller will fetch."""

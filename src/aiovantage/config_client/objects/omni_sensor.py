@@ -32,7 +32,7 @@ class OmniSensor(Sensor):
     parent_id: int = xml_element("Parent")
 
     def __post_init__(self) -> None:
-        """Post init."""
+        """Declare state attributes in post init."""
         self.level: Union[int, Decimal, None] = None
 
     @property

@@ -31,5 +31,5 @@ class Button(SystemObject):
         )
 
     def __post_init__(self) -> None:
-        """Post init."""
+        """Declare state attributes in post init."""
         self.pressed: bool = False

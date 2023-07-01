@@ -30,10 +30,10 @@ from aiovantage.errors import ClientConnectionError, ClientError
 from .commands import CommandConnection
 from .utils import tokenize_response
 
+# The interval between keepalive messages, in seconds.
 KEEPALIVE_INTERVAL = 60
 
 
-# Typing for events
 class EventType(Enum):
     """Enumeration of event types."""
 
@@ -44,20 +44,27 @@ class EventType(Enum):
     ENHANCED_LOG = "enhanced_log"
 
 
-# Typed dictionaries for events
 class ConnectEvent(TypedDict):
+    """Event emitted when the connection is established."""
+
     type: Literal[EventType.CONNECTED]
 
 
 class DisconnectEvent(TypedDict):
+    """Event emitted when the connection is lost."""
+
     type: Literal[EventType.DISCONNECTED]
 
 
 class ReconnectEvent(TypedDict):
+    """Event emitted when the connection is re-established."""
+
     type: Literal[EventType.RECONNECTED]
 
 
 class StatusEvent(TypedDict):
+    """Event emitted when a "S:" status is received."""
+
     type: Literal[EventType.STATUS]
     id: int
     status_type: str
@@ -65,10 +72,13 @@ class StatusEvent(TypedDict):
 
 
 class EnhancedLogEvent(TypedDict):
+    """Event emitted when an "EL:" enhanced log is received."""
+
     type: Literal[EventType.ENHANCED_LOG]
     log: str
 
 
+# Type alias for any event type
 Event = Union[
     ConnectEvent, DisconnectEvent, ReconnectEvent, StatusEvent, EnhancedLogEvent
 ]
@@ -118,7 +128,7 @@ class EventStream:
         traceback: Optional[TracebackType],
     ) -> None:
         """Exit context manager."""
-        await self.stop()
+        self.stop()
         if exc_val:
             raise exc_val
 
@@ -135,14 +145,13 @@ class EventStream:
 
             self._started = True
 
-    async def stop(self) -> None:
+    def stop(self) -> None:
         """Stop the event stream."""
-        async with self._start_lock:
-            for task in self._tasks:
-                task.cancel()
-            self._tasks.clear()
-            self._connection.close()
-            self._started = False
+        for task in self._tasks:
+            task.cancel()
+        self._tasks.clear()
+        self._connection.close()
+        self._started = False
 
     async def get_connection(self) -> CommandConnection:
         """Get a connection to the Host Command service."""
@@ -171,7 +180,6 @@ class EventStream:
         Returns:
             A function that can be used to unsubscribe from events.
         """
-
         # Support filtering by event type, a list of event types, or a predicate
         subscription: EventSubscription
         if isinstance(event_filter, EventType):
@@ -201,7 +209,6 @@ class EventStream:
         Returns:
             A coroutine that can be used to unsubscribe from status events.
         """
-
         # Support both a single status type and a list of status types
         if isinstance(status_types, str):
             status_types = (status_types,)
@@ -237,13 +244,11 @@ class EventStream:
 
         Args:
             callback: The callback to invoke when an event is received.
-            log_types: The event log types to subscribe to.
+            log_types: The event log type or types to subscribe to.
 
         Returns:
             A coroutine that can be used to unsubscribe from log events.
         """
-
-        # Support both a single log type and a list of log types
         if isinstance(log_types, str):
             log_types = (log_types,)
 
@@ -384,8 +389,9 @@ class EventStream:
         # Enable status updates on the controller for a particular status type.
         self._queue_command(f"STATUS {status_type}")
 
-    def _disable_status(self, status_type: str) -> None:
+    def _disable_status(self, _status_type: str) -> None:
         # Disable status updates on the controller for a particular status type.
+        # Note: This assumes the count has already been decremented.
         self._queue_command("STATUS NONE")
         for status_type, count in self._status_subscribers.items():
             if count > 0:

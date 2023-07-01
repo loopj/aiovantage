@@ -17,7 +17,6 @@ class GMemInterface(Interface):
         Returns:
             The value of the variable, as a raw string.
         """
-
         # GETVARIABLE {id}
         # -> R:GETVARIABLE {id} {value}
         response = await self.command_client.command("GETVARIABLE", vid)
@@ -32,7 +31,6 @@ class GMemInterface(Interface):
             vid: The Vantage ID of the variable.
             value: The value to set, either a bool, int, or str.
         """
-
         # SETVARIABLE {id} {value}
         # -> R:SETVARIABLE {id} {value}
         await self.command_client.command("VARIABLE", vid, value, force_quotes=True)
@@ -47,7 +45,6 @@ class GMemInterface(Interface):
         Returns:
             The level of the load.
         """
-
         # STATUS VARIABLE
         # -> S:VARIABLE <id> <value>
         return args[0]

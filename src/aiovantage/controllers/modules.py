@@ -5,7 +5,7 @@ from aiovantage.controllers.base import BaseController
 
 
 class ModulesController(BaseController[SystemObject]):
-    """Controller holding and managing Vantage modules."""
+    """Controller holding and managing Vantage power modules."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("Module", "ModuleGen2")
+    """The Vantage object types that this controller will fetch."""

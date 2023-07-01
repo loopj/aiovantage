@@ -7,7 +7,6 @@ from aiovantage.controllers.base import BaseController
 class StationsController(BaseController[StationObject]):
     """Controller holding and managing Vantage stations."""
 
-    # Fetch the following object types from Vantage
     vantage_types = (
         "Dimmer",
         "DualRelayStation",
@@ -16,3 +15,4 @@ class StationsController(BaseController[StationObject]):
         "Keypad",
         "ScenePointRelay",
     )
+    """The Vantage object types that this controller will fetch."""

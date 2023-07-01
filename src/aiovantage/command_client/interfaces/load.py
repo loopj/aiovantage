@@ -30,7 +30,6 @@ class LoadInterface(Interface):
             transition: The time in seconds to transition to the new level.
             level: The level to set the load to (0-100).
         """
-
         if transition:
             await self.ramp(vid, level, transition)
         else:
@@ -43,7 +42,6 @@ class LoadInterface(Interface):
             vid: The Vantage ID of the load.
             transition: The time in seconds to ramp the load down.
         """
-
         if transition:
             await self.ramp(vid, 0, transition)
         else:
@@ -58,7 +56,6 @@ class LoadInterface(Interface):
         Returns:
             The level of the load, as a percentage (0-100).
         """
-
         # INVOKE <id> Load.GetLevel
         # -> R:INVOKE <id> <level (0-100)> Load.GetLevel
         response = await self.invoke(vid, "Load.GetLevel")
@@ -73,7 +70,6 @@ class LoadInterface(Interface):
             vid: The Vantage ID of the load.
             level: The level to set the load to (0-100).
         """
-
         # Clamp level to 0-100
         level = max(min(level, 100), 0)
 
@@ -96,7 +92,6 @@ class LoadInterface(Interface):
             seconds: The number of seconds to ramp the load over.
             ramp_type: The type of ramp to perform.
         """
-
         # INVOKE <id> Load.Ramp <type> <seconds> <level>
         # -> R:INVOKE <id> <rcode> Load.Ramp <type> <seconds> <level>
         await self.invoke(vid, "Load.Ramp", ramp_type, seconds, level)
@@ -111,7 +106,6 @@ class LoadInterface(Interface):
         Returns:
             The level of the load.
         """
-
         # STATUS LOAD
         # -> S:LOAD <id> <level (0-100)>
         return float(args[0])
@@ -126,10 +120,8 @@ class LoadInterface(Interface):
         Returns:
             The level of the load.
         """
-
         # ELLOG STATUS ON
         # -> EL: <id> Load.GetLevel <level (0-100000)>
-
         # ADDSTATUS <id>
         # -> S:STATUS <id> Load.GetLevel <level (0-100000)>
         return float(args[0]) / 1000

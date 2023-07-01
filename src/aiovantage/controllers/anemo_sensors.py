@@ -1,41 +1,37 @@
 """Controller holding and managing Vantage anemo (wind) sensors."""
 
-from typing import Any, Dict, Sequence
+from typing import Sequence
 
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import AnemoSensorInterface
 from aiovantage.config_client.objects import AnemoSensor
 
-from .base import StatefulController
+from .base import BaseController, State
 
 
-class AnemoSensorsController(StatefulController[AnemoSensor], AnemoSensorInterface):
+class AnemoSensorsController(BaseController[AnemoSensor], AnemoSensorInterface):
     """Controller holding and managing Vantage anemo (wind) sensors."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("AnemoSensor",)
+    """The Vantage object types that this controller will fetch."""
 
-    # Subscribe to status updates from the Enhanced Log for the following methods
-    enhanced_log_status = True
     enhanced_log_status_methods = ("AnemoSensor.GetSpeed",)
+    """Which status methods this controller handles from the Enhanced Log."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of an anemo sensor."""
-
-        state: Dict[str, Any] = {
+    async def fetch_object_state(self, vid: int) -> State:
+        """Fetch the state properties of an anemo sensor."""
+        return {
             "speed": await AnemoSensorInterface.get_speed(self, vid),
         }
 
-        self.update_state(vid, state)
-
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for an anemo sensor."""
+        if status != "AnemoSensor.GetSpeed":
+            return None
 
-        state: Dict[str, Any] = {}
-        if status == "AnemoSensor.GetSpeed":
-            state["speed"] = AnemoSensorInterface.parse_get_speed_status(args)
-
-        self.update_state(vid, state)
+        return {
+            "speed": AnemoSensorInterface.parse_get_speed_status(args),
+        }

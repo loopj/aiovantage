@@ -17,7 +17,6 @@ class ButtonInterface(Interface):
         Returns:
             The pressed state of the button, True if pressed, False if not.
         """
-
         # INVOKE <id> Button.GetState
         # -> R:INVOKE <id> <state (Up/Down)> Button.GetState
         response = await self.invoke(vid, "Button.GetState")
@@ -36,7 +35,6 @@ class ButtonInterface(Interface):
             vid: The Vantage ID of the button.
             pressed: The state to set the button to, either a State.UP or State.DOWN.
         """
-
         # INVOKE <id> Button.SetState <state (0/1/Up/Down)>
         # -> R:INVOKE <id> Button.SetState <state (Up/Down)>
         await self.invoke(vid, "Button.SetState", pressed)
@@ -47,7 +45,6 @@ class ButtonInterface(Interface):
         Args:
             vid: The Vantage ID of the button.
         """
-
         await self.set_state(vid, True)
 
     async def release(self, vid: int) -> None:
@@ -56,7 +53,6 @@ class ButtonInterface(Interface):
         Args:
             vid: The Vantage ID of the button.
         """
-
         await self.set_state(vid, False)
 
     async def press_and_release(self, vid: int) -> None:
@@ -65,7 +61,6 @@ class ButtonInterface(Interface):
         Args:
             vid: The Vantage ID of the button.
         """
-
         await self.press(vid)
         await self.release(vid)
 
@@ -79,7 +74,6 @@ class ButtonInterface(Interface):
         Returns:
             The state of the button, either a State.UP or State.DOWN.
         """
-
         # STATUS BTN
         # -> S:BTN <id> <state (PRESS/RELEASE)>
         state = args[0]
@@ -100,10 +94,8 @@ class ButtonInterface(Interface):
         Returns:
             The state of the button, either a State.UP or State.DOWN.
         """
-
         # ELLOG STATUS ON
         # -> EL: <id> Button.GetState <state (0/1)>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> Button.GetState <state (0/1)>
         return bool(int(args[0]))

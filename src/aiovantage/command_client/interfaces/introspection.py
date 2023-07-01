@@ -22,7 +22,6 @@ class IntrospectionInterface(Interface):
             vid: The Vantage ID of the controller.
             image: The firmware image to get the version of.
         """
-
         # INVOKE <id> IntroSpection.GetFirmwareVersion <image>
         # -> R:INVOKE <id> <rcode> IntroSpection.GetFirmwareVersion <image> <version>
         response = await self.invoke(vid, "IntroSpection.GetFirmwareVersion", image)
