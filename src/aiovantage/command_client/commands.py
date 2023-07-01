@@ -159,7 +159,7 @@ class CommandClient:
                 await self._connection.open()
 
                 # Authenticate the new connection if we have credentials
-                if self._username is not None and self._password is not None:
+                if self._username and self._password:
                     await self.command(
                         "LOGIN",
                         self._username,

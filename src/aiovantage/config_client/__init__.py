@@ -173,7 +173,7 @@ class ConfigClient:
                 await self._connection.open()
 
                 # Ensure the connection is authenticated, if required
-                if self._username is not None and self._password is not None:
+                if self._username and self._password:
                     # Log in if we have credentials
                     success = await self.request(
                         Login,

@@ -164,7 +164,7 @@ class EventStream:
                 await self._connection.open()
 
                 # Authenticate the new connection if we have credentials
-                if self._username is not None and self._password is not None:
+                if self._username and self._password:
                     await self._send(f"LOGIN {self._username} {self._password}")
 
             return self._connection
