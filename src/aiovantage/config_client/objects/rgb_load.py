@@ -1,7 +1,7 @@
 """RGB load object."""
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, IntEnum
 from typing import Optional, Tuple
 
 from aiovantage.config_client.xml_dataclass import xml_element
@@ -15,6 +15,21 @@ from .location_object import LocationObject
 @dataclass
 class RGBLoad(LocationObject):
     """RGB load object."""
+
+    class RGBChannel(IntEnum):
+        """RGB channel."""
+
+        RED = 0
+        GREEN = 1
+        BLUE = 2
+        WHITE = 3
+
+    class HSLAttribute(IntEnum):
+        """HSL attribute."""
+
+        HUE = 0
+        SATURATION = 1
+        LEVEL = 2
 
     class ColorType(Enum):
         """Color type."""
@@ -31,8 +46,7 @@ class RGBLoad(LocationObject):
     max_temp: int = xml_element("MaxTemp")
 
     def __post_init__(self) -> None:
-        """Post init."""
-
+        """Declare state attributes in post init."""
         self.hsl: Optional[Tuple[int, int, int]] = None
         self.rgb: Optional[Tuple[int, int, int]] = None
         self.rgbw: Optional[Tuple[int, int, int, int]] = None

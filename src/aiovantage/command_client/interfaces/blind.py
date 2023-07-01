@@ -21,7 +21,6 @@ class BlindInterface(Interface):
         Args:
             vid: The Vantage ID of the blind.
         """
-
         # INVOKE <id> Blind.Open
         # -> R:INVOKE <id> <rcode> Blind.Open
         await self.invoke(vid, "Blind.Open")
@@ -32,7 +31,6 @@ class BlindInterface(Interface):
         Args:
             vid: The Vantage ID of the blind.
         """
-
         # INVOKE <id> Blind.Close
         # -> R:INVOKE <id> <rcode> Blind.Close
         await self.invoke(vid, "Blind.Close")
@@ -43,7 +41,6 @@ class BlindInterface(Interface):
         Args:
             vid: The Vantage ID of the blind.
         """
-
         # INVOKE <id> Blind.Stop
         # -> R:INVOKE <id> <rcode> Blind.Stop
         await self.invoke(vid, "Blind.Stop")
@@ -57,7 +54,6 @@ class BlindInterface(Interface):
         Returns:
             The position of the blind, as a percentage.
         """
-
         # INVOKE <id> Blind.GetPosition
         # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPosition
         response = await self.invoke(vid, "Blind.GetPosition")
@@ -72,7 +68,6 @@ class BlindInterface(Interface):
             vid: The Vantage ID of the blind.
             position: The position to set the blind to, as a percentage.
         """
-
         # INVOKE <id> Blind.SetPosition <position>
         # -> R:INVOKE <id> <rcode> Blind.SetPosition <position>
         await self.invoke(vid, "Blind.SetPosition", position)
@@ -87,7 +82,6 @@ class BlindInterface(Interface):
         Returns:
             The position of the blind, as a percentage.
         """
-
         # STATUS BLIND
         # -> S:BLIND <id> <position (0-100.000)>
         return Decimal(args[0])
@@ -95,10 +89,8 @@ class BlindInterface(Interface):
     @classmethod
     def parse_get_position_status(cls, args: Sequence[str]) -> Decimal:
         """Parse a 'Blind.GetPosition' event."""
-
         # ELLOG STATUS ON
         # -> EL: <id> Blind.GetPosition <position (0-100000)>
-
         # ADDSTATUS <id>
         # -> S:STATUS <id> Blind.GetPosition <position (0-100000)>
         position = Decimal(args[0]) / 1000
@@ -108,10 +100,8 @@ class BlindInterface(Interface):
     @classmethod
     def parse_get_state_status(cls, args: Sequence[str]) -> BlindState:
         """Parse a 'Blind.GetBlindState' event."""
-
         # ADDSTATUS <id>
         # -> S:STATUS <id> Blind.GetBlindState <moving> <start> <end> <transitionTime> <startTime>
-
         # ELLOG STATUSEX ON
         # -> EL: <id> Blind.GetBlindState <moving> <start> <end> <transitionTime> <startTime>
         return cls.BlindState(

@@ -49,7 +49,6 @@ class BaseConnection:
 
     async def open(self) -> None:
         """Open the connection."""
-
         # If we're already connected, do nothing
         if self._writer is not None and not self._writer.is_closing():
             return
@@ -101,7 +100,6 @@ class BaseConnection:
         Args:
             message: The message to send, as a string.
         """
-
         # Make sure we're connected
         if self._writer is None or self._writer.is_closing():
             raise ClientConnectionError("Client not connected.")
@@ -123,7 +121,6 @@ class BaseConnection:
         Returns:
             The data read, as a string.
         """
-
         # Make sure we're connected
         if self._reader is None or self.closed:
             raise ClientConnectionError("Client not connected.")

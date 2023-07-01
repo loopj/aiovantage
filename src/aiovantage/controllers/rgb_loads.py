@@ -12,22 +12,20 @@ from aiovantage.command_client.interfaces import (
 from aiovantage.config_client.objects import RGBLoad
 from aiovantage.query import QuerySet
 
-from .base import StatefulController
+from .base import BaseController, State
 
 
 class RGBLoadsController(
-    StatefulController[RGBLoad],
+    BaseController[RGBLoad],
     LoadInterface,
     RGBLoadInterface,
     ColorTemperatureInterface,
 ):
     """Controller holding and managing Vantage RGB loads."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("Vantage.DGColorLoad", "Vantage.DDGColorLoad")
+    """The Vantage object types that this controller will fetch."""
 
-    # Subscribe to status updates from the Enhanced Log for the following methods
-    enhanced_log_status = True
     enhanced_log_status_methods = (
         "RGBLoad.GetHSL",
         "RGBLoad.GetRGB",
@@ -35,15 +33,15 @@ class RGBLoadsController(
         "ColorTemperature.Get",
         "Load.GetLevel",
     )
+    """Which status methods this controller handles from the Enhanced Log."""
 
     def __post_init__(self) -> None:
-        """Post initialization hook."""
+        """Initialize the map for building colors."""
         self._temp_color_map: Dict[int, List[int]] = {}
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of an RGB load."""
-
+    async def fetch_object_state(self, vid: int) -> State:
+        """Fetch the state properties of an RGB load."""
         state: Dict[str, Any] = {
             "level": await LoadInterface.get_level(self, vid),
         }
@@ -59,47 +57,50 @@ class RGBLoadsController(
                 self, vid
             )
 
-        self.update_state(vid, state)
+        return state
 
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(self, vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for an RGB load."""
-
         rgb_load: RGBLoad = self[vid]
-        state: Dict[str, Any] = {}
         if status == "Load.GetLevel":
-            state["level"] = LoadInterface.parse_get_level_status(args)
+            return {
+                "level": LoadInterface.parse_get_level_status(args),
+            }
 
-        elif status == "RGBLoad.GetHSL" and rgb_load.is_rgb:
+        if status == "RGBLoad.GetHSL" and rgb_load.is_rgb:
             channel, value = RGBLoadInterface.parse_color_channel_status(args)
             if hsl := self._build_color_from_channels(vid, channel, value, 3):
-                state["hsl"] = hsl
+                return {"hsl": hsl}
+            return None
 
-        elif status == "RGBLoad.GetRGB" and rgb_load.is_rgb:
+        if status == "RGBLoad.GetRGB" and rgb_load.is_rgb:
             channel, value = RGBLoadInterface.parse_color_channel_status(args)
             if rgb := self._build_color_from_channels(vid, channel, value, 3):
-                state["rgb"] = rgb
+                return {"rgb": rgb}
+            return None
 
-        elif status == "RGBLoad.GetRGBW" and rgb_load.is_rgb:
+        if status == "RGBLoad.GetRGBW" and rgb_load.is_rgb:
             channel, value = RGBLoadInterface.parse_color_channel_status(args)
             if rgbw := self._build_color_from_channels(vid, channel, value, 4):
-                state["rgbw"] = rgbw
+                return {"rgbw": rgbw}
+            return None
 
-        elif status == "ColorTemperature.Get" and rgb_load.is_cct:
-            state["color_temp"] = ColorTemperatureInterface.parse_get_status(args)
+        if status == "ColorTemperature.Get" and rgb_load.is_cct:
+            return {
+                "color_temp": ColorTemperatureInterface.parse_get_status(args),
+            }
 
-        self.update_state(vid, state)
+        return None
 
     @property
-    def on(self) -> QuerySet[RGBLoad]:
+    def is_on(self) -> QuerySet[RGBLoad]:
         """Return a queryset of all RGB loads that are turned on."""
-
         return self.filter(lambda load: load.is_on)
 
     @property
-    def off(self) -> QuerySet[RGBLoad]:
+    def is_off(self) -> QuerySet[RGBLoad]:
         """Return a queryset of all RGB loads that are turned off."""
-
         return self.filter(lambda load: not load.is_on)
 
     def _build_color_from_channels(

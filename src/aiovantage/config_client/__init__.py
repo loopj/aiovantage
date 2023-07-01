@@ -30,9 +30,10 @@ from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
 from aiovantage.config_client.methods import Call, Method, Return
+from aiovantage.config_client.methods.introspection import GetVersion
 from aiovantage.config_client.methods.login import Login
 from aiovantage.connection import BaseConnection
-from aiovantage.errors import LoginFailedError
+from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
 
 
 class ConfigConnection(BaseConnection):
@@ -103,7 +104,7 @@ class ConfigClient:
         method_cls: Type[Method[Call, Return]],
         params: Optional[Call] = None,
         connection: Optional[ConfigConnection] = None,
-    ) -> Return:
+    ) -> Optional[Return]:
         """Marshall a request, send it to the ACI service, and return a parsed object.
 
         Args:
@@ -114,42 +115,54 @@ class ConfigClient:
         Returns:
             The parsed response object
         """
-
         # Open the connection if it's closed
         conn = connection or await self.get_connection()
 
         # Build the method object
         method = method_cls()
         method.call = params
-        method_name = f"{method_cls.interface}.{method_cls.__name__}"
 
         # Render the method object to XML with xsdata
-        request = self._serializer.render(method)
+        request = (
+            f"<{method.interface}>"
+            + self._serializer.render(method)
+            + f"</{method.interface}>"
+        )
         self._logger.debug(request)
 
         # Send the request and read the response
         async with self._request_lock:
-            await conn.write(f"<{method.interface}>{request}</{method.interface}>")
+            await conn.write(request)
             response = await conn.readuntil(
-                f"</{method.interface}>".encode(), timeout=self._read_timeout
+                f"</{method.interface}>\n".encode(), timeout=self._read_timeout
             )
         self._logger.debug(response)
 
-        # Parse the XML doc and extract the method element
-        tree = ElementTree.fromstring(response)
-        method_el = tree.find(f"{method_cls.__name__}")
-        if method_el is None:
-            raise ValueError(f"<{method_cls.__name__}> element missing from response")
+        # Parse the XML doc
+        root = ElementTree.fromstring(response)
 
-        # Validate there is a non-empty return value
-        return_el = method_el.find("return")
-        if return_el is None:
-            raise ValueError(f"{method_name} response did not contain a return value")
+        # Response root must match the tag of the request
+        if root.tag != method.interface:
+            raise ClientResponseError(
+                f"Response '{root.tag}' does not match request '{method.interface}'"
+            )
+
+        # Responses must contain the method element and a return element
+        method_el = root.find(f"./{method_cls.__name__}")
+        return_el = root.find(f"./{method_cls.__name__}/return")
+        if method_el is None or return_el is None:
+            raise ClientResponseError("Response is missing method or return element")
+
+        # Return None if the method has empty return element.
+        # This can happen when the client is not logged in, or when the method returns
+        # no results, eg. IConfiguration.GetFilterResults.
+        if return_el.text is None and len(return_el) == 0:
+            return None
 
         # Parse the method element with xsdata
         method = self._parser.parse(method_el, method_cls)
         if method.return_value is None:
-            raise ValueError(f"{method_name} response did not contain a return value")
+            return None
 
         return method.return_value
 
@@ -159,8 +172,9 @@ class ConfigClient:
             if self._connection.closed:
                 await self._connection.open()
 
-                # Log in if we have credentials
+                # Ensure the connection is authenticated, if required
                 if self._username is not None and self._password is not None:
+                    # Log in if we have credentials
                     success = await self.request(
                         Login,
                         Login.Params(self._username, self._password),
@@ -169,5 +183,16 @@ class ConfigClient:
 
                     if not success:
                         raise LoginFailedError("Login failed, bad username or password")
+                else:
+                    # Check if login is required if we don't have credentials
+                    version = await self.request(
+                        GetVersion,
+                        connection=self._connection,
+                    )
+
+                    if version is None:
+                        raise LoginRequiredError(
+                            "Login required, but no credentials were provided"
+                        )
 
             return self._connection

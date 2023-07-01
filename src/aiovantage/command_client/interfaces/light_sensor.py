@@ -10,12 +10,11 @@ class LightSensorInterface(Interface):
     """Interface for querying and controlling light sensors."""
 
     async def get_level(self, vid: int) -> Decimal:
-        """Get the level of a light sensor, in foot-candles
+        """Get the level of a light sensor, in foot-candles.
 
         Args:
             vid: The Vantage ID of the light sensor.
         """
-
         # INVOKE <id> LightSensor.GetLevel
         # -> R:INVOKE <id> <level> LightSensor.GetLevel
         response = await self.invoke(vid, "LightSensor.GetLevel")
@@ -33,10 +32,8 @@ class LightSensorInterface(Interface):
         Returns:
             The level of the light sensor, in foot-candles.
         """
-
         # ELLOG STATUS ON
         # -> EL: <id> LightSensor.GetLevel <level>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> LightSensor.GetLevel <level>
         return Decimal(args[0]) / 1000

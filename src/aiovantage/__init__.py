@@ -46,8 +46,16 @@ class Vantage:
         config_port: Optional[int] = None,
         command_port: Optional[int] = None,
     ) -> None:
-        """Initialize the Vantage instance."""
+        """Initialize the Vantage instance.
 
+        Args:
+            host: The hostname or IP address of the Vantage controller.
+            username: The username to use for authentication.
+            password: The password to use for authentication.
+            use_ssl: Whether to use SSL for the connection.
+            config_port: The port to use for the config client.
+            command_port: The port to use for the command client.
+        """
         # Set up clients
         self._config_client = ConfigClient(
             host, username, password, ssl=use_ssl, port=config_port
@@ -82,7 +90,6 @@ class Vantage:
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
-        await self.event_stream.start()
         return self
 
     async def __aexit__(
@@ -92,7 +99,7 @@ class Vantage:
         traceback: Optional[TracebackType],
     ) -> None:
         """Exit context manager."""
-        await self.close()
+        self.close()
         if exc_val:
             raise exc_val
 
@@ -196,42 +203,46 @@ class Vantage:
         """Return the TemperatureSensors controller for managing temperature sensors."""
         return self._temperature_sensors
 
-    async def close(self) -> None:
+    def close(self) -> None:
         """Close the clients."""
-
         self.config_client.close()
         self.command_client.close()
-        await self.event_stream.stop()
+        self.event_stream.stop()
 
-    async def initialize(self) -> None:
-        """Fetch all objects from the controllers."""
+    async def initialize(self, fetch_state: bool = True) -> None:
+        """Fetch all objects from the controllers.
 
+        Args:
+            fetch_state: Whether to also fetch the state of each object.
+        """
         await asyncio.gather(
-            self._anemo_sensors.initialize(),
-            self._areas.initialize(),
-            self._blinds.initialize(),
-            self._blind_groups.initialize(),
-            self._buttons.initialize(),
-            self._dry_contacts.initialize(),
-            self._gmem.initialize(),
-            self._light_sensors.initialize(),
-            self._loads.initialize(),
-            self._masters.initialize(),
-            self._modules.initialize(),
-            self._rgb_loads.initialize(),
-            self._omni_sensors.initialize(),
-            self._stations.initialize(),
-            self._tasks.initialize(),
-            self._temperature_sensors.initialize(),
+            self._anemo_sensors.initialize(fetch_state),
+            self._areas.initialize(fetch_state),
+            self._blinds.initialize(fetch_state),
+            self._blind_groups.initialize(fetch_state),
+            self._buttons.initialize(fetch_state),
+            self._dry_contacts.initialize(fetch_state),
+            self._gmem.initialize(fetch_state),
+            self._light_sensors.initialize(fetch_state),
+            self._loads.initialize(fetch_state),
+            self._masters.initialize(fetch_state),
+            self._modules.initialize(fetch_state),
+            self._rgb_loads.initialize(fetch_state),
+            self._omni_sensors.initialize(fetch_state),
+            self._stations.initialize(fetch_state),
+            self._tasks.initialize(fetch_state),
+            self._temperature_sensors.initialize(fetch_state),
         )
 
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
         """Subscribe to state changes for all objects.
 
+        Args:
+            callback: The callback to call when an object changes.
+
         Returns:
             A function to unsubscribe.
         """
-
         unsubscribes = [
             self.anemo_sensors.subscribe(callback),
             self.areas.subscribe(callback),

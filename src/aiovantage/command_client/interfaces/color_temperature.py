@@ -17,7 +17,6 @@ class ColorTemperatureInterface(Interface):
         Returns:
             The color temperature of the light, in Kelvin.
         """
-
         # INVOKE <id> ColorTemperature.Get
         # -> R:INVOKE <id> <temp> ColorTemperature.Get
         response = await self.invoke(vid, "ColorTemperature.Get")
@@ -33,7 +32,6 @@ class ColorTemperatureInterface(Interface):
             temp: The color temperature to set the light to, in Kelvin.
             transition: The time in seconds to transition to the new color
         """
-
         # Ensure the temperature is an integer
         temp = int(temp)
 
@@ -53,7 +51,6 @@ class ColorTemperatureInterface(Interface):
         """
         # ELLOG STATUS ON
         # -> EL: <id> ColorTemperature.Get <temp>
-
         # STATUS ADD <id>
         # -> S:STATUS <id> ColorTemperature.Get <temp>
         color_temp = int(args[0])

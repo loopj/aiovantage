@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "xsdata==23.5",
+    "xsdata==23.6",
     "typing_extensions>=4.6.3,<5.0",
 ]
 
@@ -29,6 +29,14 @@ Documentation = "https://github.com/loopj/aiovantage#readme"
 Issues = "https://github.com/loopj/aiovantage/issues"
 Source = "https://github.com/loopj/aiovantage"
 
+[project.optional-dependencies]
+dev = [
+    "black==23.3.0",
+    "mypy==1.4.1",
+    "ruff==0.0.275",
+    "pre-commit==3.3.3",
+]
+
 [tool.hatch.version]
 path = "src/aiovantage/__about__.py"
 
@@ -36,17 +44,12 @@ path = "src/aiovantage/__about__.py"
 python = ["3.8", "3.9", "3.10", "3.11"]
 
 [tool.hatch.envs.dev]
-dependencies = [
-  "black==23.3.0",
-  "mypy==1.4.1",
-  "ruff==0.0.272",
-]
+features = ["dev"]
 
 [tool.hatch.envs.lint]
-template = "dev"
+features = ["dev"]
 
 [tool.hatch.envs.lint.scripts]
-typing = "mypy --install-types --non-interactive {args:.}"
 style = [
   "ruff {args:.}",
   "black --check --diff {args:.}",
@@ -54,12 +57,8 @@ style = [
 fmt = [
   "black {args:.}",
   "ruff --fix {args:.}",
-  "style",
 ]
-all = [
-  "style",
-  "typing",
-]
+typing = "mypy {args:.}"
 
 [tool.mypy]
 strict = true
@@ -71,14 +70,16 @@ skip-string-normalization = true
 [tool.ruff]
 target-version = "py38"
 select = [
+    "F",    # pyflakes
     "E",    # pycodestyle errors
     "W",    # pycodestyle warnings
-    "F",    # pyflakes
     "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "D",    # pydocstyle
     "C",    # flake8-comprehensions
     "B",    # flake8-bugbear
     "Q",    # flake8-quotes
-    "UP",   # pyupgrade
     "C90",  # mccabe
 ]
 ignore = [
@@ -90,3 +91,6 @@ known-first-party = ["aiovantage"]
 
 [tool.ruff.mccabe]
 max-complexity = 15
+
+[tool.ruff.pydocstyle]
+convention = "google"

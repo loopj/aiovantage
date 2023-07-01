@@ -1,10 +1,9 @@
 """IConfiguration.GetFilterResults method definition."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar, List, Optional
 
 from aiovantage.config_client.methods.types import ObjectChoice
-from aiovantage.config_client.xml_dataclass import xml_element
 
 
 @dataclass
@@ -12,21 +11,15 @@ class GetFilterResults:
     """IConfiguration.GetFilterResults method definition."""
 
     interface: ClassVar[str] = "IConfiguration"
-    call: Optional["GetFilterResults.Params"] = xml_element("call", default=None)
-    return_value: Optional["GetFilterResults.Return"] = xml_element(
-        "return", default=None
+    call: Optional["GetFilterResults.Params"] = field(default=None)
+    return_value: Optional[List[ObjectChoice]] = field(
+        default=None, metadata={"name": "Object", "wrapper": "return"}
     )
 
     @dataclass
     class Params:
         """IConfiguration.GetFilterResults method parameters."""
 
-        h_filter: int = xml_element("hFilter")
-        count: int = xml_element("Count", default=50)
-        whole_object: bool = xml_element("WholeObject", default=True)
-
-    @dataclass
-    class Return:
-        """IConfiguration.GetFilterResults method return value."""
-
-        objects: List[ObjectChoice] = xml_element("Object", default_factory=list)
+        h_filter: int = field(metadata={"name": "hFilter"})
+        count: int = field(default=50, metadata={"name": "Count"})
+        whole_object: bool = field(default=True, metadata={"name": "WholeObject"})

@@ -1,41 +1,37 @@
 """Controller holding and managing Vantage light sensors."""
 
-from typing import Any, Dict, Sequence
+from typing import Sequence
 
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import LightSensorInterface
 from aiovantage.config_client.objects import LightSensor
 
-from .base import StatefulController
+from .base import BaseController, State
 
 
-class LightSensorsController(StatefulController[LightSensor], LightSensorInterface):
+class LightSensorsController(BaseController[LightSensor], LightSensorInterface):
     """Controller holding and managing Vantage light sensors."""
 
-    # Fetch the following object types from Vantage
     vantage_types = ("LightSensor",)
+    """The Vantage object types that this controller will fetch."""
 
-    # Subscribe to status updates from the Enhanced Log for the following methods
-    enhanced_log_status = True
     enhanced_log_status_methods = ("LightSensor.GetLevel",)
+    """Which status methods this controller handles from the Enhanced Log."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the initial state of a light sensor."""
-
-        state: Dict[str, Any] = {
+    async def fetch_object_state(self, vid: int) -> State:
+        """Fetch the state properties of a light sensor."""
+        return {
             "level": await LightSensorInterface.get_level(self, vid),
         }
 
-        self.update_state(vid, state)
-
     @override
-    def handle_object_update(self, vid: int, status: str, args: Sequence[str]) -> None:
+    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for a light sensor."""
+        if status != "LightSensor.GetLevel":
+            return None
 
-        state: Dict[str, Any] = {}
-        if status == "LightSensor.GetLevel":
-            state["level"] = LightSensorInterface.parse_get_level_status(args)
-
-        self.update_state(vid, state)
+        return {
+            "level": LightSensorInterface.parse_get_level_status(args),
+        }

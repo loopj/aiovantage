@@ -2,11 +2,12 @@
 
 First off, thanks for taking the time to contribute!
 
+## Table of contents
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-## Table of Contents
 
-- [🛠️ Set up Development Environment](#-set-up-development-environment)
+- [🔨 Set up Development Environment](#-set-up-development-environment)
 - [✨ Submit your work](#-submit-your-work)
 - [🎨 Style guidelines](#-style-guidelines)
 - [📦️ Build a package](#%EF%B8%8F-build-a-package)
@@ -14,27 +15,48 @@ First off, thanks for taking the time to contribute!
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## 🛠️ Set up Development Environment
+## 🔨 Set up Development Environment
 
-`aiovantage` uses [Hatch](https://hatch.pypa.io/) to run scripts, create reproducible builds and environments, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
+### Using `hatch`
+
+aiovantage uses [Hatch](https://hatch.pypa.io/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
+
+If you'd like to run a command in a virtual environment with development dependencies available, prefix it with `hatch -e dev run`. For example,
+
+```bash
+hatch -e dev run python examples/dump_system.py hostname
+```
+
+### Manually
+
+If you'd prefer to manage your own python environment, you can install the development dependencies manually.
+
+```bash
+pip install -e ".[dev]"
+```
 
 ## ✨ Submit your work
 
-Good pull requests, whether patches, improvements, or new features, are a fantastic help. They should remain focused in scope and avoid containing unrelated commits. If your contribution involves a significant amount of work or substantial changes to any part of the project, please open an issue to discuss it first. This will help avoid any wasted or duplicate effort. If you're unsure about whether a contribution is appropriate, feel free to ask!
+Submit your improvements, fixes, and new features to one at a time, using GitHub [Pull Requests](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
+
+Good pull requests remain focused in scope and avoid containing unrelated commits. If your contribution involves a significant amount of work or substantial changes to any part of the project, please open an issue to discuss it first to avoid any wasted or duplicate effort.
 
 ## 🎨 Style guidelines
 
-We use `mypy`, `ruff`, and `black` for code linting and formatting. Linting helps ensure code quality and consistency throughout the project.
+This project uses [pre-commit](https://pre-commit.com/) to run code linting and formatting checks before commits are made.
 
-To run linting locally, execute the following command:
+To install `pre-commit` and its associated hooks, run the following:
 
 ```bash
-hatch run lint:all
+pip install pre-commit
+pre-commit install
 ```
 
-This command will run the linting tools, checking for against the defined linting rules in the `pyproject.toml` file.
+To run our linters on the full code base, run the following command:
 
-While you're free to use your preferred linters or editor plugins, please ensure that your changes adhere to our linting rules and pass the CI checks.
+```bash
+pre-commit run --all-files
+```
 
 ## 📦️ Build a package
 
