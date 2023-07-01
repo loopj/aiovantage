@@ -118,7 +118,6 @@ configure_logging(args)
 
 async def main() -> None:
     """Run code example."""
-
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Preload all the objects we want to dump
