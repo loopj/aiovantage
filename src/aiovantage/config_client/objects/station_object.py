@@ -12,5 +12,4 @@ class StationObject(LocationObject):
     """Base class for all station objects."""
 
     serial_number: str = xml_element("SerialNumber")
-    position: int = xml_element("Position")
     bus_id: int = xml_element("Bus")
