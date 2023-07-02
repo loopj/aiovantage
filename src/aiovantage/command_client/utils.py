@@ -1,6 +1,7 @@
 """Utility functions for the Host Command service client."""
 
 import re
+import struct
 from decimal import Decimal
 from typing import Sequence, Union
 
@@ -61,3 +62,51 @@ def encode_params(
             raise TypeError(f"Invalid value type: {type(value)}")
 
     return " ".join(encoded_params)
+
+
+def parse_byte_string(byte_string: str) -> bytearray:
+    """Convert a "bytes" parameter string to a byte array.
+
+    "Bytes" parameters are sent as a string of signed 32-bit integers,
+    separated by commas, and wrapped in curly braces.
+
+    Args:
+        byte_string: The byte array parameter, as a string.
+
+    Returns:
+        The byte array.
+    """
+    # Remove the curly braces, and split the string into tokens
+    tokens = byte_string.strip("{}").split(",")
+
+    # Strip whitespace, and remove empty tokens
+    tokens = [token.strip() for token in tokens if token.strip()]
+
+    # Convert each token to a signed 32-bit integer and create a byte array
+    byte_array = bytearray()
+    for token in tokens:
+        signed_int = struct.pack("i", int(token))
+        byte_array.extend(signed_int)
+
+    return byte_array
+
+
+def encode_byte_string(byte_array: bytearray) -> str:
+    """Convert a byte array to a "bytes" parameter string.
+
+    Args:
+        byte_array: The byte array to convert.
+
+    Returns:
+        The byte array parameter, as a string.
+    """
+    # Convert each signed 32-bit integer in the byte array to a string token
+    tokens = []
+    for byte in range(0, len(byte_array), 4):
+        signed_int = struct.unpack("i", byte_array[byte : byte + 4])[0]
+        tokens.append(str(signed_int))
+
+    # Join the tokens with commas and wrap in curly braces
+    data = "{" + ",".join(tokens) + "}"
+
+    return data
