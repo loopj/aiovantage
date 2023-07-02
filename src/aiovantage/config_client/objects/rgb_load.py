@@ -44,6 +44,7 @@ class RGBLoad(LocationObject):
     color_type: ColorType = xml_element("ColorType")
     min_temp: int = xml_element("MinTemp")
     max_temp: int = xml_element("MaxTemp")
+    parent_id: int = xml_element("Parent")
 
     def __post_init__(self) -> None:
         """Declare state attributes in post init."""

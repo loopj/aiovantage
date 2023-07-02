@@ -15,6 +15,6 @@ class SystemObject:
     master_id: int = xml_attribute("Master")
     mtime: XmlDateTime = xml_attribute("MTime")
     name: str = xml_element("Name")
-    model: str = xml_element("Model")
     note: str = xml_element("Note")
+    model: str = xml_element("Model")
     display_name: str = xml_element("DName")
