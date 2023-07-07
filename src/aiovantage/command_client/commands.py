@@ -104,9 +104,6 @@ class CommandClient:
     ) -> CommandResponse:
         """Send a command to the Host Command service and wait for a response.
 
-        Handles encoding the parameters correctly, and raises an exception if the
-        response line is R:ERROR.
-
         Args:
             command: The command to send, should be a single word string.
             params: The parameters to send with the command.
@@ -122,8 +119,8 @@ class CommandClient:
             request = command
 
         # Send the request and parse the response
-        response = await self.raw_request(request, connection=connection)
-        return CommandResponse(response)
+        raw_response = await self.raw_request(request, connection=connection)
+        return CommandResponse(raw_response)
 
     async def invoke(
         self,
@@ -131,31 +128,36 @@ class CommandClient:
         method: str,
         *params: Union[str, int, float, Decimal],
         force_quotes: bool = False,
+        connection: Optional[CommandConnection] = None,
     ) -> InvokeResponse:
         """Invoke a method on an object, and wait for a response.
-
-        Handles encoding the parameters correctly, and raises an exception if the
-        response line is R:ERROR.
 
         Args:
             vid: The VID of the object to invoke the command on.
             method: The method to invoke.
             params: The parameters to send with the method.
             force_quotes: Whether to force string params to be wrapped in double quotes.
+            connection: The connection to use, if not the default.
 
         Returns:
-            A CommandResponse instance.
+            A InvokeResponse instance.
         """
-        request = f"INVOKE {vid} {method}"
         if params:
-            request += f" {encode_params(*params, force_quotes=force_quotes)}"
+            request = f"INVOKE {vid} {method} {encode_params(*params, force_quotes=force_quotes)}"
+        else:
+            request = f"INVOKE {vid} {method}"
 
-        return InvokeResponse(await self.raw_request(request))
+        # Send the request and parse the response
+        raw_response = await self.raw_request(request, connection=connection)
+        return InvokeResponse(raw_response)
 
     async def raw_request(
         self, request: str, connection: Optional[CommandConnection] = None
     ) -> List[str]:
-        """Send a raw command to the Host Command service and wait for a response.
+        """Send a raw command to the Host Command service and return all response lines.
+
+        Handles authentication if required, and raises an exception if the response line
+        contains R:ERROR.
 
         Args:
             request: The request to send.
@@ -164,7 +166,6 @@ class CommandClient:
         Returns:
             The response lines received from the server.
         """
-        # Get a connection to the Host Command service
         conn = connection or await self.get_connection()
 
         # Send the command
@@ -172,7 +173,7 @@ class CommandClient:
             self._logger.debug("Sending command: %s", request)
             await conn.write(f"{request}\n")
 
-            # Read the response
+            # Read all lines of the response
             response_lines = []
             while True:
                 response_line = await conn.readuntil(b"\r\n", self._read_timeout)
