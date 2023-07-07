@@ -25,8 +25,9 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id, name, and members of each load group
         async for load_group in vantage.load_groups:
-            print(load_group)
-            print(f"[{load_group.id}] '{load_group.name}' {load_group.load_ids}")
+            print(
+                f"[{load_group.id}] '{load_group.name}' loads={load_group.load_ids} level={load_group.level}%"
+            )
 
 
 with contextlib.suppress(KeyboardInterrupt):
