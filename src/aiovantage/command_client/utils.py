@@ -3,9 +3,9 @@
 import re
 import struct
 from decimal import Decimal, InvalidOperation
-from typing import Any, Sequence, Type, Union
+from typing import Sequence, Type, Union
 
-TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\S+)')
+TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\[.*?\])|(\S+)')
 
 ParameterType = Union[str, bool, int, float, Decimal, bytearray]
 
@@ -13,7 +13,7 @@ ParameterType = Union[str, bool, int, float, Decimal, bytearray]
 def tokenize_response(string: str) -> Sequence[str]:
     """Tokenize a response from the Host Command service.
 
-    Handles quoted strings and byte arrays (in curly braces) as single tokens.
+    Handles quoted strings and byte arrays as single tokens.
 
     Args:
         string: The response string to tokenize.
@@ -35,7 +35,7 @@ def tokenize_response(string: str) -> Sequence[str]:
 
 
 def parse_params(
-    params: Sequence[str], signature: Sequence[Type[Any]]
+    params: Sequence[str], signature: Sequence[Type[ParameterType]]
 ) -> Sequence[ParameterType]:
     """Parse response parameters from the Host Command service.
 
@@ -152,8 +152,8 @@ def encode_string_param(param: str, force_quotes: bool = False) -> str:
 def parse_byte_param(byte_string: str) -> bytearray:
     """Convert a "bytes" parameter string to a byte array.
 
-    "Bytes" parameters are sent as a string of signed 32-bit integers,
-    separated by commas, and wrapped in curly braces.
+    "Bytes" parameters are sent as a string of signed 32-bit integers, separated by
+    commas or spaces, and wrapped in curly or square brackets.
 
     Args:
         byte_string: The byte array parameter, as a string.
@@ -161,16 +161,13 @@ def parse_byte_param(byte_string: str) -> bytearray:
     Returns:
         The byte array.
     """
-    # Remove the curly braces, and split the string into tokens
-    tokens = byte_string.strip("{}").split(",")
-
-    # Strip whitespace, and remove empty tokens
-    tokens = [token.strip() for token in tokens if token.strip()]
+    # Extract all integer tokens from the string
+    tokens = [int(x) for x in re.findall(r"-?\d+", byte_string)]
 
     # Convert each token to a signed 32-bit integer and create a byte array
     byte_array = bytearray()
     for token in tokens:
-        signed_int = struct.pack("i", int(token))
+        signed_int = struct.pack("i", token)
         byte_array.extend(signed_int)
 
     return byte_array
