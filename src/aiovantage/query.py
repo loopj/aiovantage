@@ -93,7 +93,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
 
         if len(args) == 1:
             queryset.add_filter(args[0])
-        elif len(args) == 0 and len(kwargs) > 0:
+        elif len(args) == 0:
             queryset.add_filter(
                 lambda obj: all(
                     getattr(obj, key) == value for key, value in kwargs.items()
