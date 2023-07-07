@@ -93,7 +93,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
 
         if len(args) == 1:
             queryset.add_filter(args[0])
-        elif len(args) == 0:
+        elif len(args) == 0 and len(kwargs) > 0:
             queryset.add_filter(
                 lambda obj: all(
                     getattr(obj, key) == value for key, value in kwargs.items()
@@ -141,3 +141,12 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         """Asynchronously get the first object that matches the given filter."""
         await self.__populate()
         return self.get(*args, **kwargs)
+
+    def first(self) -> Optional[T]:
+        """Return the first object in the queryset."""
+        return next(iter(self), None)
+
+    async def afirst(self) -> Optional[T]:
+        """Asynchronously return the first object in the queryset."""
+        await self.__populate()
+        return self.first()

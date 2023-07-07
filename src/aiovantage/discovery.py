@@ -110,7 +110,7 @@ async def get_serial_from_controller(
     """
     try:
         async with Vantage(host, username, password, use_ssl=ssl) as vantage:
-            master = await vantage.masters.aget()
+            master = await vantage.masters.afirst()
             if master is None:
                 return None
 
