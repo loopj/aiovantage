@@ -25,28 +25,32 @@ class CommandConnection(BaseConnection):
 
 @dataclass
 class CommandResponse:
-    """Wrapper for command responses from the Vantage Host Command service."""
+    """Wrapper for command responses."""
 
     command: str
-    """The command that was sent."""
-
     args: List[str]
-    """The arguments of the "R:" line of the response."""
-
     data: List[str]
-    """The data lines of the response, before the "R:" line."""
 
     def __init__(self, data: List[str]) -> None:
         """Initialize a CommandResponse."""
-        # Extract "data" lines from the response. These are any lines before the
-        # "R:" line, from commands such as "HELP" and "LISTSTATUS".
         self.data, return_line = data[:-1], data[-1]
-
-        # Split the "R:" line into the command and arguments
         command, *self.args = tokenize_response(return_line)
-
-        # Remove the "R:" prefix from the command
         self.command = command[2:]
+
+
+@dataclass
+class InvokeResponse:
+    """Wrapper for invoke command responses."""
+
+    vid: int
+    result: str
+    method: str
+    args: List[str]
+
+    def __init__(self, data: List[str]) -> None:
+        """Initialize an InvokeResponse."""
+        _, vid_str, self.result, self.method, *self.args = tokenize_response(data[0])
+        self.vid = int(vid_str)
 
 
 class CommandClient:
@@ -112,14 +116,56 @@ class CommandClient:
         Returns:
             A CommandResponse instance.
         """
-        # Get a connection to the Host Command service
-        conn = connection or await self.get_connection()
-
-        # Build the request string, encoding the parameters if necessary
         if params:
             request = f"{command} {encode_params(*params, force_quotes=force_quotes)}"
         else:
             request = command
+
+        # Send the request and parse the response
+        response = await self.raw_request(request, connection=connection)
+        return CommandResponse(response)
+
+    async def invoke(
+        self,
+        vid: int,
+        method: str,
+        *params: Union[str, int, float, Decimal],
+        force_quotes: bool = False,
+    ) -> InvokeResponse:
+        """Invoke a method on an object, and wait for a response.
+
+        Handles encoding the parameters correctly, and raises an exception if the
+        response line is R:ERROR.
+
+        Args:
+            vid: The VID of the object to invoke the command on.
+            method: The method to invoke.
+            params: The parameters to send with the method.
+            force_quotes: Whether to force string params to be wrapped in double quotes.
+
+        Returns:
+            A CommandResponse instance.
+        """
+        request = f"INVOKE {vid} {method}"
+        if params:
+            request += f" {encode_params(*params, force_quotes=force_quotes)}"
+
+        return InvokeResponse(await self.raw_request(request))
+
+    async def raw_request(
+        self, request: str, connection: Optional[CommandConnection] = None
+    ) -> List[str]:
+        """Send a raw command to the Host Command service and wait for a response.
+
+        Args:
+            request: The request to send.
+            connection: The connection to use, if not the default.
+
+        Returns:
+            The response lines received from the server.
+        """
+        # Get a connection to the Host Command service
+        conn = connection or await self.get_connection()
 
         # Send the command
         async with self._command_lock:
@@ -146,10 +192,9 @@ class CommandClient:
                 if response_line.startswith("R:"):
                     break
 
-        response = CommandResponse(response_lines)
-        self._logger.debug("Received response: %s", response)
+        self._logger.debug("Received response: %s", "\n".join(response_lines))
 
-        return response
+        return response_lines
 
     async def get_connection(self) -> CommandConnection:
         """Get a connection to the Host Command service."""
