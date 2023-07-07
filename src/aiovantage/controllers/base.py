@@ -150,7 +150,7 @@ class BaseController(QuerySet[T]):
         # Handle objects that were removed
         for vid in prev_ids - cur_ids:
             obj = self._items.pop(vid)
-            self.emit(VantageEvent.OBJECT_REMOVED, obj)
+            self.emit(VantageEvent.OBJECT_DELETED, obj)
 
         # Subscribe to the event stream if this is the first subscription
         if self.stateful and fetch_state and not self._subscribed_to_event_stream:
@@ -176,7 +176,7 @@ class BaseController(QuerySet[T]):
         self,
         callback: EventCallback[T],
         id_filter: Union[int, Tuple[int], None] = None,
-        event_filter: Union[VantageEvent, Tuple[VantageEvent], None] = None,
+        event_filter: Union[VantageEvent, Tuple[VantageEvent, ...], None] = None,
     ) -> Callable[[], None]:
         """Subscribe to status changes for objects managed by this controller.
 
