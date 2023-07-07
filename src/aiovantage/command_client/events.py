@@ -41,6 +41,7 @@ class EventType(Enum):
     DISCONNECTED = "disconnect"
     RECONNECTED = "reconnect"
     STATUS = "status"
+    LOG = "log"
     ENHANCED_LOG = "enhanced_log"
 
 
@@ -368,7 +369,9 @@ class EventStream:
     def _parse_message(self, message: str) -> None:
         # Parse a message from the Host Command service.
         if message.startswith("S:"):
-            # Parse a "Status" message
+            # Parse a "status" message, of the form "S:<type> <id> <args>"
+            # These messages are emitted when the state of an object changes after
+            # subscribing to updates via "STATUS <type>" or "ADDSTATUS <vid>".
             status_type, id_str, *args = tokenize_response(message)
             self.emit(
                 {
@@ -379,7 +382,9 @@ class EventStream:
                 }
             )
         elif message.startswith("EL:"):
-            # Parse an "Enhanced Log" message
+            # Parse an "enhanced log" message, of the form "EL:<log>"
+            # These messages are emitted when an enhanced log is received after
+            # subscribing to updates via "ELLOG <type>".
             self.emit({"type": EventType.ENHANCED_LOG, "log": message[4:]})
         elif message.startswith("R:ERROR"):
             self._logger.error("Error message from EventStream: %s", message)
