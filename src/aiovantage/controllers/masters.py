@@ -27,6 +27,9 @@ class MastersController(
         """Fetch the state properties of a Vantage controller."""
         return {
             "last_updated": await ObjectInterface.get_mtime(self, vid),
+            "firmware_version": await IntrospectionInterface.get_firmware_version(
+                self, vid, IntrospectionInterface.Firmware.APPLICATION
+            ),
         }
 
     @override

@@ -21,3 +21,4 @@ class Master(SystemObject):
     def __post_init__(self) -> None:
         """Post init hook."""
         self.last_updated: Optional[int] = None
+        self.firmware_version: Optional[str] = None
