@@ -137,7 +137,12 @@ class BaseController(QuerySet[T]):
 
                 # If any attributes changed, update the object and notify subscribers
                 if attrs_changed:
-                    self._items[obj.id] = obj
+                    for attr in attrs_changed:
+                        try:
+                            setattr(prev_obj, attr, getattr(obj, attr))
+                        except AttributeError:
+                            self._logger.warning("Object has no attribute '%s'", attr)
+
                     self.emit(
                         VantageEvent.OBJECT_UPDATED,
                         obj,
