@@ -218,6 +218,11 @@ class Vantage:
         """Return the TemperatureSensors controller for managing temperature sensors."""
         return self._temperature_sensors
 
+    @property
+    def known_ids(self) -> Set[int]:
+        """Return a set of all known object IDs."""
+        return {vid for controller in self._controllers for vid in controller.known_ids}
+
     def close(self) -> None:
         """Close the clients."""
         self.config_client.close()

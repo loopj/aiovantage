@@ -14,6 +14,7 @@ from typing import (
     Literal,
     Optional,
     Sequence,
+    Set,
     Tuple,
     TypeVar,
     Union,
@@ -107,6 +108,11 @@ class BaseController(QuerySet[T]):
     def stateful(self) -> bool:
         """Return True if this controller manages stateful objects."""
         return bool(self.status_types or self.enhanced_log_status_methods)
+
+    @property
+    def known_ids(self) -> Set[int]:
+        """Return a set of all known object IDs."""
+        return set(self._items.keys())
 
     async def fetch_object_state(self, _vid: int) -> State:
         """Fetch the full state of an object, should be overridden by subclasses."""
