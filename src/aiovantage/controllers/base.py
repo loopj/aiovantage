@@ -54,11 +54,16 @@ class BaseController(QuerySet[T]):
     """Which status methods this controller handles from the Enhanced Log."""
 
     def __init__(self, vantage: "Vantage") -> None:
-        """Initialize instance."""
+        """Initialize a controller.
+
+        Args:
+            vantage: The Vantage instance.
+            init_callback: A callback to call when the controller is initialized.
+        """
         self._vantage = vantage
         self._items: Dict[int, T] = {}
         self._logger = logging.getLogger(__package__)
-        self._subscribed_to_event_stream = False
+        self._subscribed_to_state_changes = False
         self._subscriptions: List[EventSubscription[T]] = []
         self._id_subscriptions: Dict[int, List[EventSubscription[T]]] = {}
         self._initialized = False
@@ -92,6 +97,11 @@ class BaseController(QuerySet[T]):
     def event_stream(self) -> EventStream:
         """Return the event stream instance."""
         return self._vantage.event_stream
+
+    @property
+    def initialized(self) -> bool:
+        """Return True if this controller has been initialized."""
+        return self._initialized
 
     @property
     def stateful(self) -> bool:
@@ -157,14 +167,18 @@ class BaseController(QuerySet[T]):
             obj = self._items.pop(vid)
             self.emit(VantageEvent.OBJECT_DELETED, obj)
 
-        # Subscribe to the event stream if this is the first subscription
-        if self.stateful and fetch_state and not self._subscribed_to_event_stream:
-            await self._subscribe_to_event_stream()
+        # Subscribe to state changes for objects managed by this controller
+        if fetch_state:
+            await self.subscribe_to_state_changes()
 
-        self._initialized = True
-        self._logger.info("%s initialized", self.__class__.__name__)
+        # Mark the controller as initialized
+        if not self._initialized:
+            self._initialized = True
+            self._logger.info("%s initialized", self.__class__.__name__)
+        else:
+            self._logger.info("%s reinitialized", self.__class__.__name__)
 
-    async def fetch_full_state(self, subscribe: bool = True) -> None:
+    async def fetch_full_state(self) -> None:
         """Fetch the full state of all objects managed by this controller."""
         if not self.stateful:
             return
@@ -172,10 +186,28 @@ class BaseController(QuerySet[T]):
         for obj in self._items.values():
             self._update_state(obj.id, await self.fetch_object_state(obj.id))
 
-        if subscribe and not self._subscribed_to_event_stream:
-            await self._subscribe_to_event_stream()
-
         self._logger.info("%s fetched state", self.__class__.__name__)
+
+    async def subscribe_to_state_changes(self) -> None:
+        """Subscribe to state changes for objects managed by this controller."""
+        if self._subscribed_to_state_changes or not self.stateful:
+            return
+
+        # Ensure that the event stream is running
+        await self.event_stream.start()
+
+        # Subscribe to "STATUS {type}" updates, if this controller cares about them
+        if self.status_types:
+            self.event_stream.subscribe_status(self._handle_event, self.status_types)
+
+        # Subscribe to object status events from the "Enhanced Log"
+        if self.enhanced_log_status_methods:
+            self.event_stream.subscribe_enhanced_log(
+                self._handle_event, ("STATUS", "STATUSEX")
+            )
+
+        self._subscribed_to_state_changes = True
+        self._logger.info("%s subscribed to state changes", self.__class__.__name__)
 
     def subscribe(
         self,
@@ -286,30 +318,9 @@ class BaseController(QuerySet[T]):
                 {"attrs_changed": attrs_changed},
             )
 
-    async def _subscribe_to_event_stream(self) -> None:
-        # Ensure that the event stream is running
-        await self.event_stream.start()
-
-        # Re-fetch the full state of all objects after reconnecting
-        self.event_stream.subscribe(self._handle_event, EventType.RECONNECTED)
-
-        # Subscribe to "STATUS {type}" updates, if this controller cares about them
-        if self.status_types:
-            self.event_stream.subscribe_status(self._handle_event, self.status_types)
-
-        # Subscribe to object status events from the "Enhanced Log"
-        if self.enhanced_log_status_methods:
-            self.event_stream.subscribe_enhanced_log(
-                self._handle_event, ("STATUS", "STATUSEX")
-            )
-
-        self._subscribed_to_event_stream = True
-        self._logger.info("%s subscribed to event stream", self.__class__.__name__)
-
     async def _handle_event(self, event: Event) -> None:
         # Handle events from the event stream
         # pylint: disable=assignment-from-none
-
         if event["type"] == EventType.STATUS:
             # Ignore events for objects that this controller doesn't manage
             if event["id"] not in self._items:
@@ -344,10 +355,7 @@ class BaseController(QuerySet[T]):
             state = self.parse_object_update(vid, method, args)
             self._update_state(vid, state)
 
-        elif event["type"] == EventType.RECONNECTED:
-            # Fetch the full state of all objects after reconnecting
-            await self.fetch_full_state()
-
     async def _lazy_initialize(self) -> None:
+        # Initialize the controller if it isn't already initialized
         if not self._initialized:
             await self.initialize()
