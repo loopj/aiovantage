@@ -128,9 +128,9 @@ class BaseConnection:
         # Read the response, with optional timeout
         try:
             data = await asyncio.wait_for(self._reader.readuntil(separator), timeout)
-        except (OSError, asyncio.IncompleteReadError) as err:
-            raise ClientConnectionError from err
         except asyncio.TimeoutError as err:
             raise ClientTimeoutError from err
+        except (OSError, asyncio.IncompleteReadError) as err:
+            raise ClientConnectionError from err
 
         return data.decode()
