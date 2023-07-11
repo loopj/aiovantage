@@ -11,8 +11,6 @@ from .child_device import ChildDevice
 from .child_object import ChildObject
 from .custom_device import CustomDevice
 from .dc_power_profile import DCPowerProfile
-from .ddg_color_load import DDGColorLoad
-from .dg_color_load import DGColorLoad
 from .dimmer import Dimmer
 from .dry_contact import DryContact
 from .dual_relay_station import DualRelayStation
@@ -36,15 +34,17 @@ from .relay_blind import RelayBlind
 from .rgb_load_base import RGBLoadBase
 from .scene_point_relay import ScenePointRelay
 from .sensor import Sensor
-from .somfy.rs485_group import RS485Group
-from .somfy.rs485_shade import RS485Shade
-from .somfy.urtsi_2_group import URTSI2Group
-from .somfy.urtsi_2_shade import URTSI2Shade
+from .somfy_rs_485_group_child import SomfyRS485GroupChild
+from .somfy_rs_485_shade_child import SomfyRS485ShadeChild
+from .somfy_urtsi_2_group_child import SomfyURTSI2GroupChild
+from .somfy_urtsi_2_shade_child import SomfyURTSI2ShadeChild
 from .station_bus import StationBus
 from .station_object import StationObject
 from .system_object import SystemObject
 from .task import Task
 from .temperature import Temperature
+from .vantage_ddg_color_load import VantageDDGColorLoad
+from .vantage_dg_color_load import VantageDGColorLoad
 
 __all__ = [
     "AnemoSensor",
@@ -58,8 +58,6 @@ __all__ = [
     "ChildObject",
     "CustomDevice",
     "DCPowerProfile",
-    "DDGColorLoad",
-    "DGColorLoad",
     "Dimmer",
     "DryContact",
     "DualRelayStation",
@@ -81,15 +79,17 @@ __all__ = [
     "QubeBlind",
     "RelayBlind",
     "RGBLoadBase",
-    "RS485Group",
-    "RS485Shade",
     "ScenePointRelay",
     "Sensor",
+    "SomfyRS485GroupChild",
+    "SomfyRS485ShadeChild",
+    "SomfyURTSI2GroupChild",
+    "SomfyURTSI2ShadeChild",
     "StationBus",
     "StationObject",
     "SystemObject",
     "Task",
     "Temperature",
-    "URTSI2Group",
-    "URTSI2Shade",
+    "VantageDDGColorLoad",
+    "VantageDGColorLoad",
 ]
