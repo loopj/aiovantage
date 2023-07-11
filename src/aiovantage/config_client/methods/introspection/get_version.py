@@ -11,7 +11,10 @@ class GetVersion:
     interface: ClassVar[str] = "IIntrospection"
     call = None
     return_value: Optional["GetVersion.Return"] = field(
-        default=None, metadata={"name": "return"}
+        default=None,
+        metadata={
+            "name": "return",
+        },
     )
 
     @dataclass

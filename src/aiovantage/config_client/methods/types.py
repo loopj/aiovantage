@@ -2,7 +2,7 @@
 
 import inspect
 from dataclasses import dataclass, field
-from typing import Any, Optional, Type
+from typing import Any, Type
 
 import aiovantage.config_client.objects
 
@@ -28,11 +28,14 @@ class ObjectChoice:
     Wildcard type that can be used to represent any object type.
     """
 
-    id: Optional[int] = field(
-        default=None, metadata={"name": "VID", "type": "Attribute"}
+    id: int = field(
+        metadata={
+            "name": "VID",
+            "type": "Attribute",
+        }
     )
-    choice: Optional[object] = field(
-        default=None,
+
+    choice: object = field(
         metadata={
             "type": "Wildcard",
             "choices": [

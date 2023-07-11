@@ -10,13 +10,28 @@ class OpenFilter:
 
     interface: ClassVar[str] = "IConfiguration"
     call: Optional["OpenFilter.Params"] = field(default=None)
-    return_value: Optional[int] = field(default=None, metadata={"name": "return"})
+    return_value: Optional[int] = field(
+        default=None,
+        metadata={
+            "name": "return",
+        },
+    )
 
     @dataclass
     class Params:
         """IConfiguration.OpenFilter method parameters."""
 
         object_types: Optional[List[str]] = field(
-            default=None, metadata={"name": "ObjectType", "wrapper": "Objects"}
+            default=None,
+            metadata={
+                "name": "ObjectType",
+                "wrapper": "Objects",
+            },
         )
-        xpath: Optional[str] = field(default=None, metadata={"name": "XPath"})
+
+        xpath: Optional[str] = field(
+            default=None,
+            metadata={
+                "name": "XPath",
+            },
+        )

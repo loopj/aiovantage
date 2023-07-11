@@ -10,4 +10,9 @@ class CloseFilter:
 
     interface: ClassVar[str] = "IConfiguration"
     call: Optional[int] = field(default=None)
-    return_value: Optional[bool] = field(default=None, metadata={"name": "return"})
+    return_value: Optional[bool] = field(
+        default=None,
+        metadata={
+            "name": "return",
+        },
+    )
