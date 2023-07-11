@@ -9,14 +9,14 @@ from aiovantage.command_client.interfaces import (
     LoadInterface,
     RGBLoadInterface,
 )
-from aiovantage.config_client.objects import RGBLoad
+from aiovantage.config_client.objects import RGBLoadBase
 from aiovantage.query import QuerySet
 
 from .base import BaseController, State
 
 
 class RGBLoadsController(
-    BaseController[RGBLoad],
+    BaseController[RGBLoadBase],
     LoadInterface,
     RGBLoadInterface,
     ColorTemperatureInterface,
@@ -46,7 +46,7 @@ class RGBLoadsController(
             "level": await LoadInterface.get_level(self, vid),
         }
 
-        rgb_load: RGBLoad = self[vid]
+        rgb_load: RGBLoadBase = self[vid]
         if rgb_load.is_rgb:
             state["hsl"] = await RGBLoadInterface.get_hsl(self, vid)
             state["rgb"] = await RGBLoadInterface.get_rgb(self, vid)
@@ -62,7 +62,7 @@ class RGBLoadsController(
     @override
     def parse_object_update(self, vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for an RGB load."""
-        rgb_load: RGBLoad = self[vid]
+        rgb_load: RGBLoadBase = self[vid]
         if status == "Load.GetLevel":
             return {
                 "level": LoadInterface.parse_get_level_status(args),
@@ -94,12 +94,12 @@ class RGBLoadsController(
         return None
 
     @property
-    def is_on(self) -> QuerySet[RGBLoad]:
+    def is_on(self) -> QuerySet[RGBLoadBase]:
         """Return a queryset of all RGB loads that are turned on."""
         return self.filter(lambda load: load.is_on)
 
     @property
-    def is_off(self) -> QuerySet[RGBLoad]:
+    def is_off(self) -> QuerySet[RGBLoadBase]:
         """Return a queryset of all RGB loads that are turned off."""
         return self.filter(lambda load: not load.is_on)
 

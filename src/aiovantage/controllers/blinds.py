@@ -5,12 +5,12 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import BlindInterface
-from aiovantage.config_client.objects import Blind
+from aiovantage.config_client.objects import BlindBase
 
 from .base import BaseController, State
 
 
-class BlindsController(BaseController[Blind], BlindInterface):
+class BlindsController(BaseController[BlindBase], BlindInterface):
     """Controller holding and managing Vantage blinds."""
 
     vantage_types = (

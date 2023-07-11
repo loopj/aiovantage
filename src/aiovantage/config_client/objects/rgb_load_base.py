@@ -1,38 +1,21 @@
 """RGB load object."""
 
 from dataclasses import dataclass
-from enum import Enum, IntEnum
+from enum import Enum
 from typing import Optional, Tuple
 
 from aiovantage.config_client.xml_dataclass import xml_element
 
+from .child_object import ChildObject
 from .location_object import LocationObject
-
-# This isn't strictly a Vantage object type, but this helps us avoid
-# code duplication in RGBLoad-like objects.
 
 
 @dataclass
-class RGBLoad(LocationObject):
-    """RGB load object."""
-
-    class RGBChannel(IntEnum):
-        """RGB channel."""
-
-        RED = 0
-        GREEN = 1
-        BLUE = 2
-        WHITE = 3
-
-    class HSLAttribute(IntEnum):
-        """HSL attribute."""
-
-        HUE = 0
-        SATURATION = 1
-        LEVEL = 2
+class RGBLoadBase(LocationObject, ChildObject):
+    """RGB load base class."""
 
     class ColorType(Enum):
-        """Color type."""
+        """RGBLoad color types."""
 
         RGB = "RGB"
         RGBW = "RGBW"
@@ -44,7 +27,6 @@ class RGBLoad(LocationObject):
     color_type: ColorType = xml_element("ColorType")
     min_temp: int = xml_element("MinTemp")
     max_temp: int = xml_element("MaxTemp")
-    parent_id: int = xml_element("Parent")
 
     def __post_init__(self) -> None:
         """Declare state attributes in post init."""
@@ -63,12 +45,12 @@ class RGBLoad(LocationObject):
     def is_rgb(self) -> bool:
         """Return True if the load is an RGB(W) load."""
         return self.color_type in (
-            RGBLoad.ColorType.RGB,
-            RGBLoad.ColorType.RGBW,
-            RGBLoad.ColorType.HSL,
+            self.ColorType.RGB,
+            self.ColorType.RGBW,
+            self.ColorType.HSL,
         )
 
     @property
     def is_cct(self) -> bool:
         """Return True if the load is a CCT load."""
-        return self.color_type == RGBLoad.ColorType.CCT
+        return self.color_type == self.ColorType.CCT

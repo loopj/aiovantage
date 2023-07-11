@@ -6,11 +6,12 @@ from typing import Union
 
 from aiovantage.config_client.xml_dataclass import xml_attribute, xml_element
 
+from .child_object import ChildObject
 from .sensor import Sensor
 
 
 @dataclass
-class OmniSensor(Sensor):
+class OmniSensor(Sensor, ChildObject):
     """OmniSensor object."""
 
     @dataclass
@@ -29,7 +30,6 @@ class OmniSensor(Sensor):
         method_hw: str = xml_element("MethodHW")
 
     get: GetMethodType = xml_element("Get")
-    parent_id: int = xml_element("Parent")
 
     def __post_init__(self) -> None:
         """Declare state attributes in post init."""

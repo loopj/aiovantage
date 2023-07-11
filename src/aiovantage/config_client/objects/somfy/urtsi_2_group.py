@@ -1,12 +1,14 @@
 """Somfy URTSI 2 blind group."""
+# pylint: disable=relative-beyond-top-level
 
 from dataclasses import dataclass
 
-from aiovantage.config_client.objects.blind_group import BlindGroup
+from ..blind_group_base import BlindGroupBase
+from ..child_device import ChildDevice
 
 
 @dataclass
-class URTSI2Group(BlindGroup):
+class URTSI2Group(BlindGroupBase, ChildDevice):
     """Somfy URTSI 2 blind group."""
 
     class Meta:

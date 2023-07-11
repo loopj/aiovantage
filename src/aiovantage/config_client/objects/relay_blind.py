@@ -2,9 +2,10 @@
 
 from dataclasses import dataclass
 
-from .blind import Blind
+from .blind_base import BlindBase
+from .location_object import LocationObject
 
 
 @dataclass
-class RelayBlind(Blind):
+class RelayBlind(BlindBase, LocationObject):
     """Relay blind object."""

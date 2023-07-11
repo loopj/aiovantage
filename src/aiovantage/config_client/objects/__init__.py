@@ -3,8 +3,13 @@
 from .anemo_sensor import AnemoSensor
 from .area import Area
 from .blind import Blind
+from .blind_base import BlindBase
 from .blind_group import BlindGroup
+from .blind_group_base import BlindGroupBase
 from .button import Button
+from .child_device import ChildDevice
+from .child_object import ChildObject
+from .custom_device import CustomDevice
 from .dc_power_profile import DCPowerProfile
 from .ddg_color_load import DDGColorLoad
 from .dg_color_load import DGColorLoad
@@ -28,7 +33,7 @@ from .pwm_power_profile import PWMPowerProfile
 from .qis_blind import QISBlind
 from .qube_blind import QubeBlind
 from .relay_blind import RelayBlind
-from .rgb_load import RGBLoad
+from .rgb_load_base import RGBLoadBase
 from .scene_point_relay import ScenePointRelay
 from .sensor import Sensor
 from .somfy.rs485_group import RS485Group
@@ -45,8 +50,13 @@ __all__ = [
     "AnemoSensor",
     "Area",
     "Blind",
+    "BlindBase",
     "BlindGroup",
+    "BlindGroupBase",
     "Button",
+    "ChildDevice",
+    "ChildObject",
+    "CustomDevice",
     "DCPowerProfile",
     "DDGColorLoad",
     "DGColorLoad",
@@ -70,7 +80,7 @@ __all__ = [
     "QISBlind",
     "QubeBlind",
     "RelayBlind",
-    "RGBLoad",
+    "RGBLoadBase",
     "RS485Group",
     "RS485Shade",
     "ScenePointRelay",

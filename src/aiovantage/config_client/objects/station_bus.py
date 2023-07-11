@@ -2,13 +2,10 @@
 
 from dataclasses import dataclass
 
-from aiovantage.config_client.xml_dataclass import xml_element
-
+from .child_object import ChildObject
 from .system_object import SystemObject
 
 
 @dataclass
-class StationBus(SystemObject):
+class StationBus(SystemObject, ChildObject):
     """Station bus object."""
-
-    parent_id: int = xml_element("Parent")

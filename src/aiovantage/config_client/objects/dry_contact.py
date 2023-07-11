@@ -2,16 +2,13 @@
 
 from dataclasses import dataclass
 
-from aiovantage.config_client.xml_dataclass import xml_element
-
+from .child_object import ChildObject
 from .location_object import LocationObject
 
 
 @dataclass
-class DryContact(LocationObject):
+class DryContact(LocationObject, ChildObject):
     """DryContact object."""
-
-    parent_id: int = xml_element("Parent")
 
     def __post_init__(self) -> None:
         """Declare state attributes in post init."""

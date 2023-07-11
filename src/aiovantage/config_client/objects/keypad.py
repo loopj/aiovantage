@@ -2,9 +2,10 @@
 
 from dataclasses import dataclass
 
+from .child_object import ChildObject
 from .station_object import StationObject
 
 
 @dataclass
-class Keypad(StationObject):
+class Keypad(StationObject, ChildObject):
     """Keypad Station."""

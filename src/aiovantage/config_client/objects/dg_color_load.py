@@ -2,11 +2,11 @@
 
 from dataclasses import dataclass
 
-from .rgb_load import RGBLoad
+from .rgb_load_base import RGBLoadBase
 
 
 @dataclass
-class DGColorLoad(RGBLoad):
+class DGColorLoad(RGBLoadBase):
     """DGColorLoad (RGB load) object."""
 
     class Meta:

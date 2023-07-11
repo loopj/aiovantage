@@ -5,15 +5,15 @@ from typing import Optional
 
 from aiovantage.config_client.xml_dataclass import xml_element
 
+from .child_object import ChildObject
 from .location_object import LocationObject
 
 
 @dataclass
-class Load(LocationObject):
+class Load(LocationObject, ChildObject):
     """Load object."""
 
     load_type: str = xml_element("LoadType")
-    parent_id: int = xml_element("Parent")
     power_profile_id: int = xml_element("PowerProfile")
 
     def __post_init__(self) -> None:

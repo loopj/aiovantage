@@ -1,12 +1,14 @@
 """Somfy URTSI 2 blind."""
+# pylint: disable=relative-beyond-top-level
 
 from dataclasses import dataclass
 
-from aiovantage.config_client.objects.blind import Blind
+from ..blind_base import BlindBase
+from ..child_device import ChildDevice
 
 
 @dataclass
-class URTSI2Shade(Blind):
+class URTSI2Shade(BlindBase, ChildDevice):
     """Somfy URTSI 2 blind."""
 
     class Meta:

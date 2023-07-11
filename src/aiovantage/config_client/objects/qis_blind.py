@@ -2,9 +2,10 @@
 
 from dataclasses import dataclass
 
-from .blind import Blind
+from .blind_base import BlindBase
+from .station_object import StationObject
 
 
 @dataclass
-class QISBlind(Blind):
+class QISBlind(BlindBase, StationObject):
     """QIS blind object."""

@@ -1,12 +1,14 @@
 """Somfy RS-485 SDN 2.0 blind group."""
+# pylint: disable=relative-beyond-top-level
 
 from dataclasses import dataclass
 
-from aiovantage.config_client.objects.blind_group import BlindGroup
+from ..blind_group_base import BlindGroupBase
+from ..child_device import ChildDevice
 
 
 @dataclass
-class RS485Group(BlindGroup):
+class RS485Group(BlindGroupBase, ChildDevice):
     """Somfy RS-485 SDN 2.0 blind group."""
 
     class Meta:
