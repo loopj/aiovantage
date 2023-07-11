@@ -1,6 +1,6 @@
 """Task object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from .system_object import SystemObject
@@ -10,7 +10,16 @@ from .system_object import SystemObject
 class Task(SystemObject):
     """Task object."""
 
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.is_running: Optional[bool] = None
-        self.state: Optional[bool] = None
+    is_running: Optional[bool] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
+
+    state: Optional[bool] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )

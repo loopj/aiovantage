@@ -1,6 +1,6 @@
 """Temperature object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Optional
 
@@ -12,6 +12,9 @@ from .sensor import Sensor
 class Temperature(Sensor, ChildObject):
     """Temperature object."""
 
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.value: Optional[Decimal] = None
+    value: Optional[Decimal] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )

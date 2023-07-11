@@ -1,8 +1,6 @@
 """Child object mixin."""
 
-from dataclasses import dataclass
-
-from aiovantage.config_client.xml_dataclass import xml_attribute, xml_element, xml_text
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -13,10 +11,20 @@ class ChildObject:
     class Parent:
         """Parent tag."""
 
-        id: int = xml_text()
-        position: int = xml_attribute("Position")
+        id: int
 
-    parent: Parent = xml_element("Parent")
+        position: int = field(
+            metadata={
+                "name": "Position",
+                "type": "Attribute",
+            }
+        )
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )
 
     @property
     def parent_id(self) -> int:

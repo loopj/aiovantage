@@ -1,6 +1,7 @@
 """DryContact object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import Optional
 
 from .child_object import ChildObject
 from .location_object import LocationObject
@@ -10,6 +11,9 @@ from .location_object import LocationObject
 class DryContact(LocationObject, ChildObject):
     """DryContact object."""
 
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.triggered: bool = False
+    triggered: Optional[bool] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )

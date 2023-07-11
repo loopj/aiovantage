@@ -1,9 +1,7 @@
 """LoadGroup object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
-
-from aiovantage.config_client.xml_dataclass import xml_element
 
 from .location_object import LocationObject
 
@@ -12,11 +10,20 @@ from .location_object import LocationObject
 class LoadGroup(LocationObject):
     """LoadGroup object."""
 
-    load_ids: List[int] = xml_element("Load", wrapper="LoadTable")
+    load_ids: List[int] = field(
+        default_factory=list,
+        metadata={
+            "name": "Load",
+            "wrapper": "LoadTable",
+        },
+    )
 
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.level: Optional[float] = None
+    level: Optional[float] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
 
     @property
     def is_on(self) -> bool:

@@ -1,20 +1,55 @@
 """Base class for all objects."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from xsdata.models.datatype import XmlDateTime
-
-from aiovantage.config_client.xml_dataclass import xml_attribute, xml_element
 
 
 @dataclass
 class SystemObject:
     """Base class for all objects."""
 
-    id: int = xml_attribute("VID")
-    master_id: int = xml_attribute("Master")
-    mtime: XmlDateTime = xml_attribute("MTime")
-    name: str = xml_element("Name")
-    note: str = xml_element("Note")
-    model: str = xml_element("Model")
-    display_name: str = xml_element("DName")
+    id: int = field(
+        metadata={
+            "name": "VID",
+            "type": "Attribute",
+        }
+    )
+
+    master_id: int = field(
+        metadata={
+            "name": "Master",
+            "type": "Attribute",
+        }
+    )
+
+    mtime: XmlDateTime = field(
+        metadata={
+            "name": "MTime",
+            "type": "Attribute",
+        }
+    )
+
+    name: str = field(
+        metadata={
+            "name": "Name",
+        }
+    )
+
+    note: str = field(
+        metadata={
+            "name": "Note",
+        }
+    )
+
+    model: str = field(
+        metadata={
+            "name": "Model",
+        }
+    )
+
+    display_name: str = field(
+        metadata={
+            "name": "DName",
+        }
+    )

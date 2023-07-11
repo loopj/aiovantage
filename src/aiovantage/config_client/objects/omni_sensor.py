@@ -1,39 +1,71 @@
 """OmniSensor object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Union
-
-from aiovantage.config_client.xml_dataclass import xml_attribute, xml_element
 
 from .child_object import ChildObject
 from .sensor import Sensor
 
 
 @dataclass
+class Formula:
+    """OmniSensor type conversion information."""
+
+    return_type: str = field(
+        metadata={
+            "name": "ReturnType",
+            "type": "Attribute",
+        }
+    )
+
+    level_type: str = field(
+        metadata={
+            "name": "LevelType",
+            "type": "Attribute",
+        }
+    )
+
+
+@dataclass
+class GetMethodType:
+    """Omnisensor method information."""
+
+    formula: Formula = field(
+        metadata={
+            "name": "Formula",
+        }
+    )
+
+    method: str = field(
+        metadata={
+            "name": "Method",
+        }
+    )
+
+    method_hw: str = field(
+        metadata={
+            "name": "MethodHW",
+        }
+    )
+
+
+@dataclass
 class OmniSensor(Sensor, ChildObject):
     """OmniSensor object."""
 
-    @dataclass
-    class GetMethodType:
-        """Omnisensor method information."""
+    get: GetMethodType = field(
+        metadata={
+            "name": "Get",
+        }
+    )
 
-        @dataclass
-        class Formula:
-            """OmniSensor type conversion information."""
-
-            return_type: str = xml_attribute("ReturnType")
-            level_type: str = xml_attribute("LevelType")
-
-        formula: Formula = xml_element("Formula")
-        method: str = xml_element("Method")
-        method_hw: str = xml_element("MethodHW")
-
-    get: GetMethodType = xml_element("Get")
-
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.level: Union[int, Decimal, None] = None
+    level: Union[int, Decimal, None] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
 
     @property
     def is_current_sensor(self) -> bool:

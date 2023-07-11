@@ -1,10 +1,8 @@
 """RGB load object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Tuple
-
-from aiovantage.config_client.xml_dataclass import xml_element
 
 from .child_object import ChildObject
 from .location_object import LocationObject
@@ -24,17 +22,58 @@ class RGBLoadBase(LocationObject, ChildObject):
         CCT = "CCT"
         COLOR_CHANNEL = "Color Channel"
 
-    color_type: ColorType = xml_element("ColorType")
-    min_temp: int = xml_element("MinTemp")
-    max_temp: int = xml_element("MaxTemp")
+    color_type: ColorType = field(
+        metadata={
+            "name": "ColorType",
+        }
+    )
 
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.hsl: Optional[Tuple[int, int, int]] = None
-        self.rgb: Optional[Tuple[int, int, int]] = None
-        self.rgbw: Optional[Tuple[int, int, int, int]] = None
-        self.level: Optional[int] = None
-        self.color_temp: Optional[int] = None
+    min_temp: int = field(
+        metadata={
+            "name": "MinTemp",
+        }
+    )
+
+    max_temp: int = field(
+        metadata={
+            "name": "MaxTemp",
+        }
+    )
+
+    hsl: Optional[Tuple[int, int, int]] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
+
+    rgb: Optional[Tuple[int, int, int]] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
+
+    rgbw: Optional[Tuple[int, int, int, int]] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
+
+    level: Optional[int] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
+
+    color_temp: Optional[int] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
 
     @property
     def is_on(self) -> bool:

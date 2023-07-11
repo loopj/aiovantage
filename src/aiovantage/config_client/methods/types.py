@@ -2,16 +2,23 @@
 
 import inspect
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional, Type
 
 import aiovantage.config_client.objects
-from aiovantage.config_client.xml_dataclass import xml_tag_from_class
 
 # Get all Vantage object from aiovantage.config_client.objects
 ALL_OBJECT_TYPES = [
     item
     for _, item in inspect.getmembers(aiovantage.config_client.objects, inspect.isclass)
 ]
+
+
+def xml_tag_from_class(cls: Type[Any]) -> str:
+    """Get the XML tag name for a class."""
+    meta = getattr(cls, "Meta", None)
+    name = getattr(meta, "name", cls.__qualname__)
+
+    return name
 
 
 @dataclass

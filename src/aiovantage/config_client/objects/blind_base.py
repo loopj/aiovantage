@@ -1,10 +1,8 @@
 """Blind base class."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Optional
-
-from aiovantage.config_client.xml_dataclass import xml_attribute
 
 from .system_object import SystemObject
 
@@ -13,9 +11,25 @@ from .system_object import SystemObject
 class BlindBase(SystemObject):
     """Blind base class."""
 
-    orientation: Optional[str] = xml_attribute("ShadeOrientation", default=None)
-    type: Optional[str] = xml_attribute("ShadeType", default=None)
+    orientation: Optional[str] = field(
+        default=None,
+        metadata={
+            "name": "ShadeOrientation",
+            "type": "Attribute",
+        },
+    )
 
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.position: Optional[Decimal] = None
+    type: Optional[str] = field(
+        default=None,
+        metadata={
+            "name": "ShadeType",
+            "type": "Attribute",
+        },
+    )
+
+    position: Optional[Decimal] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )

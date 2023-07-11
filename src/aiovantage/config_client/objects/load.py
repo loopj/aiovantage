@@ -1,9 +1,7 @@
 """Load object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
-
-from aiovantage.config_client.xml_dataclass import xml_element
 
 from .child_object import ChildObject
 from .location_object import LocationObject
@@ -13,12 +11,24 @@ from .location_object import LocationObject
 class Load(LocationObject, ChildObject):
     """Load object."""
 
-    load_type: str = xml_element("LoadType")
-    power_profile_id: int = xml_element("PowerProfile")
+    load_type: str = field(
+        metadata={
+            "name": "LoadType",
+        }
+    )
 
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.level: Optional[float] = None
+    power_profile_id: int = field(
+        metadata={
+            "name": "PowerProfile",
+        }
+    )
+
+    level: Optional[float] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
 
     @property
     def is_relay(self) -> bool:

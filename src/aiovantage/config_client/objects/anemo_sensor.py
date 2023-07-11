@@ -1,6 +1,6 @@
 """AnemoSensor (wind sensor) object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Optional
 
@@ -12,6 +12,9 @@ from .sensor import Sensor
 class AnemoSensor(Sensor, ChildObject):
     """AnemoSensor (wind sensor) object."""
 
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.speed: Optional[Decimal] = None
+    speed: Optional[Decimal] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )

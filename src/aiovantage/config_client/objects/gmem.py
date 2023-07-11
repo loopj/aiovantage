@@ -1,37 +1,67 @@
 """GMem (variable) object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Union
 
-from aiovantage.config_client.xml_dataclass import xml_attribute, xml_element, xml_text
-
 from .system_object import SystemObject
+
+
+@dataclass
+class Tag:
+    """GMem tag."""
+
+    type: str
+
+    object: bool = field(
+        default=False,
+        metadata={
+            "name": "object",
+            "type": "Attribute",
+        },
+    )
+
+
+@dataclass
+class Data:
+    """GMem data."""
+
+    fixed: bool = field(
+        default=False,
+        metadata={
+            "name": "Fixed",
+            "type": "Attribute",
+        },
+    )
 
 
 @dataclass
 class GMem(SystemObject):
     """GMem (variable) object."""
 
-    @dataclass
-    class Tag:
-        """GMem tag."""
+    data: Data = field(
+        metadata={
+            "name": "data",
+        }
+    )
 
-        type: str = xml_text()
-        object: bool = xml_attribute("object", default=False)
+    persistent: bool = field(
+        metadata={
+            "name": "Persistent",
+        }
+    )
 
-    @dataclass
-    class Data:
-        """GMem data."""
+    tag: Tag = field(
+        metadata={
+            "name": "Tag",
+        }
+    )
 
-        fixed: bool = xml_attribute("Fixed", default=False)
-
-    data: Data = xml_element("data")
-    persistent: bool = xml_element("Persistent")
-    tag: Tag = xml_element("Tag")
-
-    def __post_init__(self) -> None:
-        """Declare state attributes in post init."""
-        self.value: Union[int, str, bool, None] = None
+    value: Union[int, str, bool, None] = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
 
     @property
     def is_bool(self) -> bool:
