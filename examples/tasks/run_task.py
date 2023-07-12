@@ -22,8 +22,9 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and value of each GMem
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
+        # Look up the task
         try:
             task_id = int(args.id)
         except ValueError:
@@ -35,6 +36,7 @@ async def main() -> None:
             print("Task not found")
             return
 
+        # Run the task
         print(f"{task.name} (id = {task.id})")
         await vantage.tasks.start(task.id)
 

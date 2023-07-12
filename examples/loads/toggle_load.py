@@ -22,8 +22,9 @@ async def main() -> None:
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Connect to the Vantage controller and print out the name and value of each GMem
+    # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
+        # Look up the load
         try:
             load_id = int(args.id)
         except ValueError:
@@ -35,6 +36,7 @@ async def main() -> None:
             print("Load not found")
             return
 
+        # Toggle the load
         print(f"Toggling {load.name} (id = {load.id})")
         if load.is_on:
             await vantage.loads.turn_off(load.id)
