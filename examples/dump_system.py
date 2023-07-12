@@ -39,12 +39,16 @@ def print_indented(text: str, indent_level: int) -> None:
 
 def load_state(load: Load) -> str:
     """Return a string describing the state of a load."""
-    if not load.level:
+    if load.level is None:
+        return ""
+
+    if load.level == 0:
         return colorize("(OFF)", RED)
-    elif load.level == 100:
+
+    if load.level == 100:
         return colorize("(ON)", GREEN)
-    else:
-        return colorize(f"({load.level}%)", GREEN)
+
+    return colorize(f"({load.level}%)", GREEN)
 
 
 def print_area(vantage: Vantage, area: Optional[Area], indent: int = 0) -> None:
