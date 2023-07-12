@@ -5,7 +5,7 @@ from typing import Sequence, Union
 
 from typing_extensions import override
 
-from aiovantage.models import OmniSensor
+from aiovantage.config_client.models.omni_sensor import ConversionType, OmniSensor
 
 from .base import BaseController, State
 
@@ -56,16 +56,16 @@ class OmniSensorsController(BaseController[OmniSensor]):
         response = await self.command_client.command("INVOKE", vid, method)
 
         # Convert the level to the correct type
-        if omni_sensor.get.formula.return_type == "fixed":
+        if omni_sensor.get.formula.return_type == ConversionType.FIXED:
             level = Decimal(response.args[1])
-            if omni_sensor.get.formula.level_type == "int":
+            if omni_sensor.get.formula.level_type == ConversionType.INT:
                 return int(level)
 
             return level
 
-        if omni_sensor.get.formula.return_type == "int":
+        if omni_sensor.get.formula.return_type == ConversionType.INT:
             level = Decimal(response.args[1]) / 1000
-            if omni_sensor.get.formula.level_type == "int":
+            if omni_sensor.get.formula.level_type == ConversionType.INT:
                 return int(level)
 
             return level
@@ -82,7 +82,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
         # STATUS ADD <id>
         # -> S:STATUS <id> <method> <value>
         level = Decimal(args[0]) / 1000
-        if omni_sensor.get.formula.level_type == "int":
+        if omni_sensor.get.formula.level_type == ConversionType.INT:
             return int(level)
 
         return level

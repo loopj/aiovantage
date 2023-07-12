@@ -2,34 +2,44 @@
 
 from dataclasses import dataclass, field
 from decimal import Decimal
+from enum import Enum
 from typing import Union
 
 from .child_object import ChildObject
 from .sensor import Sensor
 
 
-@dataclass
-class Formula:
+class ConversionType(Enum):
     """OmniSensor type conversion information."""
 
-    return_type: str = field(
+    FIXED = "fixed"
+    INT = "int"
+
+
+@dataclass
+class Formula:
+    """OmniSensor conversion formula information."""
+
+    return_type: ConversionType = field(
         metadata={
             "name": "ReturnType",
             "type": "Attribute",
         }
     )
 
-    level_type: str = field(
+    level_type: ConversionType = field(
         metadata={
             "name": "LevelType",
             "type": "Attribute",
         }
     )
 
+    value: str
+
 
 @dataclass
 class GetMethodType:
-    """Omnisensor method information."""
+    """Omnisensor get method information."""
 
     formula: Formula = field(
         metadata={
