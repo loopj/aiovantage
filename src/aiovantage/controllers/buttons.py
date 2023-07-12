@@ -5,7 +5,7 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import ButtonInterface
-from aiovantage.config_client.models import Button
+from aiovantage.models import Button
 
 from .base import BaseController, State
 

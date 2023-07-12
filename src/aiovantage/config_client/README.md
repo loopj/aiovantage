@@ -19,7 +19,7 @@ objects, this module also provides models to help with deserializing many of the
 object types, available in [`objects`](objects).
 
 Additionally, a few helper functions for fetching objects are provided by
-[`helpers.py`](helpers.py).
+[`requests.py`](requests.py).
 
 ## Examples
 
@@ -27,7 +27,7 @@ Additionally, a few helper functions for fetching objects are provided by
 
 ```python
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.helpers import get_objects
+from aiovantage.config_client.requests import get_objects
 
 async with ConfigClient("hostname") as client:
     loads = get_objects(client, types=["Load", "Button"])
@@ -37,7 +37,7 @@ async with ConfigClient("hostname") as client:
 
 ```python
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.helpers import get_objects_by_id
+from aiovantage.config_client.requests import get_objects_by_id
 
 async with ConfigClient("hostname") as client:
     objects = get_objects_by_id(client, [118])

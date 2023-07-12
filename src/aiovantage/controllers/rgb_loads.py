@@ -9,7 +9,7 @@ from aiovantage.command_client.interfaces import (
     LoadInterface,
     RGBLoadInterface,
 )
-from aiovantage.config_client.models import RGBLoadBase
+from aiovantage.models import RGBLoadBase
 from aiovantage.query import QuerySet
 
 from .base import BaseController, State

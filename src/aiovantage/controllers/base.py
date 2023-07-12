@@ -23,9 +23,9 @@ from typing import (
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.helpers import get_objects
-from aiovantage.config_client.models import SystemObject
-from aiovantage.events import VantageEvent
+from aiovantage.config_client.requests import get_objects
+from aiovantage.events import EventCallback, VantageEvent
+from aiovantage.models import SystemObject
 from aiovantage.query import QuerySet
 
 if TYPE_CHECKING:
@@ -34,11 +34,8 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound=SystemObject)
 
 
-# Types for callbacks for event subscriptions
-EventCallback = Callable[[VantageEvent, T, Dict[str, Any]], None]
+# Types for state and subscriptions
 EventSubscription = Tuple[EventCallback[T], Optional[Iterable[VantageEvent]]]
-
-# Type for state updates
 State = Optional[Dict[str, Any]]
 
 
