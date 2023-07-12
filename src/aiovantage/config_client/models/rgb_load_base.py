@@ -13,8 +13,6 @@ class RGBLoadBase(ChildObject, LocationObject):
     """RGB load base class."""
 
     class ColorType(Enum):
-        """RGBLoad color types."""
-
         RGB = "RGB"
         RGBW = "RGBW"
         HSL = "HSL"
