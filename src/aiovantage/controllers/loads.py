@@ -5,7 +5,7 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import LoadInterface
-from aiovantage.config_client.objects import Load
+from aiovantage.models import Load
 from aiovantage.query import QuerySet
 
 from .base import BaseController, State

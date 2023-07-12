@@ -6,8 +6,9 @@ from typing_extensions import override
 
 from aiovantage.command_client.interfaces import GMemInterface
 from aiovantage.command_client.utils import parse_byte_param
-from aiovantage.config_client.objects import GMem
-from aiovantage.controllers.base import BaseController, State
+from aiovantage.models import GMem
+
+from .base import BaseController, State
 
 
 class GMemController(BaseController[GMem], GMemInterface):

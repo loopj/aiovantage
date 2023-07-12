@@ -3,9 +3,9 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
-from aiovantage import Vantage
-from aiovantage.command_client.commands import CommandClient
-from aiovantage.errors import (
+from . import Vantage
+from .command_client.commands import CommandClient
+from .errors import (
     ClientConnectionError,
     ClientError,
     LoginFailedError,

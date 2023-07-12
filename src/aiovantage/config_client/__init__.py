@@ -29,11 +29,12 @@ from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 
-from aiovantage.config_client.methods import Call, Method, Return
-from aiovantage.config_client.methods.introspection import GetVersion
-from aiovantage.config_client.methods.login import Login
 from aiovantage.connection import BaseConnection
 from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
+
+from .interfaces import Call, Method, Return
+from .interfaces.introspection import GetVersion
+from .interfaces.login import Login
 
 
 class ConfigConnection(BaseConnection):

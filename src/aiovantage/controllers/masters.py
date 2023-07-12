@@ -5,8 +5,9 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import IntrospectionInterface, ObjectInterface
-from aiovantage.config_client.objects import Master
-from aiovantage.controllers.base import BaseController, State
+from aiovantage.models import Master
+
+from .base import BaseController, State
 
 
 class MastersController(

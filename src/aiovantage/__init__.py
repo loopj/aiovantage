@@ -8,29 +8,30 @@ from typing import Any, Callable, Optional, Set, Type, TypeVar
 
 from typing_extensions import Self
 
-from aiovantage.command_client import CommandClient, Event, EventStream, EventType
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.objects import SystemObject
-from aiovantage.controllers.anemo_sensors import AnemoSensorsController
-from aiovantage.controllers.areas import AreasController
-from aiovantage.controllers.base import BaseController, EventCallback
-from aiovantage.controllers.blind_groups import BlindGroupsController
-from aiovantage.controllers.blinds import BlindsController
-from aiovantage.controllers.buttons import ButtonsController
-from aiovantage.controllers.dry_contacts import DryContactsController
-from aiovantage.controllers.gmem import GMemController
-from aiovantage.controllers.light_sensors import LightSensorsController
-from aiovantage.controllers.load_groups import LoadGroupsController
-from aiovantage.controllers.loads import LoadsController
-from aiovantage.controllers.masters import MastersController
-from aiovantage.controllers.modules import ModulesController
-from aiovantage.controllers.omni_sensors import OmniSensorsController
-from aiovantage.controllers.rgb_loads import RGBLoadsController
-from aiovantage.controllers.stations import StationsController
-from aiovantage.controllers.tasks import TasksController
-from aiovantage.controllers.temperature_sensors import TemperatureSensorsController
-
-from .events import VantageEvent
+from .command_client import CommandClient, Event, EventStream, EventType
+from .config_client import ConfigClient
+from .controllers import (
+    AnemoSensorsController,
+    AreasController,
+    BaseController,
+    BlindGroupsController,
+    BlindsController,
+    ButtonsController,
+    DryContactsController,
+    GMemController,
+    LightSensorsController,
+    LoadGroupsController,
+    LoadsController,
+    MastersController,
+    ModulesController,
+    OmniSensorsController,
+    RGBLoadsController,
+    StationsController,
+    TasksController,
+    TemperatureSensorsController,
+)
+from .events import EventCallback, VantageEvent
+from .models import SystemObject
 
 ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
 

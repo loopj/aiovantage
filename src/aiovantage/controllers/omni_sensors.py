@@ -5,8 +5,9 @@ from typing import Sequence, Union
 
 from typing_extensions import override
 
-from aiovantage.config_client.objects import OmniSensor
-from aiovantage.controllers.base import BaseController, State
+from aiovantage.models import OmniSensor
+
+from .base import BaseController, State
 
 
 class OmniSensorsController(BaseController[OmniSensor]):

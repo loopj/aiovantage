@@ -5,7 +5,7 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import AnemoSensorInterface
-from aiovantage.config_client.objects import AnemoSensor
+from aiovantage.models import AnemoSensor
 
 from .base import BaseController, State
 

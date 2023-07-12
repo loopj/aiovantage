@@ -1,6 +1,9 @@
 """Vantage events."""
 
 from enum import Enum
+from typing import Any, Callable, Dict, TypeAlias, TypeVar
+
+from .models import SystemObject
 
 
 class VantageEvent(Enum):
@@ -9,3 +12,9 @@ class VantageEvent(Enum):
     OBJECT_ADDED = "add"
     OBJECT_UPDATED = "update"
     OBJECT_DELETED = "delete"
+
+
+T = TypeVar("T", bound=SystemObject)
+
+EventCallback: TypeAlias = Callable[[VantageEvent, T, Dict[str, Any]], None]
+"""Type alias for a Vantage event callback function."""
