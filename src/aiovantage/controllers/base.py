@@ -56,7 +56,6 @@ class BaseController(QuerySet[T]):
 
         Args:
             vantage: The Vantage instance.
-            init_callback: A callback to call when the controller is initialized.
         """
         self._vantage = vantage
         self._items: Dict[int, T] = {}
@@ -122,7 +121,11 @@ class BaseController(QuerySet[T]):
         return None
 
     async def initialize(self, fetch_state: bool = True) -> None:
-        """Populate objects and fetch their initial state."""
+        """Populate objects and fetch their initial state.
+
+        Args:
+            fetch_state: Whether to also fetch the state of each object.
+        """
         prev_ids = set(self._items.keys())
         cur_ids = set()
 

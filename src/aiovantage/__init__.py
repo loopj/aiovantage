@@ -75,29 +75,23 @@ class Vantage:
 
         # Set up controllers
         self._controllers: Set[BaseController[Any]] = set()
-
-        def _create_controller(controller_cls: Type[ControllerT]) -> ControllerT:
-            controller = controller_cls(self)
-            self._controllers.add(controller)
-            return controller
-
-        self._anemo_sensors = _create_controller(AnemoSensorsController)
-        self._areas = _create_controller(AreasController)
-        self._blind_groups = _create_controller(BlindGroupsController)
-        self._blinds = _create_controller(BlindsController)
-        self._buttons = _create_controller(ButtonsController)
-        self._dry_contacts = _create_controller(DryContactsController)
-        self._gmem = _create_controller(GMemController)
-        self._light_sensors = _create_controller(LightSensorsController)
-        self._load_groups = _create_controller(LoadGroupsController)
-        self._loads = _create_controller(LoadsController)
-        self._masters = _create_controller(MastersController)
-        self._modules = _create_controller(ModulesController)
-        self._rgb_loads = _create_controller(RGBLoadsController)
-        self._omni_sensors = _create_controller(OmniSensorsController)
-        self._stations = _create_controller(StationsController)
-        self._tasks = _create_controller(TasksController)
-        self._temperature_sensors = _create_controller(TemperatureSensorsController)
+        self._anemo_sensors = self._add_controller(AnemoSensorsController)
+        self._areas = self._add_controller(AreasController)
+        self._blind_groups = self._add_controller(BlindGroupsController)
+        self._blinds = self._add_controller(BlindsController)
+        self._buttons = self._add_controller(ButtonsController)
+        self._dry_contacts = self._add_controller(DryContactsController)
+        self._gmem = self._add_controller(GMemController)
+        self._light_sensors = self._add_controller(LightSensorsController)
+        self._load_groups = self._add_controller(LoadGroupsController)
+        self._loads = self._add_controller(LoadsController)
+        self._masters = self._add_controller(MastersController)
+        self._modules = self._add_controller(ModulesController)
+        self._rgb_loads = self._add_controller(RGBLoadsController)
+        self._omni_sensors = self._add_controller(OmniSensorsController)
+        self._stations = self._add_controller(StationsController)
+        self._tasks = self._add_controller(TasksController)
+        self._temperature_sensors = self._add_controller(TemperatureSensorsController)
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -166,7 +160,7 @@ class Vantage:
 
     @property
     def gmem(self) -> GMemController:
-        """Return the GMem controller for managing global memory."""
+        """Return the GMem controller for managing variables."""
         return self._gmem
 
     @property
@@ -191,12 +185,12 @@ class Vantage:
 
     @property
     def modules(self) -> ModulesController:
-        """Return the Modules controller for managing modules."""
+        """Return the Modules controller for managing dimmer modules."""
         return self._modules
 
     @property
     def omni_sensors(self) -> OmniSensorsController:
-        """Return the OmniSensors controller for managing generic sensors."""
+        """Return the OmniSensors controller for managing omni sensors."""
         return self._omni_sensors
 
     @property
@@ -272,3 +266,9 @@ class Vantage:
             for controller in self._controllers:
                 if controller.initialized:
                     await controller.fetch_full_state()
+
+    def _add_controller(self, controller_cls: Type[ControllerT]) -> ControllerT:
+        # Add a controller to the known controllers.
+        controller = controller_cls(self)
+        self._controllers.add(controller)
+        return controller
