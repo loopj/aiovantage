@@ -15,5 +15,6 @@ class StationsController(BaseController[StationObject]):
         "EqUX",
         "Keypad",
         "ScenePointRelay",
+        "Vantage.DmxDaliGateway",
     )
     """The Vantage object types that this controller will fetch."""

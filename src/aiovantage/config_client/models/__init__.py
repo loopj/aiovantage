@@ -45,6 +45,7 @@ from .task import Task
 from .temperature import Temperature
 from .vantage_ddg_color_load import VantageDDGColorLoad
 from .vantage_dg_color_load import VantageDGColorLoad
+from .vantage_dmx_dali_gateway import VantageDmxDaliGateway
 
 __all__ = [
     "AnemoSensor",
@@ -92,4 +93,5 @@ __all__ = [
     "Temperature",
     "VantageDDGColorLoad",
     "VantageDGColorLoad",
+    "VantageDmxDaliGateway",
 ]
