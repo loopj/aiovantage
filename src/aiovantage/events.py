@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Any, Callable, Dict, TypeAlias, TypeVar
 
-from aiovantage.models import SystemObject
+from .models import SystemObject
 
 
 class VantageEvent(Enum):
