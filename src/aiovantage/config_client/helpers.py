@@ -4,7 +4,7 @@ from contextlib import suppress
 from typing import Any, AsyncIterator, Optional, Sequence
 
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.methods.configuration import (
+from aiovantage.config_client.interfaces.configuration import (
     CloseFilter,
     GetFilterResults,
     GetObject,

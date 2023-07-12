@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import ClassVar, List, Optional
 
-from aiovantage.config_client.methods.types import ObjectChoice
+from aiovantage.config_client.interfaces.types import ObjectChoice
 
 
 @dataclass
