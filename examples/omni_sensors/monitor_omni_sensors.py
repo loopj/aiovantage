@@ -7,7 +7,7 @@ import logging
 from typing import Any, Dict
 
 from aiovantage import Vantage, VantageEvent
-from aiovantage.config_client.models import OmniSensor
+from aiovantage.models import OmniSensor
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
