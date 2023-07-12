@@ -10,13 +10,13 @@ with one or more "methods".
 The `ConfigClient` class handles connecting to the ACI service, authenticating, and the
 serialization/deserialization of XML requests and responses.
 
-Various pre-defined method classes are available in [`methods`](methods) to help with
+Various pre-defined classes are available in [`interfaces`](interfaces) to help with
 creating XML serialized requests, but it is also possible to make raw XML requests to
 a particular interface.
 
 Since a common use case for interacting with the ACI service is to lookup system
 objects, this module also provides models to help with deserializing many of these
-object types, available in [`objects`](objects).
+object types, available in [`models`](models).
 
 Additionally, a few helper functions for fetching objects are provided by
 [`requests.py`](requests.py).
