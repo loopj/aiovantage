@@ -3,4 +3,4 @@
 # pylint: disable=wildcard-import,unused-wildcard-import
 # ruff: noqa: F403
 
-from aiovantage.config_client.models import *
+from .config_client.models import *

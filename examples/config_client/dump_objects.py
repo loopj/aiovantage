@@ -6,7 +6,7 @@ import contextlib
 import logging
 
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.helpers import get_objects
+from aiovantage.config_client.requests import get_objects
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")

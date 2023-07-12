@@ -3,14 +3,15 @@
 from contextlib import suppress
 from typing import Any, AsyncIterator, Optional, Sequence
 
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.interfaces.configuration import (
+from aiovantage.errors import ClientError, ClientResponseError
+
+from . import ConfigClient
+from .interfaces.configuration import (
     CloseFilter,
     GetFilterResults,
     GetObject,
     OpenFilter,
 )
-from aiovantage.errors import ClientError, ClientResponseError
 
 
 async def get_objects(

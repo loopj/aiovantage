@@ -5,7 +5,7 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import BlindInterface
-from aiovantage.config_client.models import BlindBase
+from aiovantage.models import BlindBase
 
 from .base import BaseController, State
 
