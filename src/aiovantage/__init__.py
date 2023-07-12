@@ -10,7 +10,7 @@ from typing_extensions import Self
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.objects import SystemObject
+from aiovantage.config_client.models import SystemObject
 from aiovantage.controllers.anemo_sensors import AnemoSensorsController
 from aiovantage.controllers.areas import AreasController
 from aiovantage.controllers.base import BaseController, EventCallback

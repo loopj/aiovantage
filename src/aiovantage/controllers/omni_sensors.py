@@ -5,7 +5,7 @@ from typing import Sequence, Union
 
 from typing_extensions import override
 
-from aiovantage.config_client.objects import OmniSensor
+from aiovantage.config_client.models import OmniSensor
 from aiovantage.controllers.base import BaseController, State
 
 

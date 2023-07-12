@@ -5,7 +5,7 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import TaskInterface
-from aiovantage.config_client.objects import Task
+from aiovantage.config_client.models import Task
 
 from .base import BaseController, State
 

@@ -87,7 +87,7 @@ ignore = [
 ]
 
 [tool.ruff.per-file-ignores]
-"src/aiovantage/config_client/objects/**/*.py" = [
+"src/aiovantage/config_client/models/**/*.py" = [
     "D106"  # Missing docstring in public nested class
 ]
 

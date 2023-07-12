@@ -24,7 +24,7 @@ from aiovantage.command_client import CommandClient, Event, EventStream, EventTy
 from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.helpers import get_objects
-from aiovantage.config_client.objects import SystemObject
+from aiovantage.config_client.models import SystemObject
 from aiovantage.events import VantageEvent
 from aiovantage.query import QuerySet
 

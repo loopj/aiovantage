@@ -7,7 +7,7 @@ import logging
 from typing import Optional
 
 from aiovantage import Vantage
-from aiovantage.config_client.objects import Area, Load
+from aiovantage.config_client.models import Area, Load
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")

@@ -5,7 +5,7 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.command_client.interfaces import TemperatureInterface
-from aiovantage.config_client.objects import Temperature
+from aiovantage.config_client.models import Temperature
 
 from .base import BaseController, State
 

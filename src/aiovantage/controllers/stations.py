@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage stations."""
 
-from aiovantage.config_client.objects import StationObject
+from aiovantage.config_client.models import StationObject
 from aiovantage.controllers.base import BaseController
 
 

@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage modules."""
 
-from aiovantage.config_client.objects import SystemObject
+from aiovantage.config_client.models import SystemObject
 from aiovantage.controllers.base import BaseController
 
 
