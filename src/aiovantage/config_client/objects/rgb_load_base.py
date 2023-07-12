@@ -9,7 +9,7 @@ from .location_object import LocationObject
 
 
 @dataclass
-class RGBLoadBase(LocationObject, ChildObject):
+class RGBLoadBase(ChildObject, LocationObject):
     """RGB load base class."""
 
     class ColorType(Enum):

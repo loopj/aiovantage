@@ -8,7 +8,7 @@ from .location_object import LocationObject
 
 
 @dataclass
-class Load(LocationObject, ChildObject):
+class Load(ChildObject, LocationObject):
     """Load object."""
 
     load_type: str = field(

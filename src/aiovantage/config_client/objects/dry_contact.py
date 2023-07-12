@@ -8,7 +8,7 @@ from .location_object import LocationObject
 
 
 @dataclass
-class DryContact(LocationObject, ChildObject):
+class DryContact(ChildObject, LocationObject):
     """DryContact object."""
 
     triggered: Optional[bool] = field(

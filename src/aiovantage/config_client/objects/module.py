@@ -7,5 +7,5 @@ from .system_object import SystemObject
 
 
 @dataclass
-class Module(SystemObject, ChildObject):
+class Module(ChildObject, SystemObject):
     """Module object."""

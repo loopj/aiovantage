@@ -9,7 +9,7 @@ from .sensor import Sensor
 
 
 @dataclass
-class Temperature(Sensor, ChildObject):
+class Temperature(ChildObject, Sensor):
     """Temperature object."""
 
     value: Optional[Decimal] = field(

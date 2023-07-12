@@ -8,7 +8,7 @@ from .system_object import SystemObject
 
 
 @dataclass
-class Button(SystemObject, ChildObject):
+class Button(ChildObject, SystemObject):
     """Button object."""
 
     text1: str = field(

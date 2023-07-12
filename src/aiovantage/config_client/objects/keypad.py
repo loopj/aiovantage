@@ -7,5 +7,5 @@ from .station_object import StationObject
 
 
 @dataclass
-class Keypad(StationObject, ChildObject):
+class Keypad(ChildObject, StationObject):
     """Keypad Station."""

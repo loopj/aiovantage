@@ -51,7 +51,7 @@ class GetMethodType:
 
 
 @dataclass
-class OmniSensor(Sensor, ChildObject):
+class OmniSensor(ChildObject, Sensor):
     """OmniSensor object."""
 
     get: GetMethodType = field(

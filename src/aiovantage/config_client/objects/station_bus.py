@@ -7,5 +7,5 @@ from .system_object import SystemObject
 
 
 @dataclass
-class StationBus(SystemObject, ChildObject):
+class StationBus(ChildObject, SystemObject):
     """Station bus object."""

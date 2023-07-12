@@ -9,7 +9,7 @@ from .sensor import Sensor
 
 
 @dataclass
-class LightSensor(Sensor, ChildObject):
+class LightSensor(ChildObject, Sensor):
     """Light sensor object."""
 
     level: Optional[Decimal] = field(

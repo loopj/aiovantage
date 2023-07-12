@@ -9,7 +9,7 @@ from .sensor import Sensor
 
 
 @dataclass
-class AnemoSensor(Sensor, ChildObject):
+class AnemoSensor(ChildObject, Sensor):
     """AnemoSensor (wind sensor) object."""
 
     speed: Optional[Decimal] = field(

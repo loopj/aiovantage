@@ -2,31 +2,40 @@
 
 import inspect
 from dataclasses import dataclass, field
-from typing import Any, Type
+from functools import cache
+from types import ModuleType
+from typing import Any, Dict, List, Type
 
-import aiovantage.config_client.objects
-
-# Get all Vantage object from aiovantage.config_client.objects
-ALL_OBJECT_TYPES = [
-    item
-    for _, item in inspect.getmembers(aiovantage.config_client.objects, inspect.isclass)
-]
+import aiovantage.config_client.objects as models
 
 
-def xml_tag_from_class(cls: Type[Any]) -> str:
-    """Get the XML tag name for a class."""
-    meta = getattr(cls, "Meta", None)
-    name = getattr(meta, "name", cls.__qualname__)
+def get_all_module_classes(module: ModuleType) -> List[Type[Any]]:
+    """Get all classes from a module."""
+    classes = []
+    for _, cls in inspect.getmembers(module, inspect.isclass):
+        classes.append(cls)
 
-    return name
+    return classes
+
+
+@cache
+def get_all_object_choices(module: ModuleType) -> List[Dict[str, Any]]:
+    """Get all object choices from a module."""
+    choices = []
+    for cls in get_all_module_classes(module):
+        # Get the name of the XML element
+        meta = getattr(cls, "Meta", None)
+        name = getattr(meta, "name", cls.__qualname__)
+
+        # Add the xsdata choice
+        choices.append({"name": name, "type": cls})
+
+    return choices
 
 
 @dataclass
 class ObjectChoice:
-    """ObjectChoice type definition.
-
-    Wildcard type that can be used to represent any object type.
-    """
+    """Wildcard type that can be used to represent any object."""
 
     id: int = field(
         metadata={
@@ -38,12 +47,6 @@ class ObjectChoice:
     choice: object = field(
         metadata={
             "type": "Wildcard",
-            "choices": [
-                {
-                    "name": xml_tag_from_class(cls),
-                    "type": cls,
-                }
-                for cls in ALL_OBJECT_TYPES
-            ],
+            "choices": get_all_object_choices(models),
         },
     )

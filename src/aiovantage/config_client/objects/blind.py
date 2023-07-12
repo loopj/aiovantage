@@ -8,5 +8,5 @@ from .location_object import LocationObject
 
 
 @dataclass
-class Blind(BlindBase, LocationObject, ChildObject):
+class Blind(BlindBase, ChildObject, LocationObject):
     """Blind object."""

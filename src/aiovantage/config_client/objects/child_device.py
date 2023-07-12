@@ -7,5 +7,5 @@ from .custom_device import CustomDevice
 
 
 @dataclass
-class ChildDevice(CustomDevice, ChildObject):
+class ChildDevice(ChildObject, CustomDevice):
     """Base class for child device objects."""
