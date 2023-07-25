@@ -22,7 +22,6 @@ and will automatically reconnect if the connection is lost.
 Various pre-defined interfaces are available in [`interfaces`](interfaces) to help with
 making object-centric requests, but it is also possible to make raw requests.
 
-
 ## Examples
 
 ### Turn on a load, using the `Load` interface
@@ -46,7 +45,6 @@ async with CommandClient("10.2.0.103") as client:
     level = await LoadInterface(client).get_level(118)
 ```
 
-
 ### Turn on a load, using raw commands
 
 ```python
@@ -56,7 +54,6 @@ async with CommandClient("10.2.0.103") as client:
     # Set load with id 118 to 100%
     await client.command("LOAD", 118, 100)
 ```
-
 
 ### Subscribe to load events
 
