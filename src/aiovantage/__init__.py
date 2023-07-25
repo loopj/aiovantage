@@ -26,6 +26,7 @@ from .controllers import (
     ModulesController,
     OmniSensorsController,
     PortDevicesController,
+    PowerProfilesController,
     RGBLoadsController,
     StationsController,
     TasksController,
@@ -91,6 +92,7 @@ class Vantage:
         self._rgb_loads = self._add_controller(RGBLoadsController)
         self._omni_sensors = self._add_controller(OmniSensorsController)
         self._port_devices = self._add_controller(PortDevicesController)
+        self._power_profiles = self._add_controller(PowerProfilesController)
         self._stations = self._add_controller(StationsController)
         self._tasks = self._add_controller(TasksController)
         self._temperature_sensors = self._add_controller(TemperatureSensorsController)
@@ -199,6 +201,11 @@ class Vantage:
     def port_devices(self) -> PortDevicesController:
         """Return the PortDevices controller for managing port devices."""
         return self._port_devices
+
+    @property
+    def power_profiles(self) -> PowerProfilesController:
+        """Return the PowerProfiles controller for managing power profiles."""
+        return self._power_profiles
 
     @property
     def rgb_loads(self) -> RGBLoadsController:

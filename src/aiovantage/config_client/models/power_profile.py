@@ -38,3 +38,8 @@ class PowerProfile(SystemObject):
             "name": "Inductive",
         }
     )
+
+    @property
+    def is_dimmable(self) -> bool:
+        """Return True if loads with this profile are dimmable."""
+        return self.max > self.min
