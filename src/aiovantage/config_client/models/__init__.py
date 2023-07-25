@@ -26,6 +26,7 @@ from .master import Master
 from .module import Module
 from .module_gen2 import ModuleGen2
 from .omni_sensor import OmniSensor
+from .parent_device import ParentDevice
 from .port_device import PortDevice
 from .power_profile import PowerProfile
 from .pwm_power_profile import PWMPowerProfile
@@ -77,6 +78,7 @@ __all__ = [
     "Module",
     "ModuleGen2",
     "OmniSensor",
+    "ParentDevice",
     "PortDevice",
     "PowerProfile",
     "PWMPowerProfile",

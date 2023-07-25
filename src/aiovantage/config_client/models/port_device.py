@@ -3,9 +3,9 @@
 
 from dataclasses import dataclass
 
-from .system_object import SystemObject
+from .parent_device import ParentDevice
 
 
 @dataclass
-class PortDevice(SystemObject):
+class PortDevice(ParentDevice):
     """Base class for Vantage port devices."""
