@@ -69,8 +69,7 @@ hatch version <major|minor|patch>
 Then build the package
 
 ```bash
-hatch clean
-hatch build
+hatch build -c
 ```
 
 ## 🚀 Publish a release
