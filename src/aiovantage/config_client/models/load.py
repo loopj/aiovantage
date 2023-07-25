@@ -32,7 +32,7 @@ class Load(ChildObject, LocationObject):
 
     @property
     def is_relay(self) -> bool:
-        """Return True if the load is a relay."""
+        """Return True if the load type is a relay."""
         return self.load_type in (
             "High Voltage Relay",
             "Low Voltage Relay",
@@ -40,18 +40,13 @@ class Load(ChildObject, LocationObject):
 
     @property
     def is_motor(self) -> bool:
-        """Return True if the load is a motor."""
+        """Return True if the load type is a motor."""
         return self.load_type == "Motor"
 
     @property
     def is_light(self) -> bool:
-        """Return True if the load is a light."""
+        """Return True if the load type is inferred to be a light."""
         return not (self.is_relay or self.is_motor)
-
-    @property
-    def is_dimmable(self) -> bool:
-        """Return True if the load is dimmable."""
-        return not self.load_type.endswith("non-Dim")
 
     @property
     def is_on(self) -> bool:

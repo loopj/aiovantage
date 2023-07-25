@@ -15,6 +15,7 @@ from .masters import MastersController
 from .modules import ModulesController
 from .omni_sensors import OmniSensorsController
 from .port_devices import PortDevicesController
+from .power_profiles import PowerProfilesController
 from .rgb_loads import RGBLoadsController
 from .stations import StationsController
 from .tasks import TasksController
@@ -36,6 +37,7 @@ __all__ = [
     "ModulesController",
     "OmniSensorsController",
     "PortDevicesController",
+    "PowerProfilesController",
     "RGBLoadsController",
     "StationsController",
     "TasksController",
