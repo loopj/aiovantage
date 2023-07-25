@@ -37,6 +37,7 @@ from .rgb_load_base import RGBLoadBase
 from .scene_point_relay import ScenePointRelay
 from .sensor import Sensor
 from .somfy_rs_485_group_child import SomfyRS485GroupChild
+from .somfy_rs_485_sdn_20_port import SomfyRS485SDN20Port
 from .somfy_rs_485_shade_child import SomfyRS485ShadeChild
 from .somfy_urtsi_2_group_child import SomfyURTSI2GroupChild
 from .somfy_urtsi_2_port import SomfyURTSI2Port
@@ -89,6 +90,7 @@ __all__ = [
     "ScenePointRelay",
     "Sensor",
     "SomfyRS485GroupChild",
+    "SomfyRS485SDN20Port",
     "SomfyRS485ShadeChild",
     "SomfyURTSI2GroupChild",
     "SomfyURTSI2Port",
