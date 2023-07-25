@@ -47,3 +47,8 @@ class Button(ChildObject, SystemObject):
             "type": "Ignore",
         },
     )
+
+    @property
+    def text(self) -> str:
+        """Return the button text."""
+        return f"{self.text1}\n{self.text2}" if self.text2 else self.text1
