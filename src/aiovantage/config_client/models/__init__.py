@@ -26,6 +26,7 @@ from .master import Master
 from .module import Module
 from .module_gen2 import ModuleGen2
 from .omni_sensor import OmniSensor
+from .port_device import PortDevice
 from .power_profile import PowerProfile
 from .pwm_power_profile import PWMPowerProfile
 from .qis_blind import QISBlind
@@ -37,6 +38,7 @@ from .sensor import Sensor
 from .somfy_rs_485_group_child import SomfyRS485GroupChild
 from .somfy_rs_485_shade_child import SomfyRS485ShadeChild
 from .somfy_urtsi_2_group_child import SomfyURTSI2GroupChild
+from .somfy_urtsi_2_port import SomfyURTSI2Port
 from .somfy_urtsi_2_shade_child import SomfyURTSI2ShadeChild
 from .station_bus import StationBus
 from .station_object import StationObject
@@ -46,6 +48,7 @@ from .temperature import Temperature
 from .vantage_ddg_color_load import VantageDDGColorLoad
 from .vantage_dg_color_load import VantageDGColorLoad
 from .vantage_dmx_dali_gateway import VantageDmxDaliGateway
+from .vantage_dmx_gateway import VantageDmxGateway
 
 __all__ = [
     "AnemoSensor",
@@ -74,6 +77,7 @@ __all__ = [
     "Module",
     "ModuleGen2",
     "OmniSensor",
+    "PortDevice",
     "PowerProfile",
     "PWMPowerProfile",
     "QISBlind",
@@ -85,6 +89,7 @@ __all__ = [
     "SomfyRS485GroupChild",
     "SomfyRS485ShadeChild",
     "SomfyURTSI2GroupChild",
+    "SomfyURTSI2Port",
     "SomfyURTSI2ShadeChild",
     "StationBus",
     "StationObject",
@@ -94,4 +99,5 @@ __all__ = [
     "VantageDDGColorLoad",
     "VantageDGColorLoad",
     "VantageDmxDaliGateway",
+    "VantageDmxGateway",
 ]
