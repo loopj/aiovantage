@@ -58,6 +58,7 @@ The following interfaces/controllers are currently supported.
 | Master        | Vantage controllers   | `vantage.masters`             | [Examples](examples/masters)              |
 | Module        | Dimmer modules        | `vantage.modules`             |                                           |
 | OmniSensor    | Power, current, etc   | `vantage.omni_sensors`        | [Examples](examples/omni_sensors)         |
+| PowerProfile  | Load power profiles   | `vantage.power_profiles`      | [Examples](examples/power_profiles)       |
 | RGBLoad       | RGB lights            | `vantage.rgb_loads`           | [Examples](examples/rgb_loads)            |
 | Stations      | Keypads, etc          | `vantage.stations`            | [Examples](examples/stations)             |
 | Tasks         | Vantage tasks         | `vantage.tasks`               | [Examples](examples/tasks)                |
