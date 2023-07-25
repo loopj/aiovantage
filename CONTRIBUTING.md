@@ -69,6 +69,7 @@ hatch version <major|minor|patch>
 Then build the package
 
 ```bash
+hatch clean
 hatch build
 ```
 
@@ -95,3 +96,5 @@ Publish the release to PyPi
 ```bash
 hatch publish
 ```
+
+Don't forget to [create a release on GitHub](https://github.com/loopj/aiovantage/releases/new).
