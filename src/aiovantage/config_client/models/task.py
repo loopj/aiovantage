@@ -17,7 +17,7 @@ class Task(SystemObject):
         },
     )
 
-    state: Optional[bool] = field(
+    state: Optional[int] = field(
         default=None,
         metadata={
             "type": "Ignore",
