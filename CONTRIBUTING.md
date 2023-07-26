@@ -8,6 +8,7 @@ First off, thanks for taking the time to contribute!
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [🔨 Set up Development Environment](#-set-up-development-environment)
+- [💡 Adding support for new devices](#-adding-support-for-new-devices)
 - [✨ Submit your work](#-submit-your-work)
 - [🎨 Style guidelines](#-style-guidelines)
 - [📦️ Build a package](#%EF%B8%8F-build-a-package)
@@ -34,6 +35,23 @@ If you'd prefer to manage your own python environment, you can install the devel
 ```bash
 pip install -e ".[dev]"
 ```
+
+## 💡 Adding support for new devices
+
+### Adding a new object type to an existing controller
+
+To add a new object type to an existing controller, follow these steps:
+
+- Create a new [xsdata-style `@dataclass`](https://xsdata.readthedocs.io/en/latest/models.html) model in `src/aiovantage/config_client/models/`
+- The new class should inherit from the appropriate subclass expected by the controller
+- Your class name should match the Vantage object name if possible, otherwise use [class metadata](https://xsdata.readthedocs.io/en/latest/models.html#class-metadata) to specify the name
+- Export the class in `src/aiovantage/config_client/models/__init__.py` so it can be automatically parsed
+- Add the object name to the `vantage_types` tuple in the appropriate controller in `src/aiovantage/config_client/controllers/`, so we know to fetch it when populating the controller
+- Test that the object appears in the controller, by running the `dump_system.py` example script
+
+### Adding support for a new class of device
+
+If you want to add support for a new class of device, you'll need to add a new controller. Create an issue to discuss the new controller before you start working on it.
 
 ## ✨ Submit your work
 
