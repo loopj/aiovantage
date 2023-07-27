@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 from enum import IntEnum
+from typing import Any, Dict, List
 
 from .base import Interface
 
@@ -278,3 +279,98 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.SetAutoSetPoint <temp>
         # -> R:INVOKE <id> Thermostat.SetAutoSetPoint <temp>
         await self.invoke(vid, "Thermostat.SetAutoSetPoint", temp)
+
+    @staticmethod
+    def parse_status(_vid: int, method: str, args: List[str]) -> Dict[str, Any]:
+        """Parse a Thermostat status event."""
+        if method == "Thermostat.GetIndoorTemperature":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetIndoorTemperature <temp>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetIndoorTemperature <temp>
+            return {
+                "indoor_temperature": Decimal(args[0]),
+            }
+
+        if method == "Thermostat.GetOutdoorTemperature":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetOutdoorTemperature <temp>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetOutdoorTemperature <temp>
+            return {
+                "outdoor_temperature": Decimal(args[0]),
+            }
+
+        if method == "Thermostat.GetHeatSetPoint":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetHeatSetPoint <temp>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetHeatSetPoint <temp>
+            return {
+                "heat_set_point": Decimal(args[0]),
+            }
+
+        if method == "Thermostat.GetCoolSetPoint":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetCoolSetPoint <temp>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetCoolSetPoint <temp>
+            return {
+                "cool_set_point": Decimal(args[0]),
+            }
+
+        if method == "Thermostat.GetOperationMode":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetOperationMode <mode>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetOperationMode <mode>
+            return {
+                "operation_mode": ThermostatInterface.OperationMode(int(args[0])),
+            }
+
+        if method == "Thermostat.GetFanMode":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetFanMode <mode>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetFanMode <mode>
+            return {
+                "fan_mode": ThermostatInterface.FanMode(int(args[0])),
+            }
+
+        if method == "Thermostat.GetDayMode":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetDayMode <mode>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetDayMode <mode>
+            return {
+                "day_mode": ThermostatInterface.DayMode(int(args[0])),
+            }
+
+        if method == "Thermostat.GetHoldMode":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetHoldMode <mode>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetHoldMode <mode>
+            return {
+                "hold_mode": ThermostatInterface.HoldMode(int(args[0])),
+            }
+
+        if method == "Thermostat.GetStatus":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetStatus <status>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetStatus <status>
+            return {
+                "status": ThermostatInterface.Status(int(args[0])),
+            }
+
+        if method == "Thermostat.GetAutoSetPoint":
+            # ADDSTATUS <id>
+            # -> S:STATUS <id> Thermostat.GetAutoSetPoint <temp>
+            # ELLOG STATUSEX ON
+            # -> EL: <id> Thermostat.GetAutoSetPoint <temp>
+            return {
+                "auto_set_point": Decimal(args[0]),
+            }
+
+        return {}
