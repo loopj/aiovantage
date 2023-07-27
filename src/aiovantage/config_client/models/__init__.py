@@ -47,6 +47,7 @@ from .station_object import StationObject
 from .system_object import SystemObject
 from .task import Task
 from .temperature import Temperature
+from .thermostat import Thermostat
 from .vantage_ddg_color_load import VantageDDGColorLoad
 from .vantage_dg_color_load import VantageDGColorLoad
 from .vantage_dmx_dali_gateway import VantageDmxDaliGateway
@@ -100,6 +101,7 @@ __all__ = [
     "SystemObject",
     "Task",
     "Temperature",
+    "Thermostat",
     "VantageDDGColorLoad",
     "VantageDGColorLoad",
     "VantageDmxDaliGateway",

@@ -14,6 +14,7 @@ from .sensor import SensorInterface
 from .sounder import SounderInterface
 from .task import TaskInterface
 from .temperature import TemperatureInterface
+from .thermostat import ThermostatInterface
 
 __all__ = [
     "AnemoSensorInterface",
@@ -30,4 +31,5 @@ __all__ = [
     "SounderInterface",
     "TaskInterface",
     "TemperatureInterface",
+    "ThermostatInterface",
 ]

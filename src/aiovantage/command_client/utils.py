@@ -3,7 +3,10 @@
 import re
 import struct
 from decimal import Decimal, InvalidOperation
-from typing import Sequence, Type, Union
+from enum import Enum
+from typing import Sequence, Type, Union, cast
+
+from typing_extensions import Self
 
 TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\[.*?\])|(\S+)')
 
@@ -192,3 +195,35 @@ def encode_byte_param(byte_array: bytearray) -> str:
     data = "{" + ",".join(tokens) + "}"
 
     return data
+
+
+class IntStrEnum(Enum):
+    """Enum with integer and string values."""
+
+    @property
+    def int_value(self) -> int:
+        """Get the integer value of the enum."""
+        return cast(int, self.value[0])
+
+    @property
+    def str_value(self) -> str:
+        """Get the string value of the enum."""
+        return cast(str, self.value[1])
+
+    @classmethod
+    def from_int(cls, integer: int) -> Self:
+        """Get the enum value from an integer."""
+        for enum in cls:
+            if enum.value[0] == integer:
+                return enum
+
+        raise ValueError(f"Invalid enum integer: {integer}")
+
+    @classmethod
+    def from_str(cls, string: str) -> Self:
+        """Get the enum value from a string."""
+        for enum in cls:
+            if enum.value[1] == string:
+                return enum
+
+        raise ValueError(f"Invalid enum string: {string}")
