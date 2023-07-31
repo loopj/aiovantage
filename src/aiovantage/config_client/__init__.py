@@ -100,6 +100,40 @@ class ConfigClient:
         """Close the connection to the ACI service."""
         self._connection.close()
 
+    async def raw_request(
+        self,
+        interface: str,
+        raw_method: str,
+        connection: Optional[ConfigConnection] = None,
+    ) -> str:
+        """Send a raw request to the ACI service and return the raw response.
+
+        Args:
+            interface: The interface to send the request to.
+            raw_method: The raw XML request to send.
+            connection: The connection to use, if not the default.
+
+        Returns:
+            The raw XML response.
+        """
+        # Open the connection if it's closed
+        conn = connection or await self.get_connection()
+
+        # Render the method object to XML with xsdata
+        request = f"<{interface}>{raw_method}</{interface}>"
+        self._logger.debug("Sending request: %s", request)
+
+        # Send the request and read the response
+        async with self._request_lock:
+            await conn.write(request)
+            response = await conn.readuntil(
+                f"</{interface}>\n".encode(), timeout=self._read_timeout
+            )
+
+        self._logger.debug("Received response: %s", response)
+
+        return response
+
     async def request(
         self,
         method_cls: Type[Method[Call, Return]],
@@ -116,28 +150,14 @@ class ConfigClient:
         Returns:
             The parsed response object
         """
-        # Open the connection if it's closed
-        conn = connection or await self.get_connection()
-
         # Build the method object
         method = method_cls()
         method.call = params
 
-        # Render the method object to XML with xsdata
-        request = (
-            f"<{method.interface}>"
-            + self._serializer.render(method)
-            + f"</{method.interface}>"
+        # Render the method object to XML with xsdata and send the request
+        response = await self.raw_request(
+            method.interface, self._serializer.render(method), connection
         )
-        self._logger.debug("Sending request: %s", request)
-
-        # Send the request and read the response
-        async with self._request_lock:
-            await conn.write(request)
-            response = await conn.readuntil(
-                f"</{method.interface}>\n".encode(), timeout=self._read_timeout
-            )
-        self._logger.debug("Received response: %s", response)
 
         # Parse the XML doc
         root = ElementTree.fromstring(response)
