@@ -33,7 +33,7 @@ from aiovantage.connection import BaseConnection
 from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
 
 from .interfaces import Call, Method, Return
-from .interfaces.introspection import GetVersion
+from .interfaces.introspection import GetSysInfo
 from .interfaces.login import Login
 
 
@@ -206,12 +206,12 @@ class ConfigClient:
                         raise LoginFailedError("Login failed, bad username or password")
                 else:
                     # Check if login is required if we don't have credentials
-                    version = await self.request(
-                        GetVersion,
+                    sys_info_response = await self.request(
+                        GetSysInfo,
                         connection=self._connection,
                     )
 
-                    if version is None:
+                    if sys_info_response is None:
                         raise LoginRequiredError(
                             "Login required, but no credentials were provided"
                         )
