@@ -1,12 +1,18 @@
 """Blind object."""
 
-from attr import define
+from attr import define, field
 
 from .blind_base import BlindBase
-from .child_object import ChildObject
 from .location_object import LocationObject
+from .types import Parent
 
 
 @define
-class Blind(BlindBase, ChildObject, LocationObject):
+class Blind(BlindBase, LocationObject):
     """Blind object."""
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )

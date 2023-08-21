@@ -34,7 +34,7 @@ def get_all_object_choices(module: ModuleType) -> List[Dict[str, Any]]:
     return choices
 
 
-@define(kw_only=True, slots=False)
+@define
 class ObjectChoice:
     """Wildcard type that can be used to represent any object."""
 

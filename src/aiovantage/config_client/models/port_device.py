@@ -3,9 +3,11 @@
 
 from attr import define
 
-from .parent_device import ParentDevice
+from .location_object import LocationObject
+
+# NOTE: Inherits from LocationObject on 2.x firmware, ParentDevice on 3.x firmware.
 
 
 @define
-class PortDevice(ParentDevice):
+class PortDevice(LocationObject):
     """Base class for Vantage port devices."""

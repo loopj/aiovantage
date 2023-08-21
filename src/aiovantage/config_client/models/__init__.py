@@ -8,7 +8,6 @@ from .blind_group import BlindGroup
 from .blind_group_base import BlindGroupBase
 from .button import Button
 from .child_device import ChildDevice
-from .child_object import ChildObject
 from .custom_device import CustomDevice
 from .dc_power_profile import DCPowerProfile
 from .dimmer import Dimmer
@@ -47,6 +46,7 @@ from .station_object import StationObject
 from .system_object import SystemObject
 from .task import Task
 from .temperature import Temperature
+from .types import Parent
 from .vantage_ddg_color_load import VantageDDGColorLoad
 from .vantage_dg_color_load import VantageDGColorLoad
 from .vantage_dmx_dali_gateway import VantageDmxDaliGateway
@@ -61,7 +61,6 @@ __all__ = [
     "BlindGroupBase",
     "Button",
     "ChildDevice",
-    "ChildObject",
     "CustomDevice",
     "DCPowerProfile",
     "Dimmer",
@@ -79,6 +78,7 @@ __all__ = [
     "Module",
     "ModuleGen2",
     "OmniSensor",
+    "Parent",
     "ParentDevice",
     "PortDevice",
     "PowerProfile",

@@ -5,13 +5,19 @@ from typing import Optional
 
 from attr import define, field
 
-from .child_object import ChildObject
 from .sensor import Sensor
+from .types import Parent
 
 
 @define
-class LightSensor(ChildObject, Sensor):
+class LightSensor(Sensor):
     """Light sensor object."""
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )
 
     level: Optional[Decimal] = field(
         default=None,

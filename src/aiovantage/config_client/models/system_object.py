@@ -42,7 +42,8 @@ class SystemObject:
         }
     )
 
-    mtime: XmlDateTime = field(
+    # Not available in 2.x firmware
+    mtime: Optional[XmlDateTime] = field(
         default=None,
         metadata={
             "name": "MTimes",
@@ -50,6 +51,7 @@ class SystemObject:
         },
     )
 
+    # Not available in 2.x firmware
     display_name: Optional[str] = field(
         default=None,
         metadata={

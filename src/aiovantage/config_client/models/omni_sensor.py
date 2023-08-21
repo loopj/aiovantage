@@ -6,8 +6,8 @@ from typing import Union
 
 from attr import define, field
 
-from .child_object import ChildObject
 from .sensor import Sensor
+from .types import Parent
 
 
 class ConversionType(Enum):
@@ -62,8 +62,14 @@ class GetMethodType:
 
 
 @define
-class OmniSensor(ChildObject, Sensor):
+class OmniSensor(Sensor):
     """OmniSensor object."""
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )
 
     get: GetMethodType = field(
         metadata={

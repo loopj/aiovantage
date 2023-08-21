@@ -1,11 +1,17 @@
 """Base class for child device objects."""
 
-from attr import define
+from attr import define, field
 
-from .child_object import ChildObject
 from .custom_device import CustomDevice
+from .types import Parent
 
 
 @define
-class ChildDevice(ChildObject, CustomDevice):
+class ChildDevice(CustomDevice):
     """Base class for child device objects."""
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )

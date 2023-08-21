@@ -53,6 +53,7 @@ class SounderInterface(Interface):
         # -> R:INVOKE <id> <rcode> Sounder.SetFrequency
         await self.invoke(vid, "Sounder.SetFrequency", frequency)
 
+    # Not available in 2.x firmware
     async def play_fx(
         self, vid: int, effect: int, duration: float = 0, volume: float = 0
     ) -> None:

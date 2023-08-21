@@ -45,6 +45,17 @@ class BlindInterface(Interface):
         # -> R:INVOKE <id> <rcode> Blind.Stop
         await self.invoke(vid, "Blind.Stop")
 
+    async def set_position(self, vid: int, position: float) -> None:
+        """Set the position of a blind.
+
+        Args:
+            vid: The Vantage ID of the blind.
+            position: The position to set the blind to, as a percentage.
+        """
+        # INVOKE <id> Blind.SetPosition <position>
+        # -> R:INVOKE <id> <rcode> Blind.SetPosition <position>
+        await self.invoke(vid, "Blind.SetPosition", position)
+
     async def get_position(self, vid: int) -> Decimal:
         """Get the position of a blind.
 
@@ -60,17 +71,6 @@ class BlindInterface(Interface):
         position = Decimal(response.args[1])
 
         return position
-
-    async def set_position(self, vid: int, position: float) -> None:
-        """Set the position of a blind.
-
-        Args:
-            vid: The Vantage ID of the blind.
-            position: The position to set the blind to, as a percentage.
-        """
-        # INVOKE <id> Blind.SetPosition <position>
-        # -> R:INVOKE <id> <rcode> Blind.SetPosition <position>
-        await self.invoke(vid, "Blind.SetPosition", position)
 
     @classmethod
     def parse_blind_status(cls, args: Sequence[str]) -> Decimal:

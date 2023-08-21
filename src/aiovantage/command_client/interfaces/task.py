@@ -8,6 +8,26 @@ from .base import Interface
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""
 
+    async def start(self, vid: int) -> None:
+        """Start a task.
+
+        Args:
+            vid: The Vantage ID of the task.
+        """
+        # INVOKE <id> Task.Start <source> <event> <param1> <param2>
+        # -> R:INVOKE <id> <rcode (0/1)> Task.Start <source> <event> <param1> <param2>
+        await self.invoke(vid, "Task.Start")
+
+    async def stop(self, vid: int) -> None:
+        """Stop a running task.
+
+        Args:
+            vid: The Vantage ID of the task.
+        """
+        # INVOKE <id> Task.Stop
+        # -> R:INVOKE <id> <rcode> Task.Stop
+        await self.invoke(vid, "Task.Stop")
+
     async def is_running(self, vid: int) -> bool:
         """Get the running state of a task.
 
@@ -33,26 +53,6 @@ class TaskInterface(Interface):
         task_state = bool(int(response.args[1]))
 
         return task_state
-
-    async def start(self, vid: int) -> None:
-        """Start a task.
-
-        Args:
-            vid: The Vantage ID of the task.
-        """
-        # INVOKE <id> Task.Start <source> <event> <param1> <param2>
-        # -> R:INVOKE <id> <rcode (0/1)> Task.Start <source> <event> <param1> <param2>
-        await self.invoke(vid, "Task.Start")
-
-    async def stop(self, vid: int) -> None:
-        """Stop a running task.
-
-        Args:
-            vid: The Vantage ID of the task.
-        """
-        # INVOKE <id> Task.Stop
-        # -> R:INVOKE <id> <rcode> Task.Stop
-        await self.invoke(vid, "Task.Stop")
 
     @classmethod
     def parse_task_status(cls, args: Sequence[str]) -> int:

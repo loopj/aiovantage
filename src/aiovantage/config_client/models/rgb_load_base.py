@@ -5,12 +5,12 @@ from typing import Optional, Tuple
 
 from attr import define, field
 
-from .child_object import ChildObject
 from .location_object import LocationObject
+from .types import Parent
 
 
 @define
-class RGBLoadBase(ChildObject, LocationObject):
+class RGBLoadBase(LocationObject):
     """RGB load base class."""
 
     class ColorType(Enum):
@@ -20,6 +20,12 @@ class RGBLoadBase(ChildObject, LocationObject):
         HSIC = "HSIC"
         CCT = "CCT"
         COLOR_CHANNEL = "Color Channel"
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )
 
     color_type: ColorType = field(
         metadata={

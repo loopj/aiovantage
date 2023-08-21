@@ -1,11 +1,17 @@
 """Module object."""
 
-from attr import define
+from attr import define, field
 
-from .child_object import ChildObject
 from .system_object import SystemObject
+from .types import Parent
 
 
 @define
-class Module(ChildObject, SystemObject):
+class Module(SystemObject):
     """Module object."""
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )
