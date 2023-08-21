@@ -1,11 +1,11 @@
 """DMX Gateway color load object."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .rgb_load_base import RGBLoadBase
 
 
-@dataclass
+@define
 class VantageDGColorLoad(RGBLoadBase):
     """DMX Gateway color load object."""
 

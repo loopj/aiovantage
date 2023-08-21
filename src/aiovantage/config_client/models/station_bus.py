@@ -1,11 +1,11 @@
 """Station bus object."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .child_object import ChildObject
 from .system_object import SystemObject
 
 
-@dataclass
+@define
 class StationBus(ChildObject, SystemObject):
     """Station bus object."""

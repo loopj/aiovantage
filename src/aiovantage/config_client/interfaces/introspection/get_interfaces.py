@@ -1,10 +1,11 @@
 """IIntrospection.GetInterfaces method definition."""
 
-from dataclasses import dataclass, field
 from typing import ClassVar, List, Optional
 
+from attr import define, field
 
-@dataclass
+
+@define
 class Interface:
     """Object interface definition."""
 
@@ -13,7 +14,7 @@ class Interface:
     id: int = field(metadata={"name": "IID"})
 
 
-@dataclass
+@define
 class GetInterfaces:
     """IIntrospection.GetInterfaces method definition."""
 

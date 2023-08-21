@@ -1,10 +1,10 @@
 """ScenePoint Dimmer Station."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .keypad import Keypad
 
 
-@dataclass
+@define
 class Dimmer(Keypad):
     """ScenePoint Dimmer Station."""

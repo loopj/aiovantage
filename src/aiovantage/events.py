@@ -1,7 +1,9 @@
 """Vantage events."""
 
 from enum import Enum
-from typing import Any, Callable, Dict, TypeAlias, TypeVar
+from typing import Any, Callable, Dict, TypeVar
+
+from typing_extensions import TypeAlias
 
 from .models import SystemObject
 

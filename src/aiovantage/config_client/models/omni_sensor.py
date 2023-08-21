@@ -1,9 +1,10 @@
 """OmniSensor object."""
 
-from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
 from typing import Union
+
+from attr import define, field
 
 from .child_object import ChildObject
 from .sensor import Sensor
@@ -16,7 +17,7 @@ class ConversionType(Enum):
     INT = "int"
 
 
-@dataclass
+@define
 class Formula:
     """OmniSensor conversion formula information."""
 
@@ -37,7 +38,7 @@ class Formula:
     value: str
 
 
-@dataclass
+@define
 class GetMethodType:
     """Omnisensor get method information."""
 
@@ -60,7 +61,7 @@ class GetMethodType:
     )
 
 
-@dataclass
+@define
 class OmniSensor(ChildObject, Sensor):
     """OmniSensor object."""
 

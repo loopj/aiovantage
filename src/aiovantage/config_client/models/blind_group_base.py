@@ -1,10 +1,10 @@
 """Blind group base class."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .blind_base import BlindBase
 
 
-@dataclass
+@define
 class BlindGroupBase(BlindBase):
     """Blind group base class."""

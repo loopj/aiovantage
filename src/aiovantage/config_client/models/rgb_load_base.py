@@ -1,14 +1,15 @@
 """RGB load object."""
 
-from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Tuple
+
+from attr import define, field
 
 from .child_object import ChildObject
 from .location_object import LocationObject
 
 
-@dataclass
+@define
 class RGBLoadBase(ChildObject, LocationObject):
     """RGB load base class."""
 

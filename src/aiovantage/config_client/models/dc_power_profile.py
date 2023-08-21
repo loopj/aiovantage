@@ -1,10 +1,10 @@
 """DCPowerProfile object."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .power_profile import PowerProfile
 
 
-@dataclass
+@define
 class DCPowerProfile(PowerProfile):
     """DCPowerProfile object."""

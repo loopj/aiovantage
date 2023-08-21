@@ -28,6 +28,7 @@ from xsdata.formats.dataclass.parsers.config import ParserConfig
 from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
+from xsdata_attrs.bindings import XmlContext
 
 from aiovantage.connection import BaseConnection
 from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
@@ -71,11 +72,13 @@ class ConfigClient:
 
         self._serializer = XmlSerializer(
             config=SerializerConfig(xml_declaration=False),
+            context=XmlContext(),
         )
 
         self._parser = XmlParser(
             config=ParserConfig(fail_on_unknown_properties=False),
             handler=XmlEventHandler,
+            context=XmlContext(),
         )
         self._connection_lock = asyncio.Lock()
         self._request_lock = asyncio.Lock()

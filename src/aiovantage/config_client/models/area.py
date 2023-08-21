@@ -1,10 +1,10 @@
 """Area object."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .location_object import LocationObject
 
 
-@dataclass
+@define
 class Area(LocationObject):
     """Area object."""

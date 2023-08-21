@@ -1,13 +1,14 @@
 """Load object."""
 
-from dataclasses import dataclass, field
 from typing import Optional
+
+from attr import define, field
 
 from .child_object import ChildObject
 from .location_object import LocationObject
 
 
-@dataclass
+@define
 class Load(ChildObject, LocationObject):
     """Load object."""
 

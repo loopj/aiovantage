@@ -1,12 +1,12 @@
 """Somfy RS-485 SDN 2.0 blind group."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .blind_group_base import BlindGroupBase
 from .child_device import ChildDevice
 
 
-@dataclass
+@define
 class SomfyRS485GroupChild(BlindGroupBase, ChildDevice):
     """Somfy RS-485 SDN 2.0 blind group."""
 

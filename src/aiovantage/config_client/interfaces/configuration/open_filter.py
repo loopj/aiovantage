@@ -1,10 +1,11 @@
 """IConfiguration.OpenFilter method definition."""
 
-from dataclasses import dataclass, field
 from typing import ClassVar, List, Optional
 
+from attr import define, field
 
-@dataclass
+
+@define
 class OpenFilter:
     """IConfiguration.OpenFilter method definition."""
 
@@ -17,7 +18,7 @@ class OpenFilter:
         },
     )
 
-    @dataclass
+    @define
     class Params:
         """IConfiguration.OpenFilter method parameters."""
 

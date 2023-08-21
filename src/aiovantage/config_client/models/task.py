@@ -1,12 +1,13 @@
 """Task object."""
 
-from dataclasses import dataclass, field
 from typing import Optional
+
+from attr import define, field
 
 from .system_object import SystemObject
 
 
-@dataclass
+@define
 class Task(SystemObject):
     """Task object."""
 

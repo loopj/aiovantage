@@ -1,11 +1,11 @@
 """Base class for system objects in an area."""
 
-from dataclasses import dataclass, field
+from attr import define, field
 
 from .system_object import SystemObject
 
 
-@dataclass
+@define(slots=False)
 class LocationObject(SystemObject):
     """Base class for system objects in an area."""
 

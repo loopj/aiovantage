@@ -1,11 +1,11 @@
 """Base class for Vantage port devices."""
 
 
-from dataclasses import dataclass
+from attr import define
 
 from .parent_device import ParentDevice
 
 
-@dataclass
+@define
 class PortDevice(ParentDevice):
     """Base class for Vantage port devices."""

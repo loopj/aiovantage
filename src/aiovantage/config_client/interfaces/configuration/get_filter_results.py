@@ -1,12 +1,13 @@
 """IConfiguration.GetFilterResults method definition."""
 
-from dataclasses import dataclass, field
 from typing import ClassVar, List, Optional
+
+from attr import define, field
 
 from aiovantage.config_client.interfaces.types import ObjectChoice
 
 
-@dataclass
+@define
 class GetFilterResults:
     """IConfiguration.GetFilterResults method definition."""
 
@@ -20,7 +21,7 @@ class GetFilterResults:
         },
     )
 
-    @dataclass
+    @define
     class Params:
         """IConfiguration.GetFilterResults method parameters."""
 

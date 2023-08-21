@@ -1,10 +1,10 @@
 """Somfy RS-485 SDN 2.0."""
-from dataclasses import dataclass
+from attr import define
 
 from .port_device import PortDevice
 
 
-@dataclass
+@define
 class SomfyRS485SDN20Port(PortDevice):
     """Somfy RS-485 SDN 2.0."""
 

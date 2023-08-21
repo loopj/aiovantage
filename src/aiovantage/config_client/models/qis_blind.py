@@ -1,11 +1,11 @@
 """QIS blind object."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .blind_base import BlindBase
 from .station_object import StationObject
 
 
-@dataclass
+@define
 class QISBlind(BlindBase, StationObject):
     """QIS blind object."""

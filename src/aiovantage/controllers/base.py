@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-from dataclasses import fields
 from inspect import iscoroutinefunction
 from typing import (
     TYPE_CHECKING,
@@ -19,6 +18,8 @@ from typing import (
     TypeVar,
     Union,
 )
+
+from attr import fields
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.utils import tokenize_response
@@ -146,7 +147,7 @@ class BaseController(QuerySet[T]):
                 prev_obj = self._items[obj.id]
                 attrs_changed = [
                     field.name
-                    for field in fields(prev_obj)
+                    for field in fields(type(prev_obj))
                     if getattr(prev_obj, field.name) != getattr(obj, field.name)
                     and field.name != "mtime"
                 ]

@@ -1,17 +1,18 @@
 """LoadGroup object."""
 
-from dataclasses import dataclass, field
 from typing import List, Optional
+
+from attr import define, field
 
 from .location_object import LocationObject
 
 
-@dataclass
+@define
 class LoadGroup(LocationObject):
     """LoadGroup object."""
 
     load_ids: List[int] = field(
-        default_factory=list,
+        # default_factory=list,
         metadata={
             "name": "Load",
             "wrapper": "LoadTable",

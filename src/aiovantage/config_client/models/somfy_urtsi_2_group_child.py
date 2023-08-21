@@ -1,12 +1,12 @@
 """Somfy URTSI 2 blind group."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .blind_group_base import BlindGroupBase
 from .child_device import ChildDevice
 
 
-@dataclass
+@define
 class SomfyURTSI2GroupChild(BlindGroupBase, ChildDevice):
     """Somfy URTSI 2 blind group."""
 

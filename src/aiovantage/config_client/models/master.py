@@ -1,12 +1,13 @@
 """Master (controller) object."""
 
-from dataclasses import dataclass, field
 from typing import Optional
+
+from attr import define, field
 
 from .system_object import SystemObject
 
 
-@dataclass
+@define
 class Master(SystemObject):
     """Master (controller) object."""
 
@@ -28,13 +29,15 @@ class Master(SystemObject):
         }
     )
 
-    module_count: int = field(
+    # Not available in 2.x firmware
+    module_count: Optional[int] = field(
         metadata={
             "name": "ModuleCount",
         }
     )
 
-    serial_number: int = field(
+    # Not available in 2.x firmware
+    serial_number: Optional[int] = field(
         metadata={
             "name": "SerialNumber",
         }

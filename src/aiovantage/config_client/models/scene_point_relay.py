@@ -1,10 +1,10 @@
 """ScenePoint Relay Station."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .keypad import Keypad
 
 
-@dataclass
+@define
 class ScenePointRelay(Keypad):
     """ScenePoint Relay Station."""

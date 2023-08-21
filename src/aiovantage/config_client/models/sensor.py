@@ -1,10 +1,10 @@
 """Sensor object."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .location_object import LocationObject
 
 
-@dataclass
+@define
 class Sensor(LocationObject):
     """Sensor object."""

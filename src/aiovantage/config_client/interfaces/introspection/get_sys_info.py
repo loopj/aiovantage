@@ -1,10 +1,11 @@
 """IIntrospection.GetSysInfo method definition."""
 
-from dataclasses import dataclass, field
 from typing import ClassVar, Optional
 
+from attr import define, field
 
-@dataclass
+
+@define
 class SysInfo:
     """Partial SysInfo definition."""
 
@@ -12,20 +13,20 @@ class SysInfo:
     serial_number: int = field(metadata={"name": "SerialNumber"})
 
 
-@dataclass
+@define
 class GetSysInfo:
     """IIntrospection.GetSysInfo method definition."""
 
     interface: ClassVar[str] = "IIntrospection"
     call = None
-    return_value: Optional["Return"] = field(
+    return_value: Optional["GetSysInfo.Return"] = field(
         default=None,
         metadata={
             "name": "return",
         },
     )
 
-    @dataclass
+    @define
     class Return:
         """IIntrospection.GetSysInfo method return value."""
 

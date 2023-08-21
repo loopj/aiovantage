@@ -1,11 +1,11 @@
 """Power profile object."""
 
-from dataclasses import dataclass, field
+from attr import define, field
 
 from .system_object import SystemObject
 
 
-@dataclass
+@define
 class PowerProfile(SystemObject):
     """Power Profile object."""
 

@@ -1,13 +1,14 @@
 """Blind base class."""
 
-from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Optional
+
+from attr import define, field
 
 from .system_object import SystemObject
 
 
-@dataclass
+@define(kw_only=True, slots=False)
 class BlindBase(SystemObject):
     """Blind base class."""
 

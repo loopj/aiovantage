@@ -1,10 +1,10 @@
 """Somfy URTSI 2 port device."""
-from dataclasses import dataclass
+from attr import define
 
 from .port_device import PortDevice
 
 
-@dataclass
+@define
 class SomfyURTSI2Port(PortDevice):
     """Somfy URTSI 2 port device."""
 

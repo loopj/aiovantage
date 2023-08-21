@@ -1,10 +1,11 @@
 """ObjectChoice type definition."""
 
 import inspect
-from dataclasses import dataclass, field
 from functools import cache
 from types import ModuleType
 from typing import Any, Dict, List, Type
+
+from attr import define, field
 
 from aiovantage.config_client import models
 
@@ -33,7 +34,7 @@ def get_all_object_choices(module: ModuleType) -> List[Dict[str, Any]]:
     return choices
 
 
-@dataclass
+@define(kw_only=True, slots=False)
 class ObjectChoice:
     """Wildcard type that can be used to represent any object."""
 

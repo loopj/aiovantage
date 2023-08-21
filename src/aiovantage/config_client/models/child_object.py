@@ -1,13 +1,13 @@
 """Child object mixin."""
 
-from dataclasses import dataclass, field
+from attr import define, field
 
 
-@dataclass
+@define
 class ChildObject:
     """Child object mixin."""
 
-    @dataclass
+    @define
     class Parent:
         """Parent tag."""
 

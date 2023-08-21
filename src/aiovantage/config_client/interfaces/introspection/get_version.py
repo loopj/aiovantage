@@ -1,10 +1,11 @@
 """IIntrospection.GetVersion method definition."""
 
-from dataclasses import dataclass, field
 from typing import ClassVar, Optional
 
+from attr import define, field
 
-@dataclass
+
+@define
 class GetVersion:
     """IIntrospection.GetVersion method definition."""
 
@@ -17,7 +18,7 @@ class GetVersion:
         },
     )
 
-    @dataclass
+    @define
     class Return:
         """IIntrospection.GetVersion method return value."""
 

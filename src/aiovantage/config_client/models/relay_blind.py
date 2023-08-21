@@ -1,11 +1,11 @@
 """Relay blind object."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .blind_base import BlindBase
 from .location_object import LocationObject
 
 
-@dataclass
+@define
 class RelayBlind(BlindBase, LocationObject):
     """Relay blind object."""

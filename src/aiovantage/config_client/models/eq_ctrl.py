@@ -1,10 +1,10 @@
 """Equinox 40 Station."""
 
-from dataclasses import dataclass
+from attr import define
 
 from .station_object import StationObject
 
 
-@dataclass
+@define
 class EqCtrl(StationObject):
     """Equinox 40 Station."""
