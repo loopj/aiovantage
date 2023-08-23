@@ -1,9 +1,9 @@
 """Common types."""
 
-from attr import define, field
+from dataclasses import dataclass, field
 
 
-@define
+@dataclass
 class Parent:
     """Parent tag."""
 

@@ -1,10 +1,10 @@
 """PWM power profile object."""
 
-from attr import define
+from dataclasses import dataclass
 
 from .dc_power_profile import DCPowerProfile
 
 
-@define
+@dataclass
 class PWMPowerProfile(DCPowerProfile):
     """PWM power profile object."""

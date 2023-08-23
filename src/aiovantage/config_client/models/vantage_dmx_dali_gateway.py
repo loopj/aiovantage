@@ -1,11 +1,11 @@
 """DMX/DALI Gateway station."""
 
-from attr import define
+from dataclasses import dataclass
 
 from .station_object import StationObject
 
 
-@define
+@dataclass
 class VantageDmxDaliGateway(StationObject):
     """DMX/DALI Gateway station."""
 

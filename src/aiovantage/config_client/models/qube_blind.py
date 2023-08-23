@@ -1,11 +1,11 @@
 """Qube blind object."""
 
-from attr import define
+from dataclasses import dataclass
 
 from .blind_base import BlindBase
 from .station_object import StationObject
 
 
-@define
+@dataclass
 class QubeBlind(BlindBase, StationObject):
     """Qube blind object."""

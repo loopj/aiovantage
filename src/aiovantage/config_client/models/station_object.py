@@ -1,11 +1,11 @@
 """Base class for all station objects."""
 
-from attr import define, field
+from dataclasses import dataclass, field
 
 from .location_object import LocationObject
 
 
-@define(slots=False)
+@dataclass
 class StationObject(LocationObject):
     """Base class for all station objects."""
 

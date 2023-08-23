@@ -1,13 +1,13 @@
 """Blind object."""
 
-from attr import define, field
+from dataclasses import dataclass, field
 
 from .blind_base import BlindBase
 from .location_object import LocationObject
 from .types import Parent
 
 
-@define
+@dataclass
 class Blind(BlindBase, LocationObject):
     """Blind object."""
 

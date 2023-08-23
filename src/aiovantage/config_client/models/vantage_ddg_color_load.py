@@ -1,11 +1,11 @@
 """DMX/DALI Gateway color load object."""
 
-from attr import define
+from dataclasses import dataclass
 
 from .rgb_load_base import RGBLoadBase
 
 
-@define
+@dataclass
 class VantageDDGColorLoad(RGBLoadBase):
     """DMX/DALI Gateway color load object."""
 

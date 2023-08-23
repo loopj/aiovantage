@@ -1,14 +1,13 @@
 """Button object."""
 
+from dataclasses import dataclass, field
 from typing import Optional
-
-from attr import define, field
 
 from .system_object import SystemObject
 from .types import Parent
 
 
-@define
+@dataclass
 class Button(SystemObject):
     """Button object."""
 

@@ -1,12 +1,12 @@
 """Somfy URTSI 2 blind."""
 
-from attr import define
+from dataclasses import dataclass
 
 from .blind_base import BlindBase
 from .child_device import ChildDevice
 
 
-@define
+@dataclass
 class SomfyURTSI2ShadeChild(BlindBase, ChildDevice):
     """Somfy URTSI 2 blind."""
 

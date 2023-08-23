@@ -1,12 +1,12 @@
 """Keypad Station."""
 
-from attr import define, field
+from dataclasses import dataclass, field
 
 from .station_object import StationObject
 from .types import Parent
 
 
-@define
+@dataclass
 class Keypad(StationObject):
     """Keypad Station."""
 

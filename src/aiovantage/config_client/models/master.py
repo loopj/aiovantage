@@ -1,13 +1,12 @@
 """Master (controller) object."""
 
+from dataclasses import dataclass, field
 from typing import Optional
-
-from attr import define, field
 
 from .system_object import SystemObject
 
 
-@define
+@dataclass
 class Master(SystemObject):
     """Master (controller) object."""
 

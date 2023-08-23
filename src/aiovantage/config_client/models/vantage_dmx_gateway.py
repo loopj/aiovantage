@@ -1,11 +1,11 @@
 """DMX Gateway."""
 
-from attr import define
+from dataclasses import dataclass
 
 from .port_device import PortDevice
 
 
-@define
+@dataclass
 class VantageDmxGateway(PortDevice):
     """DMX Gateway."""
 

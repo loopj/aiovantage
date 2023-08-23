@@ -1,12 +1,12 @@
 """Somfy RS-485 SDN 2.0 blind."""
 
-from attr import define
+from dataclasses import dataclass
 
 from .blind_base import BlindBase
 from .child_device import ChildDevice
 
 
-@define
+@dataclass
 class SomfyRS485ShadeChild(BlindBase, ChildDevice):
     """Somfy RS-485 SDN 2.0 blind."""
 

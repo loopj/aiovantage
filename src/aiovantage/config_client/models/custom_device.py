@@ -1,10 +1,10 @@
 """Base class for custom device objects."""
 
-from attr import define
+from dataclasses import dataclass
 
 from .location_object import LocationObject
 
 
-@define
+@dataclass
 class CustomDevice(LocationObject):
     """Base class for custom device objects."""

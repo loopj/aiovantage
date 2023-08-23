@@ -1,13 +1,12 @@
 """IConfiguration.GetObject method definition."""
 
+from dataclasses import dataclass, field
 from typing import ClassVar, List, Optional
-
-from attr import define, field
 
 from aiovantage.config_client.interfaces.types import ObjectChoice
 
 
-@define
+@dataclass
 class GetObject:
     """IConfiguration.GetObject method definition."""
 
@@ -21,7 +20,7 @@ class GetObject:
         },
     )
 
-    @define
+    @dataclass
     class Params:
         """IConfiguration.GetObject method parameters."""
 

@@ -1,12 +1,12 @@
 """Module object."""
 
-from attr import define, field
+from dataclasses import dataclass, field
 
 from .system_object import SystemObject
 from .types import Parent
 
 
-@define
+@dataclass
 class Module(SystemObject):
     """Module object."""
 

@@ -1,11 +1,10 @@
 """IIntrospection.GetTypes method definition."""
 
+from dataclasses import dataclass, field
 from typing import ClassVar, List, Optional
 
-from attr import define, field
 
-
-@define
+@dataclass
 class Type:
     """Object type definition."""
 
@@ -13,7 +12,7 @@ class Type:
     version: str = field(metadata={"name": "Version"})
 
 
-@define
+@dataclass
 class GetTypes:
     """IIntrospection.GetTypes method definition."""
 

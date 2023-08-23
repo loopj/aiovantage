@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from dataclasses import fields
 from inspect import iscoroutinefunction
 from typing import (
     TYPE_CHECKING,
@@ -18,8 +19,6 @@ from typing import (
     TypeVar,
     Union,
 )
-
-from attr import fields
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.utils import tokenize_response

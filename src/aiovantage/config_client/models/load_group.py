@@ -1,13 +1,12 @@
 """LoadGroup object."""
 
+from dataclasses import dataclass, field
 from typing import List, Optional
-
-from attr import define, field
 
 from .location_object import LocationObject
 
 
-@define
+@dataclass
 class LoadGroup(LocationObject):
     """LoadGroup object."""
 

@@ -1,12 +1,12 @@
 """Base class for child device objects."""
 
-from attr import define, field
+from dataclasses import dataclass, field
 
 from .custom_device import CustomDevice
 from .types import Parent
 
 
-@define
+@dataclass
 class ChildDevice(CustomDevice):
     """Base class for child device objects."""
 

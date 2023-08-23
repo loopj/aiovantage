@@ -1,15 +1,14 @@
 """Temperature object."""
 
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Optional
-
-from attr import define, field
 
 from .sensor import Sensor
 from .types import Parent
 
 
-@define
+@dataclass
 class Temperature(Sensor):
     """Temperature object."""
 

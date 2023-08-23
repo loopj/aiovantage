@@ -1,12 +1,12 @@
 """Base class for all objects."""
 
+from dataclasses import dataclass, field
 from typing import Optional
 
-from attr import define, field
 from xsdata.models.datatype import XmlDateTime
 
 
-@define(kw_only=True, slots=False)
+@dataclass(kw_only=True)
 class SystemObject:
     """Base class for all objects."""
 

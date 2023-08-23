@@ -1,14 +1,13 @@
 """BlindGroup object."""
 
+from dataclasses import dataclass, field
 from typing import List
-
-from attr import define, field
 
 from .blind_group_base import BlindGroupBase
 from .location_object import LocationObject
 
 
-@define
+@dataclass
 class BlindGroup(BlindGroupBase, LocationObject):
     """BlindGroup object."""
 

@@ -1,11 +1,10 @@
 """ILogin.Login method definition."""
 
+from dataclasses import dataclass, field
 from typing import ClassVar, Optional
 
-from attr import define, field
 
-
-@define
+@dataclass
 class Login:
     """ILogin.Login method definition."""
 
@@ -20,7 +19,7 @@ class Login:
         },
     )
 
-    @define
+    @dataclass
     class Params:
         """ILogin.Login method parameters."""
 

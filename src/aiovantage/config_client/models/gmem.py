@@ -1,13 +1,12 @@
 """GMem (variable) object."""
 
+from dataclasses import dataclass, field
 from typing import Union
-
-from attr import define, field
 
 from .system_object import SystemObject
 
 
-@define
+@dataclass
 class Tag:
     """GMem tag."""
 
@@ -22,7 +21,7 @@ class Tag:
     )
 
 
-@define
+@dataclass
 class Data:
     """GMem data."""
 
@@ -35,7 +34,7 @@ class Data:
     )
 
 
-@define
+@dataclass
 class GMem(SystemObject):
     """GMem (variable) object."""
 
