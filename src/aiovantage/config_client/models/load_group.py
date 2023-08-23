@@ -11,6 +11,7 @@ class LoadGroup(LocationObject):
     """LoadGroup object."""
 
     load_ids: List[int] = field(
+        default_factory=list,
         metadata={
             "name": "Load",
             "wrapper": "LoadTable",
