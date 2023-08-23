@@ -24,7 +24,7 @@ from attr import fields
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.requests import get_objects
+from aiovantage.config_client.requests import get_objects, get_version
 from aiovantage.events import EventCallback, VantageEvent
 from aiovantage.models import SystemObject
 from aiovantage.query import QuerySet
@@ -42,6 +42,9 @@ State = Optional[Dict[str, Any]]
 
 class BaseController(QuerySet[T]):
     """Base controller for Vantage objects."""
+
+    firmware_version: Optional[str] = None
+    """The firmware version of the Vantage controller we are connected to."""
 
     vantage_types: Tuple[str, ...]
     """The Vantage object types that this controller handles."""
@@ -199,6 +202,10 @@ class BaseController(QuerySet[T]):
         """Subscribe to state changes for objects managed by this controller."""
         if self._subscribed_to_state_changes or not self.stateful:
             return
+
+        # Fetch the firmware version if we haven't already
+        if self.firmware_version is None:
+            BaseController.firmware_version = await get_version(self.config_client)
 
         # Ensure that the event stream is running
         await self.event_stream.start()
