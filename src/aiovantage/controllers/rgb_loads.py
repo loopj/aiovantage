@@ -26,14 +26,8 @@ class RGBLoadsController(
     vantage_types = ("Vantage.DGColorLoad", "Vantage.DDGColorLoad")
     """The Vantage object types that this controller will fetch."""
 
-    object_status_methods = (
-        "RGBLoad.GetHSL",
-        "RGBLoad.GetRGB",
-        "RGBLoad.GetRGBW",
-        "ColorTemperature.Get",
-        "Load.GetLevel",
-    )
-    """Which object status methods this controller handles."""
+    object_status = True
+    """Should this controller subscribe to object status events."""
 
     def __post_init__(self) -> None:
         """Initialize the map for building colors."""

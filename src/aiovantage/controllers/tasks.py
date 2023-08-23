@@ -19,8 +19,8 @@ class TasksController(BaseController[Task], TaskInterface):
     status_types = ("TASK",)
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
-    object_status_methods = ("Task.IsRunning",)
-    """Which object status methods this controller handles."""
+    object_status = True
+    """Should this controller subscribe to object status events."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:

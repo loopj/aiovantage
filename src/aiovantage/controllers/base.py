@@ -11,7 +11,6 @@ from typing import (
     Dict,
     Iterable,
     List,
-    Literal,
     Optional,
     Sequence,
     Set,
@@ -48,8 +47,8 @@ class BaseController(QuerySet[T]):
     status_types: Optional[Tuple[str, ...]] = None
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
-    object_status_methods: Optional[Union[Tuple[str, ...], Literal["*"]]] = None
-    """Which object status methods this controller handles."""
+    object_status: bool = False
+    """Should this controller subscribe to object status events."""
 
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize a controller.
@@ -103,7 +102,7 @@ class BaseController(QuerySet[T]):
     @property
     def stateful(self) -> bool:
         """Return True if this controller manages stateful objects."""
-        return bool(self.status_types or self.object_status_methods)
+        return bool(self.status_types or self.object_status)
 
     @property
     def known_ids(self) -> Set[int]:
@@ -210,7 +209,7 @@ class BaseController(QuerySet[T]):
 
         # Some state changes are only available from "object" status events.
         # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
-        if self.object_status_methods:
+        if self.object_status:
             # Subscribe to object status events from the "Enhanced Log".
             self.event_stream.subscribe_enhanced_log(
                 self._handle_event, ("STATUS", "STATUSEX")
@@ -355,16 +354,6 @@ class BaseController(QuerySet[T]):
             # These are "object status" messages, which take the form
             #   123 Interface.Method arg1 arg2 ...
             id_str, method, *args = tokenize_response(event["log"])
-
-            # Ignore events with methods that this controller doesn't care about
-            if not (
-                self.object_status_methods
-                and (
-                    self.object_status_methods == "*"
-                    or method in self.object_status_methods
-                )
-            ):
-                return
 
             # Ignore events for objects that this controller doesn't manage
             vid = int(id_str)
