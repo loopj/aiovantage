@@ -49,8 +49,8 @@ class BaseController(QuerySet[T]):
     status_types: Optional[Tuple[str, ...]] = None
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
-    enhanced_log_status_methods: Optional[Union[Tuple[str, ...], Literal["*"]]] = None
-    """Which status methods this controller handles from the Enhanced Log."""
+    object_status_methods: Optional[Union[Tuple[str, ...], Literal["*"]]] = None
+    """Which object status methods this controller handles."""
 
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize a controller.
@@ -104,7 +104,7 @@ class BaseController(QuerySet[T]):
     @property
     def stateful(self) -> bool:
         """Return True if this controller manages stateful objects."""
-        return bool(self.status_types or self.enhanced_log_status_methods)
+        return bool(self.status_types or self.object_status_methods)
 
     @property
     def known_ids(self) -> Set[int]:
@@ -203,12 +203,16 @@ class BaseController(QuerySet[T]):
         # Ensure that the event stream is running
         await self.event_stream.start()
 
-        # Subscribe to "STATUS {type}" updates, if this controller cares about them
+        # Subscribe to "STATUS {type}" updates, if this controller cares about them.
+        # These type of status updates are backwards compatible with very old
+        # (2.x) firmware.
         if self.status_types:
             self.event_stream.subscribe_status(self._handle_event, self.status_types)
 
-        # Subscribe to object status events from the "Enhanced Log"
-        if self.enhanced_log_status_methods:
+        # Some state changes are only available from "object" status events.
+        # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
+        # Subscribe to object status events from the "Enhanced Log".
+        if self.object_status_methods:
             self.event_stream.subscribe_enhanced_log(
                 self._handle_event, ("STATUS", "STATUSEX")
             )
@@ -333,22 +337,32 @@ class BaseController(QuerySet[T]):
             if event["id"] not in self._items:
                 return
 
-            # Pass the event to the controller
-            state = self.parse_object_update(
-                event["id"], event["status_type"], event["args"]
-            )
+            if event["status_type"] == "STATUS":
+                # S:STATUS messages are "object status" messages, which take the form
+                #   S:STATUS 123 Interface.Method arg1 arg2 ...
+                state = self.parse_object_update(
+                    event["id"], event["args"][0], event["args"][1:]
+                )
+            else:
+                # Otherwise we pass the plain status_type for "S:LOAD", etc
+                state = self.parse_object_update(
+                    event["id"], event["status_type"], event["args"]
+                )
+
             self._update_state(event["id"], state)
 
         elif event["type"] == EventType.ENHANCED_LOG:
-            # STATUS/STATUSEX logs can be tokenized the same as command responses
+            # We only every subscribe to STATUS/STATUSEX logs from the enhanced log.
+            # These are "object status" messages, which take the form
+            #   123 Interface.Method arg1 arg2 ...
             id_str, method, *args = tokenize_response(event["log"])
 
             # Ignore events with methods that this controller doesn't care about
             if not (
-                self.enhanced_log_status_methods
+                self.object_status_methods
                 and (
-                    self.enhanced_log_status_methods == "*"
-                    or method in self.enhanced_log_status_methods
+                    self.object_status_methods == "*"
+                    or method in self.object_status_methods
                 )
             ):
                 return

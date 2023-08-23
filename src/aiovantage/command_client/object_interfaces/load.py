@@ -103,20 +103,6 @@ class LoadInterface(Interface):
         await self.invoke(vid, "Load.Ramp", ramp_type, seconds, level)
 
     @classmethod
-    def parse_load_status(cls, args: Sequence[str]) -> float:
-        """Parse a simple 'S:LOAD' event.
-
-        Args:
-            args: The arguments of the event.
-
-        Returns:
-            The level of the load.
-        """
-        # STATUS LOAD
-        # -> S:LOAD <id> <level (0-100)>
-        return float(args[0])
-
-    @classmethod
     def parse_get_level_status(cls, args: Sequence[str]) -> float:
         """Parse a 'Load.GetLevel' event.
 

@@ -46,7 +46,7 @@ class SystemObject:
     mtime: Optional[XmlDateTime] = field(
         default=None,
         metadata={
-            "name": "MTimes",
+            "name": "MTime",
             "type": "Attribute",
         },
     )

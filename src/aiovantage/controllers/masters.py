@@ -2,7 +2,7 @@
 
 from typing_extensions import override
 
-from aiovantage.command_client.interfaces import IntrospectionInterface
+from aiovantage.command_client.object_interfaces import IntrospectionInterface
 from aiovantage.models import Master
 
 from .base import BaseController, State

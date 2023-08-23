@@ -41,32 +41,18 @@ class TaskInterface(Interface):
 
         return is_running
 
-    async def get_state(self, vid: int) -> bool:
+    async def get_state(self, vid: int) -> int:
         """Get the LED state of a task.
 
         Args:
             vid: The Vantage ID of the task.
         """
         # INVOKE <id> Task.GetState
-        # -> R:INVOKE <id> <state (0/1)> Task.GetState
+        # -> R:INVOKE <id> <state> Task.GetState
         response = await self.invoke(vid, "Task.GetState")
-        task_state = bool(int(response.args[1]))
+        task_state = int(response.args[1])
 
         return task_state
-
-    @classmethod
-    def parse_task_status(cls, args: Sequence[str]) -> int:
-        """Parse a simple 'S:TASK' event.
-
-        Args:
-            args: The arguments of the event.
-
-        Returns:
-            The LED state of the task.
-        """
-        # STATUS TASK
-        # -> S:TASK <id> <state (0/1)>
-        return int(args[0])
 
     @classmethod
     def parse_get_state_status(cls, args: Sequence[str]) -> int:

@@ -73,20 +73,6 @@ class BlindInterface(Interface):
         return position
 
     @classmethod
-    def parse_blind_status(cls, args: Sequence[str]) -> Decimal:
-        """Parse a simple 'S:BLIND' event.
-
-        Args:
-            args: The arguments of the event.
-
-        Returns:
-            The position of the blind, as a percentage.
-        """
-        # STATUS BLIND
-        # -> S:BLIND <id> <position (0-100.000)>
-        return Decimal(args[0])
-
-    @classmethod
     def parse_get_position_status(cls, args: Sequence[str]) -> Decimal:
         """Parse a 'Blind.GetPosition' event."""
         # ELLOG STATUS ON

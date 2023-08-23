@@ -4,7 +4,7 @@ import argparse
 import asyncio
 
 from aiovantage import Vantage
-from aiovantage.command_client.interfaces import SounderInterface
+from aiovantage.command_client.object_interfaces import SounderInterface
 
 JINGLE_BELLS = [
     ("E", 0.25),

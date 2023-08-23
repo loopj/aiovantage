@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from typing_extensions import override
 
-from aiovantage.command_client.interfaces import (
+from aiovantage.command_client.object_interfaces import (
     ColorTemperatureInterface,
     LoadInterface,
     RGBLoadInterface,
@@ -26,14 +26,14 @@ class RGBLoadsController(
     vantage_types = ("Vantage.DGColorLoad", "Vantage.DDGColorLoad")
     """The Vantage object types that this controller will fetch."""
 
-    enhanced_log_status_methods = (
+    object_status_methods = (
         "RGBLoad.GetHSL",
         "RGBLoad.GetRGB",
         "RGBLoad.GetRGBW",
         "ColorTemperature.Get",
         "Load.GetLevel",
     )
-    """Which status methods this controller handles from the Enhanced Log."""
+    """Which object status methods this controller handles."""
 
     def __post_init__(self) -> None:
         """Initialize the map for building colors."""
