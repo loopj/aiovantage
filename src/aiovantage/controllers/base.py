@@ -181,7 +181,9 @@ class BaseController(QuerySet[T]):
         # Mark the controller as initialized
         if not self._initialized:
             self._initialized = True
-            self._logger.info("%s initialized", self.__class__.__name__)
+            self._logger.info(
+                "%s initialized (%d)", self.__class__.__name__, len(self._items)
+            )
         else:
             self._logger.info("%s reinitialized", self.__class__.__name__)
 
@@ -204,15 +206,13 @@ class BaseController(QuerySet[T]):
         await self.event_stream.start()
 
         # Subscribe to "STATUS {type}" updates, if this controller cares about them.
-        # These type of status updates are backwards compatible with very old
-        # (2.x) firmware.
         if self.status_types:
             self.event_stream.subscribe_status(self._handle_event, self.status_types)
 
         # Some state changes are only available from "object" status events.
         # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
-        # Subscribe to object status events from the "Enhanced Log".
         if self.object_status_methods:
+            # Subscribe to object status events from the "Enhanced Log".
             self.event_stream.subscribe_enhanced_log(
                 self._handle_event, ("STATUS", "STATUSEX")
             )

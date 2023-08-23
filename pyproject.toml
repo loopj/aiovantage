@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "attrs==23.1.0",
+    "attrs>=19.2.0",
     "xsdata==23.8",
     "xsdata_attrs==23.8",
     "typing_extensions>=4.6.3,<5.0",
