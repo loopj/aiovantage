@@ -18,7 +18,7 @@ class GetTypes:
     """IIntrospection.GetTypes method definition."""
 
     interface: ClassVar[str] = "IIntrospection"
-    call: Optional[object] = field(default=None)
+    call: Optional[str] = field(default=None)
     return_value: Optional[List[Type]] = field(
         default=None,
         metadata={
