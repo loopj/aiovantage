@@ -178,7 +178,7 @@ class BaseController(QuerySet[T]):
             self.emit(VantageEvent.OBJECT_DELETED, obj)
 
         # Subscribe to state changes for objects managed by this controller
-        if fetch_state:
+        if fetch_state and len(self._items) > 0:
             await self.subscribe_to_state_changes()
 
         # Mark the controller as initialized
