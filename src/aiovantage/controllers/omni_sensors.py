@@ -22,7 +22,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
     """The Vantage object types that this controller will fetch."""
 
     object_status = True
-    """Should this controller subscribe to object status events."""
+    """Should this controller subscribe to "object status" events."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:

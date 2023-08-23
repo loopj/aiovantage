@@ -48,7 +48,7 @@ class BaseController(QuerySet[T]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     object_status: bool = False
-    """Should this controller subscribe to object status events."""
+    """Should this controller subscribe to "object status" events."""
 
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize a controller.
@@ -210,7 +210,7 @@ class BaseController(QuerySet[T]):
         # Some state changes are only available from "object" status events.
         # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
         if self.object_status:
-            # Subscribe to object status events from the "Enhanced Log".
+            # Subscribe to "object status" events from the Enhanced Log.
             self.event_stream.subscribe_enhanced_log(
                 self._handle_event, ("STATUS", "STATUSEX")
             )

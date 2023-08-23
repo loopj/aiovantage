@@ -27,7 +27,7 @@ class RGBLoadsController(
     """The Vantage object types that this controller will fetch."""
 
     object_status = True
-    """Should this controller subscribe to object status events."""
+    """Should this controller subscribe to "object status" events."""
 
     def __post_init__(self) -> None:
         """Initialize the map for building colors."""
