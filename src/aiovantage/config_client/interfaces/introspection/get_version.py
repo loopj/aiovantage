@@ -9,7 +9,7 @@ class GetVersion:
     """IIntrospection.GetVersion method definition."""
 
     interface: ClassVar[str] = "IIntrospection"
-    call: Optional[str] = field(default=None)
+    call = None
     return_value: Optional["GetVersion.Return"] = field(
         default=None,
         metadata={

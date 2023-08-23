@@ -18,7 +18,7 @@ class GetInterfaces:
     """IIntrospection.GetInterfaces method definition."""
 
     interface: ClassVar[str] = "IIntrospection"
-    call: Optional[str] = field(default=None)
+    call = None
     return_value: Optional[List[Interface]] = field(
         default=None,
         metadata={
