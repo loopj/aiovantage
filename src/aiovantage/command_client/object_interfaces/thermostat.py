@@ -139,7 +139,7 @@ class ThermostatInterface(Interface):
             The operation mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetOperationMode
-        # -> R:INVOKE <id> <mode> Thermostat.GetOperationMode
+        # -> R:INVOKE <id> <mode (Off|Cool|Heat|Auto|Unknown)> Thermostat.GetOperationMode
         response = await self.invoke(vid, "Thermostat.GetOperationMode")
         mode = self.OperationMode[response.args[1]]
 
@@ -166,7 +166,7 @@ class ThermostatInterface(Interface):
             The fan mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetFanMode
-        # -> R:INVOKE <id> <mode> Thermostat.GetFanMode
+        # -> R:INVOKE <id> <mode (Off|On|Unknown)> Thermostat.GetFanMode
         response = await self.invoke(vid, "Thermostat.GetFanMode")
         mode = self.FanMode[response.args[1]]
 
@@ -193,7 +193,7 @@ class ThermostatInterface(Interface):
             The day mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetDayMode
-        # -> R:INVOKE <id> <mode> Thermostat.GetDayMode
+        # -> R:INVOKE <id> <mode (Day|Night|Unknown|Standby)> Thermostat.GetDayMode
         response = await self.invoke(vid, "Thermostat.GetDayMode")
         mode = self.DayMode[response.args[1]]
 
@@ -249,7 +249,7 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetStatus
         # -> R:INVOKE <id> <status> Thermostat.GetStatus
         response = await self.invoke(vid, "Thermostat.GetStatus")
-        status = self.Status[response.args[1]]
+        status = self.Status(int(response.args[1]))
 
         return status
 
