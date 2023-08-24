@@ -5,6 +5,8 @@ from typing import Sequence, Tuple
 
 from .base import Interface
 
+# NOTE: Not available on 2.x firmware
+
 
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""

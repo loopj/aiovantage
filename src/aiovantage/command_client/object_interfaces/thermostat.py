@@ -280,8 +280,8 @@ class ThermostatInterface(Interface):
         # -> R:INVOKE <id> Thermostat.SetAutoSetPoint <temp>
         await self.invoke(vid, "Thermostat.SetAutoSetPoint", temp)
 
-    @staticmethod
-    def parse_status(_vid: int, method: str, args: List[str]) -> Dict[str, Any]:
+    @classmethod
+    def parse_status(cls, _vid: int, method: str, args: List[str]) -> Dict[str, Any]:
         """Parse a Thermostat status event."""
         if method == "Thermostat.GetIndoorTemperature":
             # ADDSTATUS <id>
@@ -325,7 +325,7 @@ class ThermostatInterface(Interface):
             # ELLOG STATUSEX ON
             # -> EL: <id> Thermostat.GetOperationMode <mode>
             return {
-                "operation_mode": ThermostatInterface.OperationMode(int(args[0])),
+                "operation_mode": cls.OperationMode(int(args[0])),
             }
 
         if method == "Thermostat.GetFanMode":
@@ -334,7 +334,7 @@ class ThermostatInterface(Interface):
             # ELLOG STATUSEX ON
             # -> EL: <id> Thermostat.GetFanMode <mode>
             return {
-                "fan_mode": ThermostatInterface.FanMode(int(args[0])),
+                "fan_mode": cls.FanMode(int(args[0])),
             }
 
         if method == "Thermostat.GetDayMode":
@@ -343,7 +343,7 @@ class ThermostatInterface(Interface):
             # ELLOG STATUSEX ON
             # -> EL: <id> Thermostat.GetDayMode <mode>
             return {
-                "day_mode": ThermostatInterface.DayMode(int(args[0])),
+                "day_mode": cls.DayMode(int(args[0])),
             }
 
         if method == "Thermostat.GetHoldMode":
@@ -352,7 +352,7 @@ class ThermostatInterface(Interface):
             # ELLOG STATUSEX ON
             # -> EL: <id> Thermostat.GetHoldMode <mode>
             return {
-                "hold_mode": ThermostatInterface.HoldMode(int(args[0])),
+                "hold_mode": cls.HoldMode(int(args[0])),
             }
 
         if method == "Thermostat.GetStatus":
@@ -361,7 +361,7 @@ class ThermostatInterface(Interface):
             # ELLOG STATUSEX ON
             # -> EL: <id> Thermostat.GetStatus <status>
             return {
-                "status": ThermostatInterface.Status(int(args[0])),
+                "status": cls.Status(int(args[0])),
             }
 
         if method == "Thermostat.GetAutoSetPoint":

@@ -4,7 +4,7 @@ from typing import Sequence
 
 from typing_extensions import override
 
-from aiovantage.command_client.interfaces import TaskInterface
+from aiovantage.command_client.object_interfaces import TaskInterface
 from aiovantage.models import Task
 
 from .base import BaseController, State
@@ -16,8 +16,11 @@ class TasksController(BaseController[Task], TaskInterface):
     vantage_types = ("Task",)
     """The Vantage object types that this controller will fetch."""
 
-    enhanced_log_status_methods = ("Task.IsRunning", "Task.GetState")
-    """Which status methods this controller handles from the Enhanced Log."""
+    status_types = ("TASK",)
+    """Which Vantage 'STATUS' types this controller handles, if any."""
+
+    object_status = True
+    """Should this controller subscribe to "object status" events."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:
@@ -30,14 +33,16 @@ class TasksController(BaseController[Task], TaskInterface):
     @override
     def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for a task."""
+        if status == "TASK":
+            # STATUS TASK
+            # -> S:TASK <id> <state>
+            return {
+                "state": int(args[0]),
+            }
+
         if status == "Task.IsRunning":
             return {
                 "is_running": TaskInterface.parse_is_running_status(args),
-            }
-
-        if status == "Task.GetState":
-            return {
-                "state": TaskInterface.parse_get_state_status(args),
             }
 
         return None

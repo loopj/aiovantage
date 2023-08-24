@@ -11,13 +11,18 @@ from .base import BaseController, State
 
 
 class OmniSensorsController(BaseController[OmniSensor]):
-    """Controller holding and managing Vantage omni sensors."""
+    """Controller holding and managing Vantage omni sensors.
+
+    Omni sensors are generic sensors objects which specify which methods to use
+    when getting or setting data in their object definition, as well as the
+    type of data and a conversion formula.
+    """
 
     vantage_types = ("OmniSensor",)
     """The Vantage object types that this controller will fetch."""
 
-    enhanced_log_status_methods = "*"
-    """Which status methods this controller handles from the Enhanced Log."""
+    object_status = True
+    """Should this controller subscribe to "object status" events."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:

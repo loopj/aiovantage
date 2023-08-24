@@ -1,10 +1,11 @@
 """Controller holding and managing Vantage load groups."""
 
+from decimal import Decimal
 from typing import Sequence
 
 from typing_extensions import override
 
-from aiovantage.command_client.interfaces.load import LoadInterface
+from aiovantage.command_client.object_interfaces import LoadInterface
 from aiovantage.models import Load, LoadGroup
 from aiovantage.query import QuerySet
 
@@ -33,8 +34,10 @@ class LoadGroupsController(BaseController[LoadGroup], LoadInterface):
         if status != "LOAD":
             return None
 
+        # STATUS LOAD
+        # -> S:LOAD <id> <level (0-100)>
         return {
-            "level": LoadInterface.parse_load_status(args),
+            "level": Decimal(args[0]),
         }
 
     def loads(self, vid: int) -> QuerySet[Load]:

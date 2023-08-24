@@ -1,6 +1,6 @@
-"""Controller holding and managing Vantage modules."""
+"""Controller holding and managing thermostats."""
 
-from aiovantage.command_client.interfaces import ThermostatInterface
+from aiovantage.command_client.object_interfaces import ThermostatInterface
 from aiovantage.models import Thermostat
 
 from .base import BaseController

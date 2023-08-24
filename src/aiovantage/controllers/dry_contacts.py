@@ -4,7 +4,7 @@ from typing import Sequence
 
 from typing_extensions import override
 
-from aiovantage.command_client.interfaces import ButtonInterface
+from aiovantage.command_client.object_interfaces import ButtonInterface
 from aiovantage.models import DryContact
 
 from .base import BaseController, State
@@ -33,6 +33,8 @@ class DryContactsController(BaseController[DryContact], ButtonInterface):
         if status != "BTN":
             return None
 
+        # STATUS BTN
+        # -> S:BTN <id> <state (PRESS/RELEASE)>
         return {
-            "triggered": ButtonInterface.parse_btn_status(args),
+            "triggered": args[0] == "PRESS",
         }

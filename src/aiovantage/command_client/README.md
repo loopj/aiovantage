@@ -28,7 +28,7 @@ making object-centric requests, but it is also possible to make raw requests.
 
 ```python
 from aiovantage.command_client import CommandClient
-from aiovantage.command_client.interfaces import LoadInterface
+from aiovantage.command_client.object_interfaces import LoadInterface
 
 async with CommandClient("10.2.0.103") as client:
     # Turn on load with id 118
@@ -39,7 +39,7 @@ async with CommandClient("10.2.0.103") as client:
 
 ```python
 from aiovantage.command_client import CommandClient
-from aiovantage.command_client.interfaces import LoadInterface
+from aiovantage.command_client.object_interfaces import LoadInterface
 
 async with CommandClient("10.2.0.103") as client:
     level = await LoadInterface(client).get_level(118)

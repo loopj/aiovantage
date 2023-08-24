@@ -7,7 +7,7 @@ from typing import Optional
 from .system_object import SystemObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class BlindBase(SystemObject):
     """Blind base class."""
 

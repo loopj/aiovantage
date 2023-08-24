@@ -3,13 +3,19 @@
 from dataclasses import dataclass, field
 from typing import Optional
 
-from .child_object import ChildObject
 from .location_object import LocationObject
+from .types import Parent
 
 
 @dataclass
-class Load(ChildObject, LocationObject):
+class Load(LocationObject):
     """Load object."""
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )
 
     load_type: str = field(
         metadata={

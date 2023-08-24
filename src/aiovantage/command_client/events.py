@@ -349,7 +349,7 @@ class EventStream:
                 await self._send(command)
                 self._command_queue.task_done()
             except ClientError as err:
-                self._logger.debug("Error while sending command: %s", str(err))
+                self._logger.warning("Error while sending command: %s", str(err))
 
     async def _keepalive(self) -> None:
         # Send a periodic "ECHO" keepalive command.

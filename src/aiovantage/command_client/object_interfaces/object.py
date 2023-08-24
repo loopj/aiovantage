@@ -4,6 +4,8 @@ from typing import Sequence
 
 from .base import Interface
 
+# NOTE: Not available on 2.x firmware
+
 
 class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""

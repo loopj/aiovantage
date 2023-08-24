@@ -4,12 +4,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Tuple
 
-from .child_object import ChildObject
 from .location_object import LocationObject
+from .types import Parent
 
 
 @dataclass
-class RGBLoadBase(ChildObject, LocationObject):
+class RGBLoadBase(LocationObject):
     """RGB load base class."""
 
     class ColorType(Enum):
@@ -19,6 +19,12 @@ class RGBLoadBase(ChildObject, LocationObject):
         HSIC = "HSIC"
         CCT = "CCT"
         COLOR_CHANNEL = "Color Channel"
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )
 
     color_type: ColorType = field(
         metadata={

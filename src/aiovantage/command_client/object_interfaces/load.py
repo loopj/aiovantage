@@ -53,6 +53,20 @@ class LoadInterface(Interface):
 
         await self.ramp(vid, 0, transition)
 
+    async def set_level(self, vid: int, level: float) -> None:
+        """Set the level of a load.
+
+        Args:
+            vid: The Vantage ID of the load.
+            level: The level to set the load to (0-100).
+        """
+        # Clamp level to 0-100
+        level = max(min(level, 100), 0)
+
+        # INVOKE <id> Load.SetLevel <level (0-100)>
+        # -> R:INVOKE <id> <rcode> Load.SetLevel <level (0-100)>
+        await self.invoke(vid, "Load.SetLevel", level)
+
     async def get_level(self, vid: int) -> float:
         """Get the level of a load.
 
@@ -68,20 +82,6 @@ class LoadInterface(Interface):
         level = float(response.args[1])
 
         return level
-
-    async def set_level(self, vid: int, level: float) -> None:
-        """Set the level of a load.
-
-        Args:
-            vid: The Vantage ID of the load.
-            level: The level to set the load to (0-100).
-        """
-        # Clamp level to 0-100
-        level = max(min(level, 100), 0)
-
-        # INVOKE <id> Load.SetLevel <level (0-100)>
-        # -> R:INVOKE <id> <rcode> Load.SetLevel <level (0-100)>
-        await self.invoke(vid, "Load.SetLevel", level)
 
     async def ramp(
         self,
@@ -101,20 +101,6 @@ class LoadInterface(Interface):
         # INVOKE <id> Load.Ramp <type> <seconds> <level>
         # -> R:INVOKE <id> <rcode> Load.Ramp <type> <seconds> <level>
         await self.invoke(vid, "Load.Ramp", ramp_type, seconds, level)
-
-    @classmethod
-    def parse_load_status(cls, args: Sequence[str]) -> float:
-        """Parse a simple 'S:LOAD' event.
-
-        Args:
-            args: The arguments of the event.
-
-        Returns:
-            The level of the load.
-        """
-        # STATUS LOAD
-        # -> S:LOAD <id> <level (0-100)>
-        return float(args[0])
 
     @classmethod
     def parse_get_level_status(cls, args: Sequence[str]) -> float:

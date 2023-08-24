@@ -1,12 +1,18 @@
 """Blind object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .blind_base import BlindBase
-from .child_object import ChildObject
 from .location_object import LocationObject
+from .types import Parent
 
 
 @dataclass
-class Blind(BlindBase, ChildObject, LocationObject):
+class Blind(BlindBase, LocationObject):
     """Blind object."""
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )
