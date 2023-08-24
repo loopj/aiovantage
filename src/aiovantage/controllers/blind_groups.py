@@ -1,7 +1,7 @@
 """Controller holding and managing Vantage blind groups."""
 
 from aiovantage.command_client.object_interfaces import BlindInterface
-from aiovantage.models import BlindBase, BlindGroup, BlindGroupBase
+from aiovantage.models import BlindBase, BlindGroup, BlindGroupBase, ChildDevice
 from aiovantage.query import QuerySet
 
 from .base import BaseController
@@ -21,11 +21,17 @@ class BlindGroupsController(BaseController[BlindGroupBase], BlindInterface):
         """Return a queryset of all blinds in this blind group."""
         blind_group = self[vid]
         if isinstance(blind_group, BlindGroup):
-            # BlindGroup objects have a list of blind ids, so use that to filter
-            def _filter(blind: BlindBase) -> bool:
+
+            def _filter1(blind: BlindBase) -> bool:
                 return blind.id in blind_group.blind_ids
 
-            return self._vantage.blinds.filter(_filter)
+            return self._vantage.blinds.filter(_filter1)
 
         # Otherwise, use the parent id to filter
-        return self._vantage.blinds.filter(parent_id=blind_group.id)
+        def _filter2(blind: BlindBase) -> bool:
+            if isinstance(blind, ChildDevice):
+                return blind.parent.id == blind_group.id
+
+            return False
+
+        return self._vantage.blinds.filter(_filter2)
