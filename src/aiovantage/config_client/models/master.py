@@ -28,26 +28,21 @@ class Master(SystemObject):
         }
     )
 
-    module_count: int = field(
+    # Not available in 2.x firmware
+    module_count: Optional[int] = field(
         metadata={
             "name": "ModuleCount",
         }
     )
 
-    serial_number: int = field(
+    # Not available in 2.x firmware
+    serial_number: Optional[int] = field(
         metadata={
             "name": "SerialNumber",
         }
     )
 
     firmware_version: Optional[str] = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
-
-    last_updated: Optional[int] = field(
         default=None,
         metadata={
             "type": "Ignore",

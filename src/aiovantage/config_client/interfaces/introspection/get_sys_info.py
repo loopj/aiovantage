@@ -18,7 +18,7 @@ class GetSysInfo:
 
     interface: ClassVar[str] = "IIntrospection"
     call = None
-    return_value: Optional["Return"] = field(
+    return_value: Optional["GetSysInfo.Return"] = field(
         default=None,
         metadata={
             "name": "return",

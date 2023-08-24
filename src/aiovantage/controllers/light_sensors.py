@@ -1,10 +1,11 @@
 """Controller holding and managing Vantage light sensors."""
 
+from decimal import Decimal
 from typing import Sequence
 
 from typing_extensions import override
 
-from aiovantage.command_client.interfaces import LightSensorInterface
+from aiovantage.command_client.object_interfaces import LightSensorInterface
 from aiovantage.models import LightSensor
 
 from .base import BaseController, State
@@ -16,8 +17,8 @@ class LightSensorsController(BaseController[LightSensor], LightSensorInterface):
     vantage_types = ("LightSensor",)
     """The Vantage object types that this controller will fetch."""
 
-    enhanced_log_status_methods = ("LightSensor.GetLevel",)
-    """Which status methods this controller handles from the Enhanced Log."""
+    status_types = ("LIGHT",)
+    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, vid: int) -> State:
@@ -29,9 +30,11 @@ class LightSensorsController(BaseController[LightSensor], LightSensorInterface):
     @override
     def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
         """Handle state changes for a light sensor."""
-        if status != "LightSensor.GetLevel":
+        if status != "LIGHT":
             return None
 
+        # STATUS LIGHT
+        # -> S:LIGHT <id> <level>
         return {
-            "level": LightSensorInterface.parse_get_level_status(args),
+            "level": Decimal(args[0]),
         }

@@ -1,11 +1,12 @@
 """Base class for all objects."""
 
 from dataclasses import dataclass, field
+from typing import Optional
 
 from xsdata.models.datatype import XmlDateTime
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SystemObject:
     """Base class for all objects."""
 
@@ -23,22 +24,9 @@ class SystemObject:
         }
     )
 
-    mtime: XmlDateTime = field(
-        metadata={
-            "name": "MTime",
-            "type": "Attribute",
-        }
-    )
-
     name: str = field(
         metadata={
             "name": "Name",
-        }
-    )
-
-    note: str = field(
-        metadata={
-            "name": "Note",
         }
     )
 
@@ -48,8 +36,25 @@ class SystemObject:
         }
     )
 
-    display_name: str = field(
+    note: str = field(
+        metadata={
+            "name": "Note",
+        }
+    )
+
+    # Not available in 2.x firmware
+    mtime: Optional[XmlDateTime] = field(
+        default=None,
+        metadata={
+            "name": "MTime",
+            "type": "Attribute",
+        },
+    )
+
+    # Not available in 2.x firmware
+    display_name: Optional[str] = field(
+        default=None,
         metadata={
             "name": "DName",
-        }
+        },
     )

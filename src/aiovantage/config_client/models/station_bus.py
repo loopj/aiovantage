@@ -1,11 +1,17 @@
 """Station bus object."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from .child_object import ChildObject
 from .system_object import SystemObject
+from .types import Parent
 
 
 @dataclass
-class StationBus(ChildObject, SystemObject):
+class StationBus(SystemObject):
     """Station bus object."""
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )

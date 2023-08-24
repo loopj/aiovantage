@@ -8,32 +8,6 @@ from .base import Interface
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""
 
-    async def is_running(self, vid: int) -> bool:
-        """Get the running state of a task.
-
-        Args:
-            vid: The Vantage ID of the task.
-        """
-        # INVOKE <id> Task.IsRunning
-        # -> R:INVOKE <id> <running (0/1)> Task.IsRunning
-        response = await self.invoke(vid, "Task.IsRunning")
-        is_running = bool(int(response.args[1]))
-
-        return is_running
-
-    async def get_state(self, vid: int) -> bool:
-        """Get the LED state of a task.
-
-        Args:
-            vid: The Vantage ID of the task.
-        """
-        # INVOKE <id> Task.GetState
-        # -> R:INVOKE <id> <state (0/1)> Task.GetState
-        response = await self.invoke(vid, "Task.GetState")
-        task_state = bool(int(response.args[1]))
-
-        return task_state
-
     async def start(self, vid: int) -> None:
         """Start a task.
 
@@ -54,19 +28,31 @@ class TaskInterface(Interface):
         # -> R:INVOKE <id> <rcode> Task.Stop
         await self.invoke(vid, "Task.Stop")
 
-    @classmethod
-    def parse_task_status(cls, args: Sequence[str]) -> int:
-        """Parse a simple 'S:TASK' event.
+    async def is_running(self, vid: int) -> bool:
+        """Get the running state of a task.
 
         Args:
-            args: The arguments of the event.
-
-        Returns:
-            The LED state of the task.
+            vid: The Vantage ID of the task.
         """
-        # STATUS TASK
-        # -> S:TASK <id> <state (0/1)>
-        return int(args[0])
+        # INVOKE <id> Task.IsRunning
+        # -> R:INVOKE <id> <running (0/1)> Task.IsRunning
+        response = await self.invoke(vid, "Task.IsRunning")
+        is_running = bool(int(response.args[1]))
+
+        return is_running
+
+    async def get_state(self, vid: int) -> int:
+        """Get the LED state of a task.
+
+        Args:
+            vid: The Vantage ID of the task.
+        """
+        # INVOKE <id> Task.GetState
+        # -> R:INVOKE <id> <state> Task.GetState
+        response = await self.invoke(vid, "Task.GetState")
+        task_state = int(response.args[1])
+
+        return task_state
 
     @classmethod
     def parse_get_state_status(cls, args: Sequence[str]) -> int:

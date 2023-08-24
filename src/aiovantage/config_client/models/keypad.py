@@ -1,11 +1,17 @@
 """Keypad Station."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from .child_object import ChildObject
 from .station_object import StationObject
+from .types import Parent
 
 
 @dataclass
-class Keypad(ChildObject, StationObject):
+class Keypad(StationObject):
     """Keypad Station."""
+
+    parent: Parent = field(
+        metadata={
+            "name": "Parent",
+        }
+    )

@@ -4,15 +4,19 @@ from typing import Sequence, Union
 
 from typing_extensions import override
 
-from aiovantage.command_client.interfaces import GMemInterface
 from aiovantage.command_client.utils import parse_byte_param
 from aiovantage.models import GMem
 
 from .base import BaseController, State
 
 
-class GMemController(BaseController[GMem], GMemInterface):
-    """Controller holding and managing Vantage variables."""
+class GMemController(BaseController[GMem]):
+    """Controller holding and managing Vantage variables.
+
+    We use the `GETVARIABLE` and `VARIABLE` wrappers for getting and setting
+    variable values, rather than the GMem object interface, since they are much
+    simpler than working with raw byte arrays.
+    """
 
     vantage_types = ("GMem",)
     """The Vantage object types that this controller will fetch."""
@@ -24,7 +28,7 @@ class GMemController(BaseController[GMem], GMemInterface):
     async def fetch_object_state(self, vid: int) -> State:
         """Fetch the state properties of a variable."""
         return {
-            "value": self._parse_value(vid, await self.get_value(vid)),
+            "value": await self.get_value(vid),
         }
 
     @override
@@ -33,9 +37,38 @@ class GMemController(BaseController[GMem], GMemInterface):
         if status != "VARIABLE":
             return None
 
+        # STATUS VARIABLE
+        # -> S:VARIABLE <id> <value>
         return {
-            "value": self._parse_value(vid, GMemInterface.parse_variable_status(args)),
+            "value": self._parse_value(vid, args[0]),
         }
+
+    async def get_value(self, vid: int) -> Union[int, str, bool]:
+        """Get the value of a variable.
+
+        Args:
+            vid: The Vantage ID of the variable.
+
+        Returns:
+            The value of the variable, either a bool, int, or str.
+        """
+        # GETVARIABLE {id}
+        # -> R:GETVARIABLE {id} {value}
+        response = await self.command_client.command("GETVARIABLE", vid)
+        raw_value = response.args[1]
+
+        return self._parse_value(vid, raw_value)
+
+    async def set_value(self, vid: int, value: Union[int, str, bool]) -> None:
+        """Set the value of a variable.
+
+        Args:
+            vid: The Vantage ID of the variable.
+            value: The value to set, either a bool, int, or str.
+        """
+        # VARIABLE {id} {value}
+        # -> R:VARIABLE {id} {value}
+        await self.command_client.command("VARIABLE", vid, value, force_quotes=True)
 
     def _parse_value(self, vid: int, value: str) -> Union[int, str, bool]:
         # Parse the results of a GMem lookup into the expected type.
