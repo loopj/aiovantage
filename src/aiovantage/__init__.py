@@ -31,6 +31,7 @@ from .controllers import (
     StationsController,
     TasksController,
     TemperatureSensorsController,
+    ThermostatsController,
 )
 from .events import EventCallback, VantageEvent
 from .models import SystemObject
@@ -96,6 +97,7 @@ class Vantage:
         self._stations = self._add_controller(StationsController)
         self._tasks = self._add_controller(TasksController)
         self._temperature_sensors = self._add_controller(TemperatureSensorsController)
+        self._thermostats = self._add_controller(ThermostatsController)
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -226,6 +228,11 @@ class Vantage:
     def temperature_sensors(self) -> TemperatureSensorsController:
         """Return the TemperatureSensors controller for managing temperature sensors."""
         return self._temperature_sensors
+
+    @property
+    def thermostats(self) -> ThermostatsController:
+        """Return the Thermostats controller for managing thermostats."""
+        return self._thermostats
 
     @property
     def known_ids(self) -> Set[int]:

@@ -221,8 +221,8 @@ class BaseController(QuerySet[T]):
     def subscribe(
         self,
         callback: EventCallback[T],
-        id_filter: Union[int, Tuple[int], None] = None,
-        event_filter: Union[VantageEvent, Tuple[VantageEvent, ...], None] = None,
+        id_filter: Union[int, Iterable[int], None] = None,
+        event_filter: Union[VantageEvent, Iterable[VantageEvent], None] = None,
     ) -> Callable[[], None]:
         """Subscribe to status changes for objects managed by this controller.
 
