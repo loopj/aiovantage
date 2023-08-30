@@ -228,7 +228,7 @@ class EventStream:
             callback,
             lambda event: (
                 event["type"] == EventType.STATUS
-                and event["status_type"] in status_type
+                and event["status_type"] in status_types
             ),
         )
 

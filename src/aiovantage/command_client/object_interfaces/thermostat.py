@@ -13,41 +13,41 @@ class ThermostatInterface(Interface):
     class OperationMode(IntEnum):
         """The operation mode of the thermostat."""
 
-        Off = 0
-        Cool = 1
-        Heat = 2
-        Auto = 3
-        Unknown = 4
+        OFF = 0
+        COOL = 1
+        HEAT = 2
+        AUTO = 3
+        UNKNOWN = 4
 
     class FanMode(IntEnum):
         """The fan mode of the thermostat."""
 
-        Off = 0
-        On = 1
-        Unknown = 2
+        OFF = 0
+        ON = 1
+        UNKNOWN = 2
 
     class DayMode(IntEnum):
         """The day mode of the thermostat."""
 
-        Day = 0
-        Night = 1
-        Unknown = 2
-        Standby = 3
+        DAY = 0
+        NIGHT = 1
+        UNKNOWN = 2
+        STANDBY = 3
 
     class HoldMode(IntEnum):
         """The hold mode of the thermostat."""
 
-        Normal = 0
-        Hold = 1
-        Unknown = 2
+        NORMAL = 0
+        HOLD = 1
+        UNKNOWN = 2
 
     class Status(IntEnum):
         """The status of the thermostat."""
 
-        Off = 0
-        Cooling = 1
-        Heating = 2
-        Offline = 3
+        OFF = 0
+        COOLING = 1
+        HEATING = 2
+        OFFLINE = 3
 
     async def get_indoor_temperature(self, vid: int) -> Decimal:
         """Get the current indoor temperature.
@@ -141,11 +141,11 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetOperationMode
         # -> R:INVOKE <id> <mode (Off|Cool|Heat|Auto|Unknown)> Thermostat.GetOperationMode
         response = await self.invoke(vid, "Thermostat.GetOperationMode")
-        mode = self.OperationMode[response.args[1]]
+        mode = self.OperationMode[response.args[1].upper()]
 
         return mode
 
-    async def set_operation_mode(self, vid: int, mode: OperationMode) -> None:
+    async def set_operation_mode(self, vid: int, mode: int) -> None:
         """Set the current operation mode.
 
         Args:
@@ -168,11 +168,11 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetFanMode
         # -> R:INVOKE <id> <mode (Off|On|Unknown)> Thermostat.GetFanMode
         response = await self.invoke(vid, "Thermostat.GetFanMode")
-        mode = self.FanMode[response.args[1]]
+        mode = self.FanMode[response.args[1].upper()]
 
         return mode
 
-    async def set_fan_mode(self, vid: int, mode: FanMode) -> None:
+    async def set_fan_mode(self, vid: int, mode: int) -> None:
         """Set the current fan mode.
 
         Args:
@@ -195,11 +195,11 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetDayMode
         # -> R:INVOKE <id> <mode (Day|Night|Unknown|Standby)> Thermostat.GetDayMode
         response = await self.invoke(vid, "Thermostat.GetDayMode")
-        mode = self.DayMode[response.args[1]]
+        mode = self.DayMode[response.args[1].upper()]
 
         return mode
 
-    async def set_day_mode(self, vid: int, mode: DayMode) -> None:
+    async def set_day_mode(self, vid: int, mode: int) -> None:
         """Set the current day mode.
 
         Args:
@@ -222,11 +222,11 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetHoldMode
         # -> R:INVOKE <id> <mode> Thermostat.GetHoldMode
         response = await self.invoke(vid, "Thermostat.GetHoldMode")
-        mode = self.HoldMode[response.args[1]]
+        mode = self.HoldMode[response.args[1].upper()]
 
         return mode
 
-    async def set_hold_mode(self, vid: int, mode: HoldMode) -> None:
+    async def set_hold_mode(self, vid: int, mode: int) -> None:
         """Set the current hold mode.
 
         Args:
