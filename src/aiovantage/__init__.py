@@ -4,7 +4,7 @@ __all__ = ["Vantage", "VantageEvent"]
 
 import asyncio
 from types import TracebackType
-from typing import Any, Callable, Optional, Set, Type, TypeVar
+from typing import Any, Callable, Optional, Set, Type, TypeVar, cast
 
 from typing_extensions import Self
 
@@ -98,6 +98,17 @@ class Vantage:
         self._tasks = self._add_controller(TasksController)
         self._temperature_sensors = self._add_controller(TemperatureSensorsController)
         self._thermostats = self._add_controller(ThermostatsController)
+
+    def __getitem__(self, vid: int) -> SystemObject:
+        """Return the object with the given Vantage ID."""
+        for controller in self._controllers:
+            if vid in controller:
+                return cast(SystemObject, controller[vid])
+        raise KeyError(vid)
+
+    def __contains__(self, vid: int) -> bool:
+        """Return whether the given Vantage ID is known by any controller."""
+        return any(vid in controller for controller in self._controllers)
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -234,10 +245,12 @@ class Vantage:
         """Return the Thermostats controller for managing thermostats."""
         return self._thermostats
 
-    @property
-    def known_ids(self) -> Set[int]:
-        """Return a set of all known object IDs."""
-        return {vid for controller in self._controllers for vid in controller.known_ids}
+    def get(self, vid: int) -> Optional[SystemObject]:
+        """Return the object with the given Vantage ID, or a default value."""
+        try:
+            return self[vid]
+        except KeyError:
+            return None
 
     def close(self) -> None:
         """Close the clients."""
