@@ -5,7 +5,8 @@ from typing import Sequence
 from typing_extensions import override
 
 from aiovantage.command_client.object_interfaces import ThermostatInterface
-from aiovantage.models import Thermostat
+from aiovantage.models import Temperature, Thermostat
+from aiovantage.query import QuerySet
 
 from .base import BaseController, State
 
@@ -72,3 +73,9 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
             }
 
         return None
+
+    def sensors(self, vid: int) -> QuerySet[Temperature]:
+        """Return the sensors associated with this thermostat."""
+        return self._vantage.temperature_sensors.filter(
+            lambda obj: obj.parent.id == vid
+        )
