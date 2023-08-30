@@ -63,6 +63,7 @@ The following interfaces/controllers are currently supported.
 | Stations      | Keypads, etc          | `vantage.stations`            | [Examples](examples/stations)             |
 | Tasks         | Vantage tasks         | `vantage.tasks`               | [Examples](examples/tasks)                |
 | Temperature   | Temperature sensors   | `vantage.temperature_sensors` | [Examples](examples/temperature_sensors)  |
+| Thermostat    | Thermostats           | `vantage.thermostats`         | [Examples](examples/thermostats)          |
 
 If you have an object that you expect to show up in one of these controllers but is missing, please [create an issue](issues) or [submit a pull request](CONTRIBUTING.md#-adding-support-for-new-devices).
 
