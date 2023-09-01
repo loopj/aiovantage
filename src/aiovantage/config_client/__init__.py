@@ -216,4 +216,10 @@ class ConfigClient:
                             "Login required, but no credentials were provided"
                         )
 
+                self._logger.info(
+                    "Connected to config client at %s:%d",
+                    self._connection.host,
+                    self._connection.port,
+                )
+
             return self._connection

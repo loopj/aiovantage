@@ -213,6 +213,12 @@ class CommandClient:
                         connection=self._connection,
                     )
 
+                self._logger.info(
+                    "Connected to command client at %s:%d",
+                    self._connection.host,
+                    self._connection.port,
+                )
+
             return self._connection
 
     def _parse_command_error(self, message: str) -> CommandError:

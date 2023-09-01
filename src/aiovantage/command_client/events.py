@@ -168,6 +168,12 @@ class EventStream:
                 if self._username and self._password:
                     await self._send(f"LOGIN {self._username} {self._password}")
 
+                self._logger.info(
+                    "Connected to event stream at %s:%d",
+                    self._connection.host,
+                    self._connection.port,
+                )
+
             return self._connection
 
     def subscribe(
@@ -297,7 +303,6 @@ class EventStream:
                 conn = await self.get_connection()
 
                 # Notify that we're connected
-                self._logger.debug("Connected to EventStream")
                 if connect_attempts == 1:
                     self.emit({"type": EventType.CONNECTED})
                 else:

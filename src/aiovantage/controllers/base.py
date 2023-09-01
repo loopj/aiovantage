@@ -180,7 +180,7 @@ class BaseController(QuerySet[T]):
         if not self._initialized:
             self._initialized = True
             self._logger.info(
-                "%s initialized (%d)", self.__class__.__name__, len(self._items)
+                "%s initialized (%d objects)", self.__class__.__name__, len(self._items)
             )
         else:
             self._logger.info("%s reinitialized", self.__class__.__name__)
