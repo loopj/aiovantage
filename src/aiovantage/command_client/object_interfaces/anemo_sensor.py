@@ -20,7 +20,7 @@ class AnemoSensorInterface(Interface):
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
         method = "AnemoSensor.GetSpeed" if cached else "AnemoSensor.GetSpeedHW"
         response = await self.invoke(vid, method)
-        level = Decimal(response.args[1])
+        level = Decimal(response.args[1]) / 1000
 
         return level
 
