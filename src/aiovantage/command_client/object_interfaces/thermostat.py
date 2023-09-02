@@ -141,7 +141,10 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetOperationMode
         # -> R:INVOKE <id> <mode (Off|Cool|Heat|Auto|Unknown)> Thermostat.GetOperationMode
         response = await self.invoke(vid, "Thermostat.GetOperationMode")
-        mode = self.OperationMode[response.args[1].upper()]
+        if response.args[1].isdigit():
+            mode = self.OperationMode(int(response.args[1]))
+        else:
+            mode = self.OperationMode[response.args[1].upper()]
 
         return mode
 
@@ -168,7 +171,10 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetFanMode
         # -> R:INVOKE <id> <mode (Off|On|Unknown)> Thermostat.GetFanMode
         response = await self.invoke(vid, "Thermostat.GetFanMode")
-        mode = self.FanMode[response.args[1].upper()]
+        if response.args[1].isdigit():
+            mode = self.FanMode(int(response.args[1]))
+        else:
+            mode = self.FanMode[response.args[1].upper()]
 
         return mode
 
@@ -195,7 +201,10 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetDayMode
         # -> R:INVOKE <id> <mode (Day|Night|Unknown|Standby)> Thermostat.GetDayMode
         response = await self.invoke(vid, "Thermostat.GetDayMode")
-        mode = self.DayMode[response.args[1].upper()]
+        if response.args[1].isdigit():
+            mode = self.DayMode(int(response.args[1]))
+        else:
+            mode = self.DayMode[response.args[1].upper()]
 
         return mode
 
@@ -222,7 +231,10 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetHoldMode
         # -> R:INVOKE <id> <mode> Thermostat.GetHoldMode
         response = await self.invoke(vid, "Thermostat.GetHoldMode")
-        mode = self.HoldMode[response.args[1].upper()]
+        if response.args[1].isdigit():
+            mode = self.HoldMode(int(response.args[1]))
+        else:
+            mode = self.HoldMode[response.args[1].upper()]
 
         return mode
 
@@ -249,7 +261,10 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetStatus
         # -> R:INVOKE <id> <status> Thermostat.GetStatus
         response = await self.invoke(vid, "Thermostat.GetStatus")
-        status = self.Status(int(response.args[1]))
+        if response.args[1].isdigit():
+            status = self.Status(int(response.args[1]))
+        else:
+            status = self.Status[response.args[1].upper()]
 
         return status
 
