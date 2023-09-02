@@ -9,15 +9,17 @@ from .base import Interface
 class AnemoSensorInterface(Interface):
     """Interface for querying and controlling anemo (wind) sensors."""
 
-    async def get_speed(self, vid: int) -> Decimal:
+    async def get_speed(self, vid: int, cached: bool = False) -> Decimal:
         """Get the value of an anemo sensor, in mph.
 
         Args:
             vid: The Vantage ID of the anemo sensor.
+            cached: Whether to use the cached value or fetch a new one.
         """
         # INVOKE <id> AnemoSensor.GetSpeed
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
-        response = await self.invoke(vid, "AnemoSensor.GetSpeed")
+        method = "AnemoSensor.GetSpeed" if cached else "AnemoSensor.GetSpeedHW"
+        response = await self.invoke(vid, method)
         level = Decimal(response.args[1])
 
         return level

@@ -9,15 +9,17 @@ from .base import Interface
 class LightSensorInterface(Interface):
     """Interface for querying and controlling light sensors."""
 
-    async def get_level(self, vid: int) -> Decimal:
+    async def get_level(self, vid: int, cached: bool = False) -> Decimal:
         """Get the level of a light sensor, in foot-candles.
 
         Args:
             vid: The Vantage ID of the light sensor.
+            cached: Whether to use the cached value or fetch a new one.
         """
         # INVOKE <id> LightSensor.GetLevel
         # -> R:INVOKE <id> <level> LightSensor.GetLevel
-        response = await self.invoke(vid, "LightSensor.GetLevel")
+        method = "LightSensor.GetLevel" if cached else "LightSensor.GetLevelHW"
+        response = await self.invoke(vid, method)
         level = Decimal(response.args[1])
 
         return level

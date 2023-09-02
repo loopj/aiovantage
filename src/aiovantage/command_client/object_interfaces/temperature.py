@@ -9,15 +9,17 @@ from .base import Interface
 class TemperatureInterface(Interface):
     """Interface for querying and controlling sensors."""
 
-    async def get_value(self, vid: int) -> Decimal:
+    async def get_value(self, vid: int, cached: bool = False) -> Decimal:
         """Get the value of a temperature sensor.
 
         Args:
             vid: The Vantage ID of the temperature sensor.
+            cached: Whether to use the cached value or fetch a new one.
         """
         # INVOKE <id> Temperature.GetValue
         # -> R:INVOKE <id> <temp> Temperature.GetValue
-        response = await self.invoke(vid, "Temperature.GetValue")
+        method = "Temperature.GetValue" if cached else "Temperature.GetValueHW"
+        response = await self.invoke(vid, method)
         level = Decimal(response.args[1])
 
         return level
