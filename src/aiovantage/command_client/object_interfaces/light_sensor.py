@@ -20,7 +20,9 @@ class LightSensorInterface(Interface):
         # -> R:INVOKE <id> <level> LightSensor.GetLevel
         method = "LightSensor.GetLevel" if cached else "LightSensor.GetLevelHW"
         response = await self.invoke(vid, method)
-        level = Decimal(response.args[1]) / 1000
+
+        # Older firmware response in thousandths of a foot-candle, newer as fixed point
+        level = Decimal(response.args[1].replace(".", "")) / 1000
 
         return level
 

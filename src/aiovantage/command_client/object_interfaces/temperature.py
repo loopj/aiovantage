@@ -20,7 +20,9 @@ class TemperatureInterface(Interface):
         # -> R:INVOKE <id> <temp> Temperature.GetValue
         method = "Temperature.GetValue" if cached else "Temperature.GetValueHW"
         response = await self.invoke(vid, method)
-        level = Decimal(response.args[1]) / 1000
+
+        # Older firmware response in thousandths of a degree, newer as fixed point
+        level = Decimal(response.args[1].replace(".", "")) / 1000
 
         return level
 
