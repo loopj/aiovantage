@@ -29,3 +29,7 @@ class LoginFailedError(CommandError):
 
 class LoginRequiredError(CommandError):
     """Login is required to perform this command."""
+
+
+class InvalidObjectError(CommandError):
+    """The requested object ID is invalid."""

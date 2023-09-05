@@ -11,7 +11,12 @@ from typing import List, Optional, Type, Union
 from typing_extensions import Self
 
 from aiovantage.connection import BaseConnection
-from aiovantage.errors import CommandError, LoginFailedError, LoginRequiredError
+from aiovantage.errors import (
+    CommandError,
+    InvalidObjectError,
+    LoginFailedError,
+    LoginRequiredError,
+)
 
 from .utils import encode_params, tokenize_response
 
@@ -228,7 +233,9 @@ class CommandClient:
         error_code = int(error_code_str)
 
         exc: CommandError
-        if error_code == 21:
+        if error_code == 7:
+            exc = InvalidObjectError(error_message)
+        elif error_code == 21:
             exc = LoginRequiredError(error_message)
         elif error_code == 23:
             exc = LoginFailedError(error_message)
