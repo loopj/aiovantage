@@ -1,52 +1,185 @@
 """Interface for querying and controlling RGB loads."""
 
 import struct
-from typing import Sequence, Tuple
+from decimal import Decimal
+from enum import IntEnum
+from typing import Tuple, Union, cast
 
-from .base import Interface
-
-# NOTE: Not available on 2.x firmware
+from .base import Interface, InterfaceResponse
 
 
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""
 
-    async def get_rgb(self, vid: int) -> Tuple[int, ...]:
-        """Get the RGB color of a load from the controller.
+    class RGBChannel(IntEnum):
+        """The RGB color channels."""
+
+        RED = 0
+        GREEN = 1
+        BLUE = 2
+        WHITE = 3
+
+    class HSLAttribute(IntEnum):
+        """The HSL color attributes."""
+
+        HUE = 0
+        SATURATION = 1
+        LIGHTNESS = 2
+
+    async def set_rgb(self, vid: int, red: int, green: int, blue: int) -> None:
+        """Set the color of an RGB load.
 
         Args:
             vid: The Vantage ID of the RGB load.
-
-        Returns:
-            The value of the RGB color as a tuple of (red, green, blue).
+            red: The red value of the color, (0-255)
+            green: The green value of the color, (0-255)
+            blue: The blue value of the color, (0-255)
         """
-        return (await self.get_color(vid))[:3]
+        # Clamp levels to 0-255
+        red = max(min(red, 255), 0)
+        green = max(min(green, 255), 0)
+        blue = max(min(blue, 255), 0)
 
-    async def get_rgbw(self, vid: int) -> Tuple[int, ...]:
-        """Get the RGBW color of a load from the controller.
+        # INVOKE <id> RGBLoad.SetRGB <red> <green> <blue>
+        # -> R:INVOKE <id> <rcode> RGBLoad.SetRGB <red> <green> <blue>
+        await self.invoke(vid, "RGBLoad.SetRGB", red, green, blue)
+
+    async def get_rgb(self, vid: int, channel: int) -> int:
+        """Get a single RGB color channel of a load from the controller.
 
         Args:
             vid: The Vantage ID of the RGB load.
+            channel: The channel to get the color of.
 
         Returns:
-            The value of the RGBW color as a tuple of (red, green, blue, white).
+            The value of the RGB channel, 0-255.
         """
-        return tuple(
-            [await self.get_rgbw_channel(vid, channel) for channel in range(4)]
-        )
+        # INVOKE <id> RGBLoad.GetRGB <channel>
+        response = await self.invoke(vid, "RGBLoad.GetRGB", channel)
+        _, value = self.parse_get_rgb_response(response)
 
-    async def get_hsl(self, vid: int) -> Tuple[int, ...]:
-        """Get the HSL color of a load from the controller.
+        return value
+
+    async def set_hsl(
+        self,
+        vid: int,
+        hue: int,
+        saturation: Union[float, Decimal],
+        lightness: Union[float, Decimal],
+    ) -> None:
+        """Set the color of an HSL load.
 
         Args:
             vid: The Vantage ID of the RGB load.
+            hue: The hue value of the color, in degrees (0-360).
+            saturation: The saturation value of the color, in percent (0-100).
+            lightness: The lightness value of the color, in percent (0-100).
+        """
+        # Clamp levels to 0-360, 0-100
+        hue = max(min(hue, 360), 0)
+        saturation = max(min(saturation, 100), 0)
+        lightness = max(min(lightness, 100), 0)
+
+        # INVOKE <id> RGBLoad.SetHSL <hue> <saturation> <lightness>
+        # -> R:INVOKE <id> <rcode> RGBLoad.SetHSL <hue> <saturation> <lightness>
+        await self.invoke(vid, "RGBLoad.SetHSL", hue, saturation, lightness)
+
+    async def get_hsl(self, vid: int, attribute: int) -> int:
+        """Get a single HSL color attribute of a load from the controller.
+
+        Args:
+            vid: The Vantage ID of the RGB load.
+            attribute: The attribute to get the value of.
 
         Returns:
-            The value of the HSL color as a tuple of (hue, saturation, lightness).
+            The value of the HSL attribute, 0-360 for hue, 0-100 for saturation and
+            lightness.
         """
-        return tuple(
-            [await self.get_hsl_attribute(vid, attribute) for attribute in range(3)]
-        )
+        # INVOKE <id> RGBLoad.GetHSL <attribute>
+        response = await self.invoke(vid, "RGBLoad.GetHSL", attribute)
+        _, value = self.parse_get_hsl_response(response)
+
+        return value
+
+    async def dissolve_rgb(
+        self, vid: int, red: float, green: float, blue: float, rate: float
+    ) -> None:
+        """Transition the color of an RGB load over a number of seconds.
+
+        Args:
+            vid: The Vantage ID of the RGB load.
+            red: The new red value of the color, (0-255)
+            green: The new green value of the color, (0-255)
+            blue: The new blue value of the color, (0-255)
+            rate: The number of seconds the transition should take.
+        """
+        # Clamp levels to 0-255, ensure they're integers
+        red = int(max(min(red, 255), 0))
+        green = int(max(min(green, 255), 0))
+        blue = int(max(min(blue, 255), 0))
+
+        # INVOKE <id> RGBLoad.DissolveRGB <red> <green> <blue> <rate>
+        # -> R:INVOKE <id> <rcode> RGBLoad.DissolveRGB <red> <green> <blue> <rate>
+        await self.invoke(vid, "RGBLoad.DissolveRGB", red, green, blue, rate)
+
+    async def dissolve_hsl(
+        self, vid: int, hue: float, saturation: float, lightness: float, rate: float
+    ) -> None:
+        """Transition the color of an HSL load over a number of seconds.
+
+        Args:
+            vid: The Vantage ID of the RGB load.
+            hue: The new hue value of the color, in degrees (0-360).
+            saturation: The new saturation value of the color, in percent (0-100).
+            lightness: The new lightness value of the color, in percent (0-100).
+            rate: The number of seconds the transition should take.
+        """
+        # Clamp levels to 0-360, 0-100, ensure they're integers
+        hue = int(max(min(hue, 360), 0))
+        saturation = int(max(min(saturation, 100), 0))
+        lightness = int(max(min(lightness, 100), 0))
+
+        # INVOKE <id> RGBLoad.DissolveHSL <hue> <saturation> <lightness> <rate>
+        # -> R:INVOKE <id> <rcode> RGBLoad.DissolveHSL <hue> <saturation> <lightness> <rate>
+        await self.invoke(vid, "RGBLoad.DissolveHSL", hue, saturation, lightness, rate)
+
+    async def set_rgb_component(
+        self, vid: int, channel: RGBChannel, value: int
+    ) -> None:
+        """Set a single RGB(W) color channel of a load.
+
+        Args:
+            vid: The Vantage ID of the RGB load.
+            channel: The channel to set the color of.
+            value: The value to set the channel to, 0-255.
+        """
+        # Clamp value to 0-255
+        value = max(min(value, 255), 0)
+
+        # INVOKE <id> RGBLoad.SetRGBComponent <channel> <value>
+        # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBComponent <channel> <value>
+        await self.invoke(vid, "RGBLoad.SetRGBComponent", channel, value)
+
+    async def set_hsl_attribute(
+        self, vid: int, attribute: HSLAttribute, value: int
+    ) -> None:
+        """Set a single HSL color attribute of a load.
+
+        Args:
+            vid: The Vantage ID of the RGB load.
+            attribute: The attribute to set the value of.
+            value: The value to set the attribute to, 0-360 for hue, 0-100 for
+                saturation and lightness.
+        """
+        # Clamp value to 0-360, 0-100
+        if attribute == self.HSLAttribute.HUE:
+            value = max(min(value, 360), 0)
+        else:
+            value = max(min(value, 100), 0)
+
+        # INVOKE <id> RGBLoad.SetHSLAttribute <attribute> <value>
+        # -> R:INVOKE <id> <rcode> RGBLoad.SetHSLAttribute <attribute> <value>
+        await self.invoke(vid, "RGBLoad.SetHSLAttribute", attribute, value)
 
     async def get_color(self, vid: int) -> Tuple[int, ...]:
         """Get the RGB/RGBW color of a load from the controller.
@@ -58,81 +191,8 @@ class RGBLoadInterface(Interface):
             The value of the RGB/RGBW color as a bytearray.
         """
         # INVOKE <id> RGBLoad.GetColor
-        # -> R:INVOKE <id> <color> RGBLoad.GetColor
         response = await self.invoke(vid, "RGBLoad.GetColor")
-        color = int(response.args[1])
-
-        return tuple(struct.pack(">i", color))
-
-    async def get_rgb_channel(self, vid: int, channel: int) -> int:
-        """Get a single RGB color channel of a load from the controller.
-
-        Args:
-            vid: The Vantage ID of the RGB load.
-            channel: The channel to get the color of.
-
-        Returns:
-            The value of the RGB channel, 0-255.
-        """
-        # INVOKE <id> RGBLoad.GetRGB <channel>
-        # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
-        response = await self.invoke(vid, "RGBLoad.GetRGB", channel)
-        color = int(response.args[1])
-
-        return color
-
-    async def get_rgbw_channel(self, vid: int, channel: int) -> int:
-        """Get a single RGBW color channel of a load from the controller.
-
-        Args:
-            vid: The Vantage ID of the RGB load.
-            channel: The channel to get the color of.
-
-        Returns:
-            The value of the RGBW channel, 0-255.
-        """
-        # INVOKE <id> RGBLoad.GetRGB <channel>
-        # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
-        response = await self.invoke(vid, "RGBLoad.GetRGBW", channel)
-        color = int(response.args[1])
-
-        return color
-
-    async def get_hsl_attribute(self, vid: int, attribute: int) -> int:
-        """Get a single HSL color attribute of a load from the controller.
-
-        Args:
-            vid: The Vantage ID of the RGB load.
-            attribute: The attribute to get the value of.
-
-        Returns:
-            The value of the HSL attribute, 0-360 for hue, 0-100 for saturation and
-            lightness.
-        """
-        # INVOKE <id> RGBLoad.GetHSL <channel>
-        # -> R:INVOKE <id> <value> RGBLoad.GetHSL <channel>
-        response = await self.invoke(vid, "RGBLoad.GetHSL", attribute)
-        color = int(response.args[1])
-
-        return color
-
-    async def set_rgb(self, vid: int, red: float, green: float, blue: float) -> None:
-        """Set the color of an RGB load.
-
-        Args:
-            vid: The Vantage ID of the RGB load.
-            red: The red value of the color, (0-255)
-            green: The green value of the color, (0-255)
-            blue: The blue value of the color, (0-255)
-        """
-        # Clamp levels to 0-255, ensure they're integers
-        red = int(max(min(red, 255), 0))
-        green = int(max(min(green, 255), 0))
-        blue = int(max(min(blue, 255), 0))
-
-        # INVOKE <id> RGBLoad.SetRGB <red> <green> <blue>
-        # -> R:INVOKE <id> <rcode> RGBLoad.SetRGB <red> <green> <blue>
-        await self.invoke(vid, "RGBLoad.SetRGB", red, green, blue)
+        return self.parse_get_color_response(response)
 
     async def set_rgbw(
         self, vid: int, red: float, green: float, blue: float, white: float
@@ -156,104 +216,101 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBW <red> <green> <blue> <white>
         await self.invoke(vid, "RGBLoad.SetRGBW", red, green, blue, white)
 
-    async def set_hsl(
-        self, vid: int, hue: float, saturation: float, lightness: float
-    ) -> None:
-        """Set the color of an HSL load.
+    async def get_rgbw(self, vid: int, channel: int) -> int:
+        """Get a single RGBW color channel of a load from the controller.
 
         Args:
             vid: The Vantage ID of the RGB load.
-            hue: The hue value of the color, in degrees (0-360).
-            saturation: The saturation value of the color, in percent (0-100).
-            lightness: The lightness value of the color, in percent (0-100).
+            channel: The channel to get the color of.
+
+        Returns:
+            The value of the RGBW channel, 0-255.
         """
-        # Clamp levels to 0-360, 0-100, ensure they're integers
-        hue = int(max(min(hue, 360), 0))
-        saturation = int(max(min(saturation, 100), 0))
-        lightness = int(max(min(lightness, 100), 0))
+        # INVOKE <id> RGBLoad.GetRGB <channel>
+        # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
+        response = await self.invoke(vid, "RGBLoad.GetRGBW", channel)
+        _, value = self.parse_get_rgbw_response(response)
 
-        # INVOKE <id> RGBLoad.SetHSL <hue> <saturation> <lightness>
-        # -> R:INVOKE <id> <rcode> RGBLoad.SetHSL <hue> <saturation> <lightness>
-        await self.invoke(vid, "RGBLoad.SetHSL", hue, saturation, lightness)
+        return value
 
-    async def dissolve_rgb(
-        self, vid: int, red: float, green: float, blue: float, seconds: float
-    ) -> None:
-        """Transition the color of an RGB load over a number of seconds.
+    async def get_rgb_color(self, vid: int) -> Tuple[int, int, int]:
+        """Get the RGB color of a load from the controller.
 
         Args:
             vid: The Vantage ID of the RGB load.
-            red: The new red value of the color, (0-255)
-            green: The new green value of the color, (0-255)
-            blue: The new blue value of the color, (0-255)
-            seconds: The number of seconds the transition should take.
+
+        Returns:
+            The value of the RGB color as a tuple of (red, green, blue).
         """
-        # Clamp levels to 0-255, ensure they're integers
-        red = int(max(min(red, 255), 0))
-        green = int(max(min(green, 255), 0))
-        blue = int(max(min(blue, 255), 0))
+        color = await self.get_color(vid)
+        return cast(Tuple[int, int, int], color[:3])
 
-        # INVOKE <id> RGBLoad.DissolveRGB <red> <green> <blue>
-        # -> R:INVOKE <id> <rcode> RGBLoad.DissolveRGB <red> <green> <blue>
-        await self.invoke(vid, "RGBLoad.DissolveRGB", red, green, blue, seconds)
-
-    async def set_rgb_component(self, vid: int, channel: int, value: float) -> None:
-        """Set a single RGB(W) color channel of a load.
+    async def get_rgbw_color(self, vid: int) -> Tuple[int, int, int, int]:
+        """Get the RGBW color of a load from the controller.
 
         Args:
             vid: The Vantage ID of the RGB load.
-            channel: The channel to set the color of.
-            value: The value to set the channel to, 0-255.
+
+        Returns:
+            The value of the RGBW color as a tuple of (red, green, blue, white).
         """
-        # Clamp levels to 0-255, ensure they're integers
-        value = int(max(min(value, 255), 0))
+        return cast(
+            Tuple[int, int, int, int],
+            tuple([await self.get_rgbw(vid, chan) for chan in self.RGBChannel]),
+        )
 
-        # INVOKE <id> RGBLoad.SetRGBComponent <channel> <value>
-        # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBComponent <channel> <value>
-        await self.invoke(vid, "RGBLoad.SetRGBComponent", channel, value)
-
-    async def dissolve_hsl(
-        self, vid: int, hue: float, saturation: float, lightness: float, seconds: float
-    ) -> None:
-        """Transition the color of an HSL load over a number of seconds.
+    async def get_hsl_color(self, vid: int) -> Tuple[int, int, int]:
+        """Get the HSL color of a load from the controller.
 
         Args:
             vid: The Vantage ID of the RGB load.
-            hue: The new hue value of the color, in degrees (0-360).
-            saturation: The new saturation value of the color, in percent (0-100).
-            lightness: The new lightness value of the color, in percent (0-100).
-            seconds: The number of seconds the transition should take.
-        """
-        # Clamp levels to 0-360, 0-100, ensure they're integers
-        hue = int(max(min(hue, 360), 0))
-        saturation = int(max(min(saturation, 100), 0))
-        lightness = int(max(min(lightness, 100), 0))
 
-        # INVOKE <id> RGBLoad.DissolveHSL <hue> <saturation> <lightness>
-        # -> R:INVOKE <id> <rcode> RGBLoad.DissolveHSL <hue> <saturation> <lightness>
-        await self.invoke(
-            vid, "RGBLoad.DissolveHSL", hue, saturation, lightness, seconds
+        Returns:
+            The value of the HSL color as a tuple of (hue, saturation, lightness).
+        """
+        return cast(
+            Tuple[int, int, int],
+            tuple([await self.get_hsl(vid, attr) for attr in self.HSLAttribute]),
         )
 
     @classmethod
-    def parse_color_channel_status(cls, args: Sequence[str]) -> Tuple[int, int]:
-        """Parse an 'RGBLoad.GetRGB' event."""
-        # ELLOG STATUSEX ON
-        # -> EL: <id> RGBLoad.GetRGB <value> <channel>
-        # STATUS ADD <id>
+    def parse_get_rgb_response(cls, response: InterfaceResponse) -> Tuple[int, int]:
+        """Parse a 'RGBLoad.GetRGB' response."""
+        # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
         # -> S:STATUS <id> RGBLoad.GetRGB <value> <channel>
-        value = int(args[0])
-        channel = int(args[1])
+        # -> EL: <id> RGBLoad.GetRGB <value> <channel>
+        value = int(response.result)
+        channel = int(response.args[0])
 
         return channel, value
 
     @classmethod
-    def parse_get_color_status(cls, args: Sequence[str]) -> bytearray:
-        """Parse an 'RGBLoad.GetColor' event."""
-        # ELLOG STATUS ON
-        # -> EL: <id> RGBLoad.GetColor <color>
-        # STATUS ADD <id>
-        # -> S:STATUS <id> RGBLoad.GetColor <color>
-        color = int(args[0])
+    def parse_get_hsl_response(cls, response: InterfaceResponse) -> Tuple[int, int]:
+        """Parse a 'RGBLoad.GetRGB' response."""
+        # -> R:INVOKE <id> <value> RGBLoad.GetHSL <attribute>
+        # -> S:STATUS <id> RGBLoad.GetHSL <value> <attribute>
+        # -> EL: <id> RGBLoad.GetHSL <value> <attribute>
+        value = int(response.result)
+        attribute = int(response.args[0])
 
-        return bytearray(struct.pack(">i", color))
+        return attribute, value
+
+    @classmethod
+    def parse_get_rgbw_response(cls, response: InterfaceResponse) -> Tuple[int, int]:
+        """Parse a 'RGBLoad.GetRGBW' response."""
+        # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <channel>
+        # -> S:STATUS <id> RGBLoad.GetRGBW <value> <channel>
+        # -> EL: <id> RGBLoad.GetRGBW <value> <channel>
+        value = int(response.result)
+        channel = int(response.args[0])
+
+        return channel, value
+
+    @classmethod
+    def parse_get_color_response(cls, response: InterfaceResponse) -> Tuple[int, ...]:
+        """Parse a 'RGBLoad.GetColor' response."""
+        # -> R:INVOKE <id> <color> RGBLoad.GetColor
+        # -> S:STATUS <id> RGBLoad.GetColor <color>
+        # -> EL: <id> RGBLoad.GetColor <color>
+        color = int(response.result)
+        return tuple(struct.pack(">i", color))

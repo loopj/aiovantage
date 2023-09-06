@@ -21,7 +21,7 @@ class Thermostat(StationObject):
     class FanMode(IntEnum):
         """The fan mode of the thermostat."""
 
-        OFF = 0
+        AUTO = 0
         ON = 1
 
     class DayMode(IntEnum):

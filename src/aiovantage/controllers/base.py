@@ -11,8 +11,8 @@ from typing import (
     Dict,
     Iterable,
     List,
+    Literal,
     Optional,
-    Sequence,
     Set,
     Tuple,
     TypeVar,
@@ -20,7 +20,7 @@ from typing import (
 )
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
-from aiovantage.command_client.utils import tokenize_response
+from aiovantage.command_client.object_interfaces.base import InterfaceResponse
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects
 from aiovantage.events import EventCallback, VantageEvent
@@ -35,7 +35,6 @@ T = TypeVar("T", bound=SystemObject)
 
 # Types for state and subscriptions
 EventSubscription = Tuple[EventCallback[T], Optional[Iterable[VantageEvent]]]
-State = Optional[Dict[str, Any]]
 
 
 class BaseController(QuerySet[T]):
@@ -47,8 +46,8 @@ class BaseController(QuerySet[T]):
     status_types: Optional[Tuple[str, ...]] = None
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
-    object_status: bool = False
-    """Should this controller subscribe to "object status" events."""
+    interface_status_types: Optional[Union[Tuple[str, ...], Literal["*"]]] = None
+    """Which object interface status messages this controller handles, if any."""
 
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize a controller.
@@ -102,22 +101,35 @@ class BaseController(QuerySet[T]):
     @property
     def stateful(self) -> bool:
         """Return True if this controller manages stateful objects."""
-        return bool(self.status_types or self.object_status)
+        return bool(self.status_types or self.interface_status_types)
 
     @property
     def known_ids(self) -> Set[int]:
         """Return a set of all known object IDs."""
         return set(self._items.keys())
 
-    async def fetch_object_state(self, _vid: int) -> State:
-        """Fetch the full state of an object, should be overridden by subclasses."""
-        return None
+    async def fetch_object_state(self, _vid: int) -> None:
+        """Fetch the full state of an object.
 
-    def parse_object_update(
-        self, _vid: int, _status: str, _args: Sequence[str]
-    ) -> State:
-        """Parse updates from the event stream for an object, should be overridden by subclasses."""
-        return None
+        Should be overridden by subclasses that manage stateful objects.
+        """
+        return
+
+    def handle_status(self, _vid: int, _status: str, *_args: str) -> None:
+        """Handle simple status messages from the event stream.
+
+        Should be overridden by subclasses that manage stateful objects using
+        "STATUS {type}" messages.
+        """
+        return
+
+    def handle_interface_status(self, _status: InterfaceResponse) -> None:
+        """Handle object interface status messages from the event stream.
+
+        Should be overridden by subclasses that manage stateful objects using object
+        interface status messages from "ADDSTATUS {vid}" or "ELLOG STATUS" events.
+        """
+        return
 
     async def initialize(self, fetch_state: bool = True) -> None:
         """Populate objects and fetch their initial state.
@@ -134,12 +146,12 @@ class BaseController(QuerySet[T]):
                 # This is a new object, add it to the controller
                 self._items[obj.id] = obj
 
-                # Fetch the state of the object
-                if self.stateful and fetch_state:
-                    self._set_state(obj, await self.fetch_object_state(obj.id))
-
                 # Notify subscribers that a new object was added
                 self.emit(VantageEvent.OBJECT_ADDED, obj)
+
+                # Fetch the state of the object
+                if self.stateful and fetch_state:
+                    await self.fetch_object_state(obj.id)
             else:
                 # This is an existing object, check if any attributes have changed
                 prev_obj = self._items[obj.id]
@@ -191,7 +203,7 @@ class BaseController(QuerySet[T]):
             return
 
         for obj in self._items.values():
-            self._update_state(obj.id, await self.fetch_object_state(obj.id))
+            await self.fetch_object_state(obj.id)
 
         self._logger.info("%s fetched state", self.__class__.__name__)
 
@@ -209,7 +221,7 @@ class BaseController(QuerySet[T]):
 
         # Some state changes are only available from "object" status events.
         # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
-        if self.object_status:
+        if self.interface_status_types:
             # Subscribe to "object status" events from the Enhanced Log.
             self.event_stream.subscribe_enhanced_log(
                 self._handle_event, ("STATUS", "STATUSEX")
@@ -289,22 +301,8 @@ class BaseController(QuerySet[T]):
             else:
                 callback(event_type, obj, data)
 
-    def _set_state(self, obj: T, state: State) -> None:
-        # Set the state properties of an object.
-        if state is None:
-            return
-
-        for key, value in state.items():
-            try:
-                setattr(obj, key, value)
-            except AttributeError:
-                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
-
-    def _update_state(self, vid: int, state: State) -> None:
+    def update_state(self, vid: int, state: Dict[str, Any]) -> None:
         """Update the state of an object and notify subscribers if it changed."""
-        if state is None:
-            return
-
         # Ignore updates for objects that this controller doesn't manage
         if (obj := self._items.get(vid)) is None:
             return
@@ -335,34 +333,20 @@ class BaseController(QuerySet[T]):
             if event["id"] not in self._items:
                 return
 
-            if event["status_type"] == "STATUS":
-                # S:STATUS messages are "object status" messages, which take the form
-                #   S:STATUS 123 Interface.Method arg1 arg2 ...
-                state = self.parse_object_update(
-                    event["id"], event["args"][0], event["args"][1:]
-                )
-            else:
-                # Otherwise we pass the plain status_type for "S:LOAD", etc
-                state = self.parse_object_update(
-                    event["id"], event["status_type"], event["args"]
-                )
-
-            self._update_state(event["id"], state)
+            self.handle_status(event["id"], event["status_type"], *event["args"])
 
         elif event["type"] == EventType.ENHANCED_LOG:
-            # We only every subscribe to STATUS/STATUSEX logs from the enhanced log.
-            # These are "object status" messages, which take the form
-            #   123 Interface.Method arg1 arg2 ...
-            id_str, method, *args = tokenize_response(event["log"])
+            # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.
+            # These are "interface status" messages, with the form:
+            #   EL: 123 Interface.Method arg1 arg2 ...
+            status = InterfaceResponse.from_status(event["log"])
 
             # Ignore events for objects that this controller doesn't manage
-            vid = int(id_str)
-            if vid not in self._items:
+            if status.vid not in self._items:
                 return
 
             # Pass the event to the controller
-            state = self.parse_object_update(vid, method, args)
-            self._update_state(vid, state)
+            self.handle_interface_status(status)
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized

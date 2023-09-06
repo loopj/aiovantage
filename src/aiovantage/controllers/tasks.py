@@ -1,13 +1,12 @@
 """Controller holding and managing Vantage tasks."""
 
-from typing import Sequence
-
 from typing_extensions import override
 
 from aiovantage.command_client.object_interfaces import TaskInterface
+from aiovantage.command_client.object_interfaces.base import InterfaceResponse
 from aiovantage.models import Task
 
-from .base import BaseController, State
+from .base import BaseController
 
 
 class TasksController(BaseController[Task], TaskInterface):
@@ -19,30 +18,41 @@ class TasksController(BaseController[Task], TaskInterface):
     status_types = ("TASK",)
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
-    object_status = True
-    """Should this controller subscribe to "object status" events."""
+    interface_status_types = ("Task.IsRunning",)
+    """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> State:
+    async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a task."""
-        return {
+        state = {
             "is_running": await TaskInterface.is_running(self, vid),
             "state": await TaskInterface.get_state(self, vid),
         }
 
+        self.update_state(vid, state)
+
     @override
-    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
-        """Handle state changes for a task."""
-        if status == "TASK":
-            # STATUS TASK
-            # -> S:TASK <id> <state>
-            return {
-                "state": int(args[0]),
-            }
+    def handle_status(self, vid: int, status: str, *args: str) -> None:
+        """Handle simple status messages from the event stream."""
+        if status != "TASK":
+            return
 
-        if status == "Task.IsRunning":
-            return {
-                "is_running": TaskInterface.parse_is_running_status(args),
-            }
+        # STATUS TASK
+        # -> S:TASK <id> <state>
+        state = {
+            "state": int(args[0]),
+        }
 
-        return None
+        self.update_state(vid, state)
+
+    @override
+    def handle_interface_status(self, status: InterfaceResponse) -> None:
+        """Handle object interface status messages from the event stream."""
+        if status.method != "Task.IsRunning":
+            return
+
+        state = {
+            "is_running": TaskInterface.parse_is_running_response(status),
+        }
+
+        self.update_state(status.vid, state)

@@ -43,21 +43,6 @@ class CommandResponse:
         self.command = command[2:]
 
 
-@dataclass
-class InvokeResponse:
-    """Wrapper for invoke command responses."""
-
-    vid: int
-    result: str
-    method: str
-    args: List[str]
-
-    def __init__(self, data: List[str]) -> None:
-        """Initialize an InvokeResponse."""
-        _, vid_str, self.result, self.method, *self.args = tokenize_response(data[0])
-        self.vid = int(vid_str)
-
-
 class CommandClient:
     """Client to send commands to the Vantage Host Command service."""
 
@@ -126,35 +111,6 @@ class CommandClient:
         # Send the request and parse the response
         raw_response = await self.raw_request(request, connection=connection)
         return CommandResponse(raw_response)
-
-    async def invoke(
-        self,
-        vid: int,
-        method: str,
-        *params: Union[str, int, float, Decimal],
-        force_quotes: bool = False,
-        connection: Optional[CommandConnection] = None,
-    ) -> InvokeResponse:
-        """Invoke a method on an object, and wait for a response.
-
-        Args:
-            vid: The VID of the object to invoke the command on.
-            method: The method to invoke.
-            params: The parameters to send with the method.
-            force_quotes: Whether to force string params to be wrapped in double quotes.
-            connection: The connection to use, if not the default.
-
-        Returns:
-            A InvokeResponse instance.
-        """
-        if params:
-            request = f"INVOKE {vid} {method} {encode_params(*params, force_quotes=force_quotes)}"
-        else:
-            request = f"INVOKE {vid} {method}"
-
-        # Send the request and parse the response
-        raw_response = await self.raw_request(request, connection=connection)
-        return InvokeResponse(raw_response)
 
     async def raw_request(
         self, request: str, connection: Optional[CommandConnection] = None

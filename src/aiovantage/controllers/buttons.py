@@ -1,13 +1,11 @@
 """Controller holding and managing Vantage buttons."""
 
-from typing import Sequence
-
 from typing_extensions import override
 
 from aiovantage.command_client.object_interfaces import ButtonInterface
 from aiovantage.models import Button
 
-from .base import BaseController, State
+from .base import BaseController
 
 
 class ButtonsController(BaseController[Button], ButtonInterface):
@@ -20,21 +18,25 @@ class ButtonsController(BaseController[Button], ButtonInterface):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, _vid: int) -> State:
+    async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a dry contact."""
-        return {
-            # Buttons are momentary, so default to not pressed to avoid a lookup
+        state = {
+            # Buttons are momentary, default to not pressed to avoid a lookup
             "pressed": False,
         }
 
+        self.update_state(vid, state)
+
     @override
-    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
-        """Handle state changes for a button."""
+    def handle_status(self, vid: int, status: str, *args: str) -> None:
+        """Handle simple status messages from the event stream."""
         if status != "BTN":
-            return None
+            return
 
         # STATUS BTN
         # -> S:BTN <id> <state (PRESS/RELEASE)>
-        return {
+        state = {
             "pressed": args[0] == "PRESS",
         }
+
+        self.update_state(vid, state)

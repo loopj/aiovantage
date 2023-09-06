@@ -1,18 +1,26 @@
 """Controller holding and managing thermostats."""
 
-from typing import Sequence
+from contextlib import suppress
+from typing import Any, Dict
 
 from typing_extensions import override
 
 from aiovantage.command_client.object_interfaces import ThermostatInterface
+from aiovantage.command_client.object_interfaces.base import InterfaceResponse
+from aiovantage.errors import CommandError
 from aiovantage.models import Temperature, Thermostat
 from aiovantage.query import QuerySet
 
-from .base import BaseController, State
+from .base import BaseController
 
 
 class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
-    """Controller holding and managing thermostats."""
+    """Controller holding and managing thermostats.
+
+    Thermostats have a number of temperature sensors associated with them which
+    represent the current indoor temperature, outdoor temperature, and the
+    current cool and heat setpoints.
+    """
 
     vantage_types = ("Thermostat",)
     """The Vantage object types that this controller will fetch."""
@@ -21,58 +29,57 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> State:
+    async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a thermostat."""
-        return {
-            "day_mode": await ThermostatInterface.get_day_mode(self, vid),
-            "fan_mode": await ThermostatInterface.get_fan_mode(self, vid),
+        state = {
             "operation_mode": await ThermostatInterface.get_operation_mode(self, vid),
+            "fan_mode": await ThermostatInterface.get_fan_mode(self, vid),
+            "day_mode": await ThermostatInterface.get_day_mode(self, vid),
         }
 
-    @override
-    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
-        """Handle state changes for a thermostat."""
-        if status == "THERMFAN":
-            # STATUS THERMFAN
-            # -> S:THERMFAN <id> <fan_mode (ON/AUTO)>
-            if args[0] == "ON":
-                fan_mode = Thermostat.FanMode.ON
-            elif args[0] == "AUTO":
-                fan_mode = Thermostat.FanMode.OFF
+        with suppress(CommandError):
+            # Hold mode is not supported by every thermostat type.
+            state["hold_mode"] = await ThermostatInterface.get_hold_mode(self, vid)
 
-            return {
-                "fan_mode": fan_mode,
-            }
+            # Status is not available on 2.x firmware.
+            state["status"] = await ThermostatInterface.get_status(self, vid)
+
+        self.update_state(vid, state)
+
+    @override
+    def handle_status(self, vid: int, status: str, *args: str) -> None:
+        """Handle simple status message from the event stream."""
+        state: Dict[str, Any] = {}
 
         if status == "THERMOP":
             # STATUS THERMOP
             # -> S:THERMOP <id> <operation_mode (OFF/COOL/HEAT/AUTO)>
-            if args[0] == "OFF":
-                op_mode = Thermostat.OperationMode.OFF
-            elif args[0] == "COOL":
-                op_mode = Thermostat.OperationMode.COOL
-            elif args[0] == "HEAT":
-                op_mode = Thermostat.OperationMode.HEAT
-            elif args[0] == "AUTO":
-                op_mode = Thermostat.OperationMode.AUTO
+            state["operation_mode"] = Thermostat.OperationMode[args[0]]
 
-            return {
-                "operation_mode": op_mode,
-            }
+        elif status == "THERMFAN":
+            # STATUS THERMFAN
+            # -> S:THERMFAN <id> <fan_mode (ON/AUTO)>
+            state["fan_mode"] = Thermostat.FanMode[args[0]]
 
-        if status == "THERMDAY":
+        elif status == "THERMDAY":
             # STATUS THERMDAY
             # -> S:THERMDAY <id> <day_mode (DAY/NIGHT)>
-            if args[0] == "DAY":
-                day_mode = Thermostat.DayMode.DAY
-            elif args[0] == "NIGHT":
-                day_mode = Thermostat.DayMode.NIGHT
+            state["day_mode"] = Thermostat.DayMode[args[0]]
 
-            return {
-                "day_mode": day_mode,
-            }
+        self.update_state(vid, state)
 
-        return None
+    @override
+    def handle_interface_status(self, status: InterfaceResponse) -> None:
+        """Handle object interface status messages from the event stream."""
+        state: Dict[str, Any] = {}
+        if status.method == "Thermostat.GetHoldMode":
+            state["hold_mode"] = ThermostatInterface.parse_get_hold_mode_response(
+                status
+            )
+        elif status.method == "Thermostat.GetStatus":
+            state["status"] = ThermostatInterface.parse_get_status_response(status)
+
+        self.update_state(status.vid, state)
 
     def sensors(self, vid: int) -> QuerySet[Temperature]:
         """Return all sensors associated with this thermostat."""
@@ -90,14 +97,8 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
 
     def cool_setpoint(self, vid: int) -> QuerySet[Temperature]:
         """Return a queryset to fetch the cool setpoint sensor for this thermostat."""
-        return self.sensors(vid).filter(
-            lambda obj: obj.setpoint == Temperature.Setpoint.COOL
-            or obj.parent.position == 3
-        )
+        return self.sensors(vid).filter(lambda obj: obj.parent.position == 3)
 
     def heat_setpoint(self, vid: int) -> QuerySet[Temperature]:
         """Return a queryset to fetch the heat setpoint sensor for this thermostat."""
-        return self.sensors(vid).filter(
-            lambda obj: obj.setpoint == Temperature.Setpoint.HEAT
-            or obj.parent.position == 4
-        )
+        return self.sensors(vid).filter(lambda obj: obj.parent.position == 4)

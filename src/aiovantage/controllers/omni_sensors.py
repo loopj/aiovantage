@@ -1,13 +1,14 @@
 """Controller holding and managing Vantage omni sensors."""
 
 from decimal import Decimal
-from typing import Sequence, Union
+from typing import Union
 
 from typing_extensions import override
 
+from aiovantage.command_client.object_interfaces.base import InterfaceResponse
 from aiovantage.config_client.models.omni_sensor import ConversionType, OmniSensor
 
-from .base import BaseController, State
+from .base import BaseController
 
 
 class OmniSensorsController(BaseController[OmniSensor]):
@@ -21,26 +22,30 @@ class OmniSensorsController(BaseController[OmniSensor]):
     vantage_types = ("OmniSensor",)
     """The Vantage object types that this controller will fetch."""
 
-    object_status = True
-    """Should this controller subscribe to "object status" events."""
+    interface_status_types = "*"
+    """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> State:
+    async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of an omni sensor."""
-        return {
+        state = {
             "level": await self.get_level(vid),
         }
 
-    @override
-    def parse_object_update(self, vid: int, status: str, args: Sequence[str]) -> State:
-        """Handle state changes for an omni sensor."""
-        omni_sensor = self[vid]
-        if status != omni_sensor.get.method:
-            return None
+        self.update_state(vid, state)
 
-        return {
-            "level": self.parse_get_level_status(omni_sensor, args),
+    @override
+    def handle_interface_status(self, status: InterfaceResponse) -> None:
+        """Handle object interface status messages from the event stream."""
+        omni_sensor = self[status.vid]
+        if status.method != omni_sensor.get.method:
+            return
+
+        state = {
+            "level": self.parse_get_level_status(omni_sensor, status),
         }
+
+        self.update_state(status.vid, state)
 
     async def get_level(self, vid: int, cached: bool = False) -> Union[int, Decimal]:
         """Get the level of an OmniSensor.
@@ -52,12 +57,11 @@ class OmniSensorsController(BaseController[OmniSensor]):
         Returns:
             The level of the sensor.
         """
-        # Figure out which get method to use, hardware or software (cached)
         omni_sensor = self[vid]
-        method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
 
         # INVOKE <id> <method>
         # -> R:INVOKE <id> <value> <method>
+        method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
         response = await self.command_client.command("INVOKE", vid, method)
 
         # Convert the level to the correct type
@@ -79,14 +83,12 @@ class OmniSensorsController(BaseController[OmniSensor]):
 
     @classmethod
     def parse_get_level_status(
-        cls, omni_sensor: OmniSensor, args: Sequence[str]
+        cls, omni_sensor: OmniSensor, status: InterfaceResponse
     ) -> Union[int, Decimal]:
         """Parse an OmniSensor 'GetLevel' event, eg. 'PowerSensor.GetPower'."""
-        # ELLOG STATUS ON
-        # -> EL: <id> <method> <value>
-        # STATUS ADD <id>
         # -> S:STATUS <id> <method> <value>
-        level = Decimal(args[0]) / 1000
+        # -> EL: <id> <method> <value>
+        level = Decimal(status.result) / 1000
         if omni_sensor.get.formula.level_type == ConversionType.INT:
             return int(level)
 

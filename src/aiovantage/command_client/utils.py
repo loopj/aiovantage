@@ -101,8 +101,10 @@ def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
             encoded_param = encode_string_param(value, force_quotes)
         elif isinstance(value, bool):
             encoded_param = "1" if value else "0"
-        elif isinstance(value, (int, float, Decimal)):
+        elif isinstance(value, int):
             encoded_param = str(value)
+        elif isinstance(value, (float, Decimal)):
+            encoded_param = f"{value:.3f}"
         elif isinstance(value, bytearray):
             encoded_param = encode_byte_param(value)
         else:

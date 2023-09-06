@@ -2,9 +2,9 @@
 
 from decimal import Decimal
 from enum import IntEnum
-from typing import Any, Dict, List
+from typing import Union
 
-from .base import Interface
+from .base import Interface, InterfaceResponse, enum_result, fixed_result
 
 
 class ThermostatInterface(Interface):
@@ -54,26 +54,26 @@ class ThermostatInterface(Interface):
 
         Args:
             vid: The Vantage ID of the thermostat.
+
+        Returns:
+            The indoor temperature of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetIndoorTemperature
-        # -> R:INVOKE <id> <temp> Thermostat.GetIndoorTemperature
         response = await self.invoke(vid, "Thermostat.GetIndoorTemperature")
-        temp = Decimal(response.args[1])
-
-        return temp
+        return self.parse_get_indoor_temperature_response(response)
 
     async def get_outdoor_temperature(self, vid: int) -> Decimal:
         """Get the current outdoor temperature.
 
         Args:
             vid: The Vantage ID of the thermostat.
+
+        Returns:
+            The outdoor temperature of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetOutdoorTemperature
-        # -> R:INVOKE <id> <temp> Thermostat.GetOutdoorTemperature
         response = await self.invoke(vid, "Thermostat.GetOutdoorTemperature")
-        temp = Decimal(response.args[1])
-
-        return temp
+        return self.parse_get_outdoor_temperature_response(response)
 
     async def get_heat_set_point(self, vid: int) -> Decimal:
         """Get the current heat set point.
@@ -85,13 +85,10 @@ class ThermostatInterface(Interface):
             The heat set point of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetHeatSetPoint
-        # -> R:INVOKE <id> <temp> Thermostat.GetHeatSetPoint
         response = await self.invoke(vid, "Thermostat.GetHeatSetPoint")
-        temp = Decimal(response.args[1])
+        return self.parse_get_heat_set_point_response(response)
 
-        return temp
-
-    async def set_heat_set_point(self, vid: int, temp: float) -> None:
+    async def set_heat_set_point(self, vid: int, temp: Union[float, Decimal]) -> None:
         """Set the current heat set point.
 
         Args:
@@ -112,13 +109,10 @@ class ThermostatInterface(Interface):
             The cool set point of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetCoolSetPoint
-        # -> R:INVOKE <id> <temp> Thermostat.GetCoolSetPoint
         response = await self.invoke(vid, "Thermostat.GetCoolSetPoint")
-        temp = Decimal(response.args[1])
+        return self.parse_get_cool_set_point_response(response)
 
-        return temp
-
-    async def set_cool_set_point(self, vid: int, temp: float) -> None:
+    async def set_cool_set_point(self, vid: int, temp: Union[float, Decimal]) -> None:
         """Set the current cool set point.
 
         Args:
@@ -139,14 +133,8 @@ class ThermostatInterface(Interface):
             The operation mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetOperationMode
-        # -> R:INVOKE <id> <mode (Off|Cool|Heat|Auto|Unknown)> Thermostat.GetOperationMode
         response = await self.invoke(vid, "Thermostat.GetOperationMode")
-        if response.args[1].isdigit():
-            mode = self.OperationMode(int(response.args[1]))
-        else:
-            mode = self.OperationMode[response.args[1].upper()]
-
-        return mode
+        return self.parse_get_operation_mode_response(response)
 
     async def set_operation_mode(self, vid: int, mode: int) -> None:
         """Set the current operation mode.
@@ -169,14 +157,8 @@ class ThermostatInterface(Interface):
             The fan mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetFanMode
-        # -> R:INVOKE <id> <mode (Off|On|Unknown)> Thermostat.GetFanMode
         response = await self.invoke(vid, "Thermostat.GetFanMode")
-        if response.args[1].isdigit():
-            mode = self.FanMode(int(response.args[1]))
-        else:
-            mode = self.FanMode[response.args[1].upper()]
-
-        return mode
+        return self.parse_get_fan_mode_response(response)
 
     async def set_fan_mode(self, vid: int, mode: int) -> None:
         """Set the current fan mode.
@@ -199,14 +181,8 @@ class ThermostatInterface(Interface):
             The day mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetDayMode
-        # -> R:INVOKE <id> <mode (Day|Night|Unknown|Standby)> Thermostat.GetDayMode
         response = await self.invoke(vid, "Thermostat.GetDayMode")
-        if response.args[1].isdigit():
-            mode = self.DayMode(int(response.args[1]))
-        else:
-            mode = self.DayMode[response.args[1].upper()]
-
-        return mode
+        return self.parse_get_day_mode_response(response)
 
     async def set_day_mode(self, vid: int, mode: int) -> None:
         """Set the current day mode.
@@ -229,14 +205,8 @@ class ThermostatInterface(Interface):
             The hold mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetHoldMode
-        # -> R:INVOKE <id> <mode> Thermostat.GetHoldMode
         response = await self.invoke(vid, "Thermostat.GetHoldMode")
-        if response.args[1].isdigit():
-            mode = self.HoldMode(int(response.args[1]))
-        else:
-            mode = self.HoldMode[response.args[1].upper()]
-
-        return mode
+        return self.parse_get_hold_mode_response(response)
 
     async def set_hold_mode(self, vid: int, mode: int) -> None:
         """Set the current hold mode.
@@ -259,14 +229,8 @@ class ThermostatInterface(Interface):
             The status of the thermostat.
         """
         # INVOKE <id> Thermostat.GetStatus
-        # -> R:INVOKE <id> <status> Thermostat.GetStatus
         response = await self.invoke(vid, "Thermostat.GetStatus")
-        if response.args[1].isdigit():
-            status = self.Status(int(response.args[1]))
-        else:
-            status = self.Status[response.args[1].upper()]
-
-        return status
+        return self.parse_get_status_response(response)
 
     async def get_auto_set_point(self, vid: int) -> Decimal:
         """Get the current auto set point.
@@ -278,13 +242,10 @@ class ThermostatInterface(Interface):
             The auto set point of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetAutoSetPoint
-        # -> R:INVOKE <id> <temp> Thermostat.GetAutoSetPoint
         response = await self.invoke(vid, "Thermostat.GetAutoSetPoint")
-        temp = Decimal(response.args[1])
+        return self.parse_get_auto_set_point_response(response)
 
-        return temp
-
-    async def set_auto_set_point(self, vid: int, temp: float) -> None:
+    async def set_auto_set_point(self, vid: int, temp: Union[float, Decimal]) -> None:
         """Set the current auto set point.
 
         Args:
@@ -296,96 +257,87 @@ class ThermostatInterface(Interface):
         await self.invoke(vid, "Thermostat.SetAutoSetPoint", temp)
 
     @classmethod
-    def parse_status(cls, _vid: int, method: str, args: List[str]) -> Dict[str, Any]:
-        """Parse a Thermostat status event."""
-        if method == "Thermostat.GetIndoorTemperature":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetIndoorTemperature <temp>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetIndoorTemperature <temp>
-            return {
-                "indoor_temperature": Decimal(args[0]),
-            }
+    def parse_get_indoor_temperature_response(
+        cls, response: InterfaceResponse
+    ) -> Decimal:
+        """Parse a 'Thermostat.GetIndoorTemperature' response."""
+        # -> R:INVOKE <id> <temp> Thermostat.GetIndoorTemperature
+        # -> S:STATUS <id> Thermostat.GetIndoorTemperature <temp>
+        # -> EL: <id> Thermostat.GetIndoorTemperature <temp>
+        return fixed_result(response)
 
-        if method == "Thermostat.GetOutdoorTemperature":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetOutdoorTemperature <temp>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetOutdoorTemperature <temp>
-            return {
-                "outdoor_temperature": Decimal(args[0]),
-            }
+    @classmethod
+    def parse_get_outdoor_temperature_response(
+        cls, response: InterfaceResponse
+    ) -> Decimal:
+        """Parse a 'Thermostat.GetOutdoorTemperature' response."""
+        # -> R:INVOKE <id> <temp> Thermostat.GetOutdoorTemperature
+        # -> S:STATUS <id> Thermostat.GetOutdoorTemperature <temp>
+        # -> EL: <id> Thermostat.GetOutdoorTemperature <temp>
+        return fixed_result(response)
 
-        if method == "Thermostat.GetHeatSetPoint":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetHeatSetPoint <temp>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetHeatSetPoint <temp>
-            return {
-                "heat_set_point": Decimal(args[0]),
-            }
+    @classmethod
+    def parse_get_heat_set_point_response(cls, response: InterfaceResponse) -> Decimal:
+        """Parse a 'Thermostat.GetHeatSetPoint' response."""
+        # -> R:INVOKE <id> <temp> Thermostat.GetHeatSetPoint
+        # -> S:STATUS <id> Thermostat.GetHeatSetPoint <temp>
+        # -> EL: <id> Thermostat.GetHeatSetPoint <temp>
+        return fixed_result(response)
 
-        if method == "Thermostat.GetCoolSetPoint":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetCoolSetPoint <temp>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetCoolSetPoint <temp>
-            return {
-                "cool_set_point": Decimal(args[0]),
-            }
+    @classmethod
+    def parse_get_cool_set_point_response(cls, response: InterfaceResponse) -> Decimal:
+        """Parse a 'Thermostat.GetCoolSetPoint' response."""
+        # -> R:INVOKE <id> <temp> Thermostat.GetCoolSetPoint
+        # -> S:STATUS <id> Thermostat.GetCoolSetPoint <temp>
+        # -> EL: <id> Thermostat.GetCoolSetPoint <temp>
+        return fixed_result(response)
 
-        if method == "Thermostat.GetOperationMode":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetOperationMode <mode>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetOperationMode <mode>
-            return {
-                "operation_mode": cls.OperationMode(int(args[0])),
-            }
+    @classmethod
+    def parse_get_operation_mode_response(
+        cls, response: InterfaceResponse
+    ) -> OperationMode:
+        """Parse a 'Thermostat.GetOperationMode' response."""
+        # -> R:INVOKE <id> <mode (Off|Cool|Heat|Auto|Unknown)> Thermostat.GetOperationMode
+        # -> S:STATUS <id> Thermostat.GetOperationMode <mode (0/1/2/3/4)>
+        # -> EL: <id> Thermostat.GetOperationMode <mode (0/1/2/3/4)>
+        return enum_result(cls.OperationMode, response)
 
-        if method == "Thermostat.GetFanMode":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetFanMode <mode>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetFanMode <mode>
-            return {
-                "fan_mode": cls.FanMode(int(args[0])),
-            }
+    @classmethod
+    def parse_get_fan_mode_response(cls, response: InterfaceResponse) -> FanMode:
+        """Parse a 'Thermostat.GetFanMode' response."""
+        # -> R:INVOKE <id> <mode (Off|On|Unknown)> Thermostat.GetFanMode
+        # -> S:STATUS <id> Thermostat.GetFanMode <mode (0/1/2)>
+        # -> EL: <id> Thermostat.GetFanMode <mode (0/1/2)>
+        return enum_result(cls.FanMode, response)
 
-        if method == "Thermostat.GetDayMode":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetDayMode <mode>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetDayMode <mode>
-            return {
-                "day_mode": cls.DayMode(int(args[0])),
-            }
+    @classmethod
+    def parse_get_day_mode_response(cls, response: InterfaceResponse) -> DayMode:
+        """Parse a 'Thermostat.GetDayMode' response."""
+        # -> R:INVOKE <id> <mode (Day|Night|Unknown|Standby)> Thermostat.GetDayMode
+        # -> S:STATUS <id> Thermostat.GetDayMode <mode (0/1/2/3)>
+        # -> EL: <id> Thermostat.GetDayMode <mode (0/1/2/3)>
+        return enum_result(cls.DayMode, response)
 
-        if method == "Thermostat.GetHoldMode":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetHoldMode <mode>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetHoldMode <mode>
-            return {
-                "hold_mode": cls.HoldMode(int(args[0])),
-            }
+    @classmethod
+    def parse_get_hold_mode_response(cls, response: InterfaceResponse) -> HoldMode:
+        """Parse a 'Thermostat.GetHoldMode' response."""
+        # -> R:INVOKE <id> <mode (Normal|Hold|Unknown)> Thermostat.GetHoldMode
+        # -> S:STATUS <id> Thermostat.GetHoldMode <mode (0/1/2)>
+        # -> EL: <id> Thermostat.GetHoldMode <mode (0/1/2)>
+        return enum_result(cls.HoldMode, response)
 
-        if method == "Thermostat.GetStatus":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetStatus <status>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetStatus <status>
-            return {
-                "status": cls.Status(int(args[0])),
-            }
+    @classmethod
+    def parse_get_status_response(cls, response: InterfaceResponse) -> Status:
+        """Parse a 'Thermostat.GetStatus' response."""
+        # -> R:INVOKE <id> <status (Off|Cooling|Heating|Offline)> Thermostat.GetStatus
+        # -> S:STATUS <id> Thermostat.GetStatus <status (0/1/2/3)>
+        # -> EL: <id> Thermostat.GetStatus <status (0/1/2/3)>
+        return enum_result(cls.Status, response)
 
-        if method == "Thermostat.GetAutoSetPoint":
-            # ADDSTATUS <id>
-            # -> S:STATUS <id> Thermostat.GetAutoSetPoint <temp>
-            # ELLOG STATUSEX ON
-            # -> EL: <id> Thermostat.GetAutoSetPoint <temp>
-            return {
-                "auto_set_point": Decimal(args[0]),
-            }
-
-        return {}
+    @classmethod
+    def parse_get_auto_set_point_response(cls, response: InterfaceResponse) -> Decimal:
+        """Parse a 'Thermostat.GetAutoSetPoint' response."""
+        # -> R:INVOKE <id> <temp> Thermostat.GetAutoSetPoint
+        # -> S:STATUS <id> Thermostat.GetAutoSetPoint <temp>
+        # -> EL: <id> Thermostat.GetAutoSetPoint <temp>
+        return fixed_result(response)
