@@ -1,6 +1,6 @@
 """Interface for querying and controlling color temperature."""
 
-from .base import Interface, InterfaceResponse
+from .base import Interface, InterfaceResponse, int_result
 
 
 class ColorTemperatureInterface(Interface):
@@ -16,11 +16,8 @@ class ColorTemperatureInterface(Interface):
             The color temperature of the light, in Kelvin.
         """
         # INVOKE <id> ColorTemperature.Get
-        # -> R:INVOKE <id> <temp> ColorTemperature.Get
         response = await self.invoke(vid, "ColorTemperature.Get")
-        color_temp = int(response.args[1])
-
-        return color_temp
+        return self.parse_get_response(response)
 
     async def set_color_temp(self, vid: int, temp: int, transition: int = 0) -> None:
         """Set the color temperature of a light.
@@ -37,6 +34,7 @@ class ColorTemperatureInterface(Interface):
     @classmethod
     def parse_get_response(cls, response: InterfaceResponse) -> int:
         """Parse a 'ColorTemperature.Get' response."""
+        # -> R:INVOKE <id> <temp> ColorTemperature.Get
         # -> S:STATUS <id> ColorTemperature.Get <temp>
         # -> EL: <id> ColorTemperature.Get <temp>
-        return int(response.result)
+        return int_result(response)

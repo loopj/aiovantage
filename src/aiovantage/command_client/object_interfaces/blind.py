@@ -3,7 +3,14 @@
 from decimal import Decimal
 from typing import NamedTuple
 
-from .base import Interface, InterfaceResponse, fixed_result, fixed_to_decimal
+from .base import (
+    Interface,
+    InterfaceResponse,
+    bool_result,
+    fixed_result,
+    fixed_to_decimal,
+    int_result,
+)
 
 
 class BlindInterface(Interface):
@@ -187,7 +194,7 @@ class BlindInterface(Interface):
         # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngle
         # -> S:STATUS <id> Blind.GetTiltAngle <angle (-100-100)>
         # -> EL: <id> Blind.GetTiltAngle <angle (-100-100)>
-        return int(response.result)
+        return int_result(response)
 
     @classmethod
     def parse_is_tilt_available_response(cls, response: InterfaceResponse) -> bool:
@@ -195,7 +202,7 @@ class BlindInterface(Interface):
         # -> R:INVOKE <id> <available (0/1)> Blind.IsTiltAvailable
         # -> S:STATUS <id> Blind.IsTiltAvailable <available (0/1)>
         # -> EL: <id> Blind.IsTiltAvailable <available (0/1)>
-        return bool(int(response.result))
+        return bool_result(response)
 
     @classmethod
     def parse_get_state_response(cls, response: InterfaceResponse) -> BlindState:

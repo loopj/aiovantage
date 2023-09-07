@@ -82,12 +82,22 @@ def fixed_to_decimal(value: str) -> Decimal:
 
 
 def fixed_result(response: InterfaceResponse) -> Decimal:
-    """Convert a fixed result to a Decimal."""
+    """Parse a fixed-point result."""
     return fixed_to_decimal(response.result)
 
 
+def int_result(response: InterfaceResponse) -> int:
+    """Parse an integer result."""
+    return int(response.result)
+
+
+def bool_result(response: InterfaceResponse) -> bool:
+    """Parse a boolean result."""
+    return bool(int(response.result))
+
+
 def enum_result(enum_cls: Type[T], response: InterfaceResponse) -> T:
-    """Convert an enum result to an IntEnum."""
+    """Parse an enum result."""
     if response.result.isdigit():
         return enum_cls(int(response.result))
 

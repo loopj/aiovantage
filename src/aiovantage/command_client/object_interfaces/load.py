@@ -89,7 +89,7 @@ class LoadInterface(Interface):
         if transition is None:
             return await self.set_level(vid, level)
 
-        await self.ramp(vid, self.RampType.FIXED, transition, level)
+        await self.ramp(vid, time=transition, level=level)
 
     async def turn_off(self, vid: int, transition: Optional[float] = None) -> None:
         """Turn off a load with an optional transition time.
@@ -101,7 +101,7 @@ class LoadInterface(Interface):
         if transition is None:
             return await self.set_level(vid, 0)
 
-        await self.ramp(vid, self.RampType.FIXED, transition, 0)
+        await self.ramp(vid, time=transition, level=0)
 
     @classmethod
     def parse_get_level_response(cls, response: InterfaceResponse) -> Decimal:

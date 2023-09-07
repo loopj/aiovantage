@@ -1,6 +1,6 @@
 """Interface for querying and controlling system objects."""
 
-from .base import Interface, InterfaceResponse
+from .base import Interface, InterfaceResponse, int_result
 
 
 class ObjectInterface(Interface):
@@ -26,4 +26,4 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <mtime> Object.GetMTime
         # -> S:STATUS <id> Object.GetMTime <mtime>
         # -> EL: <id> Object.GetMTime <mtime>
-        return int(response.result)
+        return int_result(response)

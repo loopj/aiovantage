@@ -1,6 +1,6 @@
 """Interface for querying and controlling tasks."""
 
-from .base import Interface, InterfaceResponse
+from .base import Interface, InterfaceResponse, bool_result, int_result
 
 
 class TaskInterface(Interface):
@@ -76,7 +76,7 @@ class TaskInterface(Interface):
         # -> R:INVOKE <id> <running (0/1)> Task.IsRunning
         # -> S:STATUS <id> Task.IsRunning <running (0/1)>
         # -> EL: <id> Task.IsRunning <running (0/1)>
-        return bool(int(response.result))
+        return bool_result(response)
 
     @classmethod
     def parse_get_state_response(cls, response: InterfaceResponse) -> int:
@@ -84,4 +84,4 @@ class TaskInterface(Interface):
         # -> R:INVOKE <id> <state> Task.GetState
         # -> S:STATUS <id> Task.GetState <state>
         # -> EL: <id> Task.GetState <state>
-        return int(response.result)
+        return int_result(response)

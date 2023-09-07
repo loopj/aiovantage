@@ -5,7 +5,10 @@ from typing import Union
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces.base import InterfaceResponse
+from aiovantage.command_client.object_interfaces.base import (
+    InterfaceResponse,
+    fixed_to_decimal,
+)
 from aiovantage.config_client.models.omni_sensor import ConversionType, OmniSensor
 
 from .base import BaseController
@@ -42,7 +45,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
             return
 
         state = {
-            "level": self.parse_get_level_status(omni_sensor, status),
+            "level": self.parse_result(omni_sensor, status.result),
         }
 
         self.update_state(status.vid, state)
@@ -60,36 +63,20 @@ class OmniSensorsController(BaseController[OmniSensor]):
         omni_sensor = self[vid]
 
         # INVOKE <id> <method>
-        # -> R:INVOKE <id> <value> <method>
         method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
         response = await self.command_client.command("INVOKE", vid, method)
 
-        # Convert the level to the correct type
-        if omni_sensor.get.formula.return_type == ConversionType.FIXED:
-            level = Decimal(response.args[1])
-            if omni_sensor.get.formula.level_type == ConversionType.INT:
-                return int(level)
-
-            return level
-
-        if omni_sensor.get.formula.return_type == ConversionType.INT:
-            level = Decimal(response.args[1]) / 1000
-            if omni_sensor.get.formula.level_type == ConversionType.INT:
-                return int(level)
-
-            return level
-
-        raise ValueError(f"Unknown return type {omni_sensor.get.formula.return_type}")
+        return self.parse_result(omni_sensor, response.args[1])
 
     @classmethod
-    def parse_get_level_status(
-        cls, omni_sensor: OmniSensor, status: InterfaceResponse
-    ) -> Union[int, Decimal]:
-        """Parse an OmniSensor 'GetLevel' event, eg. 'PowerSensor.GetPower'."""
+    def parse_result(cls, sensor: OmniSensor, result: str) -> Union[int, Decimal]:
+        """Parse an OmniSensor response, eg. 'PowerSensor.GetPower'."""
+        # -> R:INVOKE <id> <value> <method>
         # -> S:STATUS <id> <method> <value>
         # -> EL: <id> <method> <value>
-        level = Decimal(status.result) / 1000
-        if omni_sensor.get.formula.level_type == ConversionType.INT:
+        # NOTE: This currently doesn't handle conversion formulas, or return_type
+        level = fixed_to_decimal(result)
+        if sensor.get.formula.level_type == ConversionType.INT:
             return int(level)
 
         return level
