@@ -88,4 +88,5 @@ disable=
     too-many-arguments,
     too-many-public-methods,
     too-many-return-statements,
-    duplicate-code
+    duplicate-code,
+    invalid-name

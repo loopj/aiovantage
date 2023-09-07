@@ -19,7 +19,7 @@ class MastersController(BaseController[Master], IntrospectionInterface):
         """Fetch the state properties of a Vantage controller."""
         state = {
             "firmware_version": await IntrospectionInterface.get_firmware_version(
-                self, vid, IntrospectionInterface.Firmware.APPLICATION
+                self, vid, IntrospectionInterface.Firmware.Application
             ),
         }
 

@@ -13,8 +13,8 @@ class SounderInterface(Interface):
     class Status(IntEnum):
         """Sounder status."""
 
-        ON = 0
-        OFF = 1
+        On = 0
+        Off = 1
 
     async def get_frequency(self, vid: int) -> Decimal:
         """Get the frequency of the keypad speaker, using cached value if available.
@@ -96,7 +96,7 @@ class SounderInterface(Interface):
         Args:
             vid: The Vantage ID of the keypad.
         """
-        await self.set_status(vid, self.Status.ON)
+        await self.set_status(vid, self.Status.On)
 
     async def turn_off(self, vid: int) -> None:
         """Turn off the keypad speaker.
@@ -104,7 +104,7 @@ class SounderInterface(Interface):
         Args:
             vid: The Vantage ID of the keypad.
         """
-        await self.set_status(vid, self.Status.OFF)
+        await self.set_status(vid, self.Status.Off)
 
     async def play_fx(
         self, vid: int, effect: int, duration: float = 0, volume: float = 0

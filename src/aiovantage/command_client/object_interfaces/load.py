@@ -13,13 +13,13 @@ class LoadInterface(Interface):
     class RampType(IntEnum):
         """The type of ramp to perform."""
 
-        UP = 5
-        DOWN = 4
-        OPPOSITE = 3
-        STOP = 2
-        FIXED = 6
-        VARIABLE = 7
-        ADJUST = 8
+        Up = 5
+        Down = 4
+        Opposite = 3
+        Stop = 2
+        Fixed = 6
+        Variable = 7
+        Adjust = 8
 
     async def set_level(self, vid: int, level: Union[float, Decimal]) -> None:
         """Set the level of a load.
@@ -51,7 +51,7 @@ class LoadInterface(Interface):
     async def ramp(
         self,
         vid: int,
-        cmd: RampType = RampType.FIXED,
+        cmd: RampType = RampType.Fixed,
         time: Union[float, Decimal] = 0,
         level: Union[float, Decimal] = 0,
     ) -> None:

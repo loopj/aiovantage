@@ -101,4 +101,4 @@ def enum_result(enum_cls: Type[T], response: InterfaceResponse) -> T:
     if response.result.isdigit():
         return enum_cls(int(response.result))
 
-    return enum_cls[response.result.upper()]
+    return enum_cls[response.result]

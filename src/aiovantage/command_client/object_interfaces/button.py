@@ -11,8 +11,8 @@ class ButtonInterface(Interface):
     class State(IntEnum):
         """Button state."""
 
-        UP = 0
-        DOWN = 1
+        Up = 0
+        Down = 1
 
     async def get_state(self, vid: int) -> State:
         """Get the state of a button.
@@ -44,7 +44,7 @@ class ButtonInterface(Interface):
         Args:
             vid: The Vantage ID of the button.
         """
-        await self.set_state(vid, self.State.DOWN)
+        await self.set_state(vid, self.State.Down)
 
     async def release(self, vid: int) -> None:
         """Release a button.
@@ -52,7 +52,7 @@ class ButtonInterface(Interface):
         Args:
             vid: The Vantage ID of the button.
         """
-        await self.set_state(vid, self.State.UP)
+        await self.set_state(vid, self.State.Up)
 
     async def press_and_release(self, vid: int) -> None:
         """Press and release a button.

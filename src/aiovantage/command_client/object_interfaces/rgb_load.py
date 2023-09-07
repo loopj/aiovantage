@@ -14,17 +14,17 @@ class RGBLoadInterface(Interface):
     class RGBChannel(IntEnum):
         """The RGB color channels."""
 
-        RED = 0
-        GREEN = 1
-        BLUE = 2
-        WHITE = 3
+        Red = 0
+        Green = 1
+        Blue = 2
+        White = 3
 
     class HSLAttribute(IntEnum):
         """The HSL color attributes."""
 
-        HUE = 0
-        SATURATION = 1
-        LIGHTNESS = 2
+        Hue = 0
+        Saturation = 1
+        Lightness = 2
 
     async def set_rgb(self, vid: int, red: int, green: int, blue: int) -> None:
         """Set the color of an RGB load.
@@ -172,7 +172,7 @@ class RGBLoadInterface(Interface):
                 saturation and lightness.
         """
         # Clamp value to 0-360, 0-100
-        if attribute == self.HSLAttribute.HUE:
+        if attribute == self.HSLAttribute.Hue:
             value = max(min(value, 360), 0)
         else:
             value = max(min(value, 100), 0)

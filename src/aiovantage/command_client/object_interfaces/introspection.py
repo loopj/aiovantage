@@ -13,9 +13,9 @@ class IntrospectionInterface(Interface):
     class Firmware(IntEnum):
         """Firmware images."""
 
-        KERNEL = 0
-        ROOT_FS = 1
-        APPLICATION = 2
+        Kernel = 0
+        RootFs = 1
+        Application = 2
 
     async def get_firmware_version(self, vid: int, image: Firmware) -> str:
         """Get the firmware version.
@@ -28,4 +28,4 @@ class IntrospectionInterface(Interface):
         # -> R:INVOKE <id> <rcode> Introspection.GetFirmwareVersion <image> <version>
         response = await self.invoke(vid, "Introspection.GetFirmwareVersion", image)
 
-        return response.args[4].rstrip()
+        return response.args[1]

@@ -13,41 +13,41 @@ class ThermostatInterface(Interface):
     class OperationMode(IntEnum):
         """The operation mode of the thermostat."""
 
-        OFF = 0
-        COOL = 1
-        HEAT = 2
-        AUTO = 3
-        UNKNOWN = 4
+        Off = 0
+        Cool = 1
+        Heat = 2
+        Auto = 3
+        Unknown = 4
 
     class FanMode(IntEnum):
         """The fan mode of the thermostat."""
 
-        OFF = 0
-        ON = 1
-        UNKNOWN = 2
+        Off = 0
+        On = 1
+        Unknown = 2
 
     class DayMode(IntEnum):
         """The day mode of the thermostat."""
 
-        DAY = 0
-        NIGHT = 1
-        UNKNOWN = 2
-        STANDBY = 3
+        Day = 0
+        Night = 1
+        Unknown = 2
+        Standby = 3
 
     class HoldMode(IntEnum):
         """The hold mode of the thermostat."""
 
-        NORMAL = 0
-        HOLD = 1
-        UNKNOWN = 2
+        Normal = 0
+        Hold = 1
+        Unknown = 2
 
     class Status(IntEnum):
         """The status of the thermostat."""
 
-        OFF = 0
-        COOLING = 1
-        HEATING = 2
-        OFFLINE = 3
+        Off = 0
+        Cooling = 1
+        Heating = 2
+        Offline = 3
 
     async def get_indoor_temperature(self, vid: int) -> Decimal:
         """Get the current indoor temperature.
