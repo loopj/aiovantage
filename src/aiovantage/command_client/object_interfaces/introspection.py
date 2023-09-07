@@ -4,8 +4,6 @@ from enum import IntEnum
 
 from .base import Interface
 
-# NOTE: Not available on 2.x firmware
-
 
 class IntrospectionInterface(Interface):
     """Interface for controller introspection."""

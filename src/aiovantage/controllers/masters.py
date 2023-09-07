@@ -17,6 +17,7 @@ class MastersController(BaseController[Master], IntrospectionInterface):
     @override
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a Vantage controller."""
+        # TODO: IntrospectionInterface isn't available on firmware 2.x
         state = {
             "firmware_version": await IntrospectionInterface.get_firmware_version(
                 self, vid, IntrospectionInterface.Firmware.Application

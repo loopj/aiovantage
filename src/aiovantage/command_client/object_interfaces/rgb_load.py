@@ -8,6 +8,25 @@ from typing import Tuple, Union, cast
 from .base import Interface, InterfaceResponse
 
 
+def parse_color_channel_response(response: InterfaceResponse) -> Tuple[int, int]:
+    """Parse a 'RGBLoad.GetRGB', 'RGBLoad.GetRGBW' or 'RGBLoad.GetHSL' response."""
+    # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
+    # -> S:STATUS <id> RGBLoad.GetRGB <value> <channel>
+    # -> EL: <id> RGBLoad.GetRGB <value> <channel>
+    value = int(response.result)
+    channel = int(response.args[0])
+
+    return channel, value
+
+
+def parse_packed_color_response(response: InterfaceResponse) -> Tuple[int, ...]:
+    """Parse a 'RGBLoad.GetColor' response."""
+    # -> R:INVOKE <id> <color> RGBLoad.GetColor
+    # -> S:STATUS <id> RGBLoad.GetColor <color>
+    # -> EL: <id> RGBLoad.GetColor <color>
+    return tuple(struct.pack(">i", int(response.result)))
+
+
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""
 
@@ -279,10 +298,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
         # -> S:STATUS <id> RGBLoad.GetRGB <value> <channel>
         # -> EL: <id> RGBLoad.GetRGB <value> <channel>
-        value = int(response.result)
-        channel = int(response.args[0])
-
-        return channel, value
+        return parse_color_channel_response(response)
 
     @classmethod
     def parse_get_hsl_response(cls, response: InterfaceResponse) -> Tuple[int, int]:
@@ -290,10 +306,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <value> RGBLoad.GetHSL <attribute>
         # -> S:STATUS <id> RGBLoad.GetHSL <value> <attribute>
         # -> EL: <id> RGBLoad.GetHSL <value> <attribute>
-        value = int(response.result)
-        attribute = int(response.args[0])
-
-        return attribute, value
+        return parse_color_channel_response(response)
 
     @classmethod
     def parse_get_rgbw_response(cls, response: InterfaceResponse) -> Tuple[int, int]:
@@ -301,10 +314,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <channel>
         # -> S:STATUS <id> RGBLoad.GetRGBW <value> <channel>
         # -> EL: <id> RGBLoad.GetRGBW <value> <channel>
-        value = int(response.result)
-        channel = int(response.args[0])
-
-        return channel, value
+        return parse_color_channel_response(response)
 
     @classmethod
     def parse_get_color_response(cls, response: InterfaceResponse) -> Tuple[int, ...]:
@@ -312,5 +322,4 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <color> RGBLoad.GetColor
         # -> S:STATUS <id> RGBLoad.GetColor <color>
         # -> EL: <id> RGBLoad.GetColor <color>
-        color = int(response.result)
-        return tuple(struct.pack(">i", color))
+        return parse_packed_color_response(response)
