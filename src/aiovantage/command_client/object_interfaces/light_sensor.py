@@ -14,7 +14,7 @@ class LightSensorInterface(Interface):
 
         Args:
             vid: The Vantage ID of the light sensor.
-        
+
         Returns:
             The level of the light sensor, in foot-candles.
         """
@@ -32,7 +32,7 @@ class LightSensorInterface(Interface):
 
         Args:
             vid: The Vantage ID of the light sensor.
-        
+
         Returns:
             The level of the light sensor, in foot-candles.
         """
