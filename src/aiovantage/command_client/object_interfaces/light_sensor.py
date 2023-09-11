@@ -16,6 +16,9 @@ class LightSensorInterface(Interface):
 
         Returns:
             The level of the light sensor, in foot-candles.
+
+        Returns:
+            The level of the light sensor, in foot-candles.
         """
         # INVOKE <id> LightSensor.GetLevel
         response = await self.invoke(vid, "LightSensor.GetLevel")

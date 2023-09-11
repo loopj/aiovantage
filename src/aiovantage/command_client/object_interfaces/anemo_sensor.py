@@ -15,7 +15,7 @@ class AnemoSensorInterface(Interface):
             vid: The Vantage ID of the anemo sensor.
 
         Returns:
-            The value of the anemo sensor, in mph.
+            The speed of the anemo sensor, in mph.
         """
         # INVOKE <id> AnemoSensor.GetSpeed
         response = await self.invoke(vid, "AnemoSensor.GetSpeed")
@@ -28,7 +28,7 @@ class AnemoSensorInterface(Interface):
             vid: The Vantage ID of the anemo sensor.
 
         Returns:
-            The value of the anemo sensor, in mph.
+            The speed of the anemo sensor, in mph.
         """
         # INVOKE <id> AnemoSensor.GetSpeedHW
         response = await self.invoke(vid, "AnemoSensor.GetSpeedHW")
