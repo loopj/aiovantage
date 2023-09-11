@@ -31,7 +31,7 @@ Source = "https://github.com/loopj/aiovantage"
 
 [project.optional-dependencies]
 dev = [
-    "black==23.7.0",
+    "black==23.9.1",
     "mypy==1.5.1",
     "ruff==0.0.287",
     "pre-commit==3.4.0",
