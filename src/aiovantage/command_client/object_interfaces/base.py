@@ -2,12 +2,24 @@
 
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Callable, Dict, Optional, Sequence, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Optional,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import encode_params, tokenize_response
 
 T = TypeVar("T")
+ParamType = Union[str, int, float, Decimal]
 
 
 @dataclass
@@ -38,13 +50,23 @@ class Interface:
         """Return the command client."""
         return self._command_client
 
+    @overload
+    async def invoke(self, vid: int, method: str, *params: ParamType) -> None:
+        ...
+
+    @overload
+    async def invoke(
+        self, vid: int, method: str, *params: ParamType, as_type: Type[T]
+    ) -> T:
+        ...
+
     async def invoke(
         self,
         vid: int,
         method: str,
-        *params: Union[str, int, float, Decimal],
+        *params: ParamType,
         as_type: Optional[Type[T]] = None,
-    ) -> T:
+    ) -> Optional[T]:
         """Invoke a method on an object, and wait for a response.
 
         Args:
@@ -62,6 +84,10 @@ class Interface:
 
         # Send the request
         raw_response = await self.command_client.raw_request(request)
+
+        # Ignore the response if we didn't specify a type to parse it as
+        if not as_type:
+            return None
 
         # Parse the response
         _, vid_str, result, _, *args = tokenize_response(raw_response[-1])
