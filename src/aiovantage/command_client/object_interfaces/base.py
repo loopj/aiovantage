@@ -2,11 +2,12 @@
 
 from dataclasses import dataclass
 from decimal import Decimal
-from enum import IntEnum
-from typing import Sequence, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Optional, Sequence, Type, TypeVar, Union, cast
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import encode_params, tokenize_response
+
+T = TypeVar("T")
 
 
 @dataclass
@@ -21,6 +22,8 @@ class InterfaceResponse:
 
 class Interface:
     """Base class for command client object interfaces."""
+
+    response_parsers: Dict[str, Callable[[InterfaceResponse], Any]] = {}
 
     def __init__(self, client: CommandClient) -> None:
         """Initialize an object interface for standalone use.
@@ -58,34 +61,17 @@ class Interface:
         _, vid_str, result, _, *args = tokenize_response(raw_response[-1])
         return InterfaceResponse(int(vid_str), result, method, args)
 
+    @classmethod
+    def parse_response(
+        cls, response: InterfaceResponse, clazz: Optional[Type[T]] = None
+    ) -> T:
+        """Parse a response from an object interface.
 
-T = TypeVar("T", bound=IntEnum)
+        Args:
+            response: The response to parse.
+            clazz: The type to parse the response as.
 
-
-def fixed_to_decimal(value: str) -> Decimal:
-    """Convert a Vantage fixed-point value to a Decimal."""
-    # Handles both 123000 and 123.000 style fixed-point values
-    return Decimal(value.replace(".", "")) / 1000
-
-
-def fixed_result(response: InterfaceResponse) -> Decimal:
-    """Parse a fixed-point result."""
-    return fixed_to_decimal(response.result)
-
-
-def int_result(response: InterfaceResponse) -> int:
-    """Parse an integer result."""
-    return int(response.result)
-
-
-def bool_result(response: InterfaceResponse) -> bool:
-    """Parse a boolean result."""
-    return bool(int(response.result))
-
-
-def enum_result(enum_cls: Type[T], response: InterfaceResponse) -> T:
-    """Parse an enum result."""
-    if response.result.isdigit():
-        return enum_cls(int(response.result))
-
-    return enum_cls[response.result]
+        Returns:
+            The parsed response.
+        """
+        return cast(T, cls.response_parsers[response.method](response))

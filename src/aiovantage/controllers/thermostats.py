@@ -73,11 +73,13 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
         """Handle object interface status messages from the event stream."""
         state: Dict[str, Any] = {}
         if status.method == "Thermostat.GetHoldMode":
-            state["hold_mode"] = ThermostatInterface.parse_get_hold_mode_response(
-                status
+            state["hold_mode"] = ThermostatInterface.parse_response(
+                status, ThermostatInterface.HoldMode
             )
         elif status.method == "Thermostat.GetStatus":
-            state["status"] = ThermostatInterface.parse_get_status_response(status)
+            state["status"] = ThermostatInterface.parse_response(
+                status, ThermostatInterface.Status
+            )
 
         self.update_state(status.vid, state)
 

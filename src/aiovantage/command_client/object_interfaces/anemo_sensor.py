@@ -2,11 +2,17 @@
 
 from decimal import Decimal
 
-from .base import Interface, InterfaceResponse, fixed_result
+from .base import Interface
+from .parsers import parse_fixed
 
 
 class AnemoSensorInterface(Interface):
     """Interface for querying and controlling anemo (wind) sensors."""
+
+    response_parsers = {
+        "AnemoSensor.GetSpeed": parse_fixed,
+        "AnemoSensor.GetSpeedHW": parse_fixed,
+    }
 
     async def get_speed(self, vid: int) -> Decimal:
         """Get the speed of an anemo sensor, using cached value if available.
@@ -18,8 +24,9 @@ class AnemoSensorInterface(Interface):
             The speed of the anemo sensor, in mph.
         """
         # INVOKE <id> AnemoSensor.GetSpeed
+        # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
         response = await self.invoke(vid, "AnemoSensor.GetSpeed")
-        return self.parse_get_speed_response(response)
+        return AnemoSensorInterface.parse_response(response, Decimal)
 
     async def get_speed_hw(self, vid: int) -> Decimal:
         """Get the speed of an anemo sensor directly from the hardware.
@@ -31,13 +38,6 @@ class AnemoSensorInterface(Interface):
             The speed of the anemo sensor, in mph.
         """
         # INVOKE <id> AnemoSensor.GetSpeedHW
+        # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeedHW
         response = await self.invoke(vid, "AnemoSensor.GetSpeedHW")
-        return self.parse_get_speed_response(response)
-
-    @classmethod
-    def parse_get_speed_response(cls, response: InterfaceResponse) -> Decimal:
-        """Parse a 'AnemoSensor.GetSpeed' response."""
-        # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
-        # -> S:STATUS <id> AnemoSensor.GetSpeed <speed>
-        # -> EL: <id> AnemoSensor.GetSpeed <speed>
-        return fixed_result(response)
+        return AnemoSensorInterface.parse_response(response, Decimal)

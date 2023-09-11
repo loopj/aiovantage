@@ -1,5 +1,6 @@
 """Controller holding and managing Vantage RGB loads."""
 
+from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
 from typing_extensions import override
@@ -67,25 +68,25 @@ class RGBLoadsController(
         state: Dict[str, Any] = {}
 
         if status.method == "Load.GetLevel":
-            state["level"] = LoadInterface.parse_get_level_response(status)
+            state["level"] = LoadInterface.parse_response(status, Decimal)
 
         elif status.method == "RGBLoad.GetHSL" and rgb_load.is_rgb:
-            channel, value = RGBLoadInterface.parse_get_hsl_response(status)
+            value, channel = RGBLoadInterface.parse_response(status, tuple[int, ...])
             if hsl := self._build_color(status.vid, channel, value, 3):
                 state["hsl"] = hsl
 
         elif status.method == "RGBLoad.GetRGB" and rgb_load.is_rgb:
-            channel, value = RGBLoadInterface.parse_get_rgb_response(status)
+            value, channel = RGBLoadInterface.parse_response(status, tuple[int, ...])
             if rgb := self._build_color(status.vid, channel, value, 3):
                 state["rgb"] = rgb
 
         elif status.method == "RGBLoad.GetRGBW" and rgb_load.is_rgb:
-            channel, value = RGBLoadInterface.parse_get_rgbw_response(status)
+            value, channel = RGBLoadInterface.parse_response(status, tuple[int, ...])
             if rgbw := self._build_color(status.vid, channel, value, 4):
                 state["rgbw"] = rgbw
 
         elif status.method == "ColorTemperature.Get" and rgb_load.is_cct:
-            state["color_temp"] = ColorTemperatureInterface.parse_get_response(status)
+            state["color_temp"] = ColorTemperatureInterface.parse_response(status, int)
 
         self.update_state(status.vid, state)
 

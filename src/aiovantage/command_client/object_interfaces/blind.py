@@ -3,27 +3,50 @@
 from decimal import Decimal
 from typing import NamedTuple
 
-from .base import (
-    Interface,
-    InterfaceResponse,
-    bool_result,
-    fixed_result,
-    fixed_to_decimal,
-    int_result,
-)
+from .base import Interface, InterfaceResponse
+from .parsers import fixed_to_decimal, parse_bool, parse_fixed, parse_int
+
+
+def parse_blind_state(response: InterfaceResponse) -> "BlindInterface.BlindState":
+    """Parse a 'Blind.GetBlindState' response."""
+    return BlindInterface.BlindState(
+        is_moving=parse_bool(response),
+        start_pos=fixed_to_decimal(response.args[0]),
+        end_pos=fixed_to_decimal(response.args[1]),
+        transition_time=fixed_to_decimal(response.args[2]),
+        start_time=int(response.args[3]),
+    )
 
 
 class BlindInterface(Interface):
     """Interface for querying and controlling blinds."""
 
+    response_parsers = {
+        "Blind.GetPosition": parse_fixed,
+        "Blind.GetPositionHW": parse_fixed,
+        "Blind.GetTiltAngle": parse_int,
+        "Blind.GetTiltAngleHW": parse_int,
+        "Blind.IsTiltAvailable": parse_bool,
+        "Blind.GetBlindState": parse_blind_state,
+    }
+
     class BlindState(NamedTuple):
         """The state of a blind."""
 
         is_moving: bool
+        """Is the blind currently moving?"""
+
         start_pos: Decimal
+        """Position the blind is moving from (as a percentage)"""
+
         end_pos: Decimal
+        """Position the blind is moving to (as a percentage)"""
+
         transition_time: Decimal
+        """Time the blind will take to move (in seconds)"""
+
         start_time: int
+        """Time the blind started moving (in milliseconds since start of UTC day)"""
 
     async def open(self, vid: int) -> None:
         """Open a blind.
@@ -76,8 +99,9 @@ class BlindInterface(Interface):
             The position of the blind, as a percentage.
         """
         # INVOKE <id> Blind.GetPosition
+        # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPosition
         response = await self.invoke(vid, "Blind.GetPosition")
-        return self.parse_get_position_response(response)
+        return BlindInterface.parse_response(response, Decimal)
 
     async def get_position_hw(self, vid: int) -> Decimal:
         """Get the position of a blind directly from the hardware.
@@ -89,8 +113,9 @@ class BlindInterface(Interface):
             The position of the blind, as a percentage.
         """
         # INVOKE <id> Blind.GetPositionHW
+        # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPositionHW
         response = await self.invoke(vid, "Blind.GetPositionHW")
-        return self.parse_get_position_response(response)
+        return BlindInterface.parse_response(response, Decimal)
 
     # Methods below here are not available in 2.x firmware.
 
@@ -115,8 +140,9 @@ class BlindInterface(Interface):
             The tilt angle of the blind, from -100 to 100.
         """
         # INVOKE <id> Blind.GetTiltAngle
+        # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngle
         response = await self.invoke(vid, "Blind.GetTiltAngle")
-        return self.parse_get_tilt_angle_response(response)
+        return BlindInterface.parse_response(response, int)
 
     async def get_tilt_angle_hw(self, vid: int) -> int:
         """Get the tilt angle of a blind directly from the hardware.
@@ -128,8 +154,9 @@ class BlindInterface(Interface):
             The tilt angle of the blind, from -100 to 100.
         """
         # INVOKE <id> Blind.GetTiltAngleHW
+        # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngleHW
         response = await self.invoke(vid, "Blind.GetTiltAngleHW")
-        return self.parse_get_tilt_angle_response(response)
+        return BlindInterface.parse_response(response, int)
 
     async def tilt_clockwise(self, vid: int, angle: int) -> None:
         """Tilt the blinds clockwise by the specified angle.
@@ -163,8 +190,9 @@ class BlindInterface(Interface):
             Whether the blind supports tilting.
         """
         # INVOKE <id> Blind.IsTiltAvailable
+        # -> R:INVOKE <id> <available (0/1)> Blind.IsTiltAvailable
         response = await self.invoke(vid, "Blind.IsTiltAvailable")
-        return self.parse_is_tilt_available_response(response)
+        return BlindInterface.parse_response(response, bool)
 
     async def get_state(self, vid: int) -> BlindState:
         """Get the state of a blind.
@@ -178,47 +206,4 @@ class BlindInterface(Interface):
         # INVOKE <id> Blind.GetBlindState
         # -> R:INVOKE <id> <moving> Blind.GetBlindState <start> <end> <transitionTime> <startTime>
         response = await self.invoke(vid, "Blind.GetBlindState")
-        return self.parse_get_state_response(response)
-
-    @classmethod
-    def parse_get_position_response(cls, response: InterfaceResponse) -> Decimal:
-        """Parse a 'Blind.GetPosition' response."""
-        # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPosition
-        # -> S:STATUS <id> Blind.GetPosition <position (0-100000)>
-        # -> EL: <id> Blind.GetPosition <position (0-100000)>
-        return fixed_result(response)
-
-    @classmethod
-    def parse_get_tilt_angle_response(cls, response: InterfaceResponse) -> int:
-        """Parse a 'Blind.GetTiltAngle' response."""
-        # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngle
-        # -> S:STATUS <id> Blind.GetTiltAngle <angle (-100-100)>
-        # -> EL: <id> Blind.GetTiltAngle <angle (-100-100)>
-        return int_result(response)
-
-    @classmethod
-    def parse_is_tilt_available_response(cls, response: InterfaceResponse) -> bool:
-        """Parse a 'Blind.IsTiltAvailable' response."""
-        # -> R:INVOKE <id> <available (0/1)> Blind.IsTiltAvailable
-        # -> S:STATUS <id> Blind.IsTiltAvailable <available (0/1)>
-        # -> EL: <id> Blind.IsTiltAvailable <available (0/1)>
-        return bool_result(response)
-
-    @classmethod
-    def parse_get_state_response(cls, response: InterfaceResponse) -> BlindState:
-        """Parse a 'Blind.GetBlindState' response."""
-        # -> R:INVOKE <id> <moving> Blind.GetBlindState <start> <end> <transitionTime> <startTime>
-        # -> S:STATUS <id> Blind.GetBlindState <moving> <start> <end> <transitionTime> <startTime>
-        # -> EL: <id> Blind.GetBlindState <moving> <start> <end> <transitionTime> <startTime>
-        return cls.BlindState(
-            # Is the blind currently moving?
-            is_moving=bool(int(response.result)),
-            # Position the blind is moving from (as a percentage)
-            start_pos=fixed_to_decimal(response.args[0]),
-            # Position the blind is moving to (as a percentage)
-            end_pos=fixed_to_decimal(response.args[1]),
-            # Time the blind will take to move (in seconds)
-            transition_time=fixed_to_decimal(response.args[2]),
-            # Time the blind started moving (in milliseconds since start of UTC day)
-            start_time=int(response.args[3]),
-        )
+        return BlindInterface.parse_response(response, self.BlindState)

@@ -1,10 +1,16 @@
 """Interface for querying and controlling tasks."""
 
-from .base import Interface, InterfaceResponse, bool_result, int_result
+from .base import Interface
+from .parsers import parse_bool, parse_int
 
 
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""
+
+    response_parsers = {
+        "Task.IsRunning": parse_bool,
+        "Task.GetState": parse_int,
+    }
 
     async def start(self, vid: int) -> None:
         """Start a task.
@@ -43,8 +49,9 @@ class TaskInterface(Interface):
             vid: The Vantage ID of the task.
         """
         # INVOKE <id> Task.IsRunning
+        # -> R:INVOKE <id> <running (0/1)> Task.IsRunning
         response = await self.invoke(vid, "Task.IsRunning")
-        return self.parse_is_running_response(response)
+        return TaskInterface.parse_response(response, bool)
 
     async def get_state(self, vid: int) -> int:
         """Get the state of a task.
@@ -56,8 +63,9 @@ class TaskInterface(Interface):
             The LED state of the task.
         """
         # INVOKE <id> Task.GetState
+        # -> R:INVOKE <id> <state> Task.GetState
         response = await self.invoke(vid, "Task.GetState")
-        return self.parse_get_state_response(response)
+        return TaskInterface.parse_response(response, int)
 
     async def set_state(self, vid: int, state: int) -> None:
         """Set the state of a task.
@@ -69,19 +77,3 @@ class TaskInterface(Interface):
         # INVOKE <id> Task.SetState <state>
         # -> R:INVOKE <id> <rcode> Task.SetState <state>
         await self.invoke(vid, "Task.SetState", state)
-
-    @classmethod
-    def parse_is_running_response(cls, response: InterfaceResponse) -> bool:
-        """Parse a 'Task.IsRunning' response."""
-        # -> R:INVOKE <id> <running (0/1)> Task.IsRunning
-        # -> S:STATUS <id> Task.IsRunning <running (0/1)>
-        # -> EL: <id> Task.IsRunning <running (0/1)>
-        return bool_result(response)
-
-    @classmethod
-    def parse_get_state_response(cls, response: InterfaceResponse) -> int:
-        """Parse a 'Task.GetState' response."""
-        # -> R:INVOKE <id> <state> Task.GetState
-        # -> S:STATUS <id> Task.GetState <state>
-        # -> EL: <id> Task.GetState <state>
-        return int_result(response)

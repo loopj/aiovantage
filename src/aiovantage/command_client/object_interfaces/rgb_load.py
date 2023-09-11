@@ -6,29 +6,31 @@ from enum import IntEnum
 from typing import Tuple, Union, cast
 
 from .base import Interface, InterfaceResponse
+from .parsers import parse_int
 
 
 def parse_color_channel_response(response: InterfaceResponse) -> Tuple[int, int]:
     """Parse a 'RGBLoad.GetRGB', 'RGBLoad.GetRGBW' or 'RGBLoad.GetHSL' response."""
-    # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
-    # -> S:STATUS <id> RGBLoad.GetRGB <value> <channel>
-    # -> EL: <id> RGBLoad.GetRGB <value> <channel>
-    value = int(response.result)
+    value = parse_int(response)
     channel = int(response.args[0])
 
-    return channel, value
+    return value, channel
 
 
 def parse_packed_color_response(response: InterfaceResponse) -> Tuple[int, ...]:
     """Parse a 'RGBLoad.GetColor' response."""
-    # -> R:INVOKE <id> <color> RGBLoad.GetColor
-    # -> S:STATUS <id> RGBLoad.GetColor <color>
-    # -> EL: <id> RGBLoad.GetColor <color>
-    return tuple(struct.pack(">i", int(response.result)))
+    return tuple(struct.pack(">i", parse_int(response)))
 
 
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""
+
+    response_parsers = {
+        "RGBLoad.GetRGB": parse_color_channel_response,
+        "RGBLoad.GetRGBW": parse_color_channel_response,
+        "RGBLoad.GetHSL": parse_color_channel_response,
+        "RGBLoad.GetColor": parse_packed_color_response,
+    }
 
     class RGBChannel(IntEnum):
         """The RGB color channels."""
@@ -74,8 +76,9 @@ class RGBLoadInterface(Interface):
             The value of the RGB channel, 0-255.
         """
         # INVOKE <id> RGBLoad.GetRGB <channel>
+        # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
         response = await self.invoke(vid, "RGBLoad.GetRGB", channel)
-        _, value = self.parse_get_rgb_response(response)
+        value, _ = RGBLoadInterface.parse_response(response, tuple[int, ...])
 
         return value
 
@@ -115,8 +118,9 @@ class RGBLoadInterface(Interface):
             lightness.
         """
         # INVOKE <id> RGBLoad.GetHSL <attribute>
+        # -> R:INVOKE <id> <value> RGBLoad.GetHSL <attribute>
         response = await self.invoke(vid, "RGBLoad.GetHSL", attribute)
-        _, value = self.parse_get_hsl_response(response)
+        value, _ = RGBLoadInterface.parse_response(response, tuple[int, ...])
 
         return value
 
@@ -211,7 +215,7 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetColor
         response = await self.invoke(vid, "RGBLoad.GetColor")
-        return self.parse_get_color_response(response)
+        return RGBLoadInterface.parse_response(response, tuple[int, ...])
 
     async def set_rgbw(
         self, vid: int, red: float, green: float, blue: float, white: float
@@ -245,10 +249,10 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGBW channel, 0-255.
         """
-        # INVOKE <id> RGBLoad.GetRGB <channel>
-        # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
+        # INVOKE <id> RGBLoad.GetRGBW <channel>
+        # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <channel>
         response = await self.invoke(vid, "RGBLoad.GetRGBW", channel)
-        _, value = self.parse_get_rgbw_response(response)
+        value, _ = RGBLoadInterface.parse_response(response, tuple[int, ...])
 
         return value
 
@@ -291,35 +295,3 @@ class RGBLoadInterface(Interface):
             Tuple[int, int, int],
             tuple([await self.get_hsl(vid, attr) for attr in self.HSLAttribute]),
         )
-
-    @classmethod
-    def parse_get_rgb_response(cls, response: InterfaceResponse) -> Tuple[int, int]:
-        """Parse a 'RGBLoad.GetRGB' response."""
-        # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
-        # -> S:STATUS <id> RGBLoad.GetRGB <value> <channel>
-        # -> EL: <id> RGBLoad.GetRGB <value> <channel>
-        return parse_color_channel_response(response)
-
-    @classmethod
-    def parse_get_hsl_response(cls, response: InterfaceResponse) -> Tuple[int, int]:
-        """Parse a 'RGBLoad.GetRGB' response."""
-        # -> R:INVOKE <id> <value> RGBLoad.GetHSL <attribute>
-        # -> S:STATUS <id> RGBLoad.GetHSL <value> <attribute>
-        # -> EL: <id> RGBLoad.GetHSL <value> <attribute>
-        return parse_color_channel_response(response)
-
-    @classmethod
-    def parse_get_rgbw_response(cls, response: InterfaceResponse) -> Tuple[int, int]:
-        """Parse a 'RGBLoad.GetRGBW' response."""
-        # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <channel>
-        # -> S:STATUS <id> RGBLoad.GetRGBW <value> <channel>
-        # -> EL: <id> RGBLoad.GetRGBW <value> <channel>
-        return parse_color_channel_response(response)
-
-    @classmethod
-    def parse_get_color_response(cls, response: InterfaceResponse) -> Tuple[int, ...]:
-        """Parse a 'RGBLoad.GetColor' response."""
-        # -> R:INVOKE <id> <color> RGBLoad.GetColor
-        # -> S:STATUS <id> RGBLoad.GetColor <color>
-        # -> EL: <id> RGBLoad.GetColor <color>
-        return parse_packed_color_response(response)

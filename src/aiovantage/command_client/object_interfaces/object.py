@@ -1,10 +1,15 @@
 """Interface for querying and controlling system objects."""
 
-from .base import Interface, InterfaceResponse, int_result
+from .base import Interface
+from .parsers import parse_int
 
 
 class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""
+
+    response_parsers = {
+        "Object.GetMTime": parse_int,
+    }
 
     async def get_mtime(self, vid: int) -> int:
         """Get the modification time of an object.
@@ -18,12 +23,4 @@ class ObjectInterface(Interface):
         # INVOKE <id> Object.GetMTime
         # -> R:INVOKE <id> <mtime> Object.GetMTime
         response = await self.invoke(vid, "Object.GetMTime")
-        return self.parse_get_mtime_response(response)
-
-    @classmethod
-    def parse_get_mtime_response(cls, response: InterfaceResponse) -> int:
-        """Parse a 'Object.GetMTime' response."""
-        # -> R:INVOKE <id> <mtime> Object.GetMTime
-        # -> S:STATUS <id> Object.GetMTime <mtime>
-        # -> EL: <id> Object.GetMTime <mtime>
-        return int_result(response)
+        return ObjectInterface.parse_response(response, int)

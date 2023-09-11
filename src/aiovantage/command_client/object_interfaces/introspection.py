@@ -3,10 +3,15 @@
 from enum import IntEnum
 
 from .base import Interface
+from .parsers import parse_str
 
 
 class IntrospectionInterface(Interface):
     """Interface for controller introspection."""
+
+    response_parsers = {
+        "Introspection.GetFirmwareVersion": parse_str,
+    }
 
     class Firmware(IntEnum):
         """Firmware images."""
@@ -25,5 +30,4 @@ class IntrospectionInterface(Interface):
         # INVOKE <id> Introspection.GetFirmwareVersion <image>
         # -> R:INVOKE <id> <rcode> Introspection.GetFirmwareVersion <image> <version>
         response = await self.invoke(vid, "Introspection.GetFirmwareVersion", image)
-
-        return response.args[1]
+        return IntrospectionInterface.parse_response(response, str)

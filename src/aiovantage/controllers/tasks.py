@@ -52,7 +52,7 @@ class TasksController(BaseController[Task], TaskInterface):
             return
 
         state = {
-            "is_running": TaskInterface.parse_is_running_response(status),
+            "is_running": TaskInterface.parse_response(status, bool),
         }
 
         self.update_state(status.vid, state)

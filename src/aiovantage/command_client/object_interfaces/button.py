@@ -2,11 +2,16 @@
 
 from enum import IntEnum
 
-from .base import Interface, InterfaceResponse, enum_result
+from .base import Interface
+from .parsers import parse_enum
 
 
 class ButtonInterface(Interface):
     """Interface for querying and controlling buttons."""
+
+    response_parsers = {
+        "Button.GetState": lambda r: parse_enum(ButtonInterface.State, r),
+    }
 
     class State(IntEnum):
         """Button state."""
@@ -25,7 +30,7 @@ class ButtonInterface(Interface):
         """
         # INVOKE <id> Button.GetState
         response = await self.invoke(vid, "Button.GetState")
-        return self.parse_get_state_response(response)
+        return ButtonInterface.parse_response(response, self.State)
 
     async def set_state(self, vid: int, state: State) -> None:
         """Set the state of a button.
@@ -62,11 +67,3 @@ class ButtonInterface(Interface):
         """
         await self.press(vid)
         await self.release(vid)
-
-    @classmethod
-    def parse_get_state_response(cls, response: InterfaceResponse) -> State:
-        """Parse a 'Button.GetState' response."""
-        # -> R:INVOKE <id> <state (Up/Down)> Button.GetState
-        # -> S:STATUS <id> Button.GetState <state (0/1)>
-        # -> EL: <id> Button.GetState <state (0/1)>
-        return enum_result(cls.State, response)

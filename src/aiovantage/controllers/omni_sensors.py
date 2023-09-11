@@ -5,10 +5,8 @@ from typing import Union
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces.base import (
-    InterfaceResponse,
-    fixed_to_decimal,
-)
+from aiovantage.command_client.object_interfaces import InterfaceResponse
+from aiovantage.command_client.object_interfaces.parsers import fixed_to_decimal
 from aiovantage.config_client.models.omni_sensor import ConversionType, OmniSensor
 
 from .base import BaseController
@@ -50,7 +48,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
 
         self.update_state(status.vid, state)
 
-    async def get_level(self, vid: int, cached: bool = False) -> Union[int, Decimal]:
+    async def get_level(self, vid: int, cached: bool = True) -> Union[int, Decimal]:
         """Get the level of an OmniSensor.
 
         Args:
@@ -63,6 +61,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
         omni_sensor = self[vid]
 
         # INVOKE <id> <method>
+        # -> R:INVOKE <id> <value> <method>
         method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
         response = await self.command_client.command("INVOKE", vid, method)
 
@@ -71,9 +70,6 @@ class OmniSensorsController(BaseController[OmniSensor]):
     @classmethod
     def parse_result(cls, sensor: OmniSensor, result: str) -> Union[int, Decimal]:
         """Parse an OmniSensor response, eg. 'PowerSensor.GetPower'."""
-        # -> R:INVOKE <id> <value> <method>
-        # -> S:STATUS <id> <method> <value>
-        # -> EL: <id> <method> <value>
         # NOTE: This currently doesn't handle conversion formulas, or return_type
         level = fixed_to_decimal(result)
         if sensor.get.formula.level_type == ConversionType.INT:

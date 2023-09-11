@@ -2,11 +2,17 @@
 
 from decimal import Decimal
 
-from .base import Interface, InterfaceResponse, fixed_result
+from .base import Interface
+from .parsers import parse_fixed
 
 
 class LightSensorInterface(Interface):
     """Interface for querying and controlling light sensors."""
+
+    response_parsers = {
+        "LightSensor.GetLevel": parse_fixed,
+        "LightSensor.GetLevelHW": parse_fixed,
+    }
 
     async def get_level(self, vid: int) -> Decimal:
         """Get the level of a light sensor, using cached value if available.
@@ -21,8 +27,9 @@ class LightSensorInterface(Interface):
             The level of the light sensor, in foot-candles.
         """
         # INVOKE <id> LightSensor.GetLevel
+        # -> R:INVOKE <id> <level> LightSensor.GetLevel
         response = await self.invoke(vid, "LightSensor.GetLevel")
-        return self.parse_get_level_response(response)
+        return LightSensorInterface.parse_response(response, Decimal)
 
     async def get_level_hw(self, vid: int) -> Decimal:
         """Get the level of a light sensor directly from the hardware.
@@ -34,13 +41,6 @@ class LightSensorInterface(Interface):
             The level of the light sensor, in foot-candles.
         """
         # INVOKE <id> LightSensor.GetLevelHW
+        # -> R:INVOKE <id> <level> LightSensor.GetLevelHW
         response = await self.invoke(vid, "LightSensor.GetLevelHW")
-        return self.parse_get_level_response(response)
-
-    @classmethod
-    def parse_get_level_response(cls, response: InterfaceResponse) -> Decimal:
-        """Parse a 'LightSensor.GetLevel' response."""
-        # -> R:INVOKE <id> <level> LightSensor.GetLevel
-        # -> S:STATUS <id> LightSensor.GetLevel <level>
-        # -> EL: <id> LightSensor.GetLevel <level>
-        return fixed_result(response)
+        return LightSensorInterface.parse_response(response, Decimal)

@@ -4,11 +4,19 @@ from decimal import Decimal
 from enum import IntEnum
 from typing import Union
 
-from .base import Interface, InterfaceResponse, enum_result, fixed_result
+from .base import Interface
+from .parsers import parse_enum, parse_fixed
 
 
 class SounderInterface(Interface):
     """Interface for keypad speakers."""
+
+    response_parsers = {
+        "Sounder.GetFrequency": parse_fixed,
+        "Sounder.GetFrequencyHW": parse_fixed,
+        "Sounder.GetStatus": lambda r: parse_enum(SounderInterface.Status, r),
+        "Sounder.GetStatusHW": lambda r: parse_enum(SounderInterface.Status, r),
+    }
 
     class Status(IntEnum):
         """Sounder status."""
@@ -26,8 +34,9 @@ class SounderInterface(Interface):
             The frequency of the keypad speaker in Hz.
         """
         # INVOKE <id> Sounder.GetFrequency
+        # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
         response = await self.invoke(vid, "Sounder.GetFrequency")
-        return self.parse_get_frequency_response(response)
+        return SounderInterface.parse_response(response, Decimal)
 
     async def get_frequency_hw(self, vid: int) -> Decimal:
         """Get the frequency of the keypad speaker directly from the hardware.
@@ -39,8 +48,9 @@ class SounderInterface(Interface):
             The frequency of the keypad speaker in Hz.
         """
         # INVOKE <id> Sounder.GetFrequencyHW
+        # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
         response = await self.invoke(vid, "Sounder.GetFrequencyHW")
-        return self.parse_get_frequency_response(response)
+        return SounderInterface.parse_response(response, Decimal)
 
     async def set_frequency(self, vid: int, frequency: Union[float, Decimal]) -> None:
         """Set the frequency of the keypad speaker.
@@ -63,8 +73,9 @@ class SounderInterface(Interface):
             The status of the keypad speaker.
         """
         # INVOKE <id> Sounder.GetStatus
+        # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
         response = await self.invoke(vid, "Sounder.GetStatus")
-        return self.parse_get_status_response(response)
+        return SounderInterface.parse_response(response, self.Status)
 
     async def get_status_hw(self, vid: int) -> Status:
         """Get the status of the keypad speaker directly from the hardware.
@@ -76,8 +87,9 @@ class SounderInterface(Interface):
             The status of the keypad speaker.
         """
         # INVOKE <id> Sounder.GetStatusHW
+        # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
         response = await self.invoke(vid, "Sounder.GetStatusHW")
-        return self.parse_get_status_response(response)
+        return SounderInterface.parse_response(response, self.Status)
 
     async def set_status(self, vid: int, status: Status) -> None:
         """Set the status of the keypad speaker.
@@ -120,17 +132,3 @@ class SounderInterface(Interface):
         # INVOKE <id> Sounder.PlayFX <fx> <duration> <volume>
         # -> R:INVOKE <id> <rcode> Sounder.PlayFX
         await self.invoke(vid, "Sounder.PlayFX", effect, duration, volume)
-
-    @classmethod
-    def parse_get_frequency_response(cls, response: InterfaceResponse) -> Decimal:
-        """Parse a 'Sounder.GetFrequency' response."""
-        # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
-        return fixed_result(response)
-
-    @classmethod
-    def parse_get_status_response(cls, response: InterfaceResponse) -> Status:
-        """Parse a 'Sounder.GetStatus' response."""
-        # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        # -> S:STATUS <id> Sounder.GetStatus <status (0/1)>
-        # -> EL: <id> Sounder.GetStatus <status (0/1)>
-        return enum_result(cls.Status, response)

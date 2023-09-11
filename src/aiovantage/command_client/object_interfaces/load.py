@@ -4,11 +4,17 @@ from decimal import Decimal
 from enum import IntEnum
 from typing import Optional, Union
 
-from .base import Interface, InterfaceResponse, fixed_result
+from .base import Interface
+from .parsers import parse_fixed
 
 
 class LoadInterface(Interface):
     """Interface for querying and controlling loads."""
+
+    response_parsers = {
+        "Load.GetLevel": parse_fixed,
+        "Load.GetLevelHW": parse_fixed,
+    }
 
     class RampType(IntEnum):
         """The type of ramp to perform."""
@@ -36,7 +42,7 @@ class LoadInterface(Interface):
         await self.invoke(vid, "Load.SetLevel", level)
 
     async def get_level(self, vid: int) -> Decimal:
-        """Get the level of a load.
+        """Get the level of a load, using cached value if available.
 
         Args:
             vid: The Vantage ID of the load.
@@ -45,8 +51,23 @@ class LoadInterface(Interface):
             The level of the load, as a percentage (0-100).
         """
         # INVOKE <id> Load.GetLevel
+        # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevel
         response = await self.invoke(vid, "Load.GetLevel")
-        return self.parse_get_level_response(response)
+        return LoadInterface.parse_response(response, Decimal)
+
+    async def get_level_hw(self, vid: int) -> Decimal:
+        """Get the level of a load directly from the hardware.
+
+        Args:
+            vid: The Vantage ID of the load.
+
+        Returns:
+            The level of the load, as a percentage (0-100).
+        """
+        # INVOKE <id> Load.GetLevelHW
+        # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevelHW
+        response = await self.invoke(vid, "Load.GetLevelHW")
+        return LoadInterface.parse_response(response, Decimal)
 
     async def ramp(
         self,
@@ -102,11 +123,3 @@ class LoadInterface(Interface):
             return await self.set_level(vid, 0)
 
         await self.ramp(vid, time=transition, level=0)
-
-    @classmethod
-    def parse_get_level_response(cls, response: InterfaceResponse) -> Decimal:
-        """Parse a 'Load.GetLevel' response."""
-        # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevel
-        # -> S:STATUS <id> Load.GetLevel <level (0-100000)>
-        # -> EL: <id> Load.GetLevel <level (0-100000)>
-        return fixed_result(response)
