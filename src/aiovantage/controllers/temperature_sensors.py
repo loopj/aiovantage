@@ -23,7 +23,7 @@ class TemperatureSensorsController(BaseController[Temperature], TemperatureInter
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a temperature sensor."""
         state = {
-            "value": await TemperatureInterface.get_value_hw(self, vid),
+            "value": await TemperatureInterface.get_value(self, vid),
         }
 
         self.update_state(vid, state)

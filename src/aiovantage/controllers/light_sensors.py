@@ -28,7 +28,7 @@ class LightSensorsController(
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a light sensor."""
         state = {
-            "level": await LightSensorInterface.get_level_hw(self, vid),
+            "level": await LightSensorInterface.get_level(self, vid),
         }
 
         self.update_state(vid, state)

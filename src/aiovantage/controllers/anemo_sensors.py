@@ -28,7 +28,7 @@ class AnemoSensorsController(
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of an anemo sensor."""
         state = {
-            "speed": await AnemoSensorInterface.get_speed_hw(self, vid),
+            "speed": await AnemoSensorInterface.get_speed(self, vid),
         }
 
         self.update_state(vid, state)
