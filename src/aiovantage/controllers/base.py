@@ -20,7 +20,8 @@ from typing import (
 )
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
-from aiovantage.command_client.object_interfaces.base import InterfaceResponse
+from aiovantage.command_client.object_interfaces import InterfaceResponse
+from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects
 from aiovantage.events import EventCallback, VantageEvent
@@ -327,19 +328,32 @@ class BaseController(QuerySet[T]):
 
     async def _handle_event(self, event: Event) -> None:
         # Handle events from the event stream
-        # pylint: disable=assignment-from-none
         if event["type"] == EventType.STATUS:
             # Ignore events for objects that this controller doesn't manage
             if event["id"] not in self._items:
                 return
 
-            self.handle_status(event["id"], event["status_type"], *event["args"])
+            if event["status_type"] == "STATUS":
+                # Handle "object" status events of the form:
+                # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
+                self.handle_interface_status(
+                    InterfaceResponse(
+                        event["id"],
+                        event["args"][1],
+                        event["args"][0],
+                        event["args"][2:],
+                    )
+                )
+            else:
+                # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
+                self.handle_status(event["id"], event["status_type"], *event["args"])
 
         elif event["type"] == EventType.ENHANCED_LOG:
             # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.
             # These are "interface status" messages, with the form:
-            #   EL: 123 Interface.Method arg1 arg2 ...
-            status = InterfaceResponse.from_status(event["log"])
+            #   EL: <id> <method> <result> <arg1> <arg2> ...
+            vid_str, method, *args = tokenize_response(event["log"])
+            status = InterfaceResponse(int(vid_str), args[0], method, args[1:])
 
             # Ignore events for objects that this controller doesn't manage
             if status.vid not in self._items:

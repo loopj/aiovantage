@@ -3,9 +3,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 from enum import IntEnum
-from typing import List, Type, TypeVar, Union
-
-from typing_extensions import Self
+from typing import Sequence, Type, TypeVar, Union
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import encode_params, tokenize_response
@@ -18,19 +16,7 @@ class InterfaceResponse:
     vid: int
     result: str
     method: str
-    args: List[str]
-
-    @classmethod
-    def from_invoke(cls, data: List[str]) -> Self:
-        """Initialize an InterfaceResponse from an invoke response."""
-        _, vid_str, result, method, *args = tokenize_response(data[0])
-        return cls(int(vid_str), result, method, args)
-
-    @classmethod
-    def from_status(cls, data: str) -> Self:
-        """Initialize an InterfaceResponse from a status response."""
-        vid_str, method, *args = tokenize_response(data)
-        return cls(int(vid_str), args[0], method, args[1:])
+    args: Sequence[str]
 
 
 class Interface:
@@ -69,7 +55,8 @@ class Interface:
 
         # Send the request and parse the response
         raw_response = await self.command_client.raw_request(request)
-        return InterfaceResponse.from_invoke(raw_response)
+        _, vid_str, result, _, *args = tokenize_response(raw_response[-1])
+        return InterfaceResponse(int(vid_str), result, method, args)
 
 
 T = TypeVar("T", bound=IntEnum)
