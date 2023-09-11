@@ -9,17 +9,36 @@ from .base import Interface
 class AnemoSensorInterface(Interface):
     """Interface for querying and controlling anemo (wind) sensors."""
 
-    async def get_speed(self, vid: int, cached: bool = False) -> Decimal:
-        """Get the value of an anemo sensor, in mph.
+    async def get_speed(self, vid: int) -> Decimal:
+        """Get the value of an anemo sensor, using a cached value if available.
 
         Args:
             vid: The Vantage ID of the anemo sensor.
-            cached: Whether to use the cached value or fetch a new one.
+
+        Returns:
+            The speed of the anemo sensor, in mph.
         """
         # INVOKE <id> AnemoSensor.GetSpeed
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
-        method = "AnemoSensor.GetSpeed" if cached else "AnemoSensor.GetSpeedHW"
-        response = await self.invoke(vid, method)
+        response = await self.invoke(vid, "AnemoSensor.GetSpeed")
+
+        # Older firmware response in thousandths of a mph, newer as fixed point
+        level = Decimal(response.args[1].replace(".", "")) / 1000
+
+        return level
+
+    async def get_speed_hw(self, vid: int) -> Decimal:
+        """Get the value of an anemo sensor directly from the hardware.
+
+        Args:
+            vid: The Vantage ID of the anemo sensor.
+
+        Returns:
+            The speed of the anemo sensor, in mph.
+        """
+        # INVOKE <id> AnemoSensor.GetSpeedHW
+        # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeedHW
+        response = await self.invoke(vid, "AnemoSensor.GetSpeedHW")
 
         # Older firmware response in thousandths of a mph, newer as fixed point
         level = Decimal(response.args[1].replace(".", "")) / 1000

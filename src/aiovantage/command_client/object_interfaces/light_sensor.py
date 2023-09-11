@@ -9,17 +9,36 @@ from .base import Interface
 class LightSensorInterface(Interface):
     """Interface for querying and controlling light sensors."""
 
-    async def get_level(self, vid: int, cached: bool = False) -> Decimal:
-        """Get the level of a light sensor, in foot-candles.
+    async def get_level(self, vid: int) -> Decimal:
+        """Get the level of a light sensor, using a cached value if available.
 
         Args:
             vid: The Vantage ID of the light sensor.
-            cached: Whether to use the cached value or fetch a new one.
+        
+        Returns:
+            The level of the light sensor, in foot-candles.
         """
         # INVOKE <id> LightSensor.GetLevel
         # -> R:INVOKE <id> <level> LightSensor.GetLevel
-        method = "LightSensor.GetLevel" if cached else "LightSensor.GetLevelHW"
-        response = await self.invoke(vid, method)
+        response = await self.invoke(vid, "LightSensor.GetLevel")
+
+        # Older firmware response in thousandths of a foot-candle, newer as fixed point
+        level = Decimal(response.args[1].replace(".", "")) / 1000
+
+        return level
+
+    async def get_level_hw(self, vid: int) -> Decimal:
+        """Get the level of a light sensor directly from the hardware.
+
+        Args:
+            vid: The Vantage ID of the light sensor.
+        
+        Returns:
+            The level of the light sensor, in foot-candles.
+        """
+        # INVOKE <id> LightSensor.GetLevelHW
+        # -> R:INVOKE <id> <level> LightSensor.GetLevelHW
+        response = await self.invoke(vid, "LightSensor.GetLevelHW")
 
         # Older firmware response in thousandths of a foot-candle, newer as fixed point
         level = Decimal(response.args[1].replace(".", "")) / 1000

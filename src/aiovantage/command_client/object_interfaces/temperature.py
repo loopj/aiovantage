@@ -9,17 +9,36 @@ from .base import Interface
 class TemperatureInterface(Interface):
     """Interface for querying and controlling sensors."""
 
-    async def get_value(self, vid: int, cached: bool = False) -> Decimal:
-        """Get the value of a temperature sensor.
+    async def get_value(self, vid: int) -> Decimal:
+        """Get the value of a temperature sensor, using a cached value if available.
 
         Args:
             vid: The Vantage ID of the temperature sensor.
-            cached: Whether to use the cached value or fetch a new one.
+
+        Returns:
+            The temperature of the sensor, in degrees Celsius.
         """
         # INVOKE <id> Temperature.GetValue
         # -> R:INVOKE <id> <temp> Temperature.GetValue
-        method = "Temperature.GetValue" if cached else "Temperature.GetValueHW"
-        response = await self.invoke(vid, method)
+        response = await self.invoke(vid, "Temperature.GetValue")
+
+        # Older firmware response in thousandths of a degree, newer as fixed point
+        level = Decimal(response.args[1].replace(".", "")) / 1000
+
+        return level
+
+    async def get_value_hw(self, vid: int) -> Decimal:
+        """Get the value of a temperature sensor directly from the hardware.
+
+        Args:
+            vid: The Vantage ID of the temperature sensor.
+
+        Returns:
+            The temperature of the sensor, in degrees Celsius.
+        """
+        # INVOKE <id> Temperature.GetValueHW
+        # -> R:INVOKE <id> <temp> Temperature.GetValueHW
+        response = await self.invoke(vid, "Temperature.GetValueHW")
 
         # Older firmware response in thousandths of a degree, newer as fixed point
         level = Decimal(response.args[1].replace(".", "")) / 1000
