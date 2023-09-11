@@ -52,8 +52,7 @@ class LoadInterface(Interface):
         """
         # INVOKE <id> Load.GetLevel
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevel
-        response = await self.invoke(vid, "Load.GetLevel")
-        return LoadInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "Load.GetLevel", as_type=Decimal)
 
     async def get_level_hw(self, vid: int) -> Decimal:
         """Get the level of a load directly from the hardware.
@@ -66,8 +65,7 @@ class LoadInterface(Interface):
         """
         # INVOKE <id> Load.GetLevelHW
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevelHW
-        response = await self.invoke(vid, "Load.GetLevelHW")
-        return LoadInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "Load.GetLevelHW", as_type=Decimal)
 
     async def ramp(
         self,

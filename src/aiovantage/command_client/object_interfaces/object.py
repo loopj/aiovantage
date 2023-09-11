@@ -22,5 +22,4 @@ class ObjectInterface(Interface):
         """
         # INVOKE <id> Object.GetMTime
         # -> R:INVOKE <id> <mtime> Object.GetMTime
-        response = await self.invoke(vid, "Object.GetMTime")
-        return ObjectInterface.parse_response(response, int)
+        return await self.invoke(vid, "Object.GetMTime", as_type=int)

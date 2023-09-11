@@ -34,5 +34,4 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.Get
         # -> R:INVOKE <id> <temp> ColorTemperature.Get
-        response = await self.invoke(vid, "ColorTemperature.Get")
-        return ColorTemperatureInterface.parse_response(response, int)
+        return await self.invoke(vid, "ColorTemperature.Get", as_type=int)

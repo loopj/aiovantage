@@ -100,8 +100,7 @@ class BlindInterface(Interface):
         """
         # INVOKE <id> Blind.GetPosition
         # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPosition
-        response = await self.invoke(vid, "Blind.GetPosition")
-        return BlindInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "Blind.GetPosition", as_type=Decimal)
 
     async def get_position_hw(self, vid: int) -> Decimal:
         """Get the position of a blind directly from the hardware.
@@ -114,8 +113,7 @@ class BlindInterface(Interface):
         """
         # INVOKE <id> Blind.GetPositionHW
         # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPositionHW
-        response = await self.invoke(vid, "Blind.GetPositionHW")
-        return BlindInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "Blind.GetPositionHW", as_type=Decimal)
 
     # Methods below here are not available in 2.x firmware.
 
@@ -141,8 +139,7 @@ class BlindInterface(Interface):
         """
         # INVOKE <id> Blind.GetTiltAngle
         # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngle
-        response = await self.invoke(vid, "Blind.GetTiltAngle")
-        return BlindInterface.parse_response(response, int)
+        return await self.invoke(vid, "Blind.GetTiltAngle", as_type=int)
 
     async def get_tilt_angle_hw(self, vid: int) -> int:
         """Get the tilt angle of a blind directly from the hardware.
@@ -155,8 +152,7 @@ class BlindInterface(Interface):
         """
         # INVOKE <id> Blind.GetTiltAngleHW
         # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngleHW
-        response = await self.invoke(vid, "Blind.GetTiltAngleHW")
-        return BlindInterface.parse_response(response, int)
+        return await self.invoke(vid, "Blind.GetTiltAngleHW", as_type=int)
 
     async def tilt_clockwise(self, vid: int, angle: int) -> None:
         """Tilt the blinds clockwise by the specified angle.
@@ -191,8 +187,7 @@ class BlindInterface(Interface):
         """
         # INVOKE <id> Blind.IsTiltAvailable
         # -> R:INVOKE <id> <available (0/1)> Blind.IsTiltAvailable
-        response = await self.invoke(vid, "Blind.IsTiltAvailable")
-        return BlindInterface.parse_response(response, bool)
+        return await self.invoke(vid, "Blind.IsTiltAvailable", as_type=bool)
 
     async def get_state(self, vid: int) -> BlindState:
         """Get the state of a blind.
@@ -205,5 +200,4 @@ class BlindInterface(Interface):
         """
         # INVOKE <id> Blind.GetBlindState
         # -> R:INVOKE <id> <moving> Blind.GetBlindState <start> <end> <transitionTime> <startTime>
-        response = await self.invoke(vid, "Blind.GetBlindState")
-        return BlindInterface.parse_response(response, self.BlindState)
+        return await self.invoke(vid, "Blind.GetBlindState", as_type=self.BlindState)

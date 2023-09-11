@@ -77,9 +77,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetRGB <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
-        response = await self.invoke(vid, "RGBLoad.GetRGB", channel)
-        value, _ = RGBLoadInterface.parse_response(response, tuple[int, ...])
-
+        value, _ = await RGBLoadInterface.invoke(
+            self, vid, "RGBLoad.GetRGB", channel, as_type=tuple[int, ...]
+        )
         return value
 
     async def set_hsl(
@@ -119,9 +119,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetHSL <attribute>
         # -> R:INVOKE <id> <value> RGBLoad.GetHSL <attribute>
-        response = await self.invoke(vid, "RGBLoad.GetHSL", attribute)
-        value, _ = RGBLoadInterface.parse_response(response, tuple[int, ...])
-
+        value, _ = await RGBLoadInterface.invoke(
+            self, vid, "RGBLoad.GetHSL", attribute, as_type=tuple[int, ...]
+        )
         return value
 
     async def dissolve_rgb(
@@ -214,8 +214,7 @@ class RGBLoadInterface(Interface):
             The value of the RGB/RGBW color as a bytearray.
         """
         # INVOKE <id> RGBLoad.GetColor
-        response = await self.invoke(vid, "RGBLoad.GetColor")
-        return RGBLoadInterface.parse_response(response, tuple[int, ...])
+        return await self.invoke(vid, "RGBLoad.GetColor", as_type=tuple[int, ...])
 
     async def set_rgbw(
         self, vid: int, red: float, green: float, blue: float, white: float
@@ -251,9 +250,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetRGBW <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <channel>
-        response = await self.invoke(vid, "RGBLoad.GetRGBW", channel)
-        value, _ = RGBLoadInterface.parse_response(response, tuple[int, ...])
-
+        value, _ = await self.invoke(
+            vid, "RGBLoad.GetRGBW", channel, as_type=tuple[int, ...]
+        )
         return value
 
     async def get_rgb_color(self, vid: int) -> Tuple[int, int, int]:

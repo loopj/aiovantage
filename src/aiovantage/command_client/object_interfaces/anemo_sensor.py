@@ -25,8 +25,7 @@ class AnemoSensorInterface(Interface):
         """
         # INVOKE <id> AnemoSensor.GetSpeed
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
-        response = await self.invoke(vid, "AnemoSensor.GetSpeed")
-        return AnemoSensorInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "GetSpeed", as_type=Decimal)
 
     async def get_speed_hw(self, vid: int) -> Decimal:
         """Get the speed of an anemo sensor directly from the hardware.
@@ -39,5 +38,4 @@ class AnemoSensorInterface(Interface):
         """
         # INVOKE <id> AnemoSensor.GetSpeedHW
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeedHW
-        response = await self.invoke(vid, "AnemoSensor.GetSpeedHW")
-        return AnemoSensorInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "AnemoSensor.GetSpeedHW", as_type=Decimal)

@@ -50,8 +50,7 @@ class TaskInterface(Interface):
         """
         # INVOKE <id> Task.IsRunning
         # -> R:INVOKE <id> <running (0/1)> Task.IsRunning
-        response = await self.invoke(vid, "Task.IsRunning")
-        return TaskInterface.parse_response(response, bool)
+        return await self.invoke(vid, "Task.IsRunning", as_type=bool)
 
     async def get_state(self, vid: int) -> int:
         """Get the state of a task.
@@ -64,8 +63,7 @@ class TaskInterface(Interface):
         """
         # INVOKE <id> Task.GetState
         # -> R:INVOKE <id> <state> Task.GetState
-        response = await self.invoke(vid, "Task.GetState")
-        return TaskInterface.parse_response(response, int)
+        return await self.invoke(vid, "Task.GetState", as_type=int)
 
     async def set_state(self, vid: int, state: int) -> None:
         """Set the state of a task.

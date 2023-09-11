@@ -28,8 +28,7 @@ class LightSensorInterface(Interface):
         """
         # INVOKE <id> LightSensor.GetLevel
         # -> R:INVOKE <id> <level> LightSensor.GetLevel
-        response = await self.invoke(vid, "LightSensor.GetLevel")
-        return LightSensorInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "LightSensor.GetLevel", as_type=Decimal)
 
     async def get_level_hw(self, vid: int) -> Decimal:
         """Get the level of a light sensor directly from the hardware.
@@ -42,5 +41,4 @@ class LightSensorInterface(Interface):
         """
         # INVOKE <id> LightSensor.GetLevelHW
         # -> R:INVOKE <id> <level> LightSensor.GetLevelHW
-        response = await self.invoke(vid, "LightSensor.GetLevelHW")
-        return LightSensorInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "LightSensor.GetLevelHW", as_type=Decimal)

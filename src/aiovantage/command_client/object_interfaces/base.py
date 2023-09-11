@@ -39,37 +39,51 @@ class Interface:
         return self._command_client
 
     async def invoke(
-        self, vid: int, method: str, *params: Union[str, int, float, Decimal]
-    ) -> InterfaceResponse:
+        self,
+        vid: int,
+        method: str,
+        *params: Union[str, int, float, Decimal],
+        as_type: Optional[Type[T]] = None,
+    ) -> T:
         """Invoke a method on an object, and wait for a response.
 
         Args:
             vid: The VID of the object to invoke the command on.
             method: The method to invoke.
             params: The parameters to send with the method.
+            as_type: The type to parse the response as.
 
         Returns:
             An InterfaceResponse instance.
         """
+        request = f"INVOKE {vid} {method}"
         if params:
-            request = f"INVOKE {vid} {method} {encode_params(*params)}"
-        else:
-            request = f"INVOKE {vid} {method}"
+            request += f" {encode_params(*params)}"
 
-        # Send the request and parse the response
+        # Send the request
         raw_response = await self.command_client.raw_request(request)
+
+        # Parse the response
         _, vid_str, result, _, *args = tokenize_response(raw_response[-1])
-        return InterfaceResponse(int(vid_str), result, method, args)
+        response = InterfaceResponse(int(vid_str), result, method, args)
+
+        # Instances can inherit from multiple interfaces, so let's find the response
+        # parser for the method we just invoked.
+        for klass in type(self).__bases__:
+            if issubclass(klass, Interface) and klass.response_parsers.get(method):
+                return klass.parse_response(response, as_type)
+
+        raise NotImplementedError(f"No response parser found for method {method}.")
 
     @classmethod
     def parse_response(
-        cls, response: InterfaceResponse, clazz: Optional[Type[T]] = None
+        cls, response: InterfaceResponse, as_type: Optional[Type[T]] = None
     ) -> T:
         """Parse a response from an object interface.
 
         Args:
             response: The response to parse.
-            clazz: The type to parse the response as.
+            as_type: The type to parse the response as.
 
         Returns:
             The parsed response.

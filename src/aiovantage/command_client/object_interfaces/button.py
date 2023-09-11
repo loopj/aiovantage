@@ -29,8 +29,7 @@ class ButtonInterface(Interface):
             The pressed state of the button, True if pressed, False if not.
         """
         # INVOKE <id> Button.GetState
-        response = await self.invoke(vid, "Button.GetState")
-        return ButtonInterface.parse_response(response, self.State)
+        return await self.invoke(vid, "Button.GetState", as_type=self.State)
 
     async def set_state(self, vid: int, state: State) -> None:
         """Set the state of a button.

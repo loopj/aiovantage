@@ -35,8 +35,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetFrequency
         # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
-        response = await self.invoke(vid, "Sounder.GetFrequency")
-        return SounderInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "Sounder.GetFrequency", as_type=Decimal)
 
     async def get_frequency_hw(self, vid: int) -> Decimal:
         """Get the frequency of the keypad speaker directly from the hardware.
@@ -49,8 +48,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetFrequencyHW
         # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
-        response = await self.invoke(vid, "Sounder.GetFrequencyHW")
-        return SounderInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "Sounder.GetFrequencyHW", as_type=Decimal)
 
     async def set_frequency(self, vid: int, frequency: Union[float, Decimal]) -> None:
         """Set the frequency of the keypad speaker.
@@ -74,8 +72,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetStatus
         # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        response = await self.invoke(vid, "Sounder.GetStatus")
-        return SounderInterface.parse_response(response, self.Status)
+        return await self.invoke(vid, "Sounder.GetStatus", as_type=self.Status)
 
     async def get_status_hw(self, vid: int) -> Status:
         """Get the status of the keypad speaker directly from the hardware.
@@ -88,8 +85,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetStatusHW
         # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        response = await self.invoke(vid, "Sounder.GetStatusHW")
-        return SounderInterface.parse_response(response, self.Status)
+        return await self.invoke(vid, "Sounder.GetStatusHW", as_type=self.Status)
 
     async def set_status(self, vid: int, status: Status) -> None:
         """Set the status of the keypad speaker.

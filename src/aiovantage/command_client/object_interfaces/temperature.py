@@ -25,8 +25,7 @@ class TemperatureInterface(Interface):
         """
         # INVOKE <id> Temperature.GetValue
         # -> R:INVOKE <id> <temp> Temperature.GetValue
-        response = await self.invoke(vid, "Temperature.GetValue")
-        return TemperatureInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "Temperature.GetValue", as_type=Decimal)
 
     async def get_value_hw(self, vid: int) -> Decimal:
         """Get the value of a temperature sensor.
@@ -39,5 +38,4 @@ class TemperatureInterface(Interface):
         """
         # INVOKE <id> Temperature.GetValueHW
         # -> R:INVOKE <id> <temp> Temperature.GetValueHW
-        response = await self.invoke(vid, "Temperature.GetValueHW")
-        return TemperatureInterface.parse_response(response, Decimal)
+        return await self.invoke(vid, "Temperature.GetValueHW", as_type=Decimal)
