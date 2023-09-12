@@ -1,6 +1,5 @@
 """Interface for querying and controlling RGB loads."""
 
-import struct
 from decimal import Decimal
 from enum import IntEnum
 from typing import Tuple, Union, cast
@@ -15,11 +14,6 @@ def parse_color_channel_response(response: InterfaceResponse) -> Tuple[int, int]
     channel = int(response.args[0])
 
     return value, channel
-
-
-def parse_packed_color_response(response: InterfaceResponse) -> Tuple[int, ...]:
-    """Parse a 'RGBLoad.GetColor' response."""
-    return tuple(struct.pack(">i", parse_int(response)))
 
 
 class RGBLoadInterface(Interface):
@@ -44,7 +38,7 @@ class RGBLoadInterface(Interface):
         "RGBLoad.GetRGB": parse_color_channel_response,
         "RGBLoad.GetRGBW": parse_color_channel_response,
         "RGBLoad.GetHSL": parse_color_channel_response,
-        "RGBLoad.GetColor": parse_packed_color_response,
+        "RGBLoad.GetColor": parse_int,
     }
 
     async def set_rgb(self, vid: int, red: int, green: int, blue: int) -> None:
@@ -204,18 +198,18 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetHSLAttribute <attribute> <value>
         await self.invoke(vid, "RGBLoad.SetHSLAttribute", attribute, value)
 
-    async def get_color(self, vid: int) -> Tuple[int, ...]:
+    async def get_color(self, vid: int) -> int:
         """Get the RGB/RGBW color of a load from the controller.
 
         Args:
             vid: The Vantage ID of the RGB load.
 
         Returns:
-            The value of the RGB/RGBW color as a bytearray.
+            The RGB(W) value of the color as a packed big-endian integer.
         """
         # INVOKE <id> RGBLoad.GetColor
         # -> R:INVOKE <id> <color> RGBLoad.GetColor
-        return await self.invoke(vid, "RGBLoad.GetColor", as_type=tuple[int, ...])
+        return await self.invoke(vid, "RGBLoad.GetColor", as_type=int)
 
     async def set_rgbw(
         self, vid: int, red: float, green: float, blue: float, white: float
@@ -265,8 +259,10 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGB color as a tuple of (red, green, blue).
         """
-        color = await self.get_color(vid)
-        return cast(Tuple[int, int, int], color[:3])
+        return cast(
+            Tuple[int, int, int],
+            tuple([await self.get_rgb(vid, attr) for attr in range(3)]),
+        )
 
     async def get_rgbw_color(self, vid: int) -> Tuple[int, int, int, int]:
         """Get the RGBW color of a load from the controller.
@@ -279,7 +275,7 @@ class RGBLoadInterface(Interface):
         """
         return cast(
             Tuple[int, int, int, int],
-            tuple([await self.get_rgbw(vid, chan) for chan in self.RGBChannel]),
+            tuple([await self.get_rgbw(vid, chan) for chan in range(4)]),
         )
 
     async def get_hsl_color(self, vid: int) -> Tuple[int, int, int]:
@@ -293,5 +289,5 @@ class RGBLoadInterface(Interface):
         """
         return cast(
             Tuple[int, int, int],
-            tuple([await self.get_hsl(vid, attr) for attr in self.HSLAttribute]),
+            tuple([await self.get_hsl(vid, attr) for attr in range(3)]),
         )

@@ -1,7 +1,6 @@
 """Base class for command client interfaces."""
 
 from dataclasses import dataclass
-from decimal import Decimal
 from typing import (
     Any,
     Callable,
@@ -10,16 +9,18 @@ from typing import (
     Sequence,
     Type,
     TypeVar,
-    Union,
     cast,
     overload,
 )
 
 from aiovantage.command_client import CommandClient
-from aiovantage.command_client.utils import encode_params, tokenize_response
+from aiovantage.command_client.utils import (
+    ParameterType,
+    encode_params,
+    tokenize_response,
+)
 
 T = TypeVar("T")
-ParamType = Union[str, int, float, Decimal]
 
 
 @dataclass
@@ -51,12 +52,12 @@ class Interface:
         return self._command_client
 
     @overload
-    async def invoke(self, vid: int, method: str, *params: ParamType) -> None:
+    async def invoke(self, vid: int, method: str, *params: ParameterType) -> None:
         ...
 
     @overload
     async def invoke(
-        self, vid: int, method: str, *params: ParamType, as_type: Type[T]
+        self, vid: int, method: str, *params: ParameterType, as_type: Type[T]
     ) -> T:
         ...
 
@@ -64,7 +65,7 @@ class Interface:
         self,
         vid: int,
         method: str,
-        *params: ParamType,
+        *params: ParameterType,
         as_type: Optional[Type[T]] = None,
     ) -> Optional[T]:
         """Invoke a method on an object, and wait for a response.
@@ -105,7 +106,7 @@ class Interface:
     def parse_response(
         cls, response: InterfaceResponse, as_type: Optional[Type[T]] = None
     ) -> T:
-        """Parse a response from an object interface.
+        """Parse a response from an objet interface.
 
         Args:
             response: The response to parse.
