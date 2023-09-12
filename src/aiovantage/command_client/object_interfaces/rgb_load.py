@@ -214,6 +214,7 @@ class RGBLoadInterface(Interface):
             The value of the RGB/RGBW color as a bytearray.
         """
         # INVOKE <id> RGBLoad.GetColor
+        # -> R:INVOKE <id> <color> RGBLoad.GetColor
         return await self.invoke(vid, "RGBLoad.GetColor", as_type=tuple[int, ...])
 
     async def set_rgbw(
