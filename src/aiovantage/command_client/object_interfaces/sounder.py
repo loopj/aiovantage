@@ -11,18 +11,18 @@ from .parsers import parse_enum, parse_fixed
 class SounderInterface(Interface):
     """Interface for keypad speakers."""
 
-    response_parsers = {
-        "Sounder.GetFrequency": parse_fixed,
-        "Sounder.GetFrequencyHW": parse_fixed,
-        "Sounder.GetStatus": lambda r: parse_enum(SounderInterface.Status, r),
-        "Sounder.GetStatusHW": lambda r: parse_enum(SounderInterface.Status, r),
-    }
-
     class Status(IntEnum):
         """Sounder status."""
 
         On = 0
         Off = 1
+
+    method_signatures = {
+        "Sounder.GetFrequency": parse_fixed,
+        "Sounder.GetFrequencyHW": parse_fixed,
+        "Sounder.GetStatus": lambda r: parse_enum(SounderInterface.Status, r),
+        "Sounder.GetStatusHW": lambda r: parse_enum(SounderInterface.Status, r),
+    }
 
     async def get_frequency(self, vid: int) -> Decimal:
         """Get the frequency of the keypad speaker, using cached value if available.

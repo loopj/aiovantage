@@ -21,15 +21,6 @@ def parse_blind_state(response: InterfaceResponse) -> "BlindInterface.BlindState
 class BlindInterface(Interface):
     """Interface for querying and controlling blinds."""
 
-    response_parsers = {
-        "Blind.GetPosition": parse_fixed,
-        "Blind.GetPositionHW": parse_fixed,
-        "Blind.GetTiltAngle": parse_int,
-        "Blind.GetTiltAngleHW": parse_int,
-        "Blind.IsTiltAvailable": parse_bool,
-        "Blind.GetBlindState": parse_blind_state,
-    }
-
     class BlindState(NamedTuple):
         """The state of a blind."""
 
@@ -47,6 +38,15 @@ class BlindInterface(Interface):
 
         start_time: int
         """Time the blind started moving (in milliseconds since start of UTC day)"""
+
+    method_signatures = {
+        "Blind.GetPosition": parse_fixed,
+        "Blind.GetPositionHW": parse_fixed,
+        "Blind.GetTiltAngle": parse_int,
+        "Blind.GetTiltAngleHW": parse_int,
+        "Blind.IsTiltAvailable": parse_bool,
+        "Blind.GetBlindState": parse_blind_state,
+    }
 
     async def open(self, vid: int) -> None:
         """Open a blind.

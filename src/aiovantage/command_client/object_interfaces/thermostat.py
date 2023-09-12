@@ -11,21 +11,6 @@ from .parsers import parse_enum, parse_fixed
 class ThermostatInterface(Interface):
     """Interface for querying and controlling thermostats."""
 
-    response_parsers = {
-        "Thermostat.GetIndoorTemperature": parse_fixed,
-        "Thermostat.GetOutdoorTemperature": parse_fixed,
-        "Thermostat.GetHeatSetPoint": parse_fixed,
-        "Thermostat.GetCoolSetPoint": parse_fixed,
-        "Thermostat.GetOperationMode": lambda r: parse_enum(
-            ThermostatInterface.OperationMode, r
-        ),
-        "Thermostat.GetFanMode": lambda r: parse_enum(ThermostatInterface.FanMode, r),
-        "Thermostat.GetDayMode": lambda r: parse_enum(ThermostatInterface.DayMode, r),
-        "Thermostat.GetHoldMode": lambda r: parse_enum(ThermostatInterface.HoldMode, r),
-        "Thermostat.GetStatus": lambda r: parse_enum(ThermostatInterface.Status, r),
-        "Thermostat.GetAutoSetPoint": parse_fixed,
-    }
-
     class OperationMode(IntEnum):
         """The operation mode of the thermostat."""
 
@@ -64,6 +49,21 @@ class ThermostatInterface(Interface):
         Cooling = 1
         Heating = 2
         Offline = 3
+
+    method_signatures = {
+        "Thermostat.GetIndoorTemperature": parse_fixed,
+        "Thermostat.GetOutdoorTemperature": parse_fixed,
+        "Thermostat.GetHeatSetPoint": parse_fixed,
+        "Thermostat.GetCoolSetPoint": parse_fixed,
+        "Thermostat.GetOperationMode": lambda r: parse_enum(
+            ThermostatInterface.OperationMode, r
+        ),
+        "Thermostat.GetFanMode": lambda r: parse_enum(ThermostatInterface.FanMode, r),
+        "Thermostat.GetDayMode": lambda r: parse_enum(ThermostatInterface.DayMode, r),
+        "Thermostat.GetHoldMode": lambda r: parse_enum(ThermostatInterface.HoldMode, r),
+        "Thermostat.GetStatus": lambda r: parse_enum(ThermostatInterface.Status, r),
+        "Thermostat.GetAutoSetPoint": parse_fixed,
+    }
 
     async def get_indoor_temperature(self, vid: int) -> Decimal:
         """Get the current indoor temperature.

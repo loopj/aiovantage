@@ -25,13 +25,6 @@ def parse_packed_color_response(response: InterfaceResponse) -> Tuple[int, ...]:
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""
 
-    response_parsers = {
-        "RGBLoad.GetRGB": parse_color_channel_response,
-        "RGBLoad.GetRGBW": parse_color_channel_response,
-        "RGBLoad.GetHSL": parse_color_channel_response,
-        "RGBLoad.GetColor": parse_packed_color_response,
-    }
-
     class RGBChannel(IntEnum):
         """The RGB color channels."""
 
@@ -46,6 +39,13 @@ class RGBLoadInterface(Interface):
         Hue = 0
         Saturation = 1
         Lightness = 2
+
+    method_signatures = {
+        "RGBLoad.GetRGB": parse_color_channel_response,
+        "RGBLoad.GetRGBW": parse_color_channel_response,
+        "RGBLoad.GetHSL": parse_color_channel_response,
+        "RGBLoad.GetColor": parse_packed_color_response,
+    }
 
     async def set_rgb(self, vid: int, red: int, green: int, blue: int) -> None:
         """Set the color of an RGB load.

@@ -9,15 +9,15 @@ from .parsers import parse_enum
 class ButtonInterface(Interface):
     """Interface for querying and controlling buttons."""
 
-    response_parsers = {
-        "Button.GetState": lambda r: parse_enum(ButtonInterface.State, r),
-    }
-
     class State(IntEnum):
         """Button state."""
 
         Up = 0
         Down = 1
+
+    method_signatures = {
+        "Button.GetState": lambda r: parse_enum(ButtonInterface.State, r),
+    }
 
     async def get_state(self, vid: int) -> State:
         """Get the state of a button.

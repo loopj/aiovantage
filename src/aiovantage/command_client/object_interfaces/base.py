@@ -35,7 +35,7 @@ class InterfaceResponse:
 class Interface:
     """Base class for command client object interfaces."""
 
-    response_parsers: Dict[str, Callable[[InterfaceResponse], Any]] = {}
+    method_signatures: Dict[str, Callable[[InterfaceResponse], Any]] = {}
 
     def __init__(self, client: CommandClient) -> None:
         """Initialize an object interface for standalone use.
@@ -96,7 +96,7 @@ class Interface:
         # Instances can inherit from multiple interfaces, so let's find the response
         # parser for the method we just invoked.
         for klass in type(self).__bases__:
-            if issubclass(klass, Interface) and klass.response_parsers.get(method):
+            if issubclass(klass, Interface) and klass.method_signatures.get(method):
                 return klass.parse_response(response, as_type)
 
         raise NotImplementedError(f"No response parser found for method {method}.")
@@ -114,4 +114,4 @@ class Interface:
         Returns:
             The parsed response.
         """
-        return cast(T, cls.response_parsers[response.method](response))
+        return cast(T, cls.method_signatures[response.method](response))

@@ -11,11 +11,6 @@ from .parsers import parse_fixed
 class LoadInterface(Interface):
     """Interface for querying and controlling loads."""
 
-    response_parsers = {
-        "Load.GetLevel": parse_fixed,
-        "Load.GetLevelHW": parse_fixed,
-    }
-
     class RampType(IntEnum):
         """The type of ramp to perform."""
 
@@ -26,6 +21,11 @@ class LoadInterface(Interface):
         Fixed = 6
         Variable = 7
         Adjust = 8
+
+    method_signatures = {
+        "Load.GetLevel": parse_fixed,
+        "Load.GetLevelHW": parse_fixed,
+    }
 
     async def set_level(self, vid: int, level: Union[float, Decimal]) -> None:
         """Set the level of a load.

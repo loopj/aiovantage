@@ -7,7 +7,7 @@ from .parsers import parse_int
 class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""
 
-    response_parsers = {
+    method_signatures = {
         "Object.GetMTime": parse_int,
     }
 

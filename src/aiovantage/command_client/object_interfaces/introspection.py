@@ -9,16 +9,16 @@ from .parsers import parse_str
 class IntrospectionInterface(Interface):
     """Interface for controller introspection."""
 
-    response_parsers = {
-        "Introspection.GetFirmwareVersion": parse_str,
-    }
-
     class Firmware(IntEnum):
         """Firmware images."""
 
         Kernel = 0
         RootFs = 1
         Application = 2
+
+    method_signatures = {
+        "Introspection.GetFirmwareVersion": parse_str,
+    }
 
     async def get_firmware_version(self, vid: int, image: Firmware) -> str:
         """Get the firmware version.

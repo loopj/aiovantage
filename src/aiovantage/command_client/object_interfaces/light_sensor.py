@@ -9,7 +9,7 @@ from .parsers import parse_fixed
 class LightSensorInterface(Interface):
     """Interface for querying and controlling light sensors."""
 
-    response_parsers = {
+    method_signatures = {
         "LightSensor.GetLevel": parse_fixed,
         "LightSensor.GetLevelHW": parse_fixed,
     }

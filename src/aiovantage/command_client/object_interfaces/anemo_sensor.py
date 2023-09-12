@@ -9,7 +9,7 @@ from .parsers import parse_fixed
 class AnemoSensorInterface(Interface):
     """Interface for querying and controlling anemo (wind) sensors."""
 
-    response_parsers = {
+    method_signatures = {
         "AnemoSensor.GetSpeed": parse_fixed,
         "AnemoSensor.GetSpeedHW": parse_fixed,
     }

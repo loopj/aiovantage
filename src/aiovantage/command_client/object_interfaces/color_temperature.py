@@ -7,7 +7,7 @@ from .parsers import parse_int
 class ColorTemperatureInterface(Interface):
     """Interface for querying and controlling color temperature."""
 
-    response_parsers = {
+    method_signatures = {
         "ColorTemperature.Get": parse_int,
     }
 
