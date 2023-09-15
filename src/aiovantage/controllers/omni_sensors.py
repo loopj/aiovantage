@@ -5,7 +5,6 @@ from typing import Union
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import InterfaceResponse
 from aiovantage.command_client.utils import parse_fixed_param
 from aiovantage.config_client.models.omni_sensor import ConversionType, OmniSensor
 
@@ -36,17 +35,19 @@ class OmniSensorsController(BaseController[OmniSensor]):
         self.update_state(vid, state)
 
     @override
-    def handle_interface_status(self, status: InterfaceResponse) -> None:
+    def handle_interface_status(
+        self, vid: int, result: str, method: str, *_args: str
+    ) -> None:
         """Handle object interface status messages from the event stream."""
-        omni_sensor = self[status.vid]
-        if status.method != omni_sensor.get.method:
+        omni_sensor = self[vid]
+        if method != omni_sensor.get.method:
             return
 
         state = {
-            "level": self.parse_result(omni_sensor, status.result),
+            "level": self.parse_result(omni_sensor, result),
         }
 
-        self.update_state(status.vid, state)
+        self.update_state(vid, state)
 
     async def get_level(self, vid: int, cached: bool = True) -> Union[int, Decimal]:
         """Get the level of an OmniSensor.

@@ -2,7 +2,7 @@
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import InterfaceResponse, TaskInterface
+from aiovantage.command_client.object_interfaces import TaskInterface
 from aiovantage.models import Task
 
 from .base import BaseController
@@ -45,13 +45,15 @@ class TasksController(BaseController[Task], TaskInterface):
         self.update_state(vid, state)
 
     @override
-    def handle_interface_status(self, status: InterfaceResponse) -> None:
+    def handle_interface_status(
+        self, vid: int, result: str, method: str, *args: str
+    ) -> None:
         """Handle object interface status messages from the event stream."""
-        if status.method != "Task.IsRunning":
+        if method != "Task.IsRunning":
             return
 
         state = {
-            "is_running": self.parse_response(status, bool),
+            "is_running": self.parse_response(result, method, *args),
         }
 
-        self.update_state(status.vid, state)
+        self.update_state(vid, state)

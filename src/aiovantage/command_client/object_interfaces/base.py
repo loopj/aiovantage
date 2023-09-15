@@ -1,18 +1,6 @@
 """Base class for command client interfaces."""
 
-from dataclasses import dataclass
-from typing import (
-    Any,
-    Dict,
-    List,
-    Optional,
-    Sequence,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-    overload,
-)
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast, overload
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import (
@@ -23,16 +11,6 @@ from aiovantage.command_client.utils import (
 )
 
 T = TypeVar("T")
-
-
-@dataclass
-class InterfaceResponse:
-    """Wrapper for object interface invoke/status responses."""
-
-    vid: int
-    result: str
-    method: str
-    args: Sequence[str]
 
 
 class Interface:
@@ -79,7 +57,7 @@ class Interface:
             as_type: The type to parse the response as.
 
         Returns:
-            An InterfaceResponse instance.
+            A parsed response, or None if no response was expected.
         """
         request = f"INVOKE {vid} {method}"
         if params:
@@ -93,27 +71,28 @@ class Interface:
             return None
 
         # Parse the response
-        _, vid_str, result, _, *args = tokenize_response(raw_response[-1])
-        response = InterfaceResponse(int(vid_str), result, method, args)
-        return self.parse_response(response, as_type)
+        _, _, result, _, *args = tokenize_response(raw_response[0])
+        return self.parse_response(result, method, *args, as_type=as_type)
 
     @overload
     @classmethod
-    def parse_response(cls, response: InterfaceResponse, as_type: Type[T]) -> T:
+    def parse_response(
+        cls, result: str, method: str, *args: str, as_type: Type[T]
+    ) -> T:
         ...
 
     @overload
     @classmethod
-    def parse_response(cls, response: InterfaceResponse) -> Any:
+    def parse_response(cls, result: str, method: str, *args: str) -> Any:
         ...
 
     @classmethod
     def parse_response(
-        cls, response: InterfaceResponse, as_type: Optional[Type[T]] = None
+        cls, result: str, method: str, *args: str, as_type: Optional[Type[T]] = None
     ) -> Union[T, Any, None]:
         """Parse a response from an object interface."""
         # Get the signature of the method we are parsing the response for
-        signature = cls._get_signature(response.method)
+        signature = cls._get_signature(method)
 
         # Return early if this method has no return value
         if signature is None:
@@ -125,13 +104,13 @@ class Interface:
             # If the signature is a NamedTuple, parse each component
             types = signature.__annotations__
             parsed_values: List[Any] = []
-            for arg, klass in zip([response.result, *response.args], types.values()):
+            for arg, klass in zip([result, *args], types.values()):
                 parsed_values.append(parse_param(arg, klass))
 
             parsed_response = signature(*parsed_values)
         else:
             # Otherwise, we are dealing with a single return value, send it to parse_arg
-            parsed_response = parse_param(response.result, signature)
+            parsed_response = parse_param(result, signature)
 
         # Cast the result to as_type, if specified
         if as_type:

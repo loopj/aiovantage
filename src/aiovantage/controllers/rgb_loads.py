@@ -1,13 +1,11 @@
 """Controller holding and managing Vantage RGB loads."""
 
-from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
 from typing_extensions import override
 
 from aiovantage.command_client.object_interfaces import (
     ColorTemperatureInterface,
-    InterfaceResponse,
     LoadInterface,
     RGBLoadInterface,
 )
@@ -62,33 +60,41 @@ class RGBLoadsController(
         self.update_state(vid, state)
 
     @override
-    def handle_interface_status(self, status: InterfaceResponse) -> None:
+    def handle_interface_status(
+        self, vid: int, result: str, method: str, *args: str
+    ) -> None:
         """Handle object interface status messages from the event stream."""
-        rgb_load: RGBLoadBase = self[status.vid]
+        rgb_load: RGBLoadBase = self[vid]
         state: Dict[str, Any] = {}
 
-        if status.method == "Load.GetLevel":
-            state["level"] = self.parse_response(status, Decimal)
+        if method == "Load.GetLevel":
+            state["level"] = self.parse_response(result, method, *args)
 
-        elif status.method == "RGBLoad.GetHSL" and rgb_load.is_rgb:
-            response = self.parse_response(status, self.ColorChannelResponse)
-            if hsl := self._build_color(status.vid, response, 3):
+        elif method == "RGBLoad.GetHSL" and rgb_load.is_rgb:
+            response = self.parse_response(
+                result, method, *args, as_type=self.ColorChannelResponse
+            )
+            if hsl := self._build_color(vid, response, 3):
                 state["hsl"] = hsl
 
-        elif status.method == "RGBLoad.GetRGB" and rgb_load.is_rgb:
-            response = self.parse_response(status, self.ColorChannelResponse)
-            if rgb := self._build_color(status.vid, response, 3):
+        elif method == "RGBLoad.GetRGB" and rgb_load.is_rgb:
+            response = self.parse_response(
+                result, method, *args, as_type=self.ColorChannelResponse
+            )
+            if rgb := self._build_color(vid, response, 3):
                 state["rgb"] = rgb
 
-        elif status.method == "RGBLoad.GetRGBW" and rgb_load.is_rgb:
-            response = self.parse_response(status, self.ColorChannelResponse)
-            if rgbw := self._build_color(status.vid, response, 4):
+        elif method == "RGBLoad.GetRGBW" and rgb_load.is_rgb:
+            response = self.parse_response(
+                result, method, *args, as_type=self.ColorChannelResponse
+            )
+            if rgbw := self._build_color(vid, response, 4):
                 state["rgbw"] = rgbw
 
-        elif status.method == "ColorTemperature.Get" and rgb_load.is_cct:
-            state["color_temp"] = self.parse_response(status, int)
+        elif method == "ColorTemperature.Get" and rgb_load.is_cct:
+            state["color_temp"] = self.parse_response(result, method, *args)
 
-        self.update_state(status.vid, state)
+        self.update_state(vid, state)
 
     @property
     def is_on(self) -> QuerySet[RGBLoadBase]:

@@ -20,7 +20,6 @@ from typing import (
 )
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
-from aiovantage.command_client.object_interfaces import InterfaceResponse
 from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects
@@ -124,7 +123,9 @@ class BaseController(QuerySet[T]):
         """
         return
 
-    def handle_interface_status(self, _status: InterfaceResponse) -> None:
+    def handle_interface_status(
+        self, _vid: int, result: str, method: str, *_args: str
+    ) -> None:
         """Handle object interface status messages from the event stream.
 
         Should be overridden by subclasses that manage stateful objects using object
@@ -336,14 +337,8 @@ class BaseController(QuerySet[T]):
             if event["status_type"] == "STATUS":
                 # Handle "object" status events of the form:
                 # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
-                self.handle_interface_status(
-                    InterfaceResponse(
-                        event["id"],
-                        event["args"][1],
-                        event["args"][0],
-                        event["args"][2:],
-                    )
-                )
+                method, result, *args = event["args"]
+                self.handle_interface_status(event["id"], result, method, *args)
             else:
                 # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
                 self.handle_status(event["id"], event["status_type"], *event["args"])
@@ -352,15 +347,15 @@ class BaseController(QuerySet[T]):
             # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.
             # These are "interface status" messages, with the form:
             #   EL: <id> <method> <result> <arg1> <arg2> ...
-            vid_str, method, *args = tokenize_response(event["log"])
-            status = InterfaceResponse(int(vid_str), args[0], method, args[1:])
+            vid_str, method, result, *args = tokenize_response(event["log"])
+            vid = int(vid_str)
 
             # Ignore events for objects that this controller doesn't manage
-            if status.vid not in self._items:
+            if vid not in self._items:
                 return
 
             # Pass the event to the controller
-            self.handle_interface_status(status)
+            self.handle_interface_status(vid, result, method, *args)
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized

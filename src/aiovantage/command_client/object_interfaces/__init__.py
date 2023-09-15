@@ -1,7 +1,6 @@
 """Command client object interfaces."""
 
 from .anemo_sensor import AnemoSensorInterface
-from .base import InterfaceResponse
 from .blind import BlindInterface
 from .button import ButtonInterface
 from .color_temperature import ColorTemperatureInterface
@@ -21,7 +20,6 @@ __all__ = [
     "BlindInterface",
     "ButtonInterface",
     "ColorTemperatureInterface",
-    "InterfaceResponse",
     "IntrospectionInterface",
     "LightSensorInterface",
     "LoadInterface",
