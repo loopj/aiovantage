@@ -1,14 +1,13 @@
 """Interface for querying and controlling color temperature."""
 
 from .base import Interface
-from .parsers import parse_int
 
 
 class ColorTemperatureInterface(Interface):
     """Interface for querying and controlling color temperature."""
 
     method_signatures = {
-        "ColorTemperature.Get": parse_int,
+        "ColorTemperature.Get": int,
     }
 
     async def set_color_temp(self, vid: int, temp: int, transition: int = 0) -> None:

@@ -3,15 +3,14 @@
 from decimal import Decimal
 
 from .base import Interface
-from .parsers import parse_fixed
 
 
 class AnemoSensorInterface(Interface):
     """Interface for querying and controlling anemo (wind) sensors."""
 
     method_signatures = {
-        "AnemoSensor.GetSpeed": parse_fixed,
-        "AnemoSensor.GetSpeedHW": parse_fixed,
+        "AnemoSensor.GetSpeed": Decimal,
+        "AnemoSensor.GetSpeedHW": Decimal,
     }
 
     async def get_speed(self, vid: int) -> Decimal:

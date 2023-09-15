@@ -5,8 +5,10 @@ from typing import Any, Dict
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import ThermostatInterface
-from aiovantage.command_client.object_interfaces.base import InterfaceResponse
+from aiovantage.command_client.object_interfaces import (
+    InterfaceResponse,
+    ThermostatInterface,
+)
 from aiovantage.errors import CommandError
 from aiovantage.models import Temperature, Thermostat
 from aiovantage.query import QuerySet
@@ -73,13 +75,9 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
         """Handle object interface status messages from the event stream."""
         state: Dict[str, Any] = {}
         if status.method == "Thermostat.GetHoldMode":
-            state["hold_mode"] = ThermostatInterface.parse_response(
-                status, ThermostatInterface.HoldMode
-            )
+            state["hold_mode"] = self.parse_response(status, self.HoldMode)
         elif status.method == "Thermostat.GetStatus":
-            state["status"] = ThermostatInterface.parse_response(
-                status, ThermostatInterface.Status
-            )
+            state["status"] = self.parse_response(status, self.Status)
 
         self.update_state(status.vid, state)
 

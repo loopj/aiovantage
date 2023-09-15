@@ -6,7 +6,7 @@ from typing import Union
 from typing_extensions import override
 
 from aiovantage.command_client.object_interfaces import InterfaceResponse
-from aiovantage.command_client.object_interfaces.parsers import fixed_to_decimal
+from aiovantage.command_client.utils import parse_fixed_param
 from aiovantage.config_client.models.omni_sensor import ConversionType, OmniSensor
 
 from .base import BaseController
@@ -71,7 +71,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
     def parse_result(cls, sensor: OmniSensor, result: str) -> Union[int, Decimal]:
         """Parse an OmniSensor response, eg. 'PowerSensor.GetPower'."""
         # NOTE: This currently doesn't handle conversion formulas, or return_type
-        level = fixed_to_decimal(result)
+        level = parse_fixed_param(result)
         if sensor.get.formula.level_type == ConversionType.INT:
             return int(level)
 

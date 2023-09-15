@@ -3,19 +3,7 @@
 from decimal import Decimal
 from typing import NamedTuple
 
-from .base import Interface, InterfaceResponse
-from .parsers import fixed_to_decimal, parse_bool, parse_fixed, parse_int
-
-
-def parse_blind_state(response: InterfaceResponse) -> "BlindInterface.BlindState":
-    """Parse a 'Blind.GetBlindState' response."""
-    return BlindInterface.BlindState(
-        is_moving=parse_bool(response),
-        start_pos=fixed_to_decimal(response.args[0]),
-        end_pos=fixed_to_decimal(response.args[1]),
-        transition_time=fixed_to_decimal(response.args[2]),
-        start_time=int(response.args[3]),
-    )
+from .base import Interface
 
 
 class BlindInterface(Interface):
@@ -40,12 +28,12 @@ class BlindInterface(Interface):
         """Time the blind started moving (in milliseconds since start of UTC day)"""
 
     method_signatures = {
-        "Blind.GetPosition": parse_fixed,
-        "Blind.GetPositionHW": parse_fixed,
-        "Blind.GetTiltAngle": parse_int,
-        "Blind.GetTiltAngleHW": parse_int,
-        "Blind.IsTiltAvailable": parse_bool,
-        "Blind.GetBlindState": parse_blind_state,
+        "Blind.GetPosition": Decimal,
+        "Blind.GetPositionHW": Decimal,
+        "Blind.GetTiltAngle": int,
+        "Blind.GetTiltAngleHW": int,
+        "Blind.IsTiltAvailable": bool,
+        "Blind.GetBlindState": BlindState,
     }
 
     async def open(self, vid: int) -> None:

@@ -1,14 +1,13 @@
 """Interface for querying and controlling system objects."""
 
 from .base import Interface
-from .parsers import parse_int
 
 
 class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""
 
     method_signatures = {
-        "Object.GetMTime": parse_int,
+        "Object.GetMTime": int,
     }
 
     async def get_mtime(self, vid: int) -> int:

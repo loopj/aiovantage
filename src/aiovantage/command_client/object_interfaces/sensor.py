@@ -3,15 +3,14 @@
 from decimal import Decimal
 
 from .base import Interface
-from .parsers import parse_fixed
 
 
 class SensorInterface(Interface):
     """Interface for querying and controlling sensors."""
 
     method_signatures = {
-        "Sensor.GetLevel": parse_fixed,
-        "Sensor.GetLevelHW": parse_fixed,
+        "Sensor.GetLevel": Decimal,
+        "Sensor.GetLevelHW": Decimal,
     }
 
     async def get_level(self, vid: int) -> Decimal:

@@ -3,7 +3,6 @@
 from enum import IntEnum
 
 from .base import Interface
-from .parsers import parse_str
 
 
 class IntrospectionInterface(Interface):
@@ -17,7 +16,7 @@ class IntrospectionInterface(Interface):
         Application = 2
 
     method_signatures = {
-        "Introspection.GetFirmwareVersion": parse_str,
+        "Introspection.GetFirmwareVersion": str,
     }
 
     async def get_firmware_version(self, vid: int, image: Firmware) -> str:

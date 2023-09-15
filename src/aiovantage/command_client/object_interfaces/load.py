@@ -5,7 +5,6 @@ from enum import IntEnum
 from typing import Optional, Union
 
 from .base import Interface
-from .parsers import parse_fixed
 
 
 class LoadInterface(Interface):
@@ -23,8 +22,8 @@ class LoadInterface(Interface):
         Adjust = 8
 
     method_signatures = {
-        "Load.GetLevel": parse_fixed,
-        "Load.GetLevelHW": parse_fixed,
+        "Load.GetLevel": Decimal,
+        "Load.GetLevelHW": Decimal,
     }
 
     async def set_level(self, vid: int, level: Union[float, Decimal]) -> None:

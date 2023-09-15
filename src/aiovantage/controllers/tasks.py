@@ -2,8 +2,7 @@
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import TaskInterface
-from aiovantage.command_client.object_interfaces.base import InterfaceResponse
+from aiovantage.command_client.object_interfaces import InterfaceResponse, TaskInterface
 from aiovantage.models import Task
 
 from .base import BaseController
@@ -52,7 +51,7 @@ class TasksController(BaseController[Task], TaskInterface):
             return
 
         state = {
-            "is_running": TaskInterface.parse_response(status, bool),
+            "is_running": self.parse_response(status, bool),
         }
 
         self.update_state(status.vid, state)

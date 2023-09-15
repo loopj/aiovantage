@@ -3,7 +3,6 @@
 from enum import IntEnum
 
 from .base import Interface
-from .parsers import parse_enum
 
 
 class ButtonInterface(Interface):
@@ -16,7 +15,7 @@ class ButtonInterface(Interface):
         Down = 1
 
     method_signatures = {
-        "Button.GetState": lambda r: parse_enum(ButtonInterface.State, r),
+        "Button.GetState": State,
     }
 
     async def get_state(self, vid: int) -> State:

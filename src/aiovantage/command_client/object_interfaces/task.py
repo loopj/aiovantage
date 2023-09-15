@@ -1,15 +1,14 @@
 """Interface for querying and controlling tasks."""
 
 from .base import Interface
-from .parsers import parse_bool, parse_int
 
 
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""
 
     method_signatures = {
-        "Task.IsRunning": parse_bool,
-        "Task.GetState": parse_int,
+        "Task.IsRunning": bool,
+        "Task.GetState": int,
     }
 
     async def start(self, vid: int) -> None:

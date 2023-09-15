@@ -7,10 +7,10 @@ from typing_extensions import override
 
 from aiovantage.command_client.object_interfaces import (
     ColorTemperatureInterface,
+    InterfaceResponse,
     LoadInterface,
     RGBLoadInterface,
 )
-from aiovantage.command_client.object_interfaces.base import InterfaceResponse
 from aiovantage.models import RGBLoadBase
 from aiovantage.query import QuerySet
 
@@ -68,25 +68,25 @@ class RGBLoadsController(
         state: Dict[str, Any] = {}
 
         if status.method == "Load.GetLevel":
-            state["level"] = LoadInterface.parse_response(status, Decimal)
+            state["level"] = self.parse_response(status, Decimal)
 
         elif status.method == "RGBLoad.GetHSL" and rgb_load.is_rgb:
-            value, channel = RGBLoadInterface.parse_response(status, tuple[int, ...])
-            if hsl := self._build_color(status.vid, channel, value, 3):
+            response = self.parse_response(status, self.ColorChannelResponse)
+            if hsl := self._build_color(status.vid, response, 3):
                 state["hsl"] = hsl
 
         elif status.method == "RGBLoad.GetRGB" and rgb_load.is_rgb:
-            value, channel = RGBLoadInterface.parse_response(status, tuple[int, ...])
-            if rgb := self._build_color(status.vid, channel, value, 3):
+            response = self.parse_response(status, self.ColorChannelResponse)
+            if rgb := self._build_color(status.vid, response, 3):
                 state["rgb"] = rgb
 
         elif status.method == "RGBLoad.GetRGBW" and rgb_load.is_rgb:
-            value, channel = RGBLoadInterface.parse_response(status, tuple[int, ...])
-            if rgbw := self._build_color(status.vid, channel, value, 4):
+            response = self.parse_response(status, self.ColorChannelResponse)
+            if rgbw := self._build_color(status.vid, response, 4):
                 state["rgbw"] = rgbw
 
         elif status.method == "ColorTemperature.Get" and rgb_load.is_cct:
-            state["color_temp"] = ColorTemperatureInterface.parse_response(status, int)
+            state["color_temp"] = self.parse_response(status, int)
 
         self.update_state(status.vid, state)
 
@@ -101,22 +101,25 @@ class RGBLoadsController(
         return self.filter(lambda load: not load.is_on)
 
     def _build_color(
-        self, vid: int, channel: int, value: int, num_channels: int
+        self,
+        vid: int,
+        response: RGBLoadInterface.ColorChannelResponse,
+        num_channels: int,
     ) -> Optional[Tuple[int, ...]]:
-        # Build a color from a series of channel value events. We need to store
+        # Build a color from a series of channel responses. We need to store
         # partially constructed colors in memory, since updates come separately for
         # each channel.
 
         # Ignore updates for channels we don't care about
-        if channel < 0 or channel >= num_channels:
+        if response.channel < 0 or response.channel >= num_channels:
             return None
 
         # Store the channel value in the temp color map
         self._temp_color_map.setdefault(vid, num_channels * [0])
-        self._temp_color_map[vid][channel] = value
+        self._temp_color_map[vid][response.channel] = response.value
 
         # If we have all the channels, build and return the color
-        if channel == num_channels - 1:
+        if response.channel == num_channels - 1:
             color = tuple(self._temp_color_map[vid])
             del self._temp_color_map[vid]
             return color

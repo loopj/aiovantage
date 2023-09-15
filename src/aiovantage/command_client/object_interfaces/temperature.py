@@ -3,15 +3,14 @@
 from decimal import Decimal
 
 from .base import Interface
-from .parsers import parse_fixed
 
 
 class TemperatureInterface(Interface):
     """Interface for querying and controlling sensors."""
 
     method_signatures = {
-        "Temperature.GetValue": parse_fixed,
-        "Temperature.GetValueHW": parse_fixed,
+        "Temperature.GetValue": Decimal,
+        "Temperature.GetValueHW": Decimal,
     }
 
     async def get_value(self, vid: int) -> Decimal:

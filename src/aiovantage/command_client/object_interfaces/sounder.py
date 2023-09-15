@@ -5,7 +5,6 @@ from enum import IntEnum
 from typing import Union
 
 from .base import Interface
-from .parsers import parse_enum, parse_fixed
 
 
 class SounderInterface(Interface):
@@ -18,10 +17,10 @@ class SounderInterface(Interface):
         Off = 1
 
     method_signatures = {
-        "Sounder.GetFrequency": parse_fixed,
-        "Sounder.GetFrequencyHW": parse_fixed,
-        "Sounder.GetStatus": lambda r: parse_enum(SounderInterface.Status, r),
-        "Sounder.GetStatusHW": lambda r: parse_enum(SounderInterface.Status, r),
+        "Sounder.GetFrequency": Decimal,
+        "Sounder.GetFrequencyHW": Decimal,
+        "Sounder.GetStatus": Status,
+        "Sounder.GetStatusHW": Status,
     }
 
     async def get_frequency(self, vid: int) -> Decimal:

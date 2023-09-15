@@ -2,22 +2,19 @@
 
 from decimal import Decimal
 from enum import IntEnum
-from typing import Tuple, Union, cast
+from typing import NamedTuple, Tuple, Union, cast
 
-from .base import Interface, InterfaceResponse
-from .parsers import parse_int
-
-
-def parse_color_channel_response(response: InterfaceResponse) -> Tuple[int, int]:
-    """Parse a 'RGBLoad.GetRGB', 'RGBLoad.GetRGBW' or 'RGBLoad.GetHSL' response."""
-    value = parse_int(response)
-    channel = int(response.args[0])
-
-    return value, channel
+from .base import Interface
 
 
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""
+
+    class ColorChannelResponse(NamedTuple):
+        """A RGB(W) color channel response."""
+
+        value: int
+        channel: int
 
     class RGBChannel(IntEnum):
         """The RGB color channels."""
@@ -35,10 +32,10 @@ class RGBLoadInterface(Interface):
         Lightness = 2
 
     method_signatures = {
-        "RGBLoad.GetRGB": parse_color_channel_response,
-        "RGBLoad.GetRGBW": parse_color_channel_response,
-        "RGBLoad.GetHSL": parse_color_channel_response,
-        "RGBLoad.GetColor": parse_int,
+        "RGBLoad.GetRGB": ColorChannelResponse,
+        "RGBLoad.GetRGBW": ColorChannelResponse,
+        "RGBLoad.GetHSL": ColorChannelResponse,
+        "RGBLoad.GetColor": int,
     }
 
     async def set_rgb(self, vid: int, red: int, green: int, blue: int) -> None:

@@ -5,7 +5,6 @@ from enum import IntEnum
 from typing import Union
 
 from .base import Interface
-from .parsers import parse_enum, parse_fixed
 
 
 class ThermostatInterface(Interface):
@@ -51,18 +50,16 @@ class ThermostatInterface(Interface):
         Offline = 3
 
     method_signatures = {
-        "Thermostat.GetIndoorTemperature": parse_fixed,
-        "Thermostat.GetOutdoorTemperature": parse_fixed,
-        "Thermostat.GetHeatSetPoint": parse_fixed,
-        "Thermostat.GetCoolSetPoint": parse_fixed,
-        "Thermostat.GetOperationMode": lambda r: parse_enum(
-            ThermostatInterface.OperationMode, r
-        ),
-        "Thermostat.GetFanMode": lambda r: parse_enum(ThermostatInterface.FanMode, r),
-        "Thermostat.GetDayMode": lambda r: parse_enum(ThermostatInterface.DayMode, r),
-        "Thermostat.GetHoldMode": lambda r: parse_enum(ThermostatInterface.HoldMode, r),
-        "Thermostat.GetStatus": lambda r: parse_enum(ThermostatInterface.Status, r),
-        "Thermostat.GetAutoSetPoint": parse_fixed,
+        "Thermostat.GetIndoorTemperature": Decimal,
+        "Thermostat.GetOutdoorTemperature": Decimal,
+        "Thermostat.GetHeatSetPoint": Decimal,
+        "Thermostat.GetCoolSetPoint": Decimal,
+        "Thermostat.GetOperationMode": OperationMode,
+        "Thermostat.GetFanMode": FanMode,
+        "Thermostat.GetDayMode": DayMode,
+        "Thermostat.GetHoldMode": HoldMode,
+        "Thermostat.GetStatus": Status,
+        "Thermostat.GetAutoSetPoint": Decimal,
     }
 
     async def get_indoor_temperature(self, vid: int) -> Decimal:
