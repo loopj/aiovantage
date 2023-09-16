@@ -1,6 +1,6 @@
 """Base class for command client interfaces."""
 
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast, overload
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, overload
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import (
@@ -48,17 +48,19 @@ class Interface:
         *params: ParameterType,
         as_type: Optional[Type[T]] = None,
     ) -> Union[T, Any, None]:
-        """Invoke a method on an object, and wait for a response.
+        """Invoke a method on an object, and return the parsed response.
 
         Args:
             vid: The VID of the object to invoke the command on.
             method: The method to invoke.
             params: The parameters to send with the method.
-            as_type: The type to parse the response as.
+            as_type: The type to cast the response to.
 
         Returns:
             A parsed response, or None if no response was expected.
         """
+        # INVOKE <id> Interface.Method
+        # -> R:INVOKE <id> <result> Interface.Method <arg1> <arg2> ...
         request = f"INVOKE {vid} {method}"
         if params:
             request += f" {encode_params(*params)}"
@@ -66,12 +68,12 @@ class Interface:
         # Send the request
         raw_response = await self.command_client.raw_request(request)
 
-        # Ignore the response if we didn't specify a type to parse it as
-        if not as_type:
-            return None
+        # Break the response into tokens
+        _, _, result, _, *args = tokenize_response(raw_response[0])
 
         # Parse the response
-        _, _, result, _, *args = tokenize_response(raw_response[0])
+        if as_type is None:
+            return self.parse_response(result, method, *args)
         return self.parse_response(result, method, *args, as_type=as_type)
 
     @overload
@@ -90,9 +92,19 @@ class Interface:
     def parse_response(
         cls, result: str, method: str, *args: str, as_type: Optional[Type[T]] = None
     ) -> Union[T, Any, None]:
-        """Parse a response from an object interface."""
+        """Parse an object interface "INVOKE" response or status message.
+
+        Args:
+            result: The result of the command.
+            method: The method that was invoked.
+            args: The arguments that were sent with the command.
+            as_type: The type to cast the response to.
+
+        Returns:
+            A parsed response, or None if no response was expected.
+        """
         # Get the signature of the method we are parsing the response for
-        signature = cls._get_signature(method)
+        signature = as_type or cls._get_signature(method)
 
         # Return early if this method has no return value
         if signature is None:
@@ -102,9 +114,8 @@ class Interface:
         parsed_response: Any
         if issubclass(signature, tuple) and hasattr(signature, "__annotations__"):
             # If the signature is a NamedTuple, parse each component
-            types = signature.__annotations__
             parsed_values: List[Any] = []
-            for arg, klass in zip([result, *args], types.values()):
+            for arg, klass in zip([result, *args], signature.__annotations__.values()):
                 parsed_values.append(parse_param(arg, klass))
 
             parsed_response = signature(*parsed_values)
@@ -112,18 +123,12 @@ class Interface:
             # Otherwise, we are dealing with a single return value, send it to parse_arg
             parsed_response = parse_param(result, signature)
 
-        # Cast the result to as_type, if specified
-        if as_type:
-            return cast(T, parsed_response)
-
         # Return the parsed result
         return parsed_response
 
     @classmethod
     def _get_signature(cls, method: str) -> Optional[Type[Any]]:
-        """Get the signature of a method."""
-        # Instances can inherit from multiple interfaces, so let's find the response
-        # parser for the method we just invoked.
+        # Get the signature of a method.
         for klass in cls.__mro__:
             if issubclass(klass, Interface) and method in klass.method_signatures:
                 return klass.method_signatures[method]

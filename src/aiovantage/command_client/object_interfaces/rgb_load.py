@@ -10,12 +10,6 @@ from .base import Interface
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""
 
-    class ColorChannelResponse(NamedTuple):
-        """A RGB(W) color channel response."""
-
-        value: int
-        channel: int
-
     class RGBChannel(IntEnum):
         """The RGB color channels."""
 
@@ -30,6 +24,12 @@ class RGBLoadInterface(Interface):
         Hue = 0
         Saturation = 1
         Lightness = 2
+
+    class ColorChannelResponse(NamedTuple):
+        """A RGB(W) color channel response."""
+
+        value: int
+        channel: int
 
     method_signatures = {
         "RGBLoad.GetRGB": ColorChannelResponse,
@@ -68,10 +68,10 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetRGB <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
-        value, _ = await RGBLoadInterface.invoke(
-            self, vid, "RGBLoad.GetRGB", channel, as_type=tuple[int, ...]
+        response = await RGBLoadInterface.invoke(
+            self, vid, "RGBLoad.GetRGB", channel, as_type=self.ColorChannelResponse
         )
-        return value
+        return response.value
 
     async def set_hsl(
         self,
@@ -110,10 +110,10 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetHSL <attribute>
         # -> R:INVOKE <id> <value> RGBLoad.GetHSL <attribute>
-        value, _ = await RGBLoadInterface.invoke(
-            self, vid, "RGBLoad.GetHSL", attribute, as_type=tuple[int, ...]
+        response = await RGBLoadInterface.invoke(
+            self, vid, "RGBLoad.GetHSL", attribute, as_type=self.ColorChannelResponse
         )
-        return value
+        return response.value
 
     async def dissolve_rgb(
         self, vid: int, red: float, green: float, blue: float, rate: float
@@ -242,10 +242,10 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetRGBW <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <channel>
-        value, _ = await self.invoke(
-            vid, "RGBLoad.GetRGBW", channel, as_type=tuple[int, ...]
+        response = await self.invoke(
+            vid, "RGBLoad.GetRGBW", channel, as_type=self.ColorChannelResponse
         )
-        return value
+        return response.value
 
     async def get_rgb_color(self, vid: int) -> Tuple[int, int, int]:
         """Get the RGB color of a load from the controller.
