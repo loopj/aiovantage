@@ -59,8 +59,8 @@ class Interface:
         Returns:
             A parsed response, or None if no response was expected.
         """
-        # INVOKE <id> Interface.Method
-        # -> R:INVOKE <id> <result> Interface.Method <arg1> <arg2> ...
+        # INVOKE <id> <Interface.Method>
+        # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
         request = f"INVOKE {vid} {method}"
         if params:
             request += f" {encode_params(*params)}"
@@ -103,6 +103,10 @@ class Interface:
         Returns:
             A parsed response, or None if no response was expected.
         """
+        # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
+        # -> EL: <id> <Interface.Method> <result> <arg1> <arg2> ...
+        # -> S:STATUS <id> <Interface.Method> <result> <arg1> <arg2> ...
+
         # Get the signature of the method we are parsing the response for
         signature = as_type or cls._get_signature(method)
 
@@ -120,7 +124,7 @@ class Interface:
 
             parsed_response = signature(*parsed_values)
         else:
-            # Otherwise, we are dealing with a single return value, send it to parse_arg
+            # Otherwise, parse a single return value
             parsed_response = parse_param(result, signature)
 
         # Return the parsed result

@@ -36,34 +36,6 @@ def tokenize_response(string: str) -> Sequence[str]:
     return tokens
 
 
-def parse_params(
-    params: Sequence[str], signature: Sequence[Type[Any]]
-) -> Sequence[Any]:
-    """Parse response parameters from the Host Command service.
-
-    Handles parsing tokens into the expected types, as defined by the signature.
-
-    Args:
-        params: The parameters to parse.
-        signature: The expected parameter types.
-
-    Returns:
-        A list of parameters of the correct type.
-
-    Raises:
-        ValueError: If the parameter count does not match the signature, or if a
-            parameter is of an unsupported type.
-    """
-    parsed_params = []
-    for index, param in enumerate(params):
-        if index >= len(signature):
-            raise ValueError("More parameters than expected")
-
-        parsed_params.append(parse_param(param, signature[index]))
-
-    return parsed_params
-
-
 def parse_param(arg: str, klass: Type[T]) -> T:
     """Parse a single response parameter from the Host Command service.
 
