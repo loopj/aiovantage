@@ -124,7 +124,7 @@ class BaseController(QuerySet[T]):
         return
 
     def handle_interface_status(
-        self, _vid: int, result: str, method: str, *_args: str
+        self, _vid: int, _method: str, _result: str, *_args: str
     ) -> None:
         """Handle object interface status messages from the event stream.
 
@@ -338,7 +338,7 @@ class BaseController(QuerySet[T]):
                 # Handle "object" status events of the form:
                 # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
                 method, result, *args = event["args"]
-                self.handle_interface_status(event["id"], result, method, *args)
+                self.handle_interface_status(event["id"], method, result, *args)
             else:
                 # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
                 self.handle_status(event["id"], event["status_type"], *event["args"])
@@ -355,7 +355,7 @@ class BaseController(QuerySet[T]):
                 return
 
             # Pass the event to the controller
-            self.handle_interface_status(vid, result, method, *args)
+            self.handle_interface_status(vid, method, result, *args)
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized

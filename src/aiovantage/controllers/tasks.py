@@ -46,14 +46,14 @@ class TasksController(BaseController[Task], TaskInterface):
 
     @override
     def handle_interface_status(
-        self, vid: int, result: str, method: str, *args: str
+        self, vid: int, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""
         if method != "Task.IsRunning":
             return
 
         state = {
-            "is_running": self.parse_response(result, method, *args),
+            "is_running": self.parse_response(method, result, *args),
         }
 
         self.update_state(vid, state)

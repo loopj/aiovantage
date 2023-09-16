@@ -61,38 +61,38 @@ class RGBLoadsController(
 
     @override
     def handle_interface_status(
-        self, vid: int, result: str, method: str, *args: str
+        self, vid: int, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""
         rgb_load: RGBLoadBase = self[vid]
         state: Dict[str, Any] = {}
 
         if method == "Load.GetLevel":
-            state["level"] = self.parse_response(result, method, *args)
+            state["level"] = self.parse_response(method, result, *args)
 
         elif method == "RGBLoad.GetHSL" and rgb_load.is_rgb:
             response = self.parse_response(
-                result, method, *args, as_type=self.ColorChannelResponse
+                method, result, *args, as_type=self.ColorChannelResponse
             )
             if hsl := self._build_color(vid, response, 3):
                 state["hsl"] = hsl
 
         elif method == "RGBLoad.GetRGB" and rgb_load.is_rgb:
             response = self.parse_response(
-                result, method, *args, as_type=self.ColorChannelResponse
+                method, result, *args, as_type=self.ColorChannelResponse
             )
             if rgb := self._build_color(vid, response, 3):
                 state["rgb"] = rgb
 
         elif method == "RGBLoad.GetRGBW" and rgb_load.is_rgb:
             response = self.parse_response(
-                result, method, *args, as_type=self.ColorChannelResponse
+                method, result, *args, as_type=self.ColorChannelResponse
             )
             if rgbw := self._build_color(vid, response, 4):
                 state["rgbw"] = rgbw
 
         elif method == "ColorTemperature.Get" and rgb_load.is_cct:
-            state["color_temp"] = self.parse_response(result, method, *args)
+            state["color_temp"] = self.parse_response(method, result, *args)
 
         self.update_state(vid, state)
 

@@ -73,30 +73,30 @@ class Interface:
 
         # Parse the response
         if as_type is None:
-            return self.parse_response(result, method, *args)
-        return self.parse_response(result, method, *args, as_type=as_type)
+            return self.parse_response(method, result, *args)
+        return self.parse_response(method, result, *args, as_type=as_type)
 
     @overload
     @classmethod
     def parse_response(
-        cls, result: str, method: str, *args: str, as_type: Type[T]
+        cls, method: str, result: str, *args: str, as_type: Type[T]
     ) -> T:
         ...
 
     @overload
     @classmethod
-    def parse_response(cls, result: str, method: str, *args: str) -> Any:
+    def parse_response(cls, method: str, result: str, *args: str) -> Any:
         ...
 
     @classmethod
     def parse_response(
-        cls, result: str, method: str, *args: str, as_type: Optional[Type[T]] = None
+        cls, method: str, result: str, *args: str, as_type: Optional[Type[T]] = None
     ) -> Union[T, Any, None]:
         """Parse an object interface "INVOKE" response or status message.
 
         Args:
-            result: The result of the command.
             method: The method that was invoked.
+            result: The result of the command.
             args: The arguments that were sent with the command.
             as_type: The type to cast the response to.
 

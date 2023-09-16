@@ -36,7 +36,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
 
     @override
     def handle_interface_status(
-        self, vid: int, result: str, method: str, *_args: str
+        self, vid: int, method: str, result: str, *_args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""
         omni_sensor = self[vid]
