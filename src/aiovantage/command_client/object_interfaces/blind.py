@@ -177,7 +177,7 @@ class BlindInterface(Interface):
         # -> R:INVOKE <id> <available (0/1)> Blind.IsTiltAvailable
         return await self.invoke(vid, "Blind.IsTiltAvailable", as_type=bool)
 
-    async def get_state(self, vid: int) -> BlindState:
+    async def get_blind_state(self, vid: int) -> BlindState:
         """Get the state of a blind.
 
         Args:

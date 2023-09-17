@@ -97,6 +97,21 @@ class SounderInterface(Interface):
         # -> R:INVOKE <id> <rcode> Sounder.SetStatus
         await self.invoke(vid, "Sounder.SetStatus", status)
 
+    async def play_fx(
+        self, vid: int, effect: int, duration: float = 0, volume: float = 0
+    ) -> None:
+        """Play a sound effect on the keypad speaker.
+
+        Args:
+            vid: The Vantage ID of the keypad.
+            effect: The effect to play.
+            duration: The duration to play the FX for, in seconds, 0 for default.
+            volume: The volume to play the FX at, as a percentage, 0 for default.
+        """
+        # INVOKE <id> Sounder.PlayFX <fx> <duration> <volume>
+        # -> R:INVOKE <id> <rcode> Sounder.PlayFX
+        await self.invoke(vid, "Sounder.PlayFX", effect, duration, volume)
+
     async def turn_on(self, vid: int) -> None:
         """Turn on the keypad speaker.
 
@@ -112,18 +127,3 @@ class SounderInterface(Interface):
             vid: The Vantage ID of the keypad.
         """
         await self.set_status(vid, self.Status.Off)
-
-    async def play_fx(
-        self, vid: int, effect: int, duration: float = 0, volume: float = 0
-    ) -> None:
-        """Play a sound effect on the keypad speaker.
-
-        Args:
-            vid: The Vantage ID of the keypad.
-            effect: The effect to play.
-            duration: The duration to play the FX for, in seconds, 0 for default.
-            volume: The volume to play the FX at, as a percentage, 0 for default.
-        """
-        # INVOKE <id> Sounder.PlayFX <fx> <duration> <volume>
-        # -> R:INVOKE <id> <rcode> Sounder.PlayFX
-        await self.invoke(vid, "Sounder.PlayFX", effect, duration, volume)

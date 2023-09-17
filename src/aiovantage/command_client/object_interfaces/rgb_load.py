@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 from enum import IntEnum
-from typing import NamedTuple, Tuple, Union, cast
+from typing import NamedTuple, Tuple, Union
 
 from .base import Interface
 
@@ -247,7 +247,7 @@ class RGBLoadInterface(Interface):
         )
         return response.value
 
-    async def get_rgb_color(self, vid: int) -> Tuple[int, int, int]:
+    async def get_rgb_color(self, vid: int) -> Tuple[int, ...]:
         """Get the RGB color of a load from the controller.
 
         Args:
@@ -256,12 +256,9 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGB color as a tuple of (red, green, blue).
         """
-        return cast(
-            Tuple[int, int, int],
-            tuple([await self.get_rgb(vid, attr) for attr in range(3)]),
-        )
+        return tuple([await self.get_rgb(vid, attr) for attr in range(3)])
 
-    async def get_rgbw_color(self, vid: int) -> Tuple[int, int, int, int]:
+    async def get_rgbw_color(self, vid: int) -> Tuple[int, ...]:
         """Get the RGBW color of a load from the controller.
 
         Args:
@@ -270,12 +267,9 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGBW color as a tuple of (red, green, blue, white).
         """
-        return cast(
-            Tuple[int, int, int, int],
-            tuple([await self.get_rgbw(vid, chan) for chan in range(4)]),
-        )
+        return tuple([await self.get_rgbw(vid, chan) for chan in range(4)])
 
-    async def get_hsl_color(self, vid: int) -> Tuple[int, int, int]:
+    async def get_hsl_color(self, vid: int) -> Tuple[int, ...]:
         """Get the HSL color of a load from the controller.
 
         Args:
@@ -284,7 +278,4 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the HSL color as a tuple of (hue, saturation, lightness).
         """
-        return cast(
-            Tuple[int, int, int],
-            tuple([await self.get_hsl(vid, attr) for attr in range(3)]),
-        )
+        return tuple([await self.get_hsl(vid, attr) for attr in range(3)])

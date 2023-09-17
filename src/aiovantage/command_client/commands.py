@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from ssl import SSLContext
 from types import TracebackType
-from typing import List, Optional, Type, Union
+from typing import Optional, Sequence, Type, Union
 
 from typing_extensions import Self
 
@@ -33,14 +33,8 @@ class CommandResponse:
     """Wrapper for command responses."""
 
     command: str
-    args: List[str]
-    data: List[str]
-
-    def __init__(self, data: List[str]) -> None:
-        """Initialize a CommandResponse."""
-        self.data, return_line = data[:-1], data[-1]
-        command, *self.args = tokenize_response(return_line)
-        self.command = command[2:]
+    args: Sequence[str]
+    data: Sequence[str]
 
 
 class CommandClient:
@@ -108,13 +102,18 @@ class CommandClient:
         else:
             request = command
 
-        # Send the request and parse the response
+        # Send the request
         raw_response = await self.raw_request(request, connection=connection)
-        return CommandResponse(raw_response)
+
+        # Parse the response
+        *data_lines, return_line = raw_response
+        command, *args = tokenize_response(return_line)
+
+        return CommandResponse(command[2:], args, data_lines)
 
     async def raw_request(
         self, request: str, connection: Optional[CommandConnection] = None
-    ) -> List[str]:
+    ) -> Sequence[str]:
         """Send a raw command to the Host Command service and return all response lines.
 
         Handles authentication if required, and raises an exception if the response line
