@@ -97,19 +97,15 @@ class CommandClient:
         Returns:
             A CommandResponse instance.
         """
+        # Build the request
+        request = command
         if params:
-            request = f"{command} {encode_params(*params, force_quotes=force_quotes)}"
-        else:
-            request = command
+            request += f" {encode_params(*params, force_quotes=force_quotes)}"
 
-        # Send the request
-        raw_response = await self.raw_request(request, connection=connection)
-
-        # Parse the response
-        *data_lines, return_line = raw_response
+        # Send the request and parse the response
+        *data, return_line = await self.raw_request(request, connection=connection)
         command, *args = tokenize_response(return_line)
-
-        return CommandResponse(command[2:], args, data_lines)
+        return CommandResponse(command[2:], args, data)
 
     async def raw_request(
         self, request: str, connection: Optional[CommandConnection] = None
