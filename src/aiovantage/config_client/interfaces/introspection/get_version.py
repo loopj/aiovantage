@@ -1,26 +1,26 @@
 """IIntrospection.GetVersion method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar, Optional
 
 
 @dataclass
 class GetVersion:
     """IIntrospection.GetVersion method definition."""
 
-    interface: ClassVar[str] = "IIntrospection"
+    interface = "IIntrospection"
+
+    @dataclass
+    class Return:
+        """Method return value."""
+
+        kernel: str | None = field(default=None)
+        rootfs: str | None = field(default=None)
+        app: str | None = field(default=None)
+
     call = None
-    return_value: Optional["GetVersion.Return"] = field(
+    return_value: Return | None = field(
         default=None,
         metadata={
             "name": "return",
         },
     )
-
-    @dataclass
-    class Return:
-        """IIntrospection.GetVersion method return value."""
-
-        kernel: Optional[str] = field(default=None)
-        rootfs: Optional[str] = field(default=None)
-        app: Optional[str] = field(default=None)

@@ -1,7 +1,8 @@
 """Helper functions for fetching system objects."""
 
+from collections.abc import AsyncIterator, Sequence
 from contextlib import suppress
-from typing import Any, AsyncIterator, Optional, Sequence
+from typing import Any
 
 from aiovantage.errors import ClientError, ClientResponseError
 
@@ -18,8 +19,8 @@ from .interfaces.introspection import GetVersion
 async def get_objects(
     client: ConfigClient,
     *,
-    types: Optional[Sequence[str]] = None,
-    xpath: Optional[str] = None,
+    types: Sequence[str] | None = None,
+    xpath: str | None = None,
 ) -> AsyncIterator[Any]:
     """Get all vantage system objects of the specified types.
 
@@ -106,7 +107,7 @@ async def get_object_by_id(client: ConfigClient, vid: int) -> Any:
         return None
 
 
-async def get_version(client: ConfigClient) -> Optional[str]:
+async def get_version(client: ConfigClient) -> str | None:
     """Get the firmware version of the Vantage controller.
 
     Args:

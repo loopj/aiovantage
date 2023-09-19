@@ -1,7 +1,6 @@
 """Thermostat object."""
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Optional
 
 from .station_object import StationObject
 
@@ -44,28 +43,28 @@ class Thermostat(StationObject):
         HEATING = 2
         OFFLINE = 3
 
-    operation_mode: Optional[OperationMode] = field(
+    operation_mode: OperationMode | None = field(
         default=None,
         metadata={
             "type": "Ignore",
         },
     )
 
-    fan_mode: Optional[FanMode] = field(
+    fan_mode: FanMode | None = field(
         default=None,
         metadata={
             "type": "Ignore",
         },
     )
 
-    day_mode: Optional[DayMode] = field(
+    day_mode: DayMode | None = field(
         default=None,
         metadata={
             "type": "Ignore",
         },
     )
 
-    hold_mode: Optional[HoldMode] = field(
+    hold_mode: HoldMode | None = field(
         default=None,
         metadata={
             "type": "Ignore",
@@ -73,7 +72,7 @@ class Thermostat(StationObject):
     )
 
     # Not available in 2.x firmware
-    status: Optional[Status] = field(
+    status: Status | None = field(
         default=None,
         metadata={
             "type": "Ignore",

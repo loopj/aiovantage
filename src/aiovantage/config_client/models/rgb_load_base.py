@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Tuple
 
 from .location_object import LocationObject
 from .types import Parent
@@ -44,35 +43,35 @@ class RGBLoadBase(LocationObject):
         }
     )
 
-    hsl: Optional[Tuple[int, int, int]] = field(
+    hsl: tuple[int, int, int] | None = field(
         default=None,
         metadata={
             "type": "Ignore",
         },
     )
 
-    rgb: Optional[Tuple[int, int, int]] = field(
+    rgb: tuple[int, int, int] | None = field(
         default=None,
         metadata={
             "type": "Ignore",
         },
     )
 
-    rgbw: Optional[Tuple[int, int, int, int]] = field(
+    rgbw: tuple[int, int, int, int] | None = field(
         default=None,
         metadata={
             "type": "Ignore",
         },
     )
 
-    level: Optional[int] = field(
+    level: int | None = field(
         default=None,
         metadata={
             "type": "Ignore",
         },
     )
 
-    color_temp: Optional[int] = field(
+    color_temp: int | None = field(
         default=None,
         metadata={
             "type": "Ignore",

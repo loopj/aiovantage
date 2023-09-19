@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage RGB loads."""
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from typing_extensions import override
 
@@ -37,12 +37,12 @@ class RGBLoadsController(
 
     def __post_init__(self) -> None:
         """Initialize the map for building colors."""
-        self._temp_color_map: Dict[int, List[int]] = {}
+        self._temp_color_map: dict[int, list[int]] = {}
 
     @override
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of an RGB load."""
-        state: Dict[str, Any] = {
+        state: dict[str, Any] = {
             "level": await LoadInterface.get_level(self, vid),
         }
 
@@ -65,7 +65,7 @@ class RGBLoadsController(
     ) -> None:
         """Handle object interface status messages from the event stream."""
         rgb_load: RGBLoadBase = self[vid]
-        state: Dict[str, Any] = {}
+        state: dict[str, Any] = {}
 
         if method == "Load.GetLevel":
             state["level"] = self.parse_response(method, result, *args)
@@ -111,7 +111,7 @@ class RGBLoadsController(
         vid: int,
         response: RGBLoadInterface.ColorChannelResponse,
         num_channels: int,
-    ) -> Optional[Tuple[int, ...]]:
+    ) -> tuple[int, ...] | None:
         # Build a color from a series of channel responses. We need to store
         # partially constructed colors in memory, since updates come separately for
         # each channel.

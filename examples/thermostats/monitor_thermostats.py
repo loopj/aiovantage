@@ -4,7 +4,7 @@ import argparse
 import asyncio
 import contextlib
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from aiovantage import Vantage, VantageEvent
 from aiovantage.models import Thermostat
@@ -18,7 +18,7 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent, obj: Thermostat, data: Dict[str, Any]) -> None:
+def callback(event: VantageEvent, obj: Thermostat, data: dict[str, Any]) -> None:
     """Print out any state changes."""
     if event == VantageEvent.OBJECT_ADDED:
         print(f"[Thermostat added] '{obj.name}' ({obj.id})")

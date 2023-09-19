@@ -1,7 +1,6 @@
 """Button object."""
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from .system_object import SystemObject
 from .types import Parent
@@ -47,7 +46,7 @@ class Button(SystemObject):
         }
     )
 
-    pressed: Optional[bool] = field(
+    pressed: bool | None = field(
         default=None,
         metadata={
             "type": "Ignore",

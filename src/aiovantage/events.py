@@ -1,7 +1,8 @@
 """Vantage events."""
 
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, TypeAlias, TypeVar
+from typing import Any, TypeAlias, TypeVar
 
 from .models import SystemObject
 
@@ -16,5 +17,5 @@ class VantageEvent(Enum):
 
 T = TypeVar("T", bound=SystemObject)
 
-EventCallback: TypeAlias = Callable[[VantageEvent, T, Dict[str, Any]], None]
+EventCallback: TypeAlias = Callable[[VantageEvent, T, dict[str, Any]], None]
 """Type alias for a Vantage event callback function."""

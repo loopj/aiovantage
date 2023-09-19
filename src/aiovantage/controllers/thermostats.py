@@ -1,7 +1,7 @@
 """Controller holding and managing thermostats."""
 
 from contextlib import suppress
-from typing import Any, Dict
+from typing import Any
 
 from typing_extensions import override
 
@@ -49,7 +49,7 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
-        state: Dict[str, Any] = {}
+        state: dict[str, Any] = {}
 
         if status == "THERMOP":
             # STATUS THERMOP
@@ -73,7 +73,7 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
         self, vid: int, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""
-        state: Dict[str, Any] = {}
+        state: dict[str, Any] = {}
         if method == "Thermostat.GetHoldMode":
             state["hold_mode"] = self.parse_response(method, result, *args)
         elif method == "Thermostat.GetStatus":

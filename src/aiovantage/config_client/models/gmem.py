@@ -1,7 +1,6 @@
 """GMem (variable) object."""
 
 from dataclasses import dataclass, field
-from typing import Union
 
 from .system_object import SystemObject
 
@@ -56,7 +55,7 @@ class GMem(SystemObject):
         }
     )
 
-    value: Union[int, str, bool, None] = field(
+    value: int | str | bool | None = field(
         default=None,
         metadata={
             "type": "Ignore",

@@ -1,27 +1,17 @@
 """ILogin.Login method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar, Optional
 
 
 @dataclass
 class Login:
     """ILogin.Login method definition."""
 
-    interface: ClassVar[str] = "ILogin"
-
-    call: Optional["Login.Params"] = field(default=None)
-
-    return_value: Optional[bool] = field(
-        default=None,
-        metadata={
-            "name": "return",
-        },
-    )
+    interface = "ILogin"
 
     @dataclass
     class Params:
-        """ILogin.Login method parameters."""
+        """Method parameters."""
 
         user: str = field(
             metadata={
@@ -34,3 +24,11 @@ class Login:
                 "name": "Password",
             }
         )
+
+    call: Params | None = field(default=None)
+    return_value: bool | None = field(
+        default=None,
+        metadata={
+            "name": "return",
+        },
+    )

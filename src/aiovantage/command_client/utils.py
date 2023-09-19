@@ -4,15 +4,15 @@ import re
 import struct
 from decimal import Decimal
 from enum import IntEnum
-from typing import Any, Sequence, Type, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\[.*?\])|(\S+)')
 
 T = TypeVar("T")
-ParameterType = Union[str, bool, int, float, Decimal, bytearray]
+ParameterType = str | bool | int | float | Decimal | bytearray
 
 
-def tokenize_response(string: str) -> Sequence[str]:
+def tokenize_response(string: str) -> list[str]:
     """Tokenize a response from the Host Command service.
 
     Handles quoted strings and byte arrays as single tokens.
@@ -36,7 +36,7 @@ def tokenize_response(string: str) -> Sequence[str]:
     return tokens
 
 
-def parse_param(arg: str, klass: Type[T]) -> T:
+def parse_param(arg: str, klass: type[T]) -> T:
     """Parse a single response parameter from the Host Command service.
 
     Args:
@@ -95,7 +95,7 @@ def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
             encoded_param = "1" if value else "0"
         elif isinstance(value, int):
             encoded_param = str(value)
-        elif isinstance(value, (float, Decimal)):
+        elif isinstance(value, float | Decimal):
             encoded_param = f"{value:.3f}"
         elif isinstance(value, bytearray):
             encoded_param = encode_byte_param(value)

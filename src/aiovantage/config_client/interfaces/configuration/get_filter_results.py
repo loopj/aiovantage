@@ -1,7 +1,6 @@
 """IConfiguration.GetFilterResults method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar, List, Optional
 
 from aiovantage.config_client.interfaces.types import ObjectChoice
 
@@ -10,19 +9,11 @@ from aiovantage.config_client.interfaces.types import ObjectChoice
 class GetFilterResults:
     """IConfiguration.GetFilterResults method definition."""
 
-    interface: ClassVar[str] = "IConfiguration"
-    call: Optional["GetFilterResults.Params"] = field(default=None)
-    return_value: Optional[List[ObjectChoice]] = field(
-        default=None,
-        metadata={
-            "name": "Object",
-            "wrapper": "return",
-        },
-    )
+    interface = "IConfiguration"
 
     @dataclass
     class Params:
-        """IConfiguration.GetFilterResults method parameters."""
+        """Method parameters."""
 
         h_filter: int = field(
             metadata={
@@ -43,3 +34,12 @@ class GetFilterResults:
                 "name": "WholeObject",
             },
         )
+
+    call: Params | None = field(default=None)
+    return_value: list[ObjectChoice] | None = field(
+        default=None,
+        metadata={
+            "name": "Object",
+            "wrapper": "return",
+        },
+    )

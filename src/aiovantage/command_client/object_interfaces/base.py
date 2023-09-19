@@ -1,6 +1,6 @@
 """Base class for command client interfaces."""
 
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, overload
+from typing import Any, TypeVar, overload
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import (
@@ -16,7 +16,7 @@ T = TypeVar("T")
 class Interface:
     """Base class for command client object interfaces."""
 
-    method_signatures: Dict[str, Type[Any]] = {}
+    method_signatures: dict[str, type[Any]] = {}
 
     def __init__(self, client: CommandClient) -> None:
         """Initialize an object interface for standalone use.
@@ -37,7 +37,7 @@ class Interface:
 
     @overload
     async def invoke(
-        self, vid: int, method: str, *params: ParameterType, as_type: Type[T]
+        self, vid: int, method: str, *params: ParameterType, as_type: type[T]
     ) -> T:
         ...
 
@@ -46,8 +46,8 @@ class Interface:
         vid: int,
         method: str,
         *params: ParameterType,
-        as_type: Optional[Type[T]] = None,
-    ) -> Union[T, Any, None]:
+        as_type: type[T] | None = None,
+    ) -> T | Any | None:
         """Invoke a method on an object, and return the parsed response.
 
         Args:
@@ -79,7 +79,7 @@ class Interface:
     @overload
     @classmethod
     def parse_response(
-        cls, method: str, result: str, *args: str, as_type: Type[T]
+        cls, method: str, result: str, *args: str, as_type: type[T]
     ) -> T:
         ...
 
@@ -90,8 +90,8 @@ class Interface:
 
     @classmethod
     def parse_response(
-        cls, method: str, result: str, *args: str, as_type: Optional[Type[T]] = None
-    ) -> Union[T, Any, None]:
+        cls, method: str, result: str, *args: str, as_type: type[T] | None = None
+    ) -> T | Any | None:
         """Parse an object interface "INVOKE" response or status message.
 
         Args:
@@ -118,8 +118,10 @@ class Interface:
         parsed_response: Any
         if issubclass(signature, tuple) and hasattr(signature, "__annotations__"):
             # If the signature is a NamedTuple, parse each component
-            parsed_values: List[Any] = []
-            for arg, klass in zip([result, *args], signature.__annotations__.values()):
+            parsed_values: list[Any] = []
+            for arg, klass in zip(
+                [result, *args], signature.__annotations__.values(), strict=True
+            ):
                 parsed_values.append(parse_param(arg, klass))
 
             parsed_response = signature(*parsed_values)
@@ -131,7 +133,7 @@ class Interface:
         return parsed_response
 
     @classmethod
-    def _get_signature(cls, method: str) -> Optional[Type[Any]]:
+    def _get_signature(cls, method: str) -> type[Any] | None:
         # Get the signature of a method.
         for klass in cls.__mro__:
             if issubclass(klass, Interface) and method in klass.method_signatures:

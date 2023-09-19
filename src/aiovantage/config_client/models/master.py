@@ -1,7 +1,6 @@
 """Master (controller) object."""
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from .system_object import SystemObject
 
@@ -29,7 +28,7 @@ class Master(SystemObject):
     )
 
     # Not available in 2.x firmware
-    module_count: Optional[int] = field(
+    module_count: int | None = field(
         default=None,
         metadata={
             "name": "ModuleCount",
@@ -37,14 +36,14 @@ class Master(SystemObject):
     )
 
     # Not available in 2.x firmware
-    serial_number: Optional[int] = field(
+    serial_number: int | None = field(
         default=None,
         metadata={
             "name": "SerialNumber",
         },
     )
 
-    firmware_version: Optional[str] = field(
+    firmware_version: str | None = field(
         default=None,
         metadata={
             "type": "Ignore",

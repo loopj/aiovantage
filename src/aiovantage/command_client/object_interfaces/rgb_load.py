@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 from enum import IntEnum
-from typing import NamedTuple, Tuple, Union
+from typing import NamedTuple
 
 from .base import Interface
 
@@ -77,8 +77,8 @@ class RGBLoadInterface(Interface):
         self,
         vid: int,
         hue: int,
-        saturation: Union[float, Decimal],
-        lightness: Union[float, Decimal],
+        saturation: float | Decimal,
+        lightness: float | Decimal,
     ) -> None:
         """Set the color of an HSL load.
 
@@ -248,7 +248,7 @@ class RGBLoadInterface(Interface):
         return response.value
 
     # Additional convenience methods, not part of the Vantage API
-    async def get_rgb_color(self, vid: int) -> Tuple[int, ...]:
+    async def get_rgb_color(self, vid: int) -> tuple[int, ...]:
         """Get the RGB color of a load from the controller.
 
         Args:
@@ -259,7 +259,7 @@ class RGBLoadInterface(Interface):
         """
         return tuple([await self.get_rgb(vid, attr) for attr in range(3)])
 
-    async def get_rgbw_color(self, vid: int) -> Tuple[int, ...]:
+    async def get_rgbw_color(self, vid: int) -> tuple[int, ...]:
         """Get the RGBW color of a load from the controller.
 
         Args:
@@ -270,7 +270,7 @@ class RGBLoadInterface(Interface):
         """
         return tuple([await self.get_rgbw(vid, chan) for chan in range(4)])
 
-    async def get_hsl_color(self, vid: int) -> Tuple[int, ...]:
+    async def get_hsl_color(self, vid: int) -> tuple[int, ...]:
         """Get the HSL color of a load from the controller.
 
         Args:

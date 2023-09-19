@@ -6,8 +6,8 @@ import logging
 import sys
 import termios
 import tty
+from collections.abc import Iterator
 from contextlib import contextmanager, suppress
-from typing import Iterator, Optional
 
 from aiovantage import Vantage
 
@@ -20,7 +20,7 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def parse_keypress() -> Optional[str]:
+def parse_keypress() -> str | None:
     """Rudimentary keypress parser."""
     char = sys.stdin.read(1)
     if char == "\x1b":

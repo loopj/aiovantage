@@ -1,27 +1,19 @@
 """IConfiguration.OpenFilter method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar, List, Optional
 
 
 @dataclass
 class OpenFilter:
     """IConfiguration.OpenFilter method definition."""
 
-    interface: ClassVar[str] = "IConfiguration"
-    call: Optional["OpenFilter.Params"] = field(default=None)
-    return_value: Optional[int] = field(
-        default=None,
-        metadata={
-            "name": "return",
-        },
-    )
+    interface = "IConfiguration"
 
     @dataclass
     class Params:
-        """IConfiguration.OpenFilter method parameters."""
+        """Method parameters."""
 
-        object_types: Optional[List[str]] = field(
+        object_types: list[str] | None = field(
             default=None,
             metadata={
                 "name": "ObjectType",
@@ -29,9 +21,17 @@ class OpenFilter:
             },
         )
 
-        xpath: Optional[str] = field(
+        xpath: str | None = field(
             default=None,
             metadata={
                 "name": "XPath",
             },
         )
+
+    call: Params | None = field(default=None)
+    return_value: int | None = field(
+        default=None,
+        metadata={
+            "name": "return",
+        },
+    )
