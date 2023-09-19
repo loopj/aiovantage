@@ -100,6 +100,9 @@ class Vantage:
         self._temperature_sensors = self._add_controller(TemperatureSensorsController)
         self._thermostats = self._add_controller(ThermostatsController)
 
+        # Subscribe to reconnect events from the event stream
+        self._event_stream.subscribe(self._handle_event, EventType.RECONNECTED)
+
     def __getitem__(self, vid: int) -> SystemObject:
         """Return the object with the given Vantage ID."""
         for controller in self._controllers:
@@ -108,7 +111,7 @@ class Vantage:
         raise KeyError(vid)
 
     def __contains__(self, vid: int) -> bool:
-        """Return whether the given Vantage ID is known by any controller."""
+        """Is the given Vantage ID known by any controller."""
         return any(vid in controller for controller in self._controllers)
 
     async def __aenter__(self) -> Self:
@@ -128,122 +131,122 @@ class Vantage:
 
     @property
     def host(self) -> str:
-        """Return the hostname or IP address of the Vantage controller."""
+        """The hostname or IP address of the Vantage controller."""
         return self._host
 
     @property
     def config_client(self) -> ConfigClient:
-        """Return the config client."""
+        """The config client instance."""
         return self._config_client
 
     @property
     def command_client(self) -> CommandClient:
-        """Return the command client."""
+        """The command client instance."""
         return self._command_client
 
     @property
     def event_stream(self) -> EventStream:
-        """Return the event stream."""
+        """The event stream instance."""
         return self._event_stream
 
     @property
     def anemo_sensors(self) -> AnemoSensorsController:
-        """Return the AnemoSensors controller for managing anemo sensors."""
+        """Controller for interacting with wind speed sensors."""
         return self._anemo_sensors
 
     @property
     def areas(self) -> AreasController:
-        """Return the Areas controller for managing areas."""
+        """Controller for interacting with areas."""
         return self._areas
 
     @property
     def blinds(self) -> BlindsController:
-        """Return the Blinds controller for managing blinds."""
+        """Controller for interacting with blinds."""
         return self._blinds
 
     @property
     def blind_groups(self) -> BlindGroupsController:
-        """Return the BlindGroups controller for managing groups of blinds."""
+        """Controller for interacting with groups of blinds."""
         return self._blind_groups
 
     @property
     def buttons(self) -> ButtonsController:
-        """Return the Buttons controller for managing buttons."""
+        """Controller for interacting with keypad buttons."""
         return self._buttons
 
     @property
     def dry_contacts(self) -> DryContactsController:
-        """Return the DryContacts controller for managing dry contacts."""
+        """Controller for interacting with dry contacts."""
         return self._dry_contacts
 
     @property
     def gmem(self) -> GMemController:
-        """Return the GMem controller for managing variables."""
+        """Controller for interacting with variables."""
         return self._gmem
 
     @property
     def light_sensors(self) -> LightSensorsController:
-        """Return the LightSensors controller for managing light sensors."""
+        """Controller for interacting with light sensors."""
         return self._light_sensors
 
     @property
     def loads(self) -> LoadsController:
-        """Return the Load controller for managing loads (lights, fans, etc)."""
+        """Controller for interacting with loads (lights, fans, etc)."""
         return self._loads
 
     @property
     def load_groups(self) -> LoadGroupsController:
-        """Return the LoadGroup controller for managing groups of loads."""
+        """Controller for interacting with groups of loads."""
         return self._load_groups
 
     @property
     def masters(self) -> MastersController:
-        """Return the Masters controller for managing Vantage Controllers."""
+        """Controller for interacting with Vantage Controllers."""
         return self._masters
 
     @property
     def modules(self) -> ModulesController:
-        """Return the Modules controller for managing dimmer modules."""
+        """Controller for interacting with dimmer modules."""
         return self._modules
 
     @property
     def omni_sensors(self) -> OmniSensorsController:
-        """Return the OmniSensors controller for managing omni sensors."""
+        """Controller for interacting with "omni" sensors."""
         return self._omni_sensors
 
     @property
     def port_devices(self) -> PortDevicesController:
-        """Return the PortDevices controller for managing port devices."""
+        """Controller for interacting with port devices."""
         return self._port_devices
 
     @property
     def power_profiles(self) -> PowerProfilesController:
-        """Return the PowerProfiles controller for managing power profiles."""
+        """Controller for interacting with power profiles."""
         return self._power_profiles
 
     @property
     def rgb_loads(self) -> RGBLoadsController:
-        """Return the RGBLoads controller for managing RGB loads."""
+        """Controller for interacting with RGB loads."""
         return self._rgb_loads
 
     @property
     def stations(self) -> StationsController:
-        """Return the Stations controller for managing stations (keypads, etc)."""
+        """Controller for interacting with stations (keypads, etc)."""
         return self._stations
 
     @property
     def tasks(self) -> TasksController:
-        """Return the Tasks controller for managing tasks."""
+        """Controller for interacting with tasks."""
         return self._tasks
 
     @property
     def temperature_sensors(self) -> TemperatureSensorsController:
-        """Return the TemperatureSensors controller for managing temperature sensors."""
+        """Controller for interacting with temperature sensors."""
         return self._temperature_sensors
 
     @property
     def thermostats(self) -> ThermostatsController:
-        """Return the Thermostats controller for managing thermostats."""
+        """Controller for interacting with thermostats."""
         return self._thermostats
 
     def get(self, vid: int) -> SystemObject | None:
@@ -272,9 +275,6 @@ class Vantage:
 
         # Start the event stream
         await self.event_stream.start()
-
-        # Subscribe to reconnect events
-        self.event_stream.subscribe(self._handle_event, EventType.RECONNECTED)
 
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
         """Subscribe to state changes for all objects.
