@@ -9,9 +9,11 @@ from aiovantage.config_client.interfaces.types import ObjectChoice
 class GetFilterResults:
     """IConfiguration.GetFilterResults method definition."""
 
+    interface = "IConfiguration"
+
     @dataclass
     class Params:
-        """IConfiguration.GetFilterResults method parameters."""
+        """Method parameters."""
 
         h_filter: int = field(
             metadata={
@@ -33,7 +35,6 @@ class GetFilterResults:
             },
         )
 
-    interface = "IConfiguration"
     call: Params | None = field(default=None)
     return_value: list[ObjectChoice] | None = field(
         default=None,

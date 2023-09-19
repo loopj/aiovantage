@@ -7,9 +7,11 @@ from dataclasses import dataclass, field
 class Login:
     """ILogin.Login method definition."""
 
+    interface = "ILogin"
+
     @dataclass
     class Params:
-        """ILogin.Login method parameters."""
+        """Method parameters."""
 
         user: str = field(
             metadata={
@@ -23,7 +25,6 @@ class Login:
             }
         )
 
-    interface = "ILogin"
     call: Params | None = field(default=None)
     return_value: bool | None = field(
         default=None,

@@ -7,15 +7,16 @@ from dataclasses import dataclass, field
 class GetVersion:
     """IIntrospection.GetVersion method definition."""
 
+    interface = "IIntrospection"
+
     @dataclass
     class Return:
-        """IIntrospection.GetVersion method return value."""
+        """Method return value."""
 
         kernel: str | None = field(default=None)
         rootfs: str | None = field(default=None)
         app: str | None = field(default=None)
 
-    interface = "IIntrospection"
     call = None
     return_value: Return | None = field(
         default=None,

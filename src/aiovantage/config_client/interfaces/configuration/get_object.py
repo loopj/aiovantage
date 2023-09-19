@@ -9,9 +9,11 @@ from aiovantage.config_client.interfaces.types import ObjectChoice
 class GetObject:
     """IConfiguration.GetObject method definition."""
 
+    interface = "IConfiguration"
+
     @dataclass
     class Params:
-        """IConfiguration.GetObject method parameters."""
+        """Method parameters."""
 
         vids: list[int] = field(
             metadata={
@@ -19,7 +21,6 @@ class GetObject:
             }
         )
 
-    interface = "IConfiguration"
     call: Params | None = field(default=None)
     return_value: list[ObjectChoice] | None = field(
         default=None,

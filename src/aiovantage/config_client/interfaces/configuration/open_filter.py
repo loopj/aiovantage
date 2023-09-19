@@ -7,9 +7,11 @@ from dataclasses import dataclass, field
 class OpenFilter:
     """IConfiguration.OpenFilter method definition."""
 
+    interface = "IConfiguration"
+
     @dataclass
     class Params:
-        """IConfiguration.OpenFilter method parameters."""
+        """Method parameters."""
 
         object_types: list[str] | None = field(
             default=None,
@@ -26,7 +28,6 @@ class OpenFilter:
             },
         )
 
-    interface = "IConfiguration"
     call: Params | None = field(default=None)
     return_value: int | None = field(
         default=None,
