@@ -335,7 +335,7 @@ class BaseController(QuerySet[T]):
                 return
 
             if event["status_type"] == "STATUS":
-                # Handle "object" status events of the form:
+                # Handle "object interface" status events of the form:
                 # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
                 method, result, *args = event["args"]
                 self.handle_interface_status(event["id"], method, result, *args)
@@ -345,7 +345,7 @@ class BaseController(QuerySet[T]):
 
         elif event["type"] == EventType.ENHANCED_LOG:
             # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.
-            # These are "interface status" messages, with the form:
+            # These are "object interface" status messages, of the form:
             #   EL: <id> <method> <result> <arg1> <arg2> ...
             vid_str, method, result, *args = tokenize_response(event["log"])
             vid = int(vid_str)
