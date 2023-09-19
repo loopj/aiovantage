@@ -49,3 +49,10 @@ class Master(SystemObject):
             "type": "Ignore",
         },
     )
+
+    last_updated: int | None = field(
+        default=None,
+        metadata={
+            "type": "Ignore",
+        },
+    )
