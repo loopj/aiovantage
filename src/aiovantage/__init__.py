@@ -250,7 +250,7 @@ class Vantage:
         return self._thermostats
 
     def get(self, vid: int) -> SystemObject | None:
-        """Return the object with the given Vantage ID, or a default value."""
+        """Return the object with the given Vantage ID, or None if not found."""
         try:
             return self[vid]
         except KeyError:
