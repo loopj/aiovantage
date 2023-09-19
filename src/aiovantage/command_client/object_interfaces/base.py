@@ -16,7 +16,7 @@ T = TypeVar("T")
 class Interface:
     """Base class for command client object interfaces."""
 
-    method_signatures: dict[str, type[Any]] = {}
+    method_signatures: dict[str, type[Any] | None] = {}
 
     def __init__(self, client: CommandClient) -> None:
         """Initialize an object interface for standalone use.
