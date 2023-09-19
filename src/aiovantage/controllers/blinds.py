@@ -1,14 +1,13 @@
 """Controller holding and managing Vantage blinds."""
 
 from decimal import Decimal
-from typing import Sequence
 
 from typing_extensions import override
 
 from aiovantage.command_client.object_interfaces import BlindInterface
 from aiovantage.models import BlindBase
 
-from .base import BaseController, State
+from .base import BaseController
 
 
 class BlindsController(BaseController[BlindBase], BlindInterface):
@@ -27,20 +26,24 @@ class BlindsController(BaseController[BlindBase], BlindInterface):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> State:
+    async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a blind."""
-        return {
+        state = {
             "position": await BlindInterface.get_position(self, vid),
         }
 
+        self.update_state(vid, state)
+
     @override
-    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
-        """Handle state changes for a blind."""
+    def handle_status(self, vid: int, status: str, *args: str) -> None:
+        """Handle simple status messages from the event stream."""
         if status != "BLIND":
-            return None
+            return
 
         # STATUS BLIND
         # -> S:BLIND <id> <position (0.000 - 100.000)>
-        return {
+        state = {
             "position": Decimal(args[0]),
         }
+
+        self.update_state(vid, state)

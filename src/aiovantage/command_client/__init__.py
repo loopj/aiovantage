@@ -12,12 +12,11 @@ port has been opened by the firewall on the controller.
 The service is discoverable via mDNS as `_hc._tcp.local` and/or `_secure_hc._tcp.local`.
 """
 
-from .commands import CommandClient, CommandResponse
+from .commands import CommandClient
 from .events import Event, EventStream, EventType
 
 __all__ = [
     "CommandClient",
-    "CommandResponse",
     "Event",
     "EventStream",
     "EventType",

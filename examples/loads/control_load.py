@@ -85,12 +85,12 @@ async def main() -> None:
 
                 if key == "KEY_UP":
                     # Increase the load's brightness
-                    await vantage.loads.ramp(load.id, level + 10, 1)
+                    await vantage.loads.ramp(load.id, level=level + 10, time=1)
                     print(f"Increased '{load.name}' brightness to {load.level}%")
 
                 elif key == "KEY_DOWN":
                     # Decrease the load's brightness
-                    await vantage.loads.ramp(load.id, level - 10, 1)
+                    await vantage.loads.ramp(load.id, level=level - 10, time=1)
                     print(f"Decreased '{load.name}' brightness to {load.level}%")
 
                 elif key == " ":

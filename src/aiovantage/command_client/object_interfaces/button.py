@@ -1,7 +1,6 @@
 """Interface for querying and controlling buttons."""
 
 from enum import IntEnum
-from typing import Sequence
 
 from .base import Interface
 
@@ -10,10 +9,14 @@ class ButtonInterface(Interface):
     """Interface for querying and controlling buttons."""
 
     class State(IntEnum):
-        """The state of the Button."""
+        """Button state."""
 
         Up = 0
         Down = 1
+
+    method_signatures = {
+        "Button.GetState": State,
+    }
 
     async def get_state(self, vid: int) -> State:
         """Get the state of a button.
@@ -26,10 +29,7 @@ class ButtonInterface(Interface):
         """
         # INVOKE <id> Button.GetState
         # -> R:INVOKE <id> <state (Up/Down)> Button.GetState
-        response = await self.invoke(vid, "Button.GetState")
-        state = self.State[response.args[1]]
-
-        return state
+        return await self.invoke(vid, "Button.GetState", as_type=self.State)
 
     async def set_state(self, vid: int, state: State) -> None:
         """Set the state of a button.
@@ -39,9 +39,10 @@ class ButtonInterface(Interface):
             state: The state to set the button to, either a State.Up or State.Down.
         """
         # INVOKE <id> Button.SetState <state (0/1/Up/Down)>
-        # -> R:INVOKE <id> Button.SetState <state (Up/Down)>
+        # -> R:INVOKE <id> <rcode> Button.SetState <state (Up/Down)>
         await self.invoke(vid, "Button.SetState", state)
 
+    # Additional convenience methods, not part of the Vantage API
     async def press(self, vid: int) -> None:
         """Press a button.
 
@@ -66,19 +67,3 @@ class ButtonInterface(Interface):
         """
         await self.press(vid)
         await self.release(vid)
-
-    @classmethod
-    def parse_get_state_status(cls, args: Sequence[str]) -> State:
-        """Parse a 'Button.GetState' event.
-
-        Args:
-            args: The arguments of the event.
-
-        Returns:
-            The state of the button, either a State.UP or State.DOWN.
-        """
-        # ELLOG STATUS ON
-        # -> EL: <id> Button.GetState <state (0/1)>
-        # STATUS ADD <id>
-        # -> S:STATUS <id> Button.GetState <state (0/1)>
-        return cls.State(int(args[0]))

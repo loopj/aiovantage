@@ -33,7 +33,7 @@ async def main() -> None:
                 print(f"GMem object with id '{gmem_id}' does not exist")
                 return
         except ValueError:
-            print(f"Couldn't parse object id '{gmem_id}'")
+            print(f"Couldn't parse object id '{args.id}'")
             return
 
         # Convert the value to the correct type

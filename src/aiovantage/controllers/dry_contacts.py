@@ -1,13 +1,11 @@
 """Controller holding and managing Vantage dry contacts."""
 
-from typing import Sequence
-
 from typing_extensions import override
 
 from aiovantage.command_client.object_interfaces import ButtonInterface
 from aiovantage.models import DryContact
 
-from .base import BaseController, State
+from .base import BaseController
 
 
 class DryContactsController(BaseController[DryContact], ButtonInterface):
@@ -20,21 +18,25 @@ class DryContactsController(BaseController[DryContact], ButtonInterface):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, _vid: int) -> State:
+    async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a dry contact."""
-        return {
-            # Dry contacts are momentary, so default to not pressed to avoid a lookup
+        # Dry contacts are momentary, so default to not pressed to avoid a lookup
+        state = {
             "triggered": False,
         }
 
+        self.update_state(vid, state)
+
     @override
-    def parse_object_update(self, _vid: int, status: str, args: Sequence[str]) -> State:
-        """Handle state changes for a dry contact."""
+    def handle_status(self, vid: int, status: str, *args: str) -> None:
+        """Handle simple status messages from the event stream."""
         if status != "BTN":
-            return None
+            return
 
         # STATUS BTN
         # -> S:BTN <id> <state (PRESS/RELEASE)>
-        return {
+        state = {
             "triggered": args[0] == "PRESS",
         }
+
+        self.update_state(vid, state)

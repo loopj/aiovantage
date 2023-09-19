@@ -2,11 +2,13 @@
 
 import re
 import struct
-from decimal import Decimal, InvalidOperation
-from typing import Sequence, Type, Union
+from decimal import Decimal
+from enum import IntEnum
+from typing import Any, Sequence, Type, TypeVar, Union, cast
 
 TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\[.*?\])|(\S+)')
 
+T = TypeVar("T")
 ParameterType = Union[str, bool, int, float, Decimal, bytearray]
 
 
@@ -34,49 +36,39 @@ def tokenize_response(string: str) -> Sequence[str]:
     return tokens
 
 
-def parse_params(
-    params: Sequence[str], signature: Sequence[Type[ParameterType]]
-) -> Sequence[ParameterType]:
-    """Parse response parameters from the Host Command service.
-
-    Handles parsing tokens into the expected types, as defined by the signature.
+def parse_param(arg: str, klass: Type[T]) -> T:
+    """Parse a single response parameter from the Host Command service.
 
     Args:
-        params: The parameters to parse.
-        signature: The expected parameter types.
+        arg: The parameter to parse.
+        klass: The expected parameter type.
 
     Returns:
-        A list of parameters of the correct type.
+        The parsed parameter.
 
     Raises:
-        ValueError: If the parameter count does not match the signature, if a
-            parameter is of an unsupported type, or if a parameter cannot be parsed.
+        ValueError: If the parameter is of an unsupported type.
     """
-    parsed_params = []
-    for index, param in enumerate(params):
-        if index >= len(signature):
-            raise ValueError("More parameters than expected")
-
-        parsed_param: ParameterType
-        if signature[index] == str:
-            parsed_param = parse_string_param(param)
-        elif signature[index] == bool:
-            parsed_param = bool(int(param))
-        elif signature[index] == int:
-            parsed_param = int(param)
-        elif signature[index] == Decimal:
-            try:
-                parsed_param = Decimal(param)
-            except InvalidOperation as err:
-                raise ValueError from err
-        elif signature[index] == bytearray:
-            parsed_param = parse_byte_param(param)
+    parsed: Any
+    if klass is int:
+        parsed = int(arg)
+    elif klass is bool:
+        parsed = bool(int(arg))
+    elif klass is str:
+        parsed = parse_string_param(arg)
+    elif klass is bytearray:
+        parsed = parse_byte_param(arg)
+    elif klass is Decimal:
+        parsed = parse_fixed_param(arg)
+    elif issubclass(klass, IntEnum):
+        if arg.isdigit():
+            parsed = klass(int(arg))
         else:
-            raise ValueError("Invalid parameter type")
+            parsed = klass[arg]
+    else:
+        raise ValueError(f"Unsupported type: {klass}")
 
-        parsed_params.append(parsed_param)
-
-    return parsed_params
+    return cast(T, parsed)
 
 
 def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
@@ -101,8 +93,10 @@ def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
             encoded_param = encode_string_param(value, force_quotes)
         elif isinstance(value, bool):
             encoded_param = "1" if value else "0"
-        elif isinstance(value, (int, float, Decimal)):
+        elif isinstance(value, int):
             encoded_param = str(value)
+        elif isinstance(value, (float, Decimal)):
+            encoded_param = f"{value:.3f}"
         elif isinstance(value, bytearray):
             encoded_param = encode_byte_param(value)
         else:
@@ -111,6 +105,12 @@ def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
         encoded_params.append(encoded_param)
 
     return " ".join(encoded_params)
+
+
+def parse_fixed_param(param: str) -> Decimal:
+    """Parse a fixed-point parameter from the Host Command service."""
+    # Handles both 123000 and 123.000 style fixed-point values
+    return Decimal(param.replace(".", "")) / 1000
 
 
 def parse_string_param(param: str) -> str:

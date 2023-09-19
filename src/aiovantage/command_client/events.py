@@ -387,7 +387,7 @@ class EventStream:
                 }
             )
         elif message.startswith("EL:"):
-            # Parse an "enhanced log" message, of the form "EL:<log>"
+            # Parse an "enhanced log" message, of the form "EL: <log>"
             # These messages are emitted when an enhanced log is received after
             # subscribing to updates via "ELLOG <type>".
             self.emit({"type": EventType.ENHANCED_LOG, "log": message[4:]})

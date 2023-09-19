@@ -1,13 +1,13 @@
 """Controller holding and managing Vantage variables."""
 import re
-from typing import Sequence, Union
+from typing import Union
 
 from typing_extensions import override
 
 from aiovantage.command_client.utils import parse_byte_param
 from aiovantage.models import GMem
 
-from .base import BaseController, State
+from .base import BaseController
 
 
 class GMemController(BaseController[GMem]):
@@ -25,23 +25,27 @@ class GMemController(BaseController[GMem]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> State:
+    async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a variable."""
-        return {
+        state = {
             "value": await self.get_value(vid),
         }
 
+        self.update_state(vid, state)
+
     @override
-    def parse_object_update(self, vid: int, status: str, args: Sequence[str]) -> State:
-        """Handle state changes for a variable."""
+    def handle_status(self, vid: int, status: str, *args: str) -> None:
+        """Handle simple status messages from the event stream."""
         if status != "VARIABLE":
-            return None
+            return
 
         # STATUS VARIABLE
         # -> S:VARIABLE <id> <value>
-        return {
+        state = {
             "value": self._parse_value(vid, args[0]),
         }
+
+        self.update_state(vid, state)
 
     async def get_value(self, vid: int) -> Union[int, str, bool]:
         """Get the value of a variable.
