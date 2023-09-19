@@ -112,6 +112,7 @@ class SounderInterface(Interface):
         # -> R:INVOKE <id> <rcode> Sounder.PlayFX
         await self.invoke(vid, "Sounder.PlayFX", effect, duration, volume)
 
+    # Additional convenience methods, not part of the Vantage API
     async def turn_on(self, vid: int) -> None:
         """Turn on the keypad speaker.
 

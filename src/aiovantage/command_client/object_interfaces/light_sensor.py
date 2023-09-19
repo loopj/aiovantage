@@ -21,9 +21,6 @@ class LightSensorInterface(Interface):
 
         Returns:
             The level of the light sensor, in foot-candles.
-
-        Returns:
-            The level of the light sensor, in foot-candles.
         """
         # INVOKE <id> LightSensor.GetLevel
         # -> R:INVOKE <id> <level> LightSensor.GetLevel

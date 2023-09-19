@@ -88,6 +88,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> Load.Ramp <cmd> <time> <level>
         await self.invoke(vid, "Load.Ramp", cmd, time, level)
 
+    # Additional convenience methods, not part of the Vantage API
     async def turn_on(
         self,
         vid: int,

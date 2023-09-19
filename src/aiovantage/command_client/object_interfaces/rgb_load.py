@@ -247,6 +247,7 @@ class RGBLoadInterface(Interface):
         )
         return response.value
 
+    # Additional convenience methods, not part of the Vantage API
     async def get_rgb_color(self, vid: int) -> Tuple[int, ...]:
         """Get the RGB color of a load from the controller.
 

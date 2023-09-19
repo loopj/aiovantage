@@ -36,11 +36,12 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
             "day_mode": await ThermostatInterface.get_day_mode(self, vid),
         }
 
+        # Hold mode is not supported by every thermostat type.
         with suppress(CommandError):
-            # Hold mode is not supported by every thermostat type.
             state["hold_mode"] = await ThermostatInterface.get_hold_mode(self, vid)
 
-            # Status is not available on 2.x firmware.
+        # Status is not available on 2.x firmware.
+        with suppress(CommandError):
             state["status"] = await ThermostatInterface.get_status(self, vid)
 
         self.update_state(vid, state)

@@ -104,7 +104,6 @@ class BlindInterface(Interface):
         return await self.invoke(vid, "Blind.GetPositionHW", as_type=Decimal)
 
     # Methods below here are not available in 2.x firmware.
-
     async def set_tilt_angle(self, vid: int, angle: int) -> None:
         """Set the tilt angle of a blind.
 

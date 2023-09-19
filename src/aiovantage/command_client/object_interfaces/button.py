@@ -42,6 +42,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetState <state (Up/Down)>
         await self.invoke(vid, "Button.SetState", state)
 
+    # Additional convenience methods, not part of the Vantage API
     async def press(self, vid: int) -> None:
         """Press a button.
 
