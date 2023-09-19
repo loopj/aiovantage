@@ -1,7 +1,6 @@
 """Controller holding and managing Vantage omni sensors."""
 
 from decimal import Decimal
-from typing import Union
 
 from typing_extensions import override
 
@@ -49,7 +48,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
 
         self.update_state(vid, state)
 
-    async def get_level(self, vid: int, cached: bool = True) -> Union[int, Decimal]:
+    async def get_level(self, vid: int, cached: bool = True) -> int | Decimal:
         """Get the level of an OmniSensor.
 
         Args:
@@ -69,7 +68,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
         return self.parse_result(omni_sensor, response.args[1])
 
     @classmethod
-    def parse_result(cls, sensor: OmniSensor, result: str) -> Union[int, Decimal]:
+    def parse_result(cls, sensor: OmniSensor, result: str) -> int | Decimal:
         """Parse an OmniSensor response, eg. 'PowerSensor.GetPower'."""
         # NOTE: This currently doesn't handle conversion formulas, or return_type
         level = parse_fixed_param(result)

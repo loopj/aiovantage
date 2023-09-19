@@ -1,7 +1,6 @@
 """Power profile object."""
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from .system_object import SystemObject
 
@@ -22,21 +21,24 @@ class PowerProfile(SystemObject):
         }
     )
 
-    adjust: Optional[int] = field(
+    # Not available in 2.x firmware
+    adjust: int | None = field(
         default=None,
         metadata={
             "name": "Adjust",
         },
     )
 
-    freq: Optional[int] = field(
+    # Not available in 2.x firmware
+    freq: int | None = field(
         default=None,
         metadata={
             "name": "Freq",
         },
     )
 
-    inductive: Optional[bool] = field(
+    # Not available in 2.x firmware
+    inductive: bool | None = field(
         default=None,
         metadata={
             "name": "Inductive",

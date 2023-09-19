@@ -2,7 +2,6 @@
 
 from decimal import Decimal
 from enum import IntEnum
-from typing import Optional, Union
 
 from .base import Interface
 
@@ -26,7 +25,7 @@ class LoadInterface(Interface):
         "Load.GetLevelHW": Decimal,
     }
 
-    async def set_level(self, vid: int, level: Union[float, Decimal]) -> None:
+    async def set_level(self, vid: int, level: float | Decimal) -> None:
         """Set the level of a load.
 
         Args:
@@ -70,8 +69,8 @@ class LoadInterface(Interface):
         self,
         vid: int,
         cmd: RampType = RampType.Fixed,
-        time: Union[float, Decimal] = 0,
-        level: Union[float, Decimal] = 0,
+        time: float | Decimal = 0,
+        level: float | Decimal = 0,
     ) -> None:
         """Ramp a load to a level over a number of seconds.
 
@@ -90,10 +89,7 @@ class LoadInterface(Interface):
 
     # Additional convenience methods, not part of the Vantage API
     async def turn_on(
-        self,
-        vid: int,
-        transition: Optional[float] = None,
-        level: Optional[float] = None,
+        self, vid: int, transition: float | None = None, level: float | None = None
     ) -> None:
         """Turn on a load with an optional transition time.
 
@@ -110,7 +106,7 @@ class LoadInterface(Interface):
 
         await self.ramp(vid, time=transition, level=level)
 
-    async def turn_off(self, vid: int, transition: Optional[float] = None) -> None:
+    async def turn_off(self, vid: int, transition: float | None = None) -> None:
         """Turn off a load with an optional transition time.
 
         Args:

@@ -1,18 +1,7 @@
 """Provides a basic "Django-ish" queryset for querying objects."""
 
-from typing import (
-    Any,
-    AsyncIterator,
-    Awaitable,
-    Callable,
-    Dict,
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    TypeVar,
-    overload,
-)
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator
+from typing import Any, TypeVar, overload
 
 T = TypeVar("T")
 
@@ -26,9 +15,9 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
 
     def __init__(
         self,
-        data: Dict[int, T],
+        data: dict[int, T],
         populate: Callable[[], Awaitable[None]],
-        filters: Optional[List[Callable[[T], Any]]] = None,
+        filters: list[Callable[[T], Any]] | None = None,
     ) -> None:
         """Initialize a queryset.
 
@@ -40,10 +29,10 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         """
         self.__data = data
         self.__populate = populate
-        self.__iterator: Optional[Iterator[T]] = None
+        self.__iterator: Iterator[T] | None = None
 
         if filters is None:
-            self.__filters: List[Callable[[T], Any]] = []
+            self.__filters: list[Callable[[T], Any]] = []
         else:
             self.__filters = filters
 
@@ -105,18 +94,18 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         return queryset
 
     @overload
-    def get(self, key: int, default: Optional[T] = None) -> Optional[T]:
+    def get(self, key: int, default: T | None = None) -> T | None:
         ...
 
     @overload
-    def get(self, match: Callable[[T], Any]) -> Optional[T]:
+    def get(self, match: Callable[[T], Any]) -> T | None:
         ...
 
     @overload
-    def get(self, **kwargs: Any) -> Optional[T]:
+    def get(self, **kwargs: Any) -> T | None:
         ...
 
-    def get(self, *args: Any, **kwargs: Any) -> Optional[T]:
+    def get(self, *args: Any, **kwargs: Any) -> T | None:
         """Get the first object that matches the given filter."""
         # Handle the case where we're getting an object by key
         if len(args) == 1 and isinstance(args[0], int):
@@ -126,27 +115,27 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         return next(iter(self.filter(*args, **kwargs)), None)
 
     @overload
-    async def aget(self, key: int, default: Optional[T] = None) -> Optional[T]:
+    async def aget(self, key: int, default: T | None = None) -> T | None:
         ...
 
     @overload
-    async def aget(self, match: Callable[[T], Any]) -> Optional[T]:
+    async def aget(self, match: Callable[[T], Any]) -> T | None:
         ...
 
     @overload
-    async def aget(self, **kwargs: Any) -> Optional[T]:
+    async def aget(self, **kwargs: Any) -> T | None:
         ...
 
-    async def aget(self, *args: Any, **kwargs: Any) -> Optional[T]:
+    async def aget(self, *args: Any, **kwargs: Any) -> T | None:
         """Asynchronously get the first object that matches the given filter."""
         await self.__populate()
         return self.get(*args, **kwargs)
 
-    def first(self) -> Optional[T]:
+    def first(self) -> T | None:
         """Return the first object in the queryset."""
         return next(iter(self), None)
 
-    async def afirst(self) -> Optional[T]:
+    async def afirst(self) -> T | None:
         """Asynchronously return the first object in the queryset."""
         await self.__populate()
         return self.first()

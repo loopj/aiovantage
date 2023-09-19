@@ -2,22 +2,10 @@
 
 import asyncio
 import logging
+from collections.abc import Callable, Iterable
 from dataclasses import fields
 from inspect import iscoroutinefunction
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Literal,
-    Optional,
-    Set,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.utils import tokenize_response
@@ -34,19 +22,19 @@ T = TypeVar("T", bound=SystemObject)
 
 
 # Types for state and subscriptions
-EventSubscription = Tuple[EventCallback[T], Optional[Iterable[VantageEvent]]]
+EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 
 
 class BaseController(QuerySet[T]):
     """Base controller for Vantage objects."""
 
-    vantage_types: Tuple[str, ...]
+    vantage_types: tuple[str, ...]
     """The Vantage object types that this controller handles."""
 
-    status_types: Optional[Tuple[str, ...]] = None
+    status_types: tuple[str, ...] | None = None
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
-    interface_status_types: Optional[Union[Tuple[str, ...], Literal["*"]]] = None
+    interface_status_types: tuple[str, ...] | Literal["*"] | None = None
     """Which object interface status messages this controller handles, if any."""
 
     def __init__(self, vantage: "Vantage") -> None:
@@ -56,11 +44,11 @@ class BaseController(QuerySet[T]):
             vantage: The Vantage instance.
         """
         self._vantage = vantage
-        self._items: Dict[int, T] = {}
+        self._items: dict[int, T] = {}
         self._logger = logging.getLogger(__package__)
         self._subscribed_to_state_changes = False
-        self._subscriptions: List[EventSubscription[T]] = []
-        self._id_subscriptions: Dict[int, List[EventSubscription[T]]] = {}
+        self._subscriptions: list[EventSubscription[T]] = []
+        self._id_subscriptions: dict[int, list[EventSubscription[T]]] = {}
         self._initialized = False
 
         QuerySet.__init__(self, self._items, self._lazy_initialize)
@@ -104,7 +92,7 @@ class BaseController(QuerySet[T]):
         return bool(self.status_types or self.interface_status_types)
 
     @property
-    def known_ids(self) -> Set[int]:
+    def known_ids(self) -> set[int]:
         """Return a set of all known object IDs."""
         return set(self._items.keys())
 
@@ -235,8 +223,8 @@ class BaseController(QuerySet[T]):
     def subscribe(
         self,
         callback: EventCallback[T],
-        id_filter: Union[int, Iterable[int], None] = None,
-        event_filter: Union[VantageEvent, Iterable[VantageEvent], None] = None,
+        id_filter: int | Iterable[int] | None = None,
+        event_filter: VantageEvent | Iterable[VantageEvent] | None = None,
     ) -> Callable[[], None]:
         """Subscribe to status changes for objects managed by this controller.
 
@@ -280,7 +268,7 @@ class BaseController(QuerySet[T]):
         return unsubscribe
 
     def emit(
-        self, event_type: VantageEvent, obj: T, data: Optional[Dict[str, Any]] = None
+        self, event_type: VantageEvent, obj: T, data: dict[str, Any] | None = None
     ) -> None:
         """Emit an event to subscribers of this controller.
 
@@ -303,7 +291,7 @@ class BaseController(QuerySet[T]):
             else:
                 callback(event_type, obj, data)
 
-    def update_state(self, vid: int, state: Dict[str, Any]) -> None:
+    def update_state(self, vid: int, state: dict[str, Any]) -> None:
         """Update the state of an object and notify subscribers if it changed."""
         # Ignore updates for objects that this controller doesn't manage
         if (obj := self._items.get(vid)) is None:

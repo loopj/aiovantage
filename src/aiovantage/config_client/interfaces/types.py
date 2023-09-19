@@ -4,12 +4,12 @@ import inspect
 from dataclasses import dataclass, field
 from functools import cache
 from types import ModuleType
-from typing import Any, Dict, List, Type
+from typing import Any
 
 from aiovantage.config_client import models
 
 
-def get_all_module_classes(module: ModuleType) -> List[Type[Any]]:
+def get_all_module_classes(module: ModuleType) -> list[type[Any]]:
     """Get all classes from a module."""
     classes = []
     for _, cls in inspect.getmembers(module, inspect.isclass):
@@ -19,7 +19,7 @@ def get_all_module_classes(module: ModuleType) -> List[Type[Any]]:
 
 
 @cache
-def get_all_object_choices(module: ModuleType) -> List[Dict[str, Any]]:
+def get_all_object_choices(module: ModuleType) -> list[dict[str, Any]]:
     """Get all object choices from a module."""
     choices = []
     for cls in get_all_module_classes(module):

@@ -1,7 +1,7 @@
 """IIntrospection.GetInterfaces method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar, List, Optional
+from typing import ClassVar
 
 
 @dataclass
@@ -19,7 +19,7 @@ class GetInterfaces:
 
     interface: ClassVar[str] = "IIntrospection"
     call = None
-    return_value: Optional[List[Interface]] = field(
+    return_value: list[Interface] | None = field(
         default=None,
         metadata={
             "name": "Interface",

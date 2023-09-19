@@ -1,6 +1,5 @@
 """Controller holding and managing Vantage variables."""
 import re
-from typing import Union
 
 from typing_extensions import override
 
@@ -47,7 +46,7 @@ class GMemController(BaseController[GMem]):
 
         self.update_state(vid, state)
 
-    async def get_value(self, vid: int) -> Union[int, str, bool]:
+    async def get_value(self, vid: int) -> int | str | bool:
         """Get the value of a variable.
 
         Args:
@@ -63,7 +62,7 @@ class GMemController(BaseController[GMem]):
 
         return self._parse_value(vid, raw_value)
 
-    async def set_value(self, vid: int, value: Union[int, str, bool]) -> None:
+    async def set_value(self, vid: int, value: int | str | bool) -> None:
         """Set the value of a variable.
 
         Args:
@@ -74,7 +73,7 @@ class GMemController(BaseController[GMem]):
         # -> R:VARIABLE {id} {value}
         await self.command_client.command("VARIABLE", vid, value, force_quotes=True)
 
-    def _parse_value(self, vid: int, value: str) -> Union[int, str, bool]:
+    def _parse_value(self, vid: int, value: str) -> int | str | bool:
         # Parse the results of a GMem lookup into the expected type.
         gmem: GMem = self[vid]
 

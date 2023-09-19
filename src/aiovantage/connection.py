@@ -2,7 +2,7 @@
 
 import asyncio
 from ssl import CERT_NONE, SSLContext, create_default_context
-from typing import ClassVar, Optional, Union
+from typing import ClassVar
 
 from .errors import ClientConnectionError, ClientTimeoutError
 
@@ -17,18 +17,18 @@ class BaseConnection:
     def __init__(
         self,
         host: str,
-        port: Optional[int] = None,
-        ssl: Union[SSLContext, bool] = True,
-        conn_timeout: Optional[float] = None,
+        port: int | None = None,
+        ssl: SSLContext | bool = True,
+        conn_timeout: float | None = None,
     ) -> None:
         """Initialize the connection."""
         self._host = host
         self._conn_timeout = conn_timeout
-        self._reader: Optional[asyncio.StreamReader] = None
-        self._writer: Optional[asyncio.StreamWriter] = None
+        self._reader: asyncio.StreamReader | None = None
+        self._writer: asyncio.StreamWriter | None = None
 
         # Set up the SSL context
-        self._ssl: Optional[SSLContext]
+        self._ssl: SSLContext | None
         if ssl is True:
             # We don't have a local issuer certificate to check against, and we'll be
             # connecting to an IP address so we can't check the hostname
@@ -111,7 +111,7 @@ class BaseConnection:
         except OSError as err:
             raise ClientConnectionError from err
 
-    async def readuntil(self, separator: bytes, timeout: Optional[float] = None) -> str:
+    async def readuntil(self, separator: bytes, timeout: float | None = None) -> str:
         """Read data until the separator is found or the optional timeout is reached.
 
         Args:

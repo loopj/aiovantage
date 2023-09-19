@@ -19,7 +19,6 @@ import asyncio
 import logging
 from ssl import SSLContext
 from types import TracebackType
-from typing import Optional, Type, Union
 from xml.etree import ElementTree
 
 from typing_extensions import Self
@@ -55,11 +54,11 @@ class ConfigClient:
     def __init__(
         self,
         host: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
         *,
-        ssl: Union[SSLContext, bool] = True,
-        port: Optional[int] = None,
+        ssl: SSLContext | bool = True,
+        port: int | None = None,
         conn_timeout: float = 30,
         read_timeout: float = 60,
     ) -> None:
@@ -87,9 +86,9 @@ class ConfigClient:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         """Exit context manager."""
         self.close()
@@ -104,7 +103,7 @@ class ConfigClient:
         self,
         interface: str,
         raw_method: str,
-        connection: Optional[ConfigConnection] = None,
+        connection: ConfigConnection | None = None,
     ) -> str:
         """Send a raw request to the ACI service and return the raw response.
 
@@ -136,10 +135,10 @@ class ConfigClient:
 
     async def request(
         self,
-        method_cls: Type[Method[Call, Return]],
-        params: Optional[Call] = None,
-        connection: Optional[ConfigConnection] = None,
-    ) -> Optional[Return]:
+        method_cls: type[Method[Call, Return]],
+        params: Call | None = None,
+        connection: ConfigConnection | None = None,
+    ) -> Return | None:
         """Marshall a request, send it to the ACI service, and return a parsed object.
 
         Args:

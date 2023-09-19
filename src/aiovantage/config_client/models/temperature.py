@@ -3,7 +3,6 @@
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
-from typing import Optional
 
 from .sensor import Sensor
 from .types import Parent
@@ -20,7 +19,8 @@ class Temperature(Sensor):
         COOL = "Cool"
         AUTO = "Auto"
 
-    setpoint: Optional[Setpoint] = field(
+    # Not available in 2.x firmware
+    setpoint: Setpoint | None = field(
         default=None,
         metadata={
             "name": "Setpoint",
@@ -34,7 +34,7 @@ class Temperature(Sensor):
         }
     )
 
-    value: Optional[Decimal] = field(
+    value: Decimal | None = field(
         default=None,
         metadata={
             "type": "Ignore",

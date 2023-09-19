@@ -2,7 +2,6 @@
 
 from decimal import Decimal
 from enum import IntEnum
-from typing import Union
 
 from .base import Interface
 
@@ -49,7 +48,7 @@ class SounderInterface(Interface):
         # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
         return await self.invoke(vid, "Sounder.GetFrequencyHW", as_type=Decimal)
 
-    async def set_frequency(self, vid: int, frequency: Union[float, Decimal]) -> None:
+    async def set_frequency(self, vid: int, frequency: float | Decimal) -> None:
         """Set the frequency of the keypad speaker.
 
         Args:

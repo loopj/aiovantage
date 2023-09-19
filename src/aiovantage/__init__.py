@@ -3,8 +3,9 @@
 __all__ = ["Vantage", "VantageEvent"]
 
 import asyncio
+from collections.abc import Callable
 from types import TracebackType
-from typing import Any, Callable, Optional, Set, Type, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from typing_extensions import Self
 
@@ -45,12 +46,12 @@ class Vantage:
     def __init__(
         self,
         host: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
         *,
         use_ssl: bool = True,
-        config_port: Optional[int] = None,
-        command_port: Optional[int] = None,
+        config_port: int | None = None,
+        command_port: int | None = None,
     ) -> None:
         """Initialize the Vantage instance.
 
@@ -77,7 +78,7 @@ class Vantage:
         )
 
         # Set up controllers
-        self._controllers: Set[BaseController[Any]] = set()
+        self._controllers: set[BaseController[Any]] = set()
         self._anemo_sensors = self._add_controller(AnemoSensorsController)
         self._areas = self._add_controller(AreasController)
         self._blind_groups = self._add_controller(BlindGroupsController)
@@ -116,9 +117,9 @@ class Vantage:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         """Exit context manager."""
         self.close()
@@ -245,7 +246,7 @@ class Vantage:
         """Return the Thermostats controller for managing thermostats."""
         return self._thermostats
 
-    def get(self, vid: int) -> Optional[SystemObject]:
+    def get(self, vid: int) -> SystemObject | None:
         """Return the object with the given Vantage ID, or a default value."""
         try:
             return self[vid]
@@ -301,7 +302,7 @@ class Vantage:
                 if controller.initialized:
                     await controller.fetch_full_state()
 
-    def _add_controller(self, controller_cls: Type[ControllerT]) -> ControllerT:
+    def _add_controller(self, controller_cls: type[ControllerT]) -> ControllerT:
         # Add a controller to the known controllers.
         controller = controller_cls(self)
         self._controllers.add(controller)

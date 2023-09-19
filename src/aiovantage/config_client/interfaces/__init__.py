@@ -1,6 +1,6 @@
 """Duck typing for methods."""
 
-from typing import ClassVar, Optional, Protocol, TypeVar
+from typing import ClassVar, Protocol, TypeVar
 
 Call = TypeVar("Call")
 Return = TypeVar("Return")
@@ -10,5 +10,5 @@ class Method(Protocol[Call, Return]):
     """Duck typing for methods."""
 
     interface: ClassVar[str]
-    call: Optional[Call]
-    return_value: Optional[Return]
+    call: Call | None
+    return_value: Return | None

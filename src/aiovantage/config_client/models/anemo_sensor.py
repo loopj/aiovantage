@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Optional
 
 from .sensor import Sensor
 from .types import Parent
@@ -18,7 +17,7 @@ class AnemoSensor(Sensor):
         }
     )
 
-    speed: Optional[Decimal] = field(
+    speed: Decimal | None = field(
         default=None,
         metadata={
             "type": "Ignore",

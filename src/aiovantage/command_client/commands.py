@@ -2,11 +2,11 @@
 
 import asyncio
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
 from ssl import SSLContext
 from types import TracebackType
-from typing import Optional, Sequence, Type, Union
 
 from typing_extensions import Self
 
@@ -43,11 +43,11 @@ class CommandClient:
     def __init__(
         self,
         host: str,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
+        username: str | None = None,
+        password: str | None = None,
         *,
-        ssl: Union[SSLContext, bool] = True,
-        port: Optional[int] = None,
+        ssl: SSLContext | bool = True,
+        port: int | None = None,
         conn_timeout: float = 30,
         read_timeout: float = 60,
     ) -> None:
@@ -66,9 +66,9 @@ class CommandClient:
 
     async def __aexit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        traceback: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        traceback: TracebackType | None,
     ) -> None:
         """Exit context manager."""
         self.close()
@@ -82,9 +82,9 @@ class CommandClient:
     async def command(
         self,
         command: str,
-        *params: Union[str, int, float, Decimal],
+        *params: str | int | float | Decimal,
         force_quotes: bool = False,
-        connection: Optional[CommandConnection] = None,
+        connection: CommandConnection | None = None,
     ) -> CommandResponse:
         """Send a command to the Host Command service and wait for a response.
 
@@ -108,7 +108,7 @@ class CommandClient:
         return CommandResponse(command[2:], args, data)
 
     async def raw_request(
-        self, request: str, connection: Optional[CommandConnection] = None
+        self, request: str, connection: CommandConnection | None = None
     ) -> Sequence[str]:
         """Send a raw command to the Host Command service and return all response lines.
 

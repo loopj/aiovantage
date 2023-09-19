@@ -1,7 +1,7 @@
 """IIntrospection.GetTypes method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar, List, Optional
+from typing import ClassVar
 
 
 @dataclass
@@ -18,7 +18,7 @@ class GetTypes:
 
     interface: ClassVar[str] = "IIntrospection"
     call = None
-    return_value: Optional[List[Type]] = field(
+    return_value: list[Type] | None = field(
         default=None,
         metadata={
             "name": "Type",

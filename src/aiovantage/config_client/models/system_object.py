@@ -1,7 +1,6 @@
 """Base class for all objects."""
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from xsdata.models.datatype import XmlDateTime
 
@@ -43,7 +42,7 @@ class SystemObject:
     )
 
     # Not available in 2.x firmware
-    mtime: Optional[XmlDateTime] = field(
+    mtime: XmlDateTime | None = field(
         default=None,
         metadata={
             "name": "MTime",
@@ -52,7 +51,7 @@ class SystemObject:
     )
 
     # Not available in 2.x firmware
-    display_name: Optional[str] = field(
+    display_name: str | None = field(
         default=None,
         metadata={
             "name": "DName",

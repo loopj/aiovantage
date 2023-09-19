@@ -1,7 +1,6 @@
 """Helper utilities for discovering details about Vantage controllers."""
 import re
 from dataclasses import dataclass
-from typing import Optional
 
 from .command_client.commands import CommandClient
 from .config_client import ConfigClient
@@ -23,7 +22,7 @@ class VantageControllerDetails:
     requires_auth: bool
 
 
-async def get_controller_details(host: str) -> Optional[VantageControllerDetails]:
+async def get_controller_details(host: str) -> VantageControllerDetails | None:
     """Discover Vantage controller details from given hostname/ip.
 
     Args:
@@ -94,10 +93,10 @@ async def validate_credentials(
 
 async def get_serial_from_controller(
     host: str,
-    username: Optional[str] = None,
-    password: Optional[str] = None,
+    username: str | None = None,
+    password: str | None = None,
     ssl: bool = True,
-) -> Optional[int]:
+) -> int | None:
     """Get the serial number of the given controller.
 
     Args:

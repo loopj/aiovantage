@@ -4,7 +4,6 @@ import argparse
 import asyncio
 import contextlib
 import logging
-from typing import Optional
 
 from aiovantage import Vantage
 from aiovantage.models import Area, Load
@@ -51,7 +50,7 @@ def load_state(load: Load) -> str:
     return colorize(f"({load.level}%)", GREEN)
 
 
-def print_area(vantage: Vantage, area: Optional[Area], indent: int = 0) -> None:
+def print_area(vantage: Vantage, area: Area | None, indent: int = 0) -> None:
     """Recursively print an area and all its children."""
     if area is None:
         return

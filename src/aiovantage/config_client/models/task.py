@@ -1,7 +1,6 @@
 """Task object."""
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from .system_object import SystemObject
 
@@ -10,14 +9,14 @@ from .system_object import SystemObject
 class Task(SystemObject):
     """Task object."""
 
-    is_running: Optional[bool] = field(
+    is_running: bool | None = field(
         default=None,
         metadata={
             "type": "Ignore",
         },
     )
 
-    state: Optional[int] = field(
+    state: int | None = field(
         default=None,
         metadata={
             "type": "Ignore",

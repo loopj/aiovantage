@@ -1,7 +1,6 @@
 """LoadGroup object."""
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 from .location_object import LocationObject
 
@@ -10,7 +9,7 @@ from .location_object import LocationObject
 class LoadGroup(LocationObject):
     """LoadGroup object."""
 
-    load_ids: List[int] = field(
+    load_ids: list[int] = field(
         default_factory=list,
         metadata={
             "name": "Load",
@@ -18,7 +17,7 @@ class LoadGroup(LocationObject):
         },
     )
 
-    level: Optional[float] = field(
+    level: float | None = field(
         default=None,
         metadata={
             "type": "Ignore",

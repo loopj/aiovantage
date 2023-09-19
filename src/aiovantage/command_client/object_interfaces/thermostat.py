@@ -2,7 +2,6 @@
 
 from decimal import Decimal
 from enum import IntEnum
-from typing import Union
 
 from .base import Interface
 
@@ -105,7 +104,7 @@ class ThermostatInterface(Interface):
         # -> R:INVOKE <id> <temp> Thermostat.GetHeatSetPoint
         return await self.invoke(vid, "Thermostat.GetHeatSetPoint", as_type=Decimal)
 
-    async def set_heat_set_point(self, vid: int, temp: Union[float, Decimal]) -> None:
+    async def set_heat_set_point(self, vid: int, temp: float | Decimal) -> None:
         """Set the current heat set point.
 
         Args:
@@ -129,7 +128,7 @@ class ThermostatInterface(Interface):
         # -> R:INVOKE <id> <temp> Thermostat.GetCoolSetPoint
         return await self.invoke(vid, "Thermostat.GetCoolSetPoint", as_type=Decimal)
 
-    async def set_cool_set_point(self, vid: int, temp: Union[float, Decimal]) -> None:
+    async def set_cool_set_point(self, vid: int, temp: float | Decimal) -> None:
         """Set the current cool set point.
 
         Args:
@@ -264,7 +263,7 @@ class ThermostatInterface(Interface):
         # -> R:INVOKE <id> <temp> Thermostat.GetAutoSetPoint
         return await self.invoke(vid, "Thermostat.GetAutoSetPoint", as_type=Decimal)
 
-    async def set_auto_set_point(self, vid: int, temp: Union[float, Decimal]) -> None:
+    async def set_auto_set_point(self, vid: int, temp: float | Decimal) -> None:
         """Set the current auto set point.
 
         Args:
