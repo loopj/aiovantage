@@ -55,16 +55,16 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
             # STATUS THERMOP
             # -> S:THERMOP <id> <operation_mode (OFF/COOL/HEAT/AUTO)>
             state["operation_mode"] = Thermostat.OperationMode[args[0]]
-
         elif status == "THERMFAN":
             # STATUS THERMFAN
             # -> S:THERMFAN <id> <fan_mode (ON/AUTO)>
             state["fan_mode"] = Thermostat.FanMode[args[0]]
-
         elif status == "THERMDAY":
             # STATUS THERMDAY
             # -> S:THERMDAY <id> <day_mode (DAY/NIGHT)>
             state["day_mode"] = Thermostat.DayMode[args[0]]
+        else:
+            return
 
         self.update_state(vid, state)
 

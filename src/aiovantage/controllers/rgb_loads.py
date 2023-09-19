@@ -71,28 +71,22 @@ class RGBLoadsController(
             state["level"] = self.parse_response(method, result, *args)
 
         elif method == "RGBLoad.GetHSL" and rgb_load.is_rgb:
-            response = self.parse_response(
-                method, result, *args, as_type=self.ColorChannelResponse
-            )
-            if hsl := self._build_color(vid, response, 3):
-                state["hsl"] = hsl
+            if color := self._parse_color_channel_response(vid, method, result, *args):
+                state["hsl"] = color
 
         elif method == "RGBLoad.GetRGB" and rgb_load.is_rgb:
-            response = self.parse_response(
-                method, result, *args, as_type=self.ColorChannelResponse
-            )
-            if rgb := self._build_color(vid, response, 3):
-                state["rgb"] = rgb
+            if color := self._parse_color_channel_response(vid, method, result, *args):
+                state["rgb"] = color
 
         elif method == "RGBLoad.GetRGBW" and rgb_load.is_rgb:
-            response = self.parse_response(
-                method, result, *args, as_type=self.ColorChannelResponse
-            )
-            if rgbw := self._build_color(vid, response, 4):
-                state["rgbw"] = rgbw
+            if color := self._parse_color_channel_response(vid, method, result, *args):
+                state["rgbw"] = color
 
         elif method == "ColorTemperature.Get" and rgb_load.is_cct:
             state["color_temp"] = self.parse_response(method, result, *args)
+
+        else:
+            return
 
         self.update_state(vid, state)
 
@@ -106,15 +100,25 @@ class RGBLoadsController(
         """Return a queryset of all RGB loads that are turned off."""
         return self.filter(lambda load: not load.is_on)
 
-    def _build_color(
-        self,
-        vid: int,
-        response: RGBLoadInterface.ColorChannelResponse,
-        num_channels: int,
+    def _parse_color_channel_response(
+        self, vid: int, method: str, result: str, *args: str
     ) -> tuple[int, ...] | None:
         # Build a color from a series of channel responses. We need to store
         # partially constructed colors in memory, since updates come separately for
         # each channel.
+
+        # Determine how many channels we need to build a color
+        if method in ("RGBLoad.GetHSL", "RGBLoad.GetRGB"):
+            num_channels = 3
+        elif method == "RGBLoad.GetRGBW":
+            num_channels = 4
+        else:
+            raise ValueError(f"Unsupported color channel method {method}")
+
+        # Parse the response
+        response = self.parse_response(
+            method, result, *args, as_type=self.ColorChannelResponse
+        )
 
         # Ignore updates for channels we don't care about
         if response.channel < 0 or response.channel >= num_channels:
