@@ -1,7 +1,6 @@
 """IConfiguration.GetObject method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar
 
 from aiovantage.config_client.interfaces.types import ObjectChoice
 
@@ -20,7 +19,7 @@ class GetObject:
             }
         )
 
-    interface: ClassVar[str] = "IConfiguration"
+    interface = "IConfiguration"
     call: Params | None = field(default=None)
     return_value: list[ObjectChoice] | None = field(
         default=None,

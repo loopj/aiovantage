@@ -1,7 +1,6 @@
 """IIntrospection.GetVersion method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar
 
 
 @dataclass
@@ -16,7 +15,7 @@ class GetVersion:
         rootfs: str | None = field(default=None)
         app: str | None = field(default=None)
 
-    interface: ClassVar[str] = "IIntrospection"
+    interface = "IIntrospection"
     call = None
     return_value: Return | None = field(
         default=None,

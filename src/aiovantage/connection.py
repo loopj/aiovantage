@@ -2,7 +2,6 @@
 
 import asyncio
 from ssl import CERT_NONE, SSLContext, create_default_context
-from typing import ClassVar
 
 from .errors import ClientConnectionError, ClientTimeoutError
 
@@ -10,9 +9,9 @@ from .errors import ClientConnectionError, ClientTimeoutError
 class BaseConnection:
     """Wrapper for an asyncio connection to a Vantage controller."""
 
-    default_port: ClassVar[int]
-    default_ssl_port: ClassVar[int]
-    buffer_limit: ClassVar[int] = 2**16
+    default_port: int
+    default_ssl_port: int
+    buffer_limit: int = 2**16
 
     def __init__(
         self,

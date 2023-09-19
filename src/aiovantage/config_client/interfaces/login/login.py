@@ -1,7 +1,6 @@
 """ILogin.Login method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar
 
 
 @dataclass
@@ -24,7 +23,7 @@ class Login:
             }
         )
 
-    interface: ClassVar[str] = "ILogin"
+    interface = "ILogin"
     call: Params | None = field(default=None)
     return_value: bool | None = field(
         default=None,

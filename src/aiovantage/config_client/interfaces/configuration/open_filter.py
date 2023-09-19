@@ -1,7 +1,6 @@
 """IConfiguration.OpenFilter method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar
 
 
 @dataclass
@@ -27,7 +26,7 @@ class OpenFilter:
             },
         )
 
-    interface: ClassVar[str] = "IConfiguration"
+    interface = "IConfiguration"
     call: Params | None = field(default=None)
     return_value: int | None = field(
         default=None,

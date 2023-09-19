@@ -1,7 +1,6 @@
 """IIntrospection.GetInterfaces method definition."""
 
 from dataclasses import dataclass, field
-from typing import ClassVar
 
 
 @dataclass
@@ -17,7 +16,7 @@ class Interface:
 class GetInterfaces:
     """IIntrospection.GetInterfaces method definition."""
 
-    interface: ClassVar[str] = "IIntrospection"
+    interface = "IIntrospection"
     call = None
     return_value: list[Interface] | None = field(
         default=None,
