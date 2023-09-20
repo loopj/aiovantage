@@ -50,6 +50,7 @@ class BaseController(QuerySet[T]):
         self._subscriptions: list[EventSubscription[T]] = []
         self._id_subscriptions: dict[int, list[EventSubscription[T]]] = {}
         self._initialized = False
+        self._lock = asyncio.Lock()
 
         QuerySet.__init__(self, self._items, self._lazy_initialize)
 
@@ -122,57 +123,49 @@ class BaseController(QuerySet[T]):
         return
 
     async def initialize(self, fetch_state: bool = True) -> None:
-        """Populate objects and fetch their initial state.
+        """Populate the controller, and optionally fetch initial state.
 
         Args:
             fetch_state: Whether to also fetch the state of each object.
         """
-        prev_ids = set(self._items.keys())
-        cur_ids = set()
+        # Prevent concurrent controller initialization from multiple tasks, since we
+        # are batch-modifying the _items dict.
+        async with self._lock:
+            prev_ids = set(self._items.keys())
+            cur_ids = set()
 
-        # Fetch all objects managed by this controller
-        async for obj in get_objects(self.config_client, types=self.vantage_types):
-            if obj.id not in prev_ids:
-                # This is a new object, add it to the controller
-                self._items[obj.id] = obj
-
-                # Notify subscribers that a new object was added
-                self.emit(VantageEvent.OBJECT_ADDED, obj)
-
-                # Fetch the state of the object
-                if self.stateful and fetch_state:
-                    await self.fetch_object_state(obj.id)
-            else:
-                # This is an existing object, check if any attributes have changed
-                prev_obj = self._items[obj.id]
-                attrs_changed = [
-                    field.name
-                    for field in fields(type(prev_obj))
-                    if getattr(prev_obj, field.name) != getattr(obj, field.name)
-                    and field.name != "mtime"
-                ]
-
-                # If any attributes changed, update the object and notify subscribers
-                if attrs_changed:
-                    for attr in attrs_changed:
-                        try:
-                            setattr(prev_obj, attr, getattr(obj, attr))
-                        except AttributeError:
-                            self._logger.warning("Object has no attribute '%s'", attr)
-
-                    self.emit(
-                        VantageEvent.OBJECT_UPDATED,
-                        obj,
-                        {"attrs_changed": attrs_changed},
+            # Fetch all objects managed by this controller
+            async for obj in get_objects(self.config_client, types=self.vantage_types):
+                if obj.id in prev_ids:
+                    # This is an existing object.
+                    # Update any attributes that have changed and notify subscribers.
+                    # Ignore the mtime attribute, and any state attributes.
+                    self.update_state(
+                        obj.id,
+                        {
+                            field.name: getattr(obj, field.name)
+                            for field in fields(type(obj))
+                            if field.name != "mtime"
+                            and field.metadata.get("type") != "Ignore"
+                        },
                     )
+                else:
+                    # This is a new object.
+                    # Add it to the controller and notify subscribers
+                    self._items[obj.id] = obj
+                    self.emit(VantageEvent.OBJECT_ADDED, obj)
 
-            # Keep track of which objects we've seen
-            cur_ids.add(obj.id)
+                    # Fetch the state of stateful objects
+                    if self.stateful and fetch_state:
+                        await self.fetch_object_state(obj.id)
 
-        # Handle objects that were removed
-        for vid in prev_ids - cur_ids:
-            obj = self._items.pop(vid)
-            self.emit(VantageEvent.OBJECT_DELETED, obj)
+                # Keep track of which objects we've seen
+                cur_ids.add(obj.id)
+
+            # Handle objects that were removed
+            for vid in prev_ids - cur_ids:
+                obj = self._items.pop(vid)
+                self.emit(VantageEvent.OBJECT_DELETED, obj)
 
         # Subscribe to state changes for objects managed by this controller
         if fetch_state and len(self._items) > 0:
@@ -181,11 +174,10 @@ class BaseController(QuerySet[T]):
         # Mark the controller as initialized
         if not self._initialized:
             self._initialized = True
-            self._logger.info(
-                "%s initialized (%d objects)", self.__class__.__name__, len(self._items)
-            )
-        else:
-            self._logger.info("%s reinitialized", self.__class__.__name__)
+
+        self._logger.info(
+            "%s initialized (%d objects)", type(self).__name__, len(self._items)
+        )
 
     async def fetch_full_state(self) -> None:
         """Fetch the full state of all objects managed by this controller."""
@@ -195,7 +187,7 @@ class BaseController(QuerySet[T]):
         for obj in self._items.values():
             await self.fetch_object_state(obj.id)
 
-        self._logger.info("%s fetched state", self.__class__.__name__)
+        self._logger.info("%s fetched state", type(self).__name__)
 
     async def subscribe_to_state_changes(self) -> None:
         """Subscribe to state changes for objects managed by this controller."""
@@ -218,7 +210,7 @@ class BaseController(QuerySet[T]):
             )
 
         self._subscribed_to_state_changes = True
-        self._logger.info("%s subscribed to state changes", self.__class__.__name__)
+        self._logger.info("%s subscribed to state changes", type(self).__name__)
 
     def subscribe(
         self,
@@ -291,15 +283,15 @@ class BaseController(QuerySet[T]):
             else:
                 callback(event_type, obj, data)
 
-    def update_state(self, vid: int, state: dict[str, Any]) -> None:
-        """Update the state of an object and notify subscribers if it changed."""
+    def update_state(self, vid: int, attrs: dict[str, Any]) -> None:
+        """Update the attributes of an object and notify subscribers of changes."""
         # Ignore updates for objects that this controller doesn't manage
         if (obj := self._items.get(vid)) is None:
             return
 
-        # Check if any of the attributes changed and update them
+        # Check if any state attributes changed and update them
         attrs_changed = []
-        for key, value in state.items():
+        for key, value in attrs.items():
             try:
                 if getattr(obj, key) != value:
                     setattr(obj, key, value)
