@@ -34,7 +34,7 @@ dev = [
     "black==23.9.1",
     "mypy==1.6.0",
     "ruff==0.0.292",
-    "pre-commit==3.4.0",
+    "pre-commit==3.5.0",
 ]
 
 [tool.hatch.version]
