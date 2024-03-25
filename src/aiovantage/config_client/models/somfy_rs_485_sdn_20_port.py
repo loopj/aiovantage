@@ -1,4 +1,5 @@
 """Somfy RS-485 SDN 2.0."""
+
 from dataclasses import dataclass
 
 from .port_device import PortDevice

@@ -33,10 +33,10 @@ class MastersController(
 
         # IntrospectionInterface is not available on 2.x firmware.
         with suppress(CommandError):
-            state[
-                "firmware_version"
-            ] = await IntrospectionInterface.get_firmware_version(
-                self, vid, self.Firmware.Application
+            state["firmware_version"] = (
+                await IntrospectionInterface.get_firmware_version(
+                    self, vid, self.Firmware.Application
+                )
             )
 
         # ObjectInterface is not available on 2.x firmware.

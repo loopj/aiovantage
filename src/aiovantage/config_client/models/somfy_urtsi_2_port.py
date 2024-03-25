@@ -1,4 +1,5 @@
 """Somfy URTSI 2 port device."""
+
 from dataclasses import dataclass
 
 from .port_device import PortDevice

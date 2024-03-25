@@ -1,4 +1,5 @@
 """Controller holding and managing Vantage variables."""
+
 import re
 
 from typing_extensions import override
