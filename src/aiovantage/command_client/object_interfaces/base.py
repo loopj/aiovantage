@@ -32,14 +32,12 @@ class Interface:
         return self._command_client
 
     @overload
-    async def invoke(self, vid: int, method: str, *params: ParameterType) -> Any:
-        ...
+    async def invoke(self, vid: int, method: str, *params: ParameterType) -> Any: ...
 
     @overload
     async def invoke(
         self, vid: int, method: str, *params: ParameterType, as_type: type[T]
-    ) -> T:
-        ...
+    ) -> T: ...
 
     async def invoke(
         self,
@@ -80,13 +78,11 @@ class Interface:
     @classmethod
     def parse_response(
         cls, method: str, result: str, *args: str, as_type: type[T]
-    ) -> T:
-        ...
+    ) -> T: ...
 
     @overload
     @classmethod
-    def parse_response(cls, method: str, result: str, *args: str) -> Any:
-        ...
+    def parse_response(cls, method: str, result: str, *args: str) -> Any: ...
 
     @classmethod
     def parse_response(

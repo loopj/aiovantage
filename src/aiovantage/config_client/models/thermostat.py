@@ -1,4 +1,5 @@
 """Thermostat object."""
+
 from dataclasses import dataclass, field
 from enum import IntEnum
 
