@@ -69,12 +69,10 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         self.__filters.append(filter_fn)
 
     @overload
-    def filter(self, match: Callable[[T], Any]) -> "QuerySet[T]":
-        ...
+    def filter(self, match: Callable[[T], Any]) -> "QuerySet[T]": ...
 
     @overload
-    def filter(self, **kwargs: Any) -> "QuerySet[T]":
-        ...
+    def filter(self, **kwargs: Any) -> "QuerySet[T]": ...
 
     def filter(self, *args: Any, **kwargs: Any) -> "QuerySet[T]":
         """Return a queryset of items that match the given filter."""
@@ -94,16 +92,13 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         return queryset
 
     @overload
-    def get(self, key: int, default: T | None = None) -> T | None:
-        ...
+    def get(self, key: int, default: T | None = None) -> T | None: ...
 
     @overload
-    def get(self, match: Callable[[T], Any]) -> T | None:
-        ...
+    def get(self, match: Callable[[T], Any]) -> T | None: ...
 
     @overload
-    def get(self, **kwargs: Any) -> T | None:
-        ...
+    def get(self, **kwargs: Any) -> T | None: ...
 
     def get(self, *args: Any, **kwargs: Any) -> T | None:
         """Get the first object that matches the given filter."""
@@ -115,16 +110,13 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         return next(iter(self.filter(*args, **kwargs)), None)
 
     @overload
-    async def aget(self, key: int, default: T | None = None) -> T | None:
-        ...
+    async def aget(self, key: int, default: T | None = None) -> T | None: ...
 
     @overload
-    async def aget(self, match: Callable[[T], Any]) -> T | None:
-        ...
+    async def aget(self, match: Callable[[T], Any]) -> T | None: ...
 
     @overload
-    async def aget(self, **kwargs: Any) -> T | None:
-        ...
+    async def aget(self, **kwargs: Any) -> T | None: ...
 
     async def aget(self, *args: Any, **kwargs: Any) -> T | None:
         """Asynchronously get the first object that matches the given filter."""

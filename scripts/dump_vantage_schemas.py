@@ -1,4 +1,5 @@
 """Dump all Vantage object types."""
+
 import argparse
 import asyncio
 import contextlib

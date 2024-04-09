@@ -1,6 +1,5 @@
 """Base class for Vantage port devices."""
 
-
 from dataclasses import dataclass
 
 from .location_object import LocationObject

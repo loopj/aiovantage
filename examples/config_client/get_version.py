@@ -1,4 +1,5 @@
 """Example of using the ConfigClient to get the Vantage version."""
+
 import argparse
 import asyncio
 import contextlib
