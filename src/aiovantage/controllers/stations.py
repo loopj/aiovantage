@@ -13,11 +13,19 @@ class StationsController(BaseController[StationObject]):
     """
 
     vantage_types = (
+        "ContactInput",
         "Dimmer",
+        "DINContactInput",
+        "DINHighVoltageRelayStation",
+        "DINLowVoltageRelayStation",
         "DualRelayStation",
         "EqCtrl",
         "EqUX",
+        "HighVoltageRelayStation",
         "Keypad",
+        "LowVoltageRelayStation",
+        "RS232Station",
+        "RS485Station",
         "ScenePointRelay",
         "Vantage.DmxDaliGateway",
     )
