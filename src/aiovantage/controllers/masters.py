@@ -29,15 +29,9 @@ class MastersController(
     @override
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a Vantage controller."""
-        state: dict[str, Any] = {}
-
-        # IntrospectionInterface is not available on 2.x firmware.
-        with suppress(CommandError):
-            state["firmware_version"] = (
-                await IntrospectionInterface.get_firmware_version(
-                    self, vid, self.Firmware.Application
-                )
-            )
+        state: dict[str, Any] = {
+            "firmware_version": await self.get_version(),
+        }
 
         # ObjectInterface is not available on 2.x firmware.
         with suppress(CommandError):
@@ -58,3 +52,14 @@ class MastersController(
         }
 
         self.update_state(vid, state)
+
+    async def get_version(self) -> str:
+        """Get the firmware version of a Vantage controller.
+
+        Returns:
+            The firmware version of the controller.
+        """
+        # VERSION
+        # -> R:VERSION {version}
+        response = await self.command_client.command("VERSION")
+        return response.args[0]
