@@ -41,6 +41,7 @@ class Load(LocationObject):
         return self.load_type in (
             "High Voltage Relay",
             "Low Voltage Relay",
+            "[MDR8RW101]",
         )
 
     @property
