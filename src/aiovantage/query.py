@@ -92,7 +92,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         return queryset
 
     @overload
-    def get(self, key: int, default: T | None = None) -> T | None: ...
+    def get(self, key: int) -> T | None: ...
 
     @overload
     def get(self, match: Callable[[T], Any]) -> T | None: ...
@@ -104,13 +104,13 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         """Get the first object that matches the given filter."""
         # Handle the case where we're getting an object by key
         if len(args) == 1 and isinstance(args[0], int):
-            return self.__data.get(args[0], kwargs.get("default", None))
+            return self.__data.get(args[0], None)
 
         # Otherwise, pass through to filter and return the first object
         return next(iter(self.filter(*args, **kwargs)), None)
 
     @overload
-    async def aget(self, key: int, default: T | None = None) -> T | None: ...
+    async def aget(self, key: int) -> T | None: ...
 
     @overload
     async def aget(self, match: Callable[[T], Any]) -> T | None: ...
