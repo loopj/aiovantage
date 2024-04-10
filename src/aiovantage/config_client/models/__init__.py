@@ -8,19 +8,26 @@ from .blind_group import BlindGroup
 from .blind_group_base import BlindGroupBase
 from .button import Button
 from .child_device import ChildDevice
+from .contact_input import ContactInput
 from .custom_device import CustomDevice
 from .dc_power_profile import DCPowerProfile
 from .dimmer import Dimmer
+from .din_contact_input import DINContactInput
+from .din_high_voltage_relay_station import DINHighVoltageRelayStation
+from .din_low_voltage_relay_station import DINLowVoltageRelayStation
+from .din_station import DINStation
 from .dry_contact import DryContact
 from .dual_relay_station import DualRelayStation
 from .eq_ctrl import EqCtrl
 from .eq_ux import EqUX
 from .gmem import GMem
+from .high_voltage_relay_station import HighVoltageRelayStation
 from .keypad import Keypad
 from .light_sensor import LightSensor
 from .load import Load
 from .load_group import LoadGroup
 from .location_object import LocationObject
+from .low_voltage_relay_station import LowVoltageRelayStation
 from .master import Master
 from .module import Module
 from .module_gen2 import ModuleGen2
@@ -33,6 +40,8 @@ from .qis_blind import QISBlind
 from .qube_blind import QubeBlind
 from .relay_blind import RelayBlind
 from .rgb_load_base import RGBLoadBase
+from .rs232_station import RS232Station
+from .rs485_station import RS485Station
 from .scene_point_relay import ScenePointRelay
 from .sensor import Sensor
 from .somfy_rs_485_group_child import SomfyRS485GroupChild
@@ -62,19 +71,26 @@ __all__ = [
     "BlindGroupBase",
     "Button",
     "ChildDevice",
+    "ContactInput",
     "CustomDevice",
     "DCPowerProfile",
     "Dimmer",
+    "DINContactInput",
+    "DINHighVoltageRelayStation",
+    "DINLowVoltageRelayStation",
+    "DINStation",
     "DryContact",
     "DualRelayStation",
     "EqCtrl",
     "EqUX",
     "GMem",
+    "HighVoltageRelayStation",
     "Keypad",
     "LightSensor",
     "Load",
     "LoadGroup",
     "LocationObject",
+    "LowVoltageRelayStation",
     "Master",
     "Module",
     "ModuleGen2",
@@ -88,6 +104,8 @@ __all__ = [
     "QubeBlind",
     "RelayBlind",
     "RGBLoadBase",
+    "RS232Station",
+    "RS485Station",
     "ScenePointRelay",
     "Sensor",
     "SomfyRS485GroupChild",

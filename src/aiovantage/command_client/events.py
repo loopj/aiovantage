@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from collections import defaultdict
-from collections.abc import Callable, Coroutine, Iterable, Sequence
+from collections.abc import Awaitable, Callable, Iterable, Sequence
 from contextlib import suppress
 from enum import Enum
 from inspect import iscoroutinefunction
@@ -71,7 +71,7 @@ class EnhancedLogEvent(TypedDict):
 Event = ConnectEvent | DisconnectEvent | ReconnectEvent | StatusEvent | EnhancedLogEvent
 
 # Type aliases for callbacks for event subscriptions
-EventCallback = Callable[[Event], Coroutine | None]
+EventCallback = Callable[[Event], Awaitable[None] | None]
 EventFilter = Callable[[Event], bool]
 EventSubscription = tuple[EventCallback, EventFilter | None]
 
@@ -181,7 +181,7 @@ class EventStream:
         if isinstance(event_filter, EventType):
             subscription = (callback, lambda event: event["type"] == event_filter)
         elif isinstance(event_filter, Iterable):
-            subscription = (callback, lambda event: event["type"] in event_filter)  # type: ignore[operator]
+            subscription = (callback, lambda event: event["type"] in event_filter)
         else:
             subscription = (callback, event_filter)
 
