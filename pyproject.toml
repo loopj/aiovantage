@@ -33,7 +33,7 @@ Source = "https://github.com/loopj/aiovantage"
 dev = [
     "black==24.1.1",
     "mypy==1.8.0",
-    "ruff==0.1.14",
+    "ruff==0.4.4",
     "pre-commit==3.6.0",
 ]
 
