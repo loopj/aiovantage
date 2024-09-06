@@ -19,7 +19,7 @@ various types of events, such as "STATUS" and "ELLOG".
 Connections are created lazily when needed, and closed when the client is closed,
 and will automatically reconnect if the connection is lost.
 
-Various pre-defined interfaces are available in [`interfaces`](interfaces) to help with
+Various pre-defined interfaces are available in [`object_interfaces`](object_interfaces) to help with
 making object-centric requests, but it is also possible to make raw requests.
 
 ## Examples
