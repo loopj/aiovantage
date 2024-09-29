@@ -4,6 +4,7 @@ __all__ = ["Vantage", "VantageEvent"]
 
 import asyncio
 from collections.abc import Callable
+from ssl import SSLContext
 from types import TracebackType
 from typing import Any, TypeVar, cast
 
@@ -49,7 +50,7 @@ class Vantage:
         username: str | None = None,
         password: str | None = None,
         *,
-        use_ssl: bool = True,
+        ssl: SSLContext | bool = True,
         config_port: int | None = None,
         command_port: int | None = None,
     ) -> None:
@@ -59,22 +60,22 @@ class Vantage:
             host: The hostname or IP address of the Vantage controller.
             username: The username to use for authentication.
             password: The password to use for authentication.
-            use_ssl: Whether to use SSL for the connection.
+            ssl: The SSL context to use. True will use the default context, False will disable SSL.
             config_port: The port to use for the config client.
             command_port: The port to use for the command client.
         """
         # Set up clients
         self._host = host
         self._config_client = ConfigClient(
-            host, username, password, ssl=use_ssl, port=config_port
+            host, username, password, ssl=ssl, port=config_port
         )
 
         self._command_client = CommandClient(
-            host, username, password, ssl=use_ssl, port=command_port
+            host, username, password, ssl=ssl, port=command_port
         )
 
         self._event_stream = EventStream(
-            host, username, password, ssl=use_ssl, port=command_port
+            host, username, password, ssl=ssl, port=command_port
         )
 
         # Set up controllers
