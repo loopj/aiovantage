@@ -206,7 +206,7 @@ class BaseController(QuerySet[T]):
         if self.interface_status_types:
             # Subscribe to "object status" events from the Enhanced Log.
             self.event_stream.subscribe_enhanced_log(
-                self._handle_event, ("STATUS", "STATUSEX")
+                self._handle_event, ("STATUS", "STATUSEX", "AUTOMATION")
             )
 
         self._subscribed_to_state_changes = True
