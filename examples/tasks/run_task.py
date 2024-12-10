@@ -38,7 +38,7 @@ async def main() -> None:
 
         # Run the task
         print(f"{task.name} (id = {task.id})")
-        await vantage.tasks.start(task.id)
+        await task.start()
 
 
 with contextlib.suppress(KeyboardInterrupt):

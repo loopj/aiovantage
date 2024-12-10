@@ -6,7 +6,7 @@ from functools import cache
 from types import ModuleType
 from typing import Any
 
-from aiovantage.config_client import models
+from aiovantage import models
 
 
 def get_all_module_classes(module: ModuleType) -> list[type[Any]]:

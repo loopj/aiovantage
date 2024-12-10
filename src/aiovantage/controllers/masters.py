@@ -1,43 +1,29 @@
 """Controller holding and managing Vantage controllers."""
 
-from contextlib import suppress
 from typing import Any
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import (
-    IntrospectionInterface,
-    ObjectInterface,
-)
-from aiovantage.errors import CommandError
 from aiovantage.models import Master
+from aiovantage.object_interfaces.object import ObjectInterface
 
 from .base import BaseController
 
 
-class MastersController(
-    BaseController[Master], IntrospectionInterface, ObjectInterface
-):
+class MastersController(BaseController[Master]):
     """Controller holding and managing Vantage controllers."""
 
     vantage_types = ("Master",)
-    """The Vantage object types that this controller will fetch."""
-
     interface_status_types = ("Object.GetMTime",)
-    """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: Master) -> None:
         """Fetch the state properties of a Vantage controller."""
         state: dict[str, Any] = {
             "firmware_version": await self.get_version(),
         }
 
-        # ObjectInterface is not available on 2.x firmware.
-        with suppress(CommandError):
-            state["last_updated"] = await ObjectInterface.get_mtime(self, vid)
-
-        self.update_state(vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_interface_status(
@@ -48,7 +34,7 @@ class MastersController(
             return
 
         state = {
-            "last_updated": self.parse_response(method, result, *args),
+            "mtime": ObjectInterface.parse_response(method, result, *args),
         }
 
         self.update_state(vid, state)

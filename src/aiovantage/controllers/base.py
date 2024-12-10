@@ -97,7 +97,7 @@ class BaseController(QuerySet[T]):
         """Return a set of all known object IDs."""
         return set(self._items.keys())
 
-    async def fetch_object_state(self, _vid: int) -> None:
+    async def fetch_object_state(self, obj: T) -> None:
         """Fetch the full state of an object.
 
         Should be overridden by subclasses that manage stateful objects.
@@ -136,6 +136,8 @@ class BaseController(QuerySet[T]):
 
             # Fetch all objects managed by this controller
             async for obj in get_objects(self.config_client, types=self.vantage_types):
+                obj._command_client = self.command_client
+
                 if obj.id in prev_ids:
                     # This is an existing object.
                     # Update any attributes that have changed and notify subscribers.
@@ -157,7 +159,7 @@ class BaseController(QuerySet[T]):
 
                     # Fetch the state of stateful objects
                     if self.stateful and fetch_state:
-                        await self.fetch_object_state(obj.id)
+                        await self.fetch_object_state(obj)
 
                 # Keep track of which objects we've seen
                 cur_ids.add(obj.id)
@@ -185,7 +187,7 @@ class BaseController(QuerySet[T]):
             return
 
         for obj in self._items.values():
-            await self.fetch_object_state(obj.id)
+            await self.fetch_object_state(obj)
 
         self._logger.info("%s fetched state", type(self).__name__)
 
@@ -292,12 +294,13 @@ class BaseController(QuerySet[T]):
         # Check if any state attributes changed and update them
         attrs_changed = []
         for key, value in attrs.items():
-            try:
-                if getattr(obj, key) != value:
-                    setattr(obj, key, value)
-                    attrs_changed.append(key)
-            except AttributeError:
-                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
+            # try:
+            # if getattr(obj, key) != value:
+            setattr(obj, key, value)
+            attrs_changed.append(key)
+            # except AttributeError as e:
+            #     self._logger.warning(e)
+            #     # self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
 
         # Notify subscribers if any attributes changed
         if len(attrs_changed) > 0:

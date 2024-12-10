@@ -4,13 +4,22 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import BlindInterface
-from aiovantage.models import BlindBase
+from aiovantage.models import (
+    QISBlind,
+    QubeBlind,
+    RelayBlind,
+    SomfyRS485ShadeChild,
+    SomfyURTSI2ShadeChild,
+)
 
 from .base import BaseController
 
+BlindTypes = (
+    QISBlind | QubeBlind | RelayBlind | SomfyRS485ShadeChild | SomfyURTSI2ShadeChild
+)
 
-class BlindsController(BaseController[BlindBase], BlindInterface):
+
+class BlindsController(BaseController[BlindTypes]):
     """Controller holding and managing Vantage blinds."""
 
     vantage_types = (
@@ -20,19 +29,17 @@ class BlindsController(BaseController[BlindBase], BlindInterface):
         "Somfy.RS-485_Shade_CHILD",
         "Somfy.URTSI_2_Shade_CHILD",
     )
-    """The Vantage object types that this controller will fetch."""
 
     status_types = ("BLIND",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: BlindTypes) -> None:
         """Fetch the state properties of a blind."""
         state = {
-            "position": await BlindInterface.get_position(self, vid),
+            "position": await obj.get_position(),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

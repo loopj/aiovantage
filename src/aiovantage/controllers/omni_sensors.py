@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing_extensions import override
 
 from aiovantage.command_client.utils import parse_fixed_param
-from aiovantage.config_client.models.omni_sensor import ConversionType, OmniSensor
+from aiovantage.models.omni_sensor import ConversionType, OmniSensor
 
 from .base import BaseController
 
@@ -19,19 +19,16 @@ class OmniSensorsController(BaseController[OmniSensor]):
     """
 
     vantage_types = ("OmniSensor",)
-    """The Vantage object types that this controller will fetch."""
-
     interface_status_types = "*"
-    """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: OmniSensor) -> None:
         """Fetch the state properties of an omni sensor."""
         state = {
-            "level": await self.get_level(vid),
+            "level": await self.get_level(obj),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_interface_status(
@@ -48,24 +45,22 @@ class OmniSensorsController(BaseController[OmniSensor]):
 
         self.update_state(vid, state)
 
-    async def get_level(self, vid: int, cached: bool = True) -> int | Decimal:
+    async def get_level(self, sensor: OmniSensor, cached: bool = True) -> int | Decimal:
         """Get the level of an OmniSensor.
 
         Args:
-            vid: The ID of the sensor.
+            sensor: The OmniSensor object.
             cached: Whether to use the cached value or fetch a new one.
 
         Returns:
             The level of the sensor.
         """
-        omni_sensor = self[vid]
-
         # INVOKE <id> <method>
         # -> R:INVOKE <id> <value> <method>
-        method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
-        response = await self.command_client.command("INVOKE", vid, method)
+        method = sensor.get.method if cached else sensor.get.method_hw
+        response = await self.command_client.command("INVOKE", sensor.id, method)
 
-        return self.parse_result(omni_sensor, response.args[1])
+        return self.parse_result(sensor, response.args[1])
 
     @classmethod
     def parse_result(cls, sensor: OmniSensor, result: str) -> int | Decimal:
