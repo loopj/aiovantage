@@ -167,6 +167,8 @@ async with Vantage("hostname", "username", "password") as vantage:
     print(f"{load.name} is at {load.level}%")
 ```
 
+If no object matches the id or query, these functions will both return `None`.
+
 ### Controlling objects
 
 Most controllers expose a various methods for controlling the state of objects. The first parameter to these methods is always the vantage id of the object to control.
@@ -175,7 +177,8 @@ For example, to turn on a load:
 
 ```python
 async with Vantage("hostname", "username", "password") as vantage:
-    await vantage.loads.turn_on(118)
+    load = await vantage.loads.aget(name="Kitchen")
+    await load.turn_on()
 ```
 
 ### Subscribing to state changes
