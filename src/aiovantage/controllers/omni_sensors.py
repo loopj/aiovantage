@@ -6,7 +6,7 @@ from typing_extensions import override
 
 from aiovantage.command_client.utils import parse_fixed_param
 from aiovantage.controllers.base import BaseController
-from aiovantage.objects.omni_sensor import ConversionType, OmniSensor
+from aiovantage.objects import ConversionType, OmniSensor
 
 
 class OmniSensorsController(BaseController[OmniSensor]):
