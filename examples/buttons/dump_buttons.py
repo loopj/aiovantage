@@ -27,7 +27,7 @@ async def main() -> None:
         async for button in vantage.buttons:
             print(
                 f"[{button.id}] name='{button.name}' "
-                f"text1='{button.text1}' text2='{button.text2}'"
+                f"text_1='{button.text_1}' text_2='{button.text_2}'"
             )
 
 
