@@ -9,6 +9,7 @@ from .system_object.button import Button
 from .system_object.gmem import GMem
 from .system_object.location_object import LocationObject
 from .system_object.location_object.area import Area
+from .system_object.location_object.back_box import BackBox
 from .system_object.location_object.blind import Blind
 from .system_object.location_object.blind_group import BlindGroup
 from .system_object.location_object.custom_device import CustomDevice
