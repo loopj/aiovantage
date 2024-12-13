@@ -6,6 +6,7 @@ import contextlib
 import logging
 
 from aiovantage import Vantage
+from aiovantage.objects import Master
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -25,10 +26,11 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id and name of each Vantage controller
         async for master in vantage.masters:
+            fw = await master.get_firmware_version(Master.FirmwareImage.Application)
             print(
                 f"[{master.id}] '{master.name}' "
                 f"serial_number={master.serial_number} "
-                f"firmware_version={master.firmware_version}"
+                f"firmware_version={fw}"
             )
 
 

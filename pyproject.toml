@@ -44,9 +44,9 @@ style = ["ruff {args:.}", "black --check --diff {args:.}"]
 fmt = ["black {args:.}", "ruff --fix {args:.}"]
 typing = "mypy {args:.}"
 
-# [tool.mypy]
-# strict = true
-# disable_error_code = ["no-implicit-reexport"]
+[tool.mypy]
+strict = true
+no_implicit_reexport = false
 
 [tool.black]
 target-version = ["py310"]
