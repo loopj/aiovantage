@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from . import StationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class VantageDmxDaliGateway(StationObject):
     """DMX/DALI Gateway station."""
 

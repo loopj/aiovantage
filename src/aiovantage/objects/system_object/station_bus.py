@@ -1,18 +1,14 @@
 """Station bus object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from aiovantage.objects.types import Parent
 
 from . import SystemObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class StationBus(SystemObject):
     """Station bus object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent

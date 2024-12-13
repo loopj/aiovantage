@@ -13,7 +13,7 @@ class LightSensorInterface(Interface):
         "LightSensor.GetLevelHW": Decimal,
     }
 
-    level: Decimal
+    level: Decimal | None = None
 
     async def get_level(self) -> Decimal:
         """Get the level of a light sensor, using cached value if available.

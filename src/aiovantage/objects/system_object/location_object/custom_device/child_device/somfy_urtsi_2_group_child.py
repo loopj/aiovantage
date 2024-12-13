@@ -7,7 +7,7 @@ from aiovantage.object_interfaces.blind import BlindInterface
 from . import ChildDevice
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyURTSI2GroupChild(ChildDevice, BlindInterface):
     """Somfy URTSI 2 blind group."""
 

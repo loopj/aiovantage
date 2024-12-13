@@ -7,6 +7,16 @@ from dataclasses import dataclass, field
 class Login:
     """ILogin.Login method definition."""
 
+    # Request:
+    # <ILogin>
+    #   <Login>
+    #     <call>
+    #       <User>username</User>
+    #       <Password>password</Password>
+    #     </call>
+    #   </Login>
+    # </ILogin>
+
     interface = "ILogin"
 
     @dataclass

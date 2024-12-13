@@ -5,6 +5,6 @@ from dataclasses import dataclass
 from . import StationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ContactInput(StationObject):
     """Contact Input."""

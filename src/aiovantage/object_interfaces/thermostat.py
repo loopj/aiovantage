@@ -61,11 +61,11 @@ class ThermostatInterface(Interface):
         "Thermostat.GetAutoSetPoint": Decimal,
     }
 
-    day_mode: DayMode
-    fan_mode: FanMode
-    operation_mode: OperationMode
-    hold_mode: HoldMode
-    status: Status  # Not available in 2.x firmware
+    day_mode: DayMode | None = None
+    fan_mode: FanMode | None = None
+    operation_mode: OperationMode | None = None
+    hold_mode: HoldMode | None = None
+    status: Status | None = None  # Not available in 2.x firmware
 
     async def get_indoor_temperature(self) -> Decimal:
         """Get the current indoor temperature.

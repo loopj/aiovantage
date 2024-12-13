@@ -43,4 +43,4 @@ class LoadGroupsController(BaseController[LoadGroup]):
         """Return a queryset of all loads in this load group."""
         load_group = self[vid]
 
-        return self._vantage.loads.filter(lambda load: load.id in load_group.load_ids)
+        return self._vantage.loads.filter(lambda load: load.id in load_group.load_table)

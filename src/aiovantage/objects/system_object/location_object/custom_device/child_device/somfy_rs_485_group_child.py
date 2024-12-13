@@ -7,7 +7,7 @@ from aiovantage.object_interfaces.blind import BlindInterface
 from . import ChildDevice
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyRS485GroupChild(ChildDevice, BlindInterface):
     """Somfy RS-485 SDN 2.0 blind group."""
 

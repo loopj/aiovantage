@@ -7,11 +7,11 @@ from aiovantage.object_interfaces.load import LoadInterface
 from . import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class LoadGroup(LocationObject, LoadInterface):
     """LoadGroup object."""
 
-    load_ids: list[int] = field(
+    load_table: list[int] = field(
         default_factory=list,
         metadata={
             "name": "Load",

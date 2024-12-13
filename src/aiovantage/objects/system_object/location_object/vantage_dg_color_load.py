@@ -1,6 +1,6 @@
 """DMX Gateway color load object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 from aiovantage.object_interfaces.color_temperature import ColorTemperatureInterface
@@ -11,7 +11,7 @@ from aiovantage.objects.types import Parent
 from . import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class VantageDGColorLoad(
     LocationObject, LoadInterface, RGBLoadInterface, ColorTemperatureInterface
 ):
@@ -28,29 +28,10 @@ class VantageDGColorLoad(
         CCT = "CCT"
         COLOR_CHANNEL = "Color Channel"
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
-
-    color_type: ColorType = field(
-        metadata={
-            "name": "ColorType",
-        }
-    )
-
-    min_temp: int = field(
-        metadata={
-            "name": "MinTemp",
-        }
-    )
-
-    max_temp: int = field(
-        metadata={
-            "name": "MaxTemp",
-        }
-    )
+    parent: Parent
+    color_type: ColorType
+    min_temp: int
+    max_temp: int
 
     @property
     def is_rgb(self) -> bool:

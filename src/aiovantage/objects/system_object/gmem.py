@@ -6,49 +6,52 @@ from . import SystemObject
 
 
 @dataclass
+class Data:
+    """The data contained in the GMem object."""
+
+    @dataclass
+    class StringData:
+        value: str
+        size: int | None = field(
+            default=None,
+            metadata={"name": "size", "type": "Attribute"},
+        )
+
+    @dataclass
+    class ByteData:
+        value: bytes = field(metadata={"format": "base16"})
+        size: int | None = field(
+            default=None,
+            metadata={"name": "size", "type": "Attribute"},
+        )
+
+    val: int | None = field(default=None, metadata={"name": "val"})
+    string: StringData | None = field(default=None, metadata={"name": "string"})
+    bytes: ByteData | None = field(default=None, metadata={"name": "bytes"})
+    fixed: bool = field(default=False, metadata={"type": "Attribute"})
+
+
+@dataclass
+class Tag:
+    """The type of the GMem object."""
+
+    type: str
+    object: bool = field(
+        default=False,
+        metadata={"name": "object", "type": "Attribute"},
+    )
+
+
+@dataclass
 class GMem(SystemObject):
     """GMem (variable) object."""
 
-    @dataclass
-    class Tag:
-        type: str
+    data: Data = field(metadata={"name": "data"})
+    persistent: bool
+    tag: Tag
 
-        object: bool = field(
-            default=False,
-            metadata={
-                "name": "object",
-                "type": "Attribute",
-            },
-        )
-
-    @dataclass
-    class Data:
-        fixed: bool = field(
-            default=False,
-            metadata={
-                "name": "Fixed",
-                "type": "Attribute",
-            },
-        )
-
-    data: Data = field(
-        metadata={
-            "name": "data",
-        }
-    )
-
-    persistent: bool = field(
-        metadata={
-            "name": "Persistent",
-        }
-    )
-
-    tag: Tag = field(
-        metadata={
-            "name": "Tag",
-        }
-    )
-
+    # Convenience property to store the latest value of the GMem
+    # Not a part of the true object schema
     value: int | str | bool | None = field(
         default=None,
         metadata={

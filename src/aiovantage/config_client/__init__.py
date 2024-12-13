@@ -22,11 +22,13 @@ from types import TracebackType
 from xml.etree import ElementTree
 
 from typing_extensions import Self
+from xsdata.formats.dataclass.context import XmlContext
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
 from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
+from xsdata.utils.text import pascal_case
 
 from aiovantage.connection import BaseConnection
 from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
@@ -68,13 +70,18 @@ class ConfigClient:
         self._password = password
         self._read_timeout = read_timeout
 
+        context = XmlContext(
+            element_name_generator=pascal_case,
+            attribute_name_generator=pascal_case,
+        )
+
         self._serializer = XmlSerializer(
             config=SerializerConfig(xml_declaration=False),
         )
-
         self._parser = XmlParser(
             config=ParserConfig(fail_on_unknown_properties=False),
             handler=XmlEventHandler,
+            context=context,
         )
         self._connection_lock = asyncio.Lock()
         self._request_lock = asyncio.Lock()

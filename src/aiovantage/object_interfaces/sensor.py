@@ -13,7 +13,7 @@ class SensorInterface(Interface):
         "Sensor.GetLevelHW": Decimal,
     }
 
-    level: Decimal
+    level: Decimal | None = None
 
     async def get_level(self) -> Decimal:
         """Get the level of a sensor, using cached value if available.

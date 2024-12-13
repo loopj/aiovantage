@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from . import PortDevice
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyRS485SDN20Port(PortDevice):
     """Somfy RS-485 SDN 2.0."""
 

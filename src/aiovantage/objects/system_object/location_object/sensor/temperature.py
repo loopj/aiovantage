@@ -9,28 +9,19 @@ from aiovantage.objects.types import Parent
 from . import Sensor
 
 
+class Setpoint(Enum):
+    """Setpoint type."""
+
+    HEAT = "Heat"
+    COOL = "Cool"
+    AUTO = "Auto"
+
+
 @dataclass(kw_only=True)
 class Temperature(Sensor, TemperatureInterface):
     """Temperature object."""
 
-    class Setpoint(Enum):
-        """Setpoint type."""
+    # setpoint not available in 2.x firmware
 
-        HEAT = "Heat"
-        COOL = "Cool"
-        AUTO = "Auto"
-
-    # Not available in 2.x firmware
-    setpoint: Setpoint | None = field(
-        default=None,
-        metadata={
-            "name": "Setpoint",
-            "type": "Attribute",
-        },
-    )
-
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    setpoint: Setpoint | None = field(default=None, metadata={"type": "Attribute"})
+    parent: Parent

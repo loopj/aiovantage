@@ -1,84 +1,40 @@
 """OmniSensor object."""
 
 from dataclasses import dataclass, field
-from decimal import Decimal
 from enum import Enum
 
+from aiovantage.object_interfaces.sensor import SensorInterface
 from aiovantage.objects.types import Parent
 
 from . import Sensor
 
 
-@dataclass
-class OmniSensor(Sensor):
+class ConversionType(Enum):
+    """OmniSensor type conversion information."""
+
+    FIXED = "fixed"
+    INT = "int"
+
+
+@dataclass(kw_only=True)
+class OmniSensor(Sensor, SensorInterface):
     """OmniSensor object."""
 
-    class ConversionType(Enum):
-        """OmniSensor type conversion information."""
-
-        FIXED = "fixed"
-        INT = "int"
-
-    @dataclass
-    class Formula:
-        """OmniSensor conversion formula information."""
-
-        return_type: "OmniSensor.ConversionType" = field(
-            metadata={
-                "name": "ReturnType",
-                "type": "Attribute",
-            }
-        )
-
-        level_type: "OmniSensor.ConversionType" = field(
-            metadata={
-                "name": "LevelType",
-                "type": "Attribute",
-            }
-        )
-
-        value: str
+    ConversionType = ConversionType
 
     @dataclass
     class GetMethodType:
-        """Omnisensor get method information."""
+        @dataclass
+        class Formula:
+            return_type: ConversionType = field(metadata={"type": "Attribute"})
+            level_type: ConversionType = field(metadata={"type": "Attribute"})
 
-        formula: "OmniSensor.Formula" = field(
-            metadata={
-                "name": "Formula",
-            }
-        )
+        formula: Formula
+        method: str
+        method_hw: str = field(metadata={"name": "MethodHW"})
 
-        method: str = field(
-            metadata={
-                "name": "Method",
-            }
-        )
-
-        method_hw: str = field(
-            metadata={
-                "name": "MethodHW",
-            }
-        )
-
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
-
-    get: GetMethodType = field(
-        metadata={
-            "name": "Get",
-        }
-    )
-
-    level: int | Decimal | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    parent: Parent
+    get: GetMethodType
 
     @property
     def is_current_sensor(self) -> bool:

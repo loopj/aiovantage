@@ -7,6 +7,6 @@ from aiovantage.object_interfaces import SounderInterface
 from . import StationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class EqCtrl(StationObject, SounderInterface):
     """Equinox 40 Station."""

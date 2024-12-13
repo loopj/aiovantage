@@ -5,6 +5,6 @@ from dataclasses import dataclass
 from . import DINStation
 
 
-@dataclass
+@dataclass(kw_only=True)
 class DINLowVoltageRelayStation(DINStation):
     """DIN Low Voltage Relay Station."""

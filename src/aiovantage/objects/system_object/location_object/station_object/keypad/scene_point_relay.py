@@ -5,6 +5,6 @@ from dataclasses import dataclass
 from . import Keypad
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ScenePointRelay(Keypad):
     """ScenePoint Relay Station."""

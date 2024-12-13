@@ -5,6 +5,6 @@ from dataclasses import dataclass
 from .. import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class CustomDevice(LocationObject):
     """Base class for custom device objects."""

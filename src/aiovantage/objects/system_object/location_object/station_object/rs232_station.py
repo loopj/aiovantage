@@ -5,6 +5,6 @@ from dataclasses import dataclass
 from . import StationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class RS232Station(StationObject):
     """RS-232 Station."""

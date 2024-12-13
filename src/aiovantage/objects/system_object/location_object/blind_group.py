@@ -7,11 +7,11 @@ from aiovantage.object_interfaces.blind import BlindInterface
 from . import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class BlindGroup(LocationObject, BlindInterface):
     """BlindGroup object."""
 
-    blind_ids: list[int] = field(
+    blind_table: list[int] = field(
         default_factory=list,
         metadata={
             "name": "Blind",

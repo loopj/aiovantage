@@ -4,9 +4,9 @@ from dataclasses import dataclass
 
 from .. import ParentDevice
 
-# NOTE: Inherits from LocationObject on 2.x firmware, ParentDevice on 3.x firmware.
 
-
-@dataclass
+@dataclass(kw_only=True)
 class PortDevice(ParentDevice):
     """Base class for Vantage port devices."""
+
+    # NOTE: Inherits from LocationObject on 2.x firmware

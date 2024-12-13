@@ -9,6 +9,15 @@ from aiovantage.config_client.interfaces.types import ObjectChoice
 class GetObject:
     """IConfiguration.GetObject method definition."""
 
+    # Request:
+    # <IConfiguration>
+    #   <GetObject>
+    #     <call>
+    #       <VID>118</VID>
+    #     </call>
+    #   </GetObject>
+    # </IConfiguration>
+
     interface = "IConfiguration"
 
     @dataclass

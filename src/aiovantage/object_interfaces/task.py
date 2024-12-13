@@ -11,8 +11,8 @@ class TaskInterface(Interface):
         "Task.GetState": int,
     }
 
-    state: int
-    running: bool
+    state: int | None = None
+    running: bool | None = None
 
     async def start(self) -> None:
         """Start a task."""

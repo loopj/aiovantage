@@ -7,6 +7,6 @@ from aiovantage.object_interfaces import SounderInterface
 from . import Keypad
 
 
-@dataclass
+@dataclass(kw_only=True)
 class DualRelayStation(Keypad, SounderInterface):
     """ScenePoint Dual Relay Station."""

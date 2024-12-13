@@ -4,9 +4,9 @@ from dataclasses import dataclass
 
 from .. import LocationObject
 
-# NOTE: Firmware 2.x inherits from SystemObject, not LocationObject
 
-
-@dataclass
+@dataclass(kw_only=True)
 class Sensor(LocationObject):
     """Sensor object."""
+
+    # NOTE: Firmware 2.x inherits from SystemObject

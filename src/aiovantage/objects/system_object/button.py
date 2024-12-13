@@ -1,6 +1,6 @@
 """Button object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from aiovantage.object_interfaces.button import ButtonInterface
 from aiovantage.objects.types import Parent
@@ -8,47 +8,18 @@ from aiovantage.objects.types import Parent
 from . import SystemObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Button(SystemObject, ButtonInterface):
     """Button object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
-
-    down_id: int = field(
-        metadata={
-            "name": "Down",
-        }
-    )
-
-    up_id: int = field(
-        metadata={
-            "name": "Up",
-        }
-    )
-
-    hold_id: int = field(
-        metadata={
-            "name": "Hold",
-        }
-    )
-
-    text1: str = field(
-        metadata={
-            "name": "Text1",
-        }
-    )
-
-    text2: str = field(
-        metadata={
-            "name": "Text2",
-        }
-    )
+    parent: Parent
+    down: int = 0
+    up: int = 0
+    hold: int = 0
+    text_1: str = ""
+    text_2: str = ""
 
     @property
     def text(self) -> str:
         """Return the button text."""
-        return f"{self.text1}\n{self.text2}" if self.text2 else self.text1
+        return f"{self.text_1}\n{self.text_2}" if self.text_2 else self.text_1

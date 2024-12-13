@@ -38,9 +38,9 @@ class RGBLoadInterface(Interface):
         "RGBLoad.GetColor": int,
     }
 
-    hsl: tuple[int, int, int]
-    rgb: tuple[int, int, int]
-    rgbw: tuple[int, int, int, int]
+    hsl: tuple[int, int, int] | None = None
+    rgb: tuple[int, int, int] | None = None
+    rgbw: tuple[int, int, int, int] | None = None
 
     async def set_rgb(self, red: int, green: int, blue: int) -> None:
         """Set the color of an RGB load.

@@ -1,6 +1,6 @@
 """Load object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from aiovantage.object_interfaces.load import LoadInterface
 from aiovantage.objects.types import Parent
@@ -8,27 +8,13 @@ from aiovantage.objects.types import Parent
 from . import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Load(LocationObject, LoadInterface):
     """Load object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
-
-    load_type: str = field(
-        metadata={
-            "name": "LoadType",
-        }
-    )
-
-    power_profile_id: int = field(
-        metadata={
-            "name": "PowerProfile",
-        }
-    )
+    parent: Parent
+    load_type: str = "Incandescent"
+    power_profile: int
 
     @property
     def is_relay(self) -> bool:

@@ -7,6 +7,6 @@ from aiovantage.object_interfaces.blind import BlindInterface
 from . import StationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class QISBlind(StationObject, BlindInterface):
     """QIS blind object."""

@@ -10,55 +10,22 @@ from aiovantage.object_interfaces.object import ObjectInterface
 class SystemObject(ObjectInterface):
     """Base class for all objects."""
 
-    id: int = field(
-        metadata={
-            "name": "VID",
-            "type": "Attribute",
-        }
+    # NOTE: m_time, d_name properties are not available in 2.x firmware
+
+    id: int = field(metadata={"name": "VID", "type": "Attribute"})
+    master: int = field(metadata={"type": "Attribute"})
+    name: str = ""
+    model: str = ""
+    note: str = ""
+    d_name: str = ""
+    m_time: dt.datetime | None = field(
+        default=None, metadata={"type": "Attribute", "format": "%Y-%m-%dT%H:%M:%S.%f"}
     )
 
-    master_id: int = field(
-        metadata={
-            "name": "Master",
-            "type": "Attribute",
-        }
-    )
-
-    name: str = field(
-        metadata={
-            "name": "Name",
-        }
-    )
-
-    model: str = field(
-        metadata={
-            "name": "Model",
-        }
-    )
-
-    note: str = field(
-        metadata={
-            "name": "Note",
-        }
-    )
-
-    # Not available in 2.x firmware
-    mtime: dt.datetime | None = field(
-        default=None,
-        metadata={
-            "name": "MTime",
-            "type": "Attribute",
-            "format": "%Y-%m-%dT%H:%M:%S.%f",
-        },
-    )
-
-    # Not available in 2.x firmware
-    display_name: str | None = field(
-        default=None,
-        metadata={
-            "name": "DName",
-        },
-    )
+    @property
+    def display_name(self) -> str:
+        """Return the display name of the object."""
+        return self.d_name or self.name
 
     @classmethod
     def vantage_type(cls) -> str:
