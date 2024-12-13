@@ -9,60 +9,57 @@ from aiovantage.objects.types import Parent
 from . import Sensor
 
 
-class ConversionType(Enum):
-    """OmniSensor type conversion information."""
-
-    FIXED = "fixed"
-    INT = "int"
-
-
-@dataclass
-class Formula:
-    """OmniSensor conversion formula information."""
-
-    return_type: ConversionType = field(
-        metadata={
-            "name": "ReturnType",
-            "type": "Attribute",
-        }
-    )
-
-    level_type: ConversionType = field(
-        metadata={
-            "name": "LevelType",
-            "type": "Attribute",
-        }
-    )
-
-    value: str
-
-
-@dataclass
-class GetMethodType:
-    """Omnisensor get method information."""
-
-    formula: Formula = field(
-        metadata={
-            "name": "Formula",
-        }
-    )
-
-    method: str = field(
-        metadata={
-            "name": "Method",
-        }
-    )
-
-    method_hw: str = field(
-        metadata={
-            "name": "MethodHW",
-        }
-    )
-
-
 @dataclass
 class OmniSensor(Sensor):
     """OmniSensor object."""
+
+    class ConversionType(Enum):
+        """OmniSensor type conversion information."""
+
+        FIXED = "fixed"
+        INT = "int"
+
+    @dataclass
+    class Formula:
+        """OmniSensor conversion formula information."""
+
+        return_type: "OmniSensor.ConversionType" = field(
+            metadata={
+                "name": "ReturnType",
+                "type": "Attribute",
+            }
+        )
+
+        level_type: "OmniSensor.ConversionType" = field(
+            metadata={
+                "name": "LevelType",
+                "type": "Attribute",
+            }
+        )
+
+        value: str
+
+    @dataclass
+    class GetMethodType:
+        """Omnisensor get method information."""
+
+        formula: "OmniSensor.Formula" = field(
+            metadata={
+                "name": "Formula",
+            }
+        )
+
+        method: str = field(
+            metadata={
+                "name": "Method",
+            }
+        )
+
+        method_hw: str = field(
+            metadata={
+                "name": "MethodHW",
+            }
+        )
 
     parent: Parent = field(
         metadata={
