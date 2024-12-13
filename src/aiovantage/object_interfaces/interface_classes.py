@@ -1,4 +1,8 @@
-"""Field definitions for various 'interface' classes."""
+"""Field definitions for various 'interface' classes.
+
+These are effectively 'mixins' to object interfaces which add fields to the
+objects that implement them.
+"""
 
 from dataclasses import field
 

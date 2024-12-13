@@ -3,7 +3,7 @@
 from enum import IntEnum
 from typing import NamedTuple
 
-from .base import Interface
+from aiovantage.object_interfaces.base import Interface
 
 
 class IntrospectionInterface(Interface):

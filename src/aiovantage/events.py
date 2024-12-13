@@ -4,6 +4,8 @@ from collections.abc import Awaitable, Callable
 from enum import Enum
 from typing import Any, TypeAlias, TypeVar
 
+from aiovantage.object_interfaces.base import Interface
+
 from .models import SystemObject
 
 
@@ -15,7 +17,7 @@ class VantageEvent(Enum):
     OBJECT_DELETED = "delete"
 
 
-T = TypeVar("T", bound=SystemObject)
+T = TypeVar("T", bound=SystemObject | Interface)
 
 EventCallback: TypeAlias = Callable[
     [VantageEvent, T, dict[str, Any]], None | Awaitable[None]

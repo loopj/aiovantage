@@ -3,8 +3,8 @@
 from decimal import Decimal
 from enum import IntEnum
 
-from .base import Interface
-from .interface_classes import WidgetPrecludable
+from aiovantage.object_interfaces.base import Interface
+from aiovantage.object_interfaces.interface_classes import WidgetPrecludable
 
 
 class LoadInterface(Interface, WidgetPrecludable):

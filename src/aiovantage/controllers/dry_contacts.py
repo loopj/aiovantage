@@ -4,7 +4,6 @@ from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
 from aiovantage.models import DryContact
-from aiovantage.object_interfaces import ButtonInterface
 
 
 class DryContactsController(BaseController[DryContact]):
@@ -19,7 +18,7 @@ class DryContactsController(BaseController[DryContact]):
         state = {
             # Dry contacts are momentary, so default to not pressed to avoid a lookup
             # TODO: Implement stateless events
-            "state": False,
+            "state": DryContact.State.Up,
         }
 
         self.update_state(obj.id, state)
@@ -35,9 +34,7 @@ class DryContactsController(BaseController[DryContact]):
         # TODO: Implement stateless events
         state = {
             "state": (
-                ButtonInterface.State.Down
-                if args[0] == "PRESS"
-                else ButtonInterface.State.Up
+                DryContact.State.Down if args[0] == "PRESS" else DryContact.State.Up
             ),
         }
 

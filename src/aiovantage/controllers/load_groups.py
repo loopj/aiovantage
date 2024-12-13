@@ -4,11 +4,10 @@ from decimal import Decimal
 
 from typing_extensions import override
 
+from aiovantage.controllers.base import BaseController
 from aiovantage.models import Load, LoadGroup
 from aiovantage.object_interfaces import LoadInterface
 from aiovantage.query import QuerySet
-
-from .base import BaseController
 
 
 class LoadGroupsController(BaseController[LoadGroup]):

@@ -2,7 +2,7 @@
 
 import datetime as dt
 
-from .base import Interface
+from aiovantage.object_interfaces.base import Interface
 
 
 class ObjectInterface(Interface):

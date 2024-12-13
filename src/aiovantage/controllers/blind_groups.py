@@ -1,5 +1,7 @@
 """Controller holding and managing Vantage blind groups."""
 
+from aiovantage.controllers.base import BaseController
+from aiovantage.controllers.blinds import BlindTypes
 from aiovantage.models import (
     BlindGroup,
     ChildDevice,
@@ -8,13 +10,14 @@ from aiovantage.models import (
 )
 from aiovantage.query import QuerySet
 
-from .base import BaseController
-from .blinds import BlindTypes
+# The various "blind group" object types don't all inherit from the same base class,
+# so for typing purposes we'll export a union of all the types.
 
 BlindGroupTypes = BlindGroup | SomfyRS485GroupChild | SomfyURTSI2GroupChild
+"""Types of objects that are considered 'blind groups'."""
 
 
-class BlindGroupsController(BaseController[BlindGroup]):
+class BlindGroupsController(BaseController[BlindGroupTypes]):
     """Controller holding and managing Vantage blind groups."""
 
     vantage_types = (

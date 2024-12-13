@@ -4,7 +4,7 @@ from decimal import Decimal
 from enum import IntEnum
 from typing import NamedTuple
 
-from .base import Interface
+from aiovantage.object_interfaces.base import Interface
 
 
 class RGBLoadInterface(Interface):

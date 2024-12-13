@@ -3,7 +3,7 @@
 from decimal import Decimal
 from enum import IntEnum
 
-from .base import Interface
+from aiovantage.object_interfaces.base import Interface
 
 
 class SounderInterface(Interface):

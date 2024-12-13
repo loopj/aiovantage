@@ -4,10 +4,9 @@ from typing import Any
 
 from typing_extensions import override
 
+from aiovantage.controllers.base import BaseController
 from aiovantage.models import Master
 from aiovantage.object_interfaces.object import ObjectInterface
-
-from .base import BaseController
 
 
 class MastersController(BaseController[Master]):

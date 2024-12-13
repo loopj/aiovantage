@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from typing_extensions import override
 
+from aiovantage.controllers.base import BaseController
 from aiovantage.models import (
     QISBlind,
     QubeBlind,
@@ -12,11 +13,13 @@ from aiovantage.models import (
     SomfyURTSI2ShadeChild,
 )
 
-from .base import BaseController
+# The various "blind" object types don't all inherit from the same base class,
+# so for typing purposes we'll export a union of all the types.
 
 BlindTypes = (
     QISBlind | QubeBlind | RelayBlind | SomfyRS485ShadeChild | SomfyURTSI2ShadeChild
 )
+"""Types of objects that are considered 'blinds'."""
 
 
 class BlindsController(BaseController[BlindTypes]):

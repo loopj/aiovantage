@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 
-from .base import Interface
+from aiovantage.object_interfaces.base import Interface
 
 
 class SensorInterface(Interface):

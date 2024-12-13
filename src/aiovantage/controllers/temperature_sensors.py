@@ -4,10 +4,9 @@ from decimal import Decimal
 
 from typing_extensions import override
 
+from aiovantage.controllers.base import BaseController
 from aiovantage.models import Temperature
 from aiovantage.object_interfaces import TemperatureInterface
-
-from .base import BaseController
 
 
 class TemperatureSensorsController(BaseController[Temperature]):

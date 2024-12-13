@@ -1,6 +1,6 @@
 """Interface for querying and controlling color temperature."""
 
-from .base import Interface
+from aiovantage.object_interfaces.base import Interface
 
 
 class ColorTemperatureInterface(Interface):

@@ -4,7 +4,6 @@ from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
 from aiovantage.models import Button
-from aiovantage.object_interfaces import ButtonInterface
 
 
 class ButtonsController(BaseController[Button]):
@@ -19,7 +18,7 @@ class ButtonsController(BaseController[Button]):
         state = {
             # Buttons are momentary, default to not pressed to avoid a lookup
             # TODO: Implement stateless events
-            "state": ButtonInterface.State.Up,
+            "state": Button.State.Up,
         }
 
         self.update_state(obj.id, state)
@@ -34,11 +33,7 @@ class ButtonsController(BaseController[Button]):
         # -> S:BTN <id> <state (PRESS/RELEASE)>
         # TODO: Implement stateless events
         state = {
-            "state": (
-                ButtonInterface.State.Down
-                if args[0] == "PRESS"
-                else ButtonInterface.State.Up
-            ),
+            "state": (Button.State.Down if args[0] == "PRESS" else Button.State.Up),
         }
 
         self.update_state(vid, state)

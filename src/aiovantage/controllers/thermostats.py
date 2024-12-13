@@ -5,12 +5,11 @@ from typing import Any
 
 from typing_extensions import override
 
+from aiovantage.controllers.base import BaseController
 from aiovantage.errors import CommandError
 from aiovantage.models import Temperature, Thermostat
 from aiovantage.object_interfaces import ThermostatInterface
 from aiovantage.query import QuerySet
-
-from .base import BaseController
 
 
 def parse_thermop(value: str) -> ThermostatInterface.OperationMode:

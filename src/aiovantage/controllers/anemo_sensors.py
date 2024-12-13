@@ -4,10 +4,9 @@ from decimal import Decimal
 
 from typing_extensions import override
 
+from aiovantage.controllers.base import BaseController
 from aiovantage.models import AnemoSensor
 from aiovantage.object_interfaces import AnemoSensorInterface
-
-from .base import BaseController
 
 
 class AnemoSensorsController(BaseController[AnemoSensor]):
