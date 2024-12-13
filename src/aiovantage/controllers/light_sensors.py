@@ -5,8 +5,8 @@ from decimal import Decimal
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.models import LightSensor
 from aiovantage.object_interfaces import LightSensorInterface
+from aiovantage.objects import LightSensor
 
 
 class LightSensorsController(BaseController[LightSensor]):

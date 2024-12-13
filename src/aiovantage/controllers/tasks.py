@@ -3,8 +3,8 @@
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.models import Task
 from aiovantage.object_interfaces import TaskInterface
+from aiovantage.objects import Task
 
 
 class TasksController(BaseController[Task]):

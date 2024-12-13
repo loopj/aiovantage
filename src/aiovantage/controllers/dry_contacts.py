@@ -3,7 +3,7 @@
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.models import DryContact
+from aiovantage.objects import DryContact
 
 
 class DryContactsController(BaseController[DryContact]):

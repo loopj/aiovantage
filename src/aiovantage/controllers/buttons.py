@@ -3,7 +3,7 @@
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.models import Button
+from aiovantage.objects import Button
 
 
 class ButtonsController(BaseController[Button]):

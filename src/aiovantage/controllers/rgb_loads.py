@@ -5,12 +5,12 @@ from typing import Any
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.models import VantageDDGColorLoad, VantageDGColorLoad
 from aiovantage.object_interfaces import (
     ColorTemperatureInterface,
     LoadInterface,
     RGBLoadInterface,
 )
+from aiovantage.objects import VantageDDGColorLoad, VantageDGColorLoad
 from aiovantage.query import QuerySet
 
 # The various "rgb load" object types don't all inherit from the same base class,

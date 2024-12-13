@@ -10,9 +10,9 @@ from typing import Any, TypeVar, cast
 
 from typing_extensions import Self
 
-from .command_client import CommandClient, Event, EventStream, EventType
-from .config_client import ConfigClient
-from .controllers import (
+from aiovantage.command_client import CommandClient, Event, EventStream, EventType
+from aiovantage.config_client import ConfigClient
+from aiovantage.controllers import (
     AnemoSensorsController,
     AreasController,
     BaseController,
@@ -35,8 +35,8 @@ from .controllers import (
     TemperatureSensorsController,
     ThermostatsController,
 )
-from .events import EventCallback, VantageEvent
-from .models import SystemObject
+from aiovantage.events import EventCallback, VantageEvent
+from aiovantage.objects import SystemObject
 
 ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
 

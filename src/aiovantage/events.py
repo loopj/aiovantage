@@ -5,8 +5,7 @@ from enum import Enum
 from typing import Any, TypeAlias, TypeVar
 
 from aiovantage.object_interfaces.base import Interface
-
-from .models import SystemObject
+from aiovantage.objects import SystemObject
 
 
 class VantageEvent(Enum):

@@ -2,7 +2,7 @@
 
 from aiovantage.controllers.base import BaseController
 from aiovantage.controllers.blinds import BlindTypes
-from aiovantage.models import (
+from aiovantage.objects import (
     BlindGroup,
     ChildDevice,
     SomfyRS485GroupChild,

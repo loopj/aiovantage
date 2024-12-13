@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.models import Load
+from aiovantage.objects import Load
 from aiovantage.query import QuerySet
 
 

@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.models import (
+from aiovantage.objects import (
     QISBlind,
     QubeBlind,
     RelayBlind,

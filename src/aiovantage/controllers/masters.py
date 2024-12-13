@@ -5,8 +5,8 @@ from typing import Any
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.models import Master
 from aiovantage.object_interfaces.object import ObjectInterface
+from aiovantage.objects import Master
 
 
 class MastersController(BaseController[Master]):
