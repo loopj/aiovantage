@@ -8,7 +8,14 @@ from typing_extensions import override
 from aiovantage.controllers.base import BaseController
 from aiovantage.errors import CommandError
 from aiovantage.object_interfaces import ThermostatInterface
-from aiovantage.objects import Temperature, Thermostat
+from aiovantage.objects import (
+    Temperature,
+    Thermostat,
+    VantageGenericHVACRS485CompoundChild,
+    VantageGenericHVACRS485ZoneChild,
+    VantageGenericHVACRS485ZoneWithoutFanSpeedChild,
+    VantageHVACIUZoneChild,
+)
 from aiovantage.query import QuerySet
 
 
@@ -49,7 +56,18 @@ def parse_thermday(value: str) -> ThermostatInterface.DayMode:
             return ThermostatInterface.DayMode.Unknown
 
 
-class ThermostatsController(BaseController[Thermostat]):
+# The various "thermostat" object types don't all inherit from the same base class,
+# so for typing purposes we'll export a union of all the types.
+ThermostatTypes = (
+    Thermostat
+    | VantageGenericHVACRS485CompoundChild
+    | VantageGenericHVACRS485ZoneChild
+    | VantageGenericHVACRS485ZoneWithoutFanSpeedChild
+    | VantageHVACIUZoneChild
+)
+
+
+class ThermostatsController(BaseController[ThermostatTypes]):
     """Controller holding and managing thermostats.
 
     Thermostats have a number of temperature sensors associated with them which
@@ -57,11 +75,18 @@ class ThermostatsController(BaseController[Thermostat]):
     current cool and heat setpoints.
     """
 
-    vantage_types = ("Thermostat",)
+    vantage_types = (
+        "Thermostat",
+        "Vantage.Generic_HVAC_RS485_Compound_CHILD",
+        "Vantage.Generic_HVAC_RS485_Zone_CHILD",
+        "Vantage.Generic_HVAC_RS485_Zone_without_FanSpeed_CHILD",
+        "Vantage.HVAC-IU-Zone_CHILD",
+    )
+
     status_types = ("THERMFAN", "THERMOP", "THERMDAY")
 
     @override
-    async def fetch_object_state(self, obj: Thermostat) -> None:
+    async def fetch_object_state(self, obj: ThermostatTypes) -> None:
         """Fetch the state properties of a thermostat."""
         state = {
             "operation_mode": await ThermostatInterface.get_operation_mode(obj),

@@ -3,7 +3,7 @@
 # fmt: off
 # ruff: noqa: I001, F401
 
-# Make all object classes available in aioVantage.objects
+# Make all object classes available in aiovantage.objects
 from .system_object import SystemObject
 from .system_object.button import Button
 from .system_object.gmem import GMem
@@ -18,11 +18,18 @@ from .system_object.location_object.custom_device.child_device.somfy_rs_485_grou
 from .system_object.location_object.custom_device.child_device.somfy_rs_485_shade_child import SomfyRS485ShadeChild
 from .system_object.location_object.custom_device.child_device.somfy_urtsi_2_group_child import SomfyURTSI2GroupChild
 from .system_object.location_object.custom_device.child_device.somfy_urtsi_2_shade_child import SomfyURTSI2ShadeChild
+from .system_object.location_object.custom_device.child_device.vantage_generic_hvac_rs485_compound_child import VantageGenericHVACRS485CompoundChild
+from .system_object.location_object.custom_device.child_device.vantage_generic_hvac_rs485_zone_child import VantageGenericHVACRS485ZoneChild
+from .system_object.location_object.custom_device.child_device.vantage_generic_hvac_rs485_zone_without_fan_speed_child import VantageGenericHVACRS485ZoneWithoutFanSpeedChild
+from .system_object.location_object.custom_device.child_device.vantage_hvac_iu_line_child import VantageHVACIULineChild
+from .system_object.location_object.custom_device.child_device.vantage_hvac_iu_zone_child import VantageHVACIUZoneChild
 from .system_object.location_object.custom_device.parent_device import ParentDevice
 from .system_object.location_object.custom_device.parent_device.port_device import PortDevice
-from .system_object.location_object.custom_device.parent_device.port_device.somfy_rs_485_sdn_20_port import SomfyRS485SDN20Port
+from .system_object.location_object.custom_device.parent_device.port_device.somfy_rs_485_sdn_2_0_port import SomfyRS485SDN20Port
 from .system_object.location_object.custom_device.parent_device.port_device.somfy_urtsi_2_port import SomfyURTSI2Port
 from .system_object.location_object.custom_device.parent_device.port_device.vantage_dmx_gateway import VantageDmxGateway
+from .system_object.location_object.custom_device.parent_device.port_device.vantage_generic_hvac_rs485_port import VantageGenericHVACRS485Port
+from .system_object.location_object.custom_device.parent_device.port_device.vantage_hvac_iu_port import VantageHVACIUPort
 from .system_object.location_object.dry_contact import DryContact
 from .system_object.location_object.load import Load
 from .system_object.location_object.load_group import LoadGroup
