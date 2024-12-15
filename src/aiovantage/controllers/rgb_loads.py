@@ -42,21 +42,21 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
     async def fetch_object_state(self, obj: RGBLoadTypes) -> None:
         """Fetch the state properties of an RGB load."""
         state: dict[str, Any] = {
-            "level": await LoadInterface.get_level(obj),
+            "level": await obj.get_level(),
         }
 
         if obj.is_rgb:
-            state["hsl"] = await RGBLoadInterface.get_hsl_color(obj)
-            state["rgb"] = await RGBLoadInterface.get_rgb_color(obj)
-            state["rgbw"] = await RGBLoadInterface.get_rgbw_color(obj)
+            state["hsl"] = await obj.get_hsl_color()
+            state["rgb"] = await obj.get_rgb_color()
+            state["rgbw"] = await obj.get_rgbw_color()
 
         if obj.is_cct:
-            state["color_temp"] = await ColorTemperatureInterface.get_color_temp(obj)
+            state["color_temp"] = await obj.get_color_temp()
 
         self.update_state(obj.id, state)
 
     @override
-    def handle_interface_status(
+    def handle_object_status(
         self, vid: int, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""

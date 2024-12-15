@@ -5,7 +5,6 @@ from decimal import Decimal
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.object_interfaces import TemperatureInterface
 from aiovantage.objects import Temperature
 
 
@@ -16,16 +15,16 @@ class TemperatureSensorsController(BaseController[Temperature]):
     status_types = ("TEMP",)
 
     @override
-    async def fetch_object_state(self, obj: Temperature) -> None:
+    async def fetch_object_state(self, sensor: Temperature) -> None:
         """Fetch the state properties of a temperature sensor."""
         state = {
-            "value": await TemperatureInterface.get_value(obj),
+            "value": await sensor.get_value(),
         }
 
-        self.update_state(obj.id, state)
+        self.update_state(sensor.id, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_simple_status(self, vid: int, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
         if status != "TEMP":
             return

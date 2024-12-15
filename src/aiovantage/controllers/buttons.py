@@ -24,7 +24,7 @@ class ButtonsController(BaseController[Button]):
         self.update_state(obj.id, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_simple_status(self, vid: int, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "BTN":
             return

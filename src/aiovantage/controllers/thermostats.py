@@ -86,26 +86,26 @@ class ThermostatsController(BaseController[ThermostatTypes]):
     status_types = ("THERMFAN", "THERMOP", "THERMDAY")
 
     @override
-    async def fetch_object_state(self, obj: ThermostatTypes) -> None:
+    async def fetch_object_state(self, thermostat: ThermostatTypes) -> None:
         """Fetch the state properties of a thermostat."""
         state = {
-            "operation_mode": await ThermostatInterface.get_operation_mode(obj),
-            "fan_mode": await ThermostatInterface.get_fan_mode(obj),
-            "day_mode": await ThermostatInterface.get_day_mode(obj),
+            "operation_mode": await thermostat.get_operation_mode(),
+            "fan_mode": await thermostat.get_fan_mode(),
+            "day_mode": await thermostat.get_day_mode(),
         }
 
         # Hold mode is not supported by every thermostat type.
         with suppress(CommandError):
-            state["hold_mode"] = await ThermostatInterface.get_hold_mode(obj)
+            state["hold_mode"] = await thermostat.get_hold_mode()
 
         # Status is not available on 2.x firmware.
         with suppress(CommandError):
-            state["status"] = await ThermostatInterface.get_status(obj)
+            state["status"] = await thermostat.get_status()
 
-        self.update_state(obj.id, state)
+        self.update_state(thermostat.id, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_simple_status(self, vid: int, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
         state: dict[str, Any] = {}
 
@@ -127,7 +127,7 @@ class ThermostatsController(BaseController[ThermostatTypes]):
         self.update_state(vid, state)
 
     @override
-    def handle_interface_status(
+    def handle_object_status(
         self, vid: int, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""

@@ -24,13 +24,13 @@ class OmniSensorsController(BaseController[OmniSensor]):
     async def fetch_object_state(self, obj: OmniSensor) -> None:
         """Fetch the state properties of an omni sensor."""
         state = {
-            "level": await self.get_level(obj),
+            "level": await self.get_level(obj, cached=False),
         }
 
         self.update_state(obj.id, state)
 
     @override
-    def handle_interface_status(
+    def handle_object_status(
         self, vid: int, method: str, result: str, *_args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""

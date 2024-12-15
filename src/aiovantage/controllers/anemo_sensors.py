@@ -5,7 +5,6 @@ from decimal import Decimal
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.object_interfaces import AnemoSensorInterface
 from aiovantage.objects import AnemoSensor
 
 
@@ -19,13 +18,13 @@ class AnemoSensorsController(BaseController[AnemoSensor]):
     async def fetch_object_state(self, obj: AnemoSensor) -> None:
         """Fetch the state properties of an anemo sensor."""
         state = {
-            "speed": await AnemoSensorInterface.get_speed(obj),
+            "speed": await obj.get_speed(),
         }
 
         self.update_state(obj.id, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_simple_status(self, vid: int, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
         if status != "WIND":
             return

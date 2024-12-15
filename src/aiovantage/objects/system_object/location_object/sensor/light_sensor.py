@@ -10,7 +10,7 @@ from . import Sensor
 
 
 @dataclass(kw_only=True)
-class LightSensor(Sensor, SensorInterface, LightSensorInterface):
+class LightSensor(Sensor, LightSensorInterface, SensorInterface):
     """Light sensor object."""
 
     parent: Parent

@@ -25,7 +25,7 @@ class MastersController(BaseController[Master]):
         self.update_state(obj.id, state)
 
     @override
-    def handle_interface_status(
+    def handle_object_status(
         self, vid: int, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""

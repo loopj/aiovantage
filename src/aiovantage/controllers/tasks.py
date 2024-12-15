@@ -15,17 +15,17 @@ class TasksController(BaseController[Task]):
     interface_status_types = ("Task.IsRunning",)
 
     @override
-    async def fetch_object_state(self, obj: Task) -> None:
+    async def fetch_object_state(self, task: Task) -> None:
         """Fetch the state properties of a task."""
         state = {
-            "running": await TaskInterface.is_running(obj),
-            "state": await TaskInterface.get_state(obj),
+            "running": await task.is_running(),
+            "state": await task.get_state(),
         }
 
-        self.update_state(obj.id, state)
+        self.update_state(task.id, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_simple_status(self, vid: int, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "TASK":
             return
@@ -39,7 +39,7 @@ class TasksController(BaseController[Task]):
         self.update_state(vid, state)
 
     @override
-    def handle_interface_status(
+    def handle_object_status(
         self, vid: int, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""

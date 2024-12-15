@@ -10,7 +10,7 @@ from . import Sensor
 
 
 @dataclass(kw_only=True)
-class AnemoSensor(Sensor, SensorInterface, AnemoSensorInterface):
+class AnemoSensor(Sensor, AnemoSensorInterface, SensorInterface):
     """AnemoSensor (wind sensor) object."""
 
     parent: Parent

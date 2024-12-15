@@ -5,7 +5,6 @@ from decimal import Decimal
 from typing_extensions import override
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.object_interfaces import LoadInterface
 from aiovantage.objects import Load, LoadGroup
 from aiovantage.query import QuerySet
 
@@ -20,13 +19,13 @@ class LoadGroupsController(BaseController[LoadGroup]):
     async def fetch_object_state(self, obj: LoadGroup) -> None:
         """Fetch the state properties of a load."""
         state = {
-            "level": await LoadInterface.get_level(obj),
+            "level": await obj.get_level(),
         }
 
         self.update_state(obj.id, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_simple_status(self, vid: int, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "LOAD":
             return

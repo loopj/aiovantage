@@ -104,7 +104,7 @@ class BaseController(QuerySet[T]):
         """
         return
 
-    def handle_status(self, _vid: int, _status: str, *_args: str) -> None:
+    def handle_simple_status(self, _vid: int, _status: str, *_args: str) -> None:
         """Handle simple status messages from the event stream.
 
         Should be overridden by subclasses that manage stateful objects using
@@ -112,7 +112,7 @@ class BaseController(QuerySet[T]):
         """
         return
 
-    def handle_interface_status(
+    def handle_object_status(
         self, _vid: int, _method: str, _result: str, *_args: str
     ) -> None:
         """Handle object interface status messages from the event stream.
@@ -321,10 +321,12 @@ class BaseController(QuerySet[T]):
                 # Handle "object interface" status events of the form:
                 # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
                 method, result, *args = event["args"]
-                self.handle_interface_status(event["id"], method, result, *args)
+                self.handle_object_status(event["id"], method, result, *args)
             else:
                 # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
-                self.handle_status(event["id"], event["status_type"], *event["args"])
+                self.handle_simple_status(
+                    event["id"], event["status_type"], *event["args"]
+                )
 
         elif event["type"] == EventType.ENHANCED_LOG:
             # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.
@@ -338,7 +340,7 @@ class BaseController(QuerySet[T]):
                 return
 
             # Pass the event to the controller
-            self.handle_interface_status(vid, method, result, *args)
+            self.handle_object_status(vid, method, result, *args)
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized
