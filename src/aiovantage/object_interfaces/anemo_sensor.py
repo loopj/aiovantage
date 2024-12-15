@@ -34,3 +34,21 @@ class AnemoSensorInterface(Interface):
         # INVOKE <id> AnemoSensor.GetSpeedHW
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeedHW
         return await self.invoke("AnemoSensor.GetSpeedHW", as_type=Decimal)
+
+    async def set_speed(self, speed: Decimal) -> None:
+        """Set the speed of an anemo sensor.
+
+        Args:
+            speed: The speed to set, in mph.
+        """
+        # INVOKE <id> AnemoSensor.SetSpeed <speed>
+        await self.invoke("AnemoSensor.SetSpeed", speed)
+
+    async def set_speed_sw(self, speed: Decimal) -> None:
+        """Set the cached speed of an anemo sensor.
+
+        Args:
+            speed: The speed to set, in mph.
+        """
+        # INVOKE <id> AnemoSensor.SetSpeedSW <speed>
+        await self.invoke("AnemoSensor.SetSpeedSW", speed)

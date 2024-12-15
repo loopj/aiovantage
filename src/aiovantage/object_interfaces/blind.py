@@ -42,6 +42,8 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType, WidgetPrecludable):
     }
 
     position: Decimal | None = None
+    tilt_angle: int | None = None
+    blind_state: bool | None = None
 
     async def open(self) -> None:
         """Open a blind."""
@@ -91,6 +93,16 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType, WidgetPrecludable):
         # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPositionHW
         return await self.invoke("Blind.GetPositionHW", as_type=Decimal)
 
+    async def set_position_sw(self, position: Decimal) -> None:
+        """Set the cached position of a blind.
+
+        Args:
+            position: The position to set the blind to, as a percentage.
+        """
+        # INVOKE <id> Blind.SetPositionSW <position>
+        # -> R:INVOKE <id> <rcode> Blind.SetPositionSW <position>
+        await self.invoke("Blind.SetPositionSW", position)
+
     # Methods below here are not available in 2.x firmware.
     async def set_tilt_angle(self, angle: int) -> None:
         """Set the tilt angle of a blind.
@@ -111,6 +123,16 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType, WidgetPrecludable):
         # INVOKE <id> Blind.GetTiltAngle
         # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngle
         return await self.invoke("Blind.GetTiltAngle", as_type=int)
+
+    async def set_tilt_angle_sw(self, angle: int) -> None:
+        """Set the cached tilt angle of a blind.
+
+        Args:
+            angle: The angle to set the blind to, from -100 to 100.
+        """
+        # INVOKE <id> Blind.SetTiltAngleSW <angle>
+        # -> R:INVOKE <id> <rcode> Blind.SetTiltAngleSW <angle>
+        await self.invoke("Blind.SetTiltAngleSW", angle)
 
     async def get_tilt_angle_hw(self) -> int:
         """Get the tilt angle of a blind directly from the hardware.
@@ -151,6 +173,16 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType, WidgetPrecludable):
         # INVOKE <id> Blind.IsTiltAvailable
         # -> R:INVOKE <id> <available (0/1)> Blind.IsTiltAvailable
         return await self.invoke("Blind.IsTiltAvailable", as_type=bool)
+
+    async def set_tilt_available_sw(self, available: bool) -> None:
+        """Set the cached tilt availability of a blind.
+
+        Args:
+            available: Whether the blind supports tilting.
+        """
+        # INVOKE <id> Blind.SetTiltAvailableSW <available>
+        # -> R:INVOKE <id> <rcode> Blind.SetTiltAvailableSW <available>
+        await self.invoke("Blind.SetTiltAvailableSW", available)
 
     async def get_blind_state(self) -> BlindState:
         """Get the state of a blind.
