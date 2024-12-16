@@ -26,8 +26,10 @@ class LoadInterface(Interface, WidgetPrecludable):
         "Load.GetLevelHW": Decimal,
     }
 
+    # Properties
     level: float | None = None
 
+    # Methods
     async def set_level(self, level: float | Decimal) -> None:
         """Set the level of a load.
 

@@ -13,8 +13,10 @@ class TemperatureInterface(Interface):
         "Temperature.GetValueHW": Decimal,
     }
 
+    # Properties
     value: Decimal | None = None
 
+    # Methods
     async def get_value(self) -> Decimal:
         """Get the value of a temperature sensor, using cached value if available.
 

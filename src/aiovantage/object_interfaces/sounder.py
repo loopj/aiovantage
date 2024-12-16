@@ -22,6 +22,7 @@ class SounderInterface(Interface):
         "Sounder.GetStatusHW": Status,
     }
 
+    # Methods
     async def get_frequency(self) -> Decimal:
         """Get the frequency of the keypad speaker, using cached value if available.
 

@@ -1,19 +1,34 @@
 """Interface for querying and controlling tasks."""
 
+from enum import IntEnum
+
 from aiovantage.object_interfaces.base import Interface
 
 
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""
 
+    class Status(IntEnum):
+        """Task status."""
+
+        NotReady = 0
+        Ready = 1
+        Compiling = 2
+        OutOfSync = 3
+        Invalid = 4
+
     method_signatures = {
         "Task.IsRunning": bool,
         "Task.GetState": int,
     }
 
+    # Properties
     state: int | None = None
+    status: Status | None = Status.NotReady
     running: bool | None = None
+    context_state: bool | None = None
 
+    # Methods
     async def start(self) -> None:
         """Start a task."""
         # INVOKE <id> Task.Start <source> <event> <param1> <param2>

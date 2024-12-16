@@ -12,6 +12,7 @@ class ObjectInterface(Interface):
         "Object.GetMTime": dt.datetime,
     }
 
+    # Methods
     async def get_mtime(self) -> dt.datetime:
         """Get the modification time of an object.
 

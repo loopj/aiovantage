@@ -18,8 +18,10 @@ class ButtonInterface(Interface):
         "Button.GetState": State,
     }
 
-    state: State | None = None
+    # Properties
+    state: State | None = None  # not part of the interface, just for convenience
 
+    # Methods
     async def get_state(self) -> State:
         """Get the state of a button.
 

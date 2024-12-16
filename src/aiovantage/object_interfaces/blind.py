@@ -41,10 +41,13 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType, WidgetPrecludable):
         "Blind.GetBlindState": BlindState,
     }
 
+    # Properties
     position: Decimal | None = None
     tilt_angle: int | None = None
-    blind_state: bool | None = None
+    tilt_available: bool | None = None
+    blind_state: BlindState | None = None
 
+    # Methods
     async def open(self) -> None:
         """Open a blind."""
         # INVOKE <id> Blind.Open

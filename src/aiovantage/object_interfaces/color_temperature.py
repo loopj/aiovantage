@@ -10,8 +10,12 @@ class ColorTemperatureInterface(Interface):
         "ColorTemperature.Get": int,
     }
 
+    # Properties
     color_temp: int | None = None
+    max_value: int | None = None
+    min_value: int | None = None
 
+    # Methods
     async def set_color_temp(self, temp: int, transition: int = 0) -> None:
         """Set the color temperature of a light.
 
