@@ -26,7 +26,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id and name of each Vantage controller
         async for master in vantage.masters:
-            fw = await master.get_firmware_version(Master.FirmwareImage.Application)
+            fw = await master.get_firmware_version(Master.Firmware.Application)
             print(
                 f"[{master.id}] '{master.name}' "
                 f"serial_number={master.serial_number} "
