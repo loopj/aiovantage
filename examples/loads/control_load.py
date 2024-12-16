@@ -10,6 +10,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 
 from aiovantage import Vantage
+from aiovantage.objects import Load
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -85,12 +86,12 @@ async def main() -> None:
 
                 if key == "KEY_UP":
                     # Increase the load's brightness
-                    await load.ramp(level=level + 10, time=1)
+                    await load.ramp(Load.RampType.Fixed, 1, level + 10)
                     print(f"Increased '{load.name}' brightness to {load.level}%")
 
                 elif key == "KEY_DOWN":
                     # Decrease the load's brightness
-                    await load.ramp(level=level - 10, time=1)
+                    await load.ramp(Load.RampType.Fixed, 1, level - 10)
                     print(f"Decreased '{load.name}' brightness to {load.level}%")
 
                 elif key == " ":
