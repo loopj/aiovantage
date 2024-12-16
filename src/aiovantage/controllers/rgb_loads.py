@@ -51,7 +51,7 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
             state["rgbw"] = await obj.get_rgbw_color()
 
         if obj.is_cct:
-            state["color_temp"] = await obj.get_color_temp()
+            state["color_temp"] = await obj.get_temperature()
 
         self.update_state(obj.id, state)
 
