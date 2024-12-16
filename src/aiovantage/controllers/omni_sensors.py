@@ -28,7 +28,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of an omni sensor."""
         state = {
-            "level": await self.get_level(vid),
+            "level": await self.get_level(vid, cached=False),
         }
 
         self.update_state(vid, state)
