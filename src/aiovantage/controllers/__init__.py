@@ -2,6 +2,7 @@
 
 from .anemo_sensors import AnemoSensorsController
 from .areas import AreasController
+from .back_box import BackBoxesController
 from .base import BaseController
 from .blind_groups import BlindGroupsController
 from .blinds import BlindsController
@@ -25,6 +26,7 @@ from .thermostats import ThermostatsController
 __all__ = [
     "AnemoSensorsController",
     "AreasController",
+    "BackBoxesController",
     "BaseController",
     "BlindGroupsController",
     "BlindsController",

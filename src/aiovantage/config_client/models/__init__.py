@@ -2,6 +2,7 @@
 
 from .anemo_sensor import AnemoSensor
 from .area import Area
+from .back_box import BackBox
 from .blind import Blind
 from .blind_base import BlindBase
 from .blind_group import BlindGroup
@@ -65,6 +66,7 @@ from .vantage_dmx_gateway import VantageDmxGateway
 __all__ = [
     "AnemoSensor",
     "Area",
+    "BackBox",
     "Blind",
     "BlindBase",
     "BlindGroup",

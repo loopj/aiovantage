@@ -15,6 +15,7 @@ from .config_client import ConfigClient
 from .controllers import (
     AnemoSensorsController,
     AreasController,
+    BackBoxesController,
     BaseController,
     BlindGroupsController,
     BlindsController,
@@ -82,6 +83,7 @@ class Vantage:
         self._controllers: set[BaseController[Any]] = set()
         self._anemo_sensors = self._add_controller(AnemoSensorsController)
         self._areas = self._add_controller(AreasController)
+        self._back_boxes = self._add_controller(BackBoxesController)
         self._blind_groups = self._add_controller(BlindGroupsController)
         self._blinds = self._add_controller(BlindsController)
         self._buttons = self._add_controller(ButtonsController)
@@ -159,6 +161,11 @@ class Vantage:
     def areas(self) -> AreasController:
         """Controller for interacting with areas."""
         return self._areas
+
+    @property
+    def back_boxes(self) -> BackBoxesController:
+        """Controller for interacting with back boxes."""
+        return self._back_boxes
 
     @property
     def blinds(self) -> BlindsController:
