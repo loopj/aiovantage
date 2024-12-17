@@ -47,6 +47,7 @@ The following interfaces/controllers are currently supported.
 | ------------- | --------------------- | ----------------------------- | ----------------------------------------- |
 | AnemoSensor   | Wind speed sensors    | `vantage.anemo_sensors`       | [Examples](examples/anemo_sensors)        |
 | Area          | Rooms, etc            | `vantage.areas`               | [Examples](examples/areas)                |
+| BackBox       | Backboxes             | `vantage.backboxes`           |                                           |
 | Blind         | Shades, blinds        | `vantage.blinds`              | [Examples](examples/blinds)               |
 | BlindGroups   | Groups of blinds      | `vantage.blind_groups`        | [Examples](examples/blind_groups)         |
 | Buttons       | Keypad buttons        | `vantage.buttons`             | [Examples](examples/buttons)              |
@@ -58,6 +59,7 @@ The following interfaces/controllers are currently supported.
 | Master        | Vantage controllers   | `vantage.masters`             | [Examples](examples/masters)              |
 | Module        | Dimmer modules        | `vantage.modules`             |                                           |
 | OmniSensor    | Power, current, etc   | `vantage.omni_sensors`        | [Examples](examples/omni_sensors)         |
+| PortDevice    | Port devices (hubs)   | `vantage.port_devices`        |                                           |
 | PowerProfile  | Load power profiles   | `vantage.power_profiles`      | [Examples](examples/power_profiles)       |
 | RGBLoad       | RGB lights            | `vantage.rgb_loads`           | [Examples](examples/rgb_loads)            |
 | Stations      | Keypads, etc          | `vantage.stations`            | [Examples](examples/stations)             |
