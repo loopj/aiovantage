@@ -73,7 +73,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"src/aiovantage/objects.py" = [
+"src/aiovantage/objects/**/*.py" = [
     "D106", # Missing docstring in public nested class
     "C408", # Unnecessary collection call
 ]
