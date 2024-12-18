@@ -453,6 +453,8 @@ class VantageDmxDaliGateway(StationObject):
 class Sensor(LocationObject):
     """Sensor object."""
 
+    # NOTE: Firmware 2.x inherits from SystemObject
+
 
 @dataclass
 class AnemoSensor(Sensor, AnemoSensorInterface, SensorInterface):
