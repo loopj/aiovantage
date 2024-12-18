@@ -8,37 +8,34 @@ from .sensor import Sensor
 from .types import Parent
 
 
-class ConversionType(Enum):
-    """OmniSensor type conversion information."""
-
-    FIXED = "fixed"
-    INT = "int"
-
-
-@dataclass
-class Formula:
-    """OmniSensor conversion formula information."""
-
-    return_type: ConversionType = field(metadata={"type": "Attribute"})
-    level_type: ConversionType = field(metadata={"type": "Attribute"})
-    value: str
-
-
-@dataclass
-class GetMethodType:
-    """Omnisensor get method information."""
-
-    formula: Formula
-    method: str
-    method_hw: str = field(metadata={"name": "MethodHW"})
-
-
 @dataclass
 class OmniSensor(Sensor):
     """OmniSensor object."""
 
+    class ConversionType(Enum):
+        FIXED = "fixed"
+        INT = "int"
+
+    @dataclass
+    class Get:
+        """Omnisensor get method information."""
+
+        @dataclass
+        class Formula:
+            return_type: "OmniSensor.ConversionType" = field(
+                metadata={"type": "Attribute"}
+            )
+            level_type: "OmniSensor.ConversionType" = field(
+                metadata={"type": "Attribute"}
+            )
+            value: str
+
+        formula: Formula
+        method: str
+        method_hw: str = field(metadata={"name": "MethodHW"})
+
     parent: Parent
-    get: GetMethodType
+    get: Get
 
     # State
     level: int | Decimal | None = field(default=None, metadata={"type": "Ignore"})
