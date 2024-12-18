@@ -4,8 +4,8 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.models import BlindBase
 from aiovantage.object_interfaces import BlindInterface
+from aiovantage.objects import BlindBase
 
 from .base import BaseController
 
