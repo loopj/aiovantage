@@ -12,11 +12,8 @@ from .base import BaseController
 class AnemoSensorsController(BaseController[AnemoSensor]):
     """Controller holding and managing Vantage anemo (wind) sensors."""
 
-    vantage_types = ("AnemoSensor",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (AnemoSensor,)
     status_types = ("WIND",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: AnemoSensor) -> None:

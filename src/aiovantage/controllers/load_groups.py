@@ -13,11 +13,8 @@ from .base import BaseController
 class LoadGroupsController(BaseController[LoadGroup]):
     """Controller holding and managing Vantage load groups."""
 
-    vantage_types = ("LoadGroup",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (LoadGroup,)
     status_types = ("LOAD",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: LoadGroup) -> None:

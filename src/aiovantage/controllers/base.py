@@ -28,7 +28,7 @@ EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 class BaseController(QuerySet[T]):
     """Base controller for Vantage objects."""
 
-    vantage_types: tuple[str, ...]
+    vantage_types: tuple[type[SystemObject], ...]
     """The Vantage object types that this controller handles."""
 
     status_types: tuple[str, ...] | None = None
@@ -135,7 +135,8 @@ class BaseController(QuerySet[T]):
             cur_ids = set()
 
             # Fetch all objects managed by this controller
-            async for obj in get_objects(self.config_client, types=self.vantage_types):
+            element_names = tuple(cls.get_element_name() for cls in self.vantage_types)
+            async for obj in get_objects(self.config_client, types=element_names):
                 obj._command_client = self.command_client
 
                 if obj.vid in prev_ids:

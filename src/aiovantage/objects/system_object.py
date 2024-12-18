@@ -32,9 +32,8 @@ class SystemObject(ObjectInterface):
         """Return the display name of the object."""
         return self.d_name or self.name
 
-    @property
-    def vantage_type(self) -> str:
-        """Return the Vantage type of the object."""
-        cls = type(self)
+    @classmethod
+    def get_element_name(cls) -> str:
+        """Return the Vantage XML element name for this object."""
         cls_meta = getattr(cls, "Meta", None)
         return getattr(cls_meta, "name", cls.__qualname__)

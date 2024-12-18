@@ -15,11 +15,8 @@ from .base import BaseController
 class MastersController(BaseController[Master]):
     """Controller holding and managing Vantage controllers."""
 
-    vantage_types = ("Master",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (Master,)
     interface_status_types = ("Object.GetMTime",)
-    """Which object interface status messages this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: Master) -> None:

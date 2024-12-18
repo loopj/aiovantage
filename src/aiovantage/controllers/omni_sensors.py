@@ -18,11 +18,8 @@ class OmniSensorsController(BaseController[OmniSensor]):
     type of data and a conversion formula.
     """
 
-    vantage_types = ("OmniSensor",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (OmniSensor,)
     interface_status_types = "*"
-    """Which object interface status messages this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: OmniSensor) -> None:

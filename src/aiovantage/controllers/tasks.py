@@ -11,14 +11,9 @@ from .base import BaseController
 class TasksController(BaseController[Task]):
     """Controller holding and managing Vantage tasks."""
 
-    vantage_types = ("Task",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (Task,)
     status_types = ("TASK",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
-
     interface_status_types = ("Task.IsRunning",)
-    """Which object interface status messages this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: Task) -> None:

@@ -14,15 +14,15 @@ from aiovantage.query import QuerySet
 
 from .base import BaseController
 
+# The various "rgb load" object types don't all inherit from the same base class,
+# so for typing purposes we'll use a union of all the types.
 RGBLoadTypes = VantageDGColorLoad | VantageDDGColorLoad
 
 
 class RGBLoadsController(BaseController[RGBLoadTypes]):
     """Controller holding and managing Vantage RGB loads."""
 
-    vantage_types = ("Vantage.DGColorLoad", "Vantage.DDGColorLoad")
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (VantageDGColorLoad, VantageDDGColorLoad)
     interface_status_types = (
         "Load.GetLevel",
         "RGBLoad.GetHSL",
@@ -30,7 +30,6 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
         "RGBLoad.GetRGBW",
         "ColorTemperature.Get",
     )
-    """Which object interface status messages this controller handles, if any."""
 
     def __post_init__(self) -> None:
         """Initialize the map for building colors."""

@@ -18,11 +18,8 @@ class GMemController(BaseController[GMem]):
     simpler than working with raw byte arrays.
     """
 
-    vantage_types = ("GMem",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (GMem,)
     status_types = ("VARIABLE",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: GMem) -> None:

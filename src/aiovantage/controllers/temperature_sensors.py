@@ -12,11 +12,8 @@ from .base import BaseController
 class TemperatureSensorsController(BaseController[Temperature]):
     """Controller holding and managing Vantage temperature sensors."""
 
-    vantage_types = ("Temperature",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (Temperature,)
     status_types = ("TEMP",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: Temperature) -> None:

@@ -10,11 +10,8 @@ from .base import BaseController
 class ButtonsController(BaseController[Button]):
     """Controller holding and managing Vantage buttons."""
 
-    vantage_types = ("Button",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (Button,)
     status_types = ("BTN",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: Button) -> None:
