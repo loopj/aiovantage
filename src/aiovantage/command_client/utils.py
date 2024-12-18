@@ -1,5 +1,6 @@
 """Utility functions for the Host Command service client."""
 
+import datetime as dt
 import re
 import struct
 from decimal import Decimal
@@ -58,6 +59,8 @@ def parse_param(arg: str, klass: type[T]) -> T:
         parsed = parse_string_param(arg)
     elif klass is bytearray:
         parsed = parse_byte_param(arg)
+    elif klass is dt.datetime:
+        parsed = dt.datetime.fromtimestamp(int(arg))
     elif klass is Decimal:
         parsed = parse_fixed_param(arg)
     elif issubclass(klass, IntEnum):
