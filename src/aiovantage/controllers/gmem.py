@@ -25,13 +25,13 @@ class GMemController(BaseController[GMem]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: GMem) -> None:
         """Fetch the state properties of a variable."""
         state = {
-            "value": await self.get_value(vid),
+            "value": await self.get_value(obj.vid),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

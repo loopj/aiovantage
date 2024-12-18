@@ -97,7 +97,7 @@ class BaseController(QuerySet[T]):
         """Return a set of all known object IDs."""
         return set(self._items.keys())
 
-    async def fetch_object_state(self, _vid: int) -> None:
+    async def fetch_object_state(self, obj: T) -> None:
         """Fetch the full state of an object.
 
         Should be overridden by subclasses that manage stateful objects.
@@ -136,10 +136,13 @@ class BaseController(QuerySet[T]):
 
             # Fetch all objects managed by this controller
             async for obj in get_objects(self.config_client, types=self.vantage_types):
+                obj._command_client = self.command_client
+
                 if obj.vid in prev_ids:
                     # This is an existing object.
                     # Update any attributes that have changed and notify subscribers.
                     # Ignore the m_time attribute, and any state attributes.
+                    # TODO: Check if interface state fields even show up here now
                     self.update_state(
                         obj.vid,
                         {
@@ -185,7 +188,7 @@ class BaseController(QuerySet[T]):
             return
 
         for obj in self._items.values():
-            await self.fetch_object_state(obj.vid)
+            await self.fetch_object_state(obj)
 
         self._logger.info("%s fetched state", type(self).__name__)
 

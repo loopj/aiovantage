@@ -2,8 +2,24 @@
 
 import datetime as dt
 from dataclasses import dataclass, field
-from decimal import Decimal
-from enum import Enum, IntEnum
+from enum import Enum
+
+from aiovantage.object_interfaces import (
+    AnemoSensorInterface,
+    BlindInterface,
+    ButtonInterface,
+    ColorTemperatureInterface,
+    IntrospectionInterface,
+    LightSensorInterface,
+    LoadInterface,
+    ObjectInterface,
+    RGBLoadInterface,
+    SensorInterface,
+    SounderInterface,
+    TaskInterface,
+    TemperatureInterface,
+    ThermostatInterface,
+)
 
 
 @dataclass
@@ -15,7 +31,7 @@ class Parent:
 
 
 @dataclass(kw_only=True)
-class SystemObject:
+class SystemObject(ObjectInterface):
     """Base class for all objects."""
 
     # MTime, DName, not available in 2.x firmware
@@ -48,24 +64,8 @@ class SystemObject:
         return getattr(cls_meta, "name", cls.__qualname__)
 
 
-@dataclass(kw_only=True)
-class BlindBase(SystemObject):
-    """Blind base class."""
-
-    shade_orientation: str | None = field(default=None, metadata=dict(type="Attribute"))
-    shade_type: str | None = field(default=None, metadata=dict(type="Attribute"))
-
-    # State
-    position: Decimal | None = field(default=None, metadata={"type": "Ignore"})
-
-
 @dataclass
-class BlindGroupBase(BlindBase):
-    """Blind group base class."""
-
-
-@dataclass
-class Button(SystemObject):
+class Button(SystemObject, ButtonInterface):
     """Button object."""
 
     parent: Parent
@@ -74,9 +74,6 @@ class Button(SystemObject):
     hold: int
     text1: str
     text2: str
-
-    # State
-    pressed: bool | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def text(self) -> str:
@@ -152,61 +149,12 @@ class LocationObject(SystemObject):
 
 
 @dataclass
-class RGBLoadBase(LocationObject):
-    """RGB load base class."""
-
-    class ColorType(Enum):
-        RGB = "RGB"
-        RGBW = "RGBW"
-        HSL = "HSL"
-        HSIC = "HSIC"
-        CCT = "CCT"
-        COLOR_CHANNEL = "Color Channel"
-
-    parent: Parent
-    color_type: ColorType
-    min_temp: int
-    max_temp: int
-
-    # State
-    hsl: tuple[int, int, int] | None = field(default=None, metadata={"type": "Ignore"})
-    rgb: tuple[int, int, int] | None = field(default=None, metadata={"type": "Ignore"})
-    rgbw: tuple[int, int, int, int] | None = field(
-        default=None, metadata={"type": "Ignore"}
-    )
-    level: int | None = field(default=None, metadata={"type": "Ignore"})
-    color_temp: int | None = field(default=None, metadata={"type": "Ignore"})
-
-    @property
-    def is_on(self) -> bool:
-        """Return True if the load is on."""
-        return bool(self.level)
-
-    @property
-    def is_rgb(self) -> bool:
-        """Return True if the load is an RGB(W) load."""
-        return self.color_type in (
-            self.ColorType.RGB,
-            self.ColorType.RGBW,
-            self.ColorType.HSL,
-        )
-
-    @property
-    def is_cct(self) -> bool:
-        """Return True if the load is a CCT load."""
-        return self.color_type == self.ColorType.CCT
-
-
-@dataclass
-class Load(LocationObject):
+class Load(LocationObject, LoadInterface):
     """Load object."""
 
     parent: Parent
     load_type: str
     power_profile: int
-
-    # State
-    level: float | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def is_relay(self) -> bool:
@@ -227,31 +175,18 @@ class Load(LocationObject):
         """Return True if the load type is inferred to be a light."""
         return not (self.is_relay or self.is_motor)
 
-    @property
-    def is_on(self) -> bool:
-        """Return True if the load is on."""
-        return bool(self.level)
-
 
 @dataclass
-class LoadGroup(LocationObject):
+class LoadGroup(LocationObject, LoadInterface):
     """LoadGroup object."""
 
     load_table: list[int] = field(
         default_factory=list, metadata={"name": "Load", "wrapper": "LoadTable"}
     )
 
-    # State
-    level: float | None = field(default=None, metadata={"type": "Ignore"})
-
-    @property
-    def is_on(self) -> bool:
-        """Return True if the load is on."""
-        return bool(self.level)
-
 
 @dataclass
-class Master(SystemObject):
+class Master(SystemObject, IntrospectionInterface):
     """Master (controller) object."""
 
     # ModuleCount, SerialNumber, not available in 2.x firmware
@@ -261,10 +196,6 @@ class Master(SystemObject):
     amps: float
     module_count: int | None = None
     serial_number: int | None = None
-
-    # State
-    firmware_version: str | None = field(default=None, metadata={"type": "Ignore"})
-    last_updated: int | None = field(default=None, metadata={"type": "Ignore"})
 
 
 @dataclass
@@ -317,12 +248,8 @@ class StationBus(SystemObject):
 
 
 @dataclass
-class Task(SystemObject):
+class Task(SystemObject, TaskInterface):
     """Task object."""
-
-    # State
-    is_running: bool | None = field(default=None, metadata={"type": "Ignore"})
-    state: int | None = field(default=None, metadata={"type": "Ignore"})
 
 
 @dataclass
@@ -338,14 +265,14 @@ class BackBox(LocationObject):
 
 
 @dataclass
-class Blind(BlindBase, LocationObject):
+class Blind(LocationObject, BlindInterface):
     """Blind object."""
 
     parent: Parent
 
 
 @dataclass
-class BlindGroup(BlindGroupBase, LocationObject):
+class BlindGroup(LocationObject, BlindInterface):
     """BlindGroup object."""
 
     blind_table: list[int] = field(
@@ -366,7 +293,7 @@ class ChildDevice(CustomDevice):
 
 
 @dataclass
-class SomfyRS485GroupChild(BlindGroupBase, ChildDevice):
+class SomfyRS485GroupChild(ChildDevice, BlindInterface):
     """Somfy RS-485 SDN 2.0 blind group."""
 
     class Meta:
@@ -374,7 +301,7 @@ class SomfyRS485GroupChild(BlindGroupBase, ChildDevice):
 
 
 @dataclass
-class SomfyRS485ShadeChild(BlindBase, ChildDevice):
+class SomfyRS485ShadeChild(ChildDevice, BlindInterface):
     """Somfy RS-485 SDN 2.0 blind."""
 
     class Meta:
@@ -382,7 +309,7 @@ class SomfyRS485ShadeChild(BlindBase, ChildDevice):
 
 
 @dataclass
-class SomfyURTSI2GroupChild(BlindGroupBase, ChildDevice):
+class SomfyURTSI2GroupChild(ChildDevice, BlindInterface):
     """Somfy URTSI 2 blind group."""
 
     class Meta:
@@ -390,7 +317,7 @@ class SomfyURTSI2GroupChild(BlindGroupBase, ChildDevice):
 
 
 @dataclass
-class SomfyURTSI2ShadeChild(BlindBase, ChildDevice):
+class SomfyURTSI2ShadeChild(ChildDevice, BlindInterface):
     """Somfy URTSI 2 blind."""
 
     class Meta:
@@ -403,17 +330,14 @@ class ParentDevice(CustomDevice):
 
 
 @dataclass
-class DryContact(LocationObject):
+class DryContact(LocationObject, ButtonInterface):
     """DryContact object."""
 
     parent: Parent
 
-    # State
-    triggered: bool | None = field(default=None, metadata={"type": "Ignore"})
-
 
 @dataclass
-class RelayBlind(BlindBase, LocationObject):
+class RelayBlind(LocationObject, BlindInterface):
     """Relay blind object."""
 
 
@@ -466,7 +390,7 @@ class HighVoltageRelayStation(StationObject):
 
 
 @dataclass
-class Keypad(StationObject):
+class Keypad(StationObject, SounderInterface):
     """Keypad Station."""
 
     parent: Parent
@@ -503,62 +427,18 @@ class RS485Station(StationObject):
 
 
 @dataclass
-class QISBlind(BlindBase, StationObject):
+class QISBlind(StationObject, BlindInterface):
     """QIS blind object."""
 
 
 @dataclass
-class QubeBlind(BlindBase, StationObject):
+class QubeBlind(StationObject, BlindInterface):
     """Qube blind object."""
 
 
 @dataclass
-class Thermostat(StationObject):
+class Thermostat(StationObject, ThermostatInterface):
     """Thermostat object."""
-
-    class OperationMode(IntEnum):
-        """The operation mode of the thermostat."""
-
-        OFF = 0
-        COOL = 1
-        HEAT = 2
-        AUTO = 3
-
-    class FanMode(IntEnum):
-        """The fan mode of the thermostat."""
-
-        AUTO = 0
-        ON = 1
-
-    class DayMode(IntEnum):
-        """The day mode of the thermostat."""
-
-        DAY = 0
-        NIGHT = 1
-
-    class HoldMode(IntEnum):
-        """The hold mode of the thermostat."""
-
-        NORMAL = 0
-        HOLD = 1
-
-    class Status(IntEnum):
-        """The status of the thermostat."""
-
-        OFF = 0
-        COOLING = 1
-        HEATING = 2
-        OFFLINE = 3
-
-    # State
-    # "status" Not available in 2.x firmware
-    operation_mode: OperationMode | None = field(
-        default=None, metadata={"type": "Ignore"}
-    )
-    fan_mode: FanMode | None = field(default=None, metadata={"type": "Ignore"})
-    day_mode: DayMode | None = field(default=None, metadata={"type": "Ignore"})
-    hold_mode: HoldMode | None = field(default=None, metadata={"type": "Ignore"})
-    status: Status | None = field(default=None, metadata={"type": "Ignore"})
 
 
 @dataclass
@@ -575,32 +455,21 @@ class Sensor(LocationObject):
 
 
 @dataclass
-class AnemoSensor(Sensor):
+class AnemoSensor(Sensor, AnemoSensorInterface, SensorInterface):
     """AnemoSensor (wind sensor) object."""
 
     parent: Parent
 
-    # State
-    speed: Decimal | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
-
 
 @dataclass
-class LightSensor(Sensor):
+class LightSensor(Sensor, LightSensorInterface, SensorInterface):
     """Light sensor object."""
 
     parent: Parent
 
-    # State
-    level: Decimal | None = field(default=None, metadata={"type": "Ignore"})
-
 
 @dataclass
-class OmniSensor(Sensor):
+class OmniSensor(Sensor, SensorInterface):
     """OmniSensor object."""
 
     class ConversionType(Enum):
@@ -628,9 +497,6 @@ class OmniSensor(Sensor):
     parent: Parent
     get: Get
 
-    # State
-    level: int | Decimal | None = field(default=None, metadata={"type": "Ignore"})
-
     @property
     def is_current_sensor(self) -> bool:
         """Return True if the sensor is a current sensor."""
@@ -648,22 +514,18 @@ class OmniSensor(Sensor):
 
 
 @dataclass(kw_only=True)
-class Temperature(Sensor):
+class Temperature(Sensor, TemperatureInterface):
     """Temperature object."""
 
+    # TODO: Use a different approach to determine the setpoint type
     class Setpoint(Enum):
-        """Setpoint type."""
-
         HEAT = "Heat"
         COOL = "Cool"
         AUTO = "Auto"
 
-    # Not available in 2.x firmware
+    # Setpoint property not present in 2.x firmware
     setpoint: Setpoint | None = field(default=None, metadata={"type": "Attribute"})
     parent: Parent
-
-    # State
-    value: Decimal | None = field(default=None, metadata={"type": "Ignore"})
 
 
 @dataclass
@@ -674,19 +536,49 @@ class PortDevice(LocationObject):
 
 
 @dataclass
-class VantageDDGColorLoad(RGBLoadBase):
+class VantageDDGColorLoad(
+    LocationObject, LoadInterface, RGBLoadInterface, ColorTemperatureInterface
+):
     """DMX/DALI Gateway color load object."""
 
     class Meta:
         name = "Vantage.DDGColorLoad"
 
+    class ColorType(Enum):
+        RGB = "RGB"
+        RGBW = "RGBW"
+        HSL = "HSL"
+        HSIC = "HSIC"
+        CCT = "CCT"
+        COLOR_CHANNEL = "Color Channel"
+
+    parent: Parent
+    color_type: ColorType
+    min_temp: int
+    max_temp: int
+
 
 @dataclass
-class VantageDGColorLoad(RGBLoadBase):
+class VantageDGColorLoad(
+    LocationObject, LoadInterface, RGBLoadInterface, ColorTemperatureInterface
+):
     """DMX Gateway color load object."""
 
     class Meta:
         name = "Vantage.DGColorLoad"
+
+    class ColorType(Enum):
+        RGB = "RGB"
+        RGBW = "RGBW"
+        HSL = "HSL"
+        HSIC = "HSIC"
+        CCT = "CCT"
+        COLOR_CHANNEL = "Color Channel"
+
+    parent: Parent
+    color_type: ColorType
+    min_temp: int
+    max_temp: int
 
 
 @dataclass

@@ -10,6 +10,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 
 from aiovantage import Vantage
+from aiovantage.objects import Load
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -20,17 +21,17 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def parse_keypress() -> str | None:
-    """Rudimentary keypress parser."""
-    char = sys.stdin.read(1)
+async def parse_keypress() -> str | None:
+    """Rudimentary keypress parser (async version)."""
+    loop = asyncio.get_running_loop()
+    char: str = await loop.run_in_executor(None, sys.stdin.read, 1)
     if char == "\x1b":
-        seq = sys.stdin.read(2)
+        seq = await loop.run_in_executor(None, sys.stdin.read, 2)
         if seq == "[A":
             return "KEY_UP"
         if seq == "[B":
             return "KEY_DOWN"
         return None
-
     return char
 
 
@@ -55,7 +56,7 @@ async def main() -> None:
         print("Load ID  Name")
         print("-------  ----")
         async for load in vantage.loads:
-            print(f"{load.vid: ^7}  {load.name}")
+            print(f"{load.id: ^7}  {load.name}")
         print()
 
         # Ask which load to control
@@ -80,26 +81,26 @@ async def main() -> None:
         # Listen for control keypresses
         with cbreak_mode(sys.stdin.fileno()):
             while True:
-                key = parse_keypress()
+                key = await parse_keypress()
                 level = load.level or 0
 
                 if key == "KEY_UP":
                     # Increase the load's brightness
-                    await vantage.loads.ramp(load.vid, level=level + 10, time=1)
+                    await load.ramp(Load.RampType.Fixed, 1, level + 10)
                     print(f"Increased '{load.name}' brightness to {load.level}%")
 
                 elif key == "KEY_DOWN":
                     # Decrease the load's brightness
-                    await vantage.loads.ramp(load.vid, level=level - 10, time=1)
+                    await load.ramp(Load.RampType.Fixed, 1, level - 10)
                     print(f"Decreased '{load.name}' brightness to {load.level}%")
 
                 elif key == " ":
                     # Toggle load
                     if load.is_on:
-                        await vantage.loads.turn_off(load.vid)
+                        await load.turn_off()
                         print(f"Turned '{load.name}' load off")
                     else:
-                        await vantage.loads.turn_on(load.vid)
+                        await load.turn_on()
                         print(f"Turned '{load.name}' load on")
 
                 elif key == "q":

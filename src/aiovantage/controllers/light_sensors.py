@@ -4,18 +4,12 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.object_interfaces import (
-    LightSensorInterface,
-    SensorInterface,
-)
 from aiovantage.objects import LightSensor
 
 from .base import BaseController
 
 
-class LightSensorsController(
-    BaseController[LightSensor], LightSensorInterface, SensorInterface
-):
+class LightSensorsController(BaseController[LightSensor]):
     """Controller holding and managing Vantage light sensors."""
 
     vantage_types = ("LightSensor",)
@@ -25,13 +19,13 @@ class LightSensorsController(
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: LightSensor) -> None:
         """Fetch the state properties of a light sensor."""
         state = {
-            "level": await LightSensorInterface.get_level(self, vid),
+            "level": await obj.get_level(),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

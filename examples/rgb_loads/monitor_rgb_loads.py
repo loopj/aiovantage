@@ -7,7 +7,7 @@ import logging
 from typing import Any
 
 from aiovantage import Vantage, VantageEvent
-from aiovantage.objects import RGBLoadBase
+from aiovantage.controllers.rgb_loads import RGBLoadTypes
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -18,7 +18,7 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent, obj: RGBLoadBase, data: dict[str, Any]) -> None:
+def callback(event: VantageEvent, obj: RGBLoadTypes, data: dict[str, Any]) -> None:
     """Print out any state changes."""
     if event == VantageEvent.OBJECT_ADDED:
         print(f"[RGBLoad added] '{obj.name}' ({obj.vid})")
