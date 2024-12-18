@@ -6,25 +6,19 @@ from .system_object import SystemObject
 
 
 @dataclass
-class Tag:
-    """GMem tag."""
-
-    type: str
-    object: bool = field(
-        default=False, metadata={"name": "object", "type": "Attribute"}
-    )
-
-
-@dataclass
-class Data:
-    """GMem data."""
-
-    fixed: bool = field(default=False, metadata={"type": "Attribute"})
-
-
-@dataclass
 class GMem(SystemObject):
     """GMem (variable) object."""
+
+    @dataclass
+    class Tag:
+        type: str
+        object: bool = field(
+            default=False, metadata={"name": "object", "type": "Attribute"}
+        )
+
+    @dataclass
+    class Data:
+        fixed: bool = field(default=False, metadata={"type": "Attribute"})
 
     data: Data = field(metadata={"name": "data"})
     persistent: bool
