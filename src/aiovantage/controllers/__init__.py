@@ -2,7 +2,7 @@
 
 from .anemo_sensors import AnemoSensorsController
 from .areas import AreasController
-from .back_box import BackBoxesController
+from .back_boxes import BackBoxesController
 from .base import BaseController
 from .blind_groups import BlindGroupsController
 from .blinds import BlindsController
