@@ -2,8 +2,8 @@
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import TaskInterface
 from aiovantage.models import Task
+from aiovantage.object_interfaces import TaskInterface
 
 from .base import BaseController
 
