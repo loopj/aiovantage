@@ -160,7 +160,7 @@ class BaseController(QuerySet[T]):
 
                     # Fetch the state of stateful objects
                     if self.stateful and fetch_state:
-                        await self.fetch_object_state(obj.vid)
+                        await self.fetch_object_state(obj)
 
                 # Keep track of which objects we've seen
                 cur_ids.add(obj.vid)
