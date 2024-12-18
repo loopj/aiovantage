@@ -1,8 +1,7 @@
 """Base class for all objects."""
 
+import datetime as dt
 from dataclasses import dataclass, field
-
-from xsdata.models.datatype import XmlDateTime
 
 
 @dataclass(kw_only=True)
@@ -16,8 +15,10 @@ class SystemObject:
     name: str
     model: str
     note: str
-    m_time: XmlDateTime | None = field(default=None, metadata={"type": "Attribute"})
     d_name: str | None = None
+    m_time: dt.datetime | None = field(
+        default=None, metadata={"type": "Attribute", "format": "%Y-%m-%dT%H:%M:%S.%f"}
+    )
 
     @property
     def id(self) -> int:
