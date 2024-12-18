@@ -16,32 +16,30 @@ T = TypeVar("T")
 class Interface:
     """Base class for command client object interfaces."""
 
+    vid: int
+    _command_client: CommandClient
     method_signatures: dict[str, type[Any] | None] = {}
-
-    def __init__(self, client: CommandClient) -> None:
-        """Initialize an object interface for standalone use.
-
-        Args:
-            client: The command client to use.
-        """
-        self._command_client = client
 
     @property
     def command_client(self) -> CommandClient:
         """Return the command client."""
         return self._command_client
 
+    @command_client.setter
+    def command_client(self, command_client: CommandClient) -> None:
+        """Set the command client."""
+        self._command_client = command_client
+
     @overload
-    async def invoke(self, vid: int, method: str, *params: ParameterType) -> Any: ...
+    async def invoke(self, method: str, *params: ParameterType) -> Any: ...
 
     @overload
     async def invoke(
-        self, vid: int, method: str, *params: ParameterType, as_type: type[T]
+        self, method: str, *params: ParameterType, as_type: type[T]
     ) -> T: ...
 
     async def invoke(
         self,
-        vid: int,
         method: str,
         *params: ParameterType,
         as_type: type[T] | None = None,
@@ -49,7 +47,6 @@ class Interface:
         """Invoke a method on an object, and return the parsed response.
 
         Args:
-            vid: The VID of the object to invoke the command on.
             method: The method to invoke.
             params: The parameters to send with the method.
             as_type: The type to cast the response to.
@@ -59,7 +56,7 @@ class Interface:
         """
         # INVOKE <id> <Interface.Method>
         # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
-        request = f"INVOKE {vid} {method}"
+        request = f"INVOKE {self.vid} {method}"
         if params:
             request += f" {encode_params(*params)}"
 

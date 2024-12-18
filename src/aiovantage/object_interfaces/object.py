@@ -1,5 +1,7 @@
 """Interface for querying and controlling system objects."""
 
+import datetime as dt
+
 from .base import Interface
 
 
@@ -7,18 +9,16 @@ class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""
 
     method_signatures = {
-        "Object.GetMTime": int,
+        "Object.GetMTime": dt.datetime,
     }
 
-    async def get_mtime(self, vid: int) -> int:
+    # Methods
+    async def get_mtime(self) -> dt.datetime:
         """Get the modification time of an object.
-
-        Args:
-            vid: The Vantage ID of the object.
 
         Returns:
             The modification time of the object, as a unix timestamp.
         """
         # INVOKE <id> Object.GetMTime
         # -> R:INVOKE <id> <mtime> Object.GetMTime
-        return await self.invoke(vid, "Object.GetMTime", as_type=int)
+        return await self.invoke("Object.GetMTime", as_type=dt.datetime)

@@ -6,18 +6,13 @@ from typing import Any
 from typing_extensions import override
 
 from aiovantage.errors import CommandError
-from aiovantage.object_interfaces import (
-    IntrospectionInterface,
-    ObjectInterface,
-)
+from aiovantage.object_interfaces import ObjectInterface
 from aiovantage.objects import Master
 
 from .base import BaseController
 
 
-class MastersController(
-    BaseController[Master], IntrospectionInterface, ObjectInterface
-):
+class MastersController(BaseController[Master]):
     """Controller holding and managing Vantage controllers."""
 
     vantage_types = ("Master",)
@@ -27,17 +22,15 @@ class MastersController(
     """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: Master) -> None:
         """Fetch the state properties of a Vantage controller."""
-        state: dict[str, Any] = {
-            "firmware_version": await self.get_version(),
-        }
+        state: dict[str, Any] = {}
 
         # ObjectInterface is not available on 2.x firmware.
         with suppress(CommandError):
-            state["last_updated"] = await ObjectInterface.get_mtime(self, vid)
+            state["m_time"] = await obj.get_mtime()
 
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     @override
     def handle_interface_status(
@@ -48,18 +41,7 @@ class MastersController(
             return
 
         state = {
-            "last_updated": self.parse_response(method, result, *args),
+            "m_time": ObjectInterface.parse_response(method, result, *args),
         }
 
         self.update_state(vid, state)
-
-    async def get_version(self) -> str:
-        """Get the firmware version of a Vantage controller.
-
-        Returns:
-            The firmware version of the controller.
-        """
-        # VERSION
-        # -> R:VERSION {version}
-        response = await self.command_client.command("VERSION")
-        return response.args[0]

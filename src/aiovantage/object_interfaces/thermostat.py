@@ -61,89 +61,81 @@ class ThermostatInterface(Interface):
         "Thermostat.GetAutoSetPoint": Decimal,
     }
 
-    async def get_indoor_temperature(self, vid: int) -> Decimal:
-        """Get the current indoor temperature.
+    # Properties
+    indoor_temperature: Decimal | None = None
+    heat_set_point: Decimal | None = None
+    cool_set_point: Decimal | None = None
+    auto_set_point: Decimal | None = None
+    operation_mode: OperationMode | None = OperationMode.Unknown
+    fan_mode: FanMode | None = FanMode.Unknown
+    status: Status | None = Status.Offline  # Not available in 2.x firmware
+    outdoor_temperature: Decimal | None = None
+    hold_mode: HoldMode | None = None  # Not part of the interface, just for convenience
+    day_mode: DayMode | None = None  # Not part of the interface, just for convenience
 
-        Args:
-            vid: The Vantage ID of the thermostat.
+    # Methods
+    async def get_indoor_temperature(self) -> Decimal:
+        """Get the current indoor temperature.
 
         Returns:
             The indoor temperature of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetIndoorTemperature
         # -> R:INVOKE <id> <temp> Thermostat.GetIndoorTemperature
-        return await self.invoke(
-            vid, "Thermostat.GetIndoorTemperature", as_type=Decimal
-        )
+        return await self.invoke("Thermostat.GetIndoorTemperature", as_type=Decimal)
 
-    async def get_outdoor_temperature(self, vid: int) -> Decimal:
+    async def get_outdoor_temperature(self) -> Decimal:
         """Get the current outdoor temperature.
-
-        Args:
-            vid: The Vantage ID of the thermostat.
 
         Returns:
             The outdoor temperature of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetOutdoorTemperature
         # -> R:INVOKE <id> <temp> Thermostat.GetOutdoorTemperature
-        return await self.invoke(
-            vid, "Thermostat.GetOutdoorTemperature", as_type=Decimal
-        )
+        return await self.invoke("Thermostat.GetOutdoorTemperature", as_type=Decimal)
 
-    async def get_heat_set_point(self, vid: int) -> Decimal:
+    async def get_heat_set_point(self) -> Decimal:
         """Get the current heat set point.
-
-        Args:
-            vid: The Vantage ID of the thermostat.
 
         Returns:
             The heat set point of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetHeatSetPoint
         # -> R:INVOKE <id> <temp> Thermostat.GetHeatSetPoint
-        return await self.invoke(vid, "Thermostat.GetHeatSetPoint", as_type=Decimal)
+        return await self.invoke("Thermostat.GetHeatSetPoint", as_type=Decimal)
 
-    async def set_heat_set_point(self, vid: int, temp: float | Decimal) -> None:
+    async def set_heat_set_point(self, temp: float | Decimal) -> None:
         """Set the current heat set point.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             temp: The heat set point to set, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.SetHeatSetPoint <temp>
         # -> R:INVOKE <id> Thermostat.SetHeatSetPoint <temp>
-        await self.invoke(vid, "Thermostat.SetHeatSetPoint", temp)
+        await self.invoke("Thermostat.SetHeatSetPoint", temp)
 
-    async def get_cool_set_point(self, vid: int) -> Decimal:
+    async def get_cool_set_point(self) -> Decimal:
         """Get the current cool set point.
-
-        Args:
-            vid: The Vantage ID of the thermostat.
 
         Returns:
             The cool set point of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetCoolSetPoint
         # -> R:INVOKE <id> <temp> Thermostat.GetCoolSetPoint
-        return await self.invoke(vid, "Thermostat.GetCoolSetPoint", as_type=Decimal)
+        return await self.invoke("Thermostat.GetCoolSetPoint", as_type=Decimal)
 
-    async def set_cool_set_point(self, vid: int, temp: float | Decimal) -> None:
+    async def set_cool_set_point(self, temp: float | Decimal) -> None:
         """Set the current cool set point.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             temp: The cool set point to set, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.SetCoolSetPoint <temp>
         # -> R:INVOKE <id> Thermostat.SetCoolSetPoint <temp>
-        await self.invoke(vid, "Thermostat.SetCoolSetPoint", temp)
+        await self.invoke("Thermostat.SetCoolSetPoint", temp)
 
-    async def get_operation_mode(self, vid: int) -> OperationMode:
+    async def get_operation_mode(self) -> OperationMode:
         """Get the current operation mode.
-
-        Args:
-            vid: The Vantage ID of the thermostat.
 
         Returns:
             The operation mode of the thermostat.
@@ -151,125 +143,105 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetOperationMode
         # -> R:INVOKE <id> <mode (Off|Cool|Heat|Auto|Unknown)> Thermostat.GetOperationMode
         return await self.invoke(
-            vid, "Thermostat.GetOperationMode", as_type=self.OperationMode
+            "Thermostat.GetOperationMode", as_type=self.OperationMode
         )
 
-    async def set_operation_mode(self, vid: int, mode: int) -> None:
+    async def set_operation_mode(self, mode: int) -> None:
         """Set the current operation mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             mode: The operation mode to set.
         """
         # INVOKE <id> Thermostat.SetOperationMode <mode>
         # -> R:INVOKE <id> Thermostat.SetOperationMode <mode>
-        await self.invoke(vid, "Thermostat.SetOperationMode", mode)
+        await self.invoke("Thermostat.SetOperationMode", mode)
 
-    async def get_fan_mode(self, vid: int) -> FanMode:
+    async def get_fan_mode(self) -> FanMode:
         """Get the current fan mode.
-
-        Args:
-            vid: The Vantage ID of the thermostat.
 
         Returns:
             The fan mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetFanMode
         # -> R:INVOKE <id> <mode (Off|On|Unknown)> Thermostat.GetFanMode
-        return await self.invoke(vid, "Thermostat.GetFanMode", as_type=self.FanMode)
+        return await self.invoke("Thermostat.GetFanMode", as_type=self.FanMode)
 
-    async def set_fan_mode(self, vid: int, mode: int) -> None:
+    async def set_fan_mode(self, mode: int) -> None:
         """Set the current fan mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             mode: The fan mode to set.
         """
         # INVOKE <id> Thermostat.SetFanMode <mode>
         # -> R:INVOKE <id> Thermostat.SetFanMode <mode>
-        await self.invoke(vid, "Thermostat.SetFanMode", mode)
+        await self.invoke("Thermostat.SetFanMode", mode)
 
-    async def get_day_mode(self, vid: int) -> DayMode:
+    async def get_day_mode(self) -> DayMode:
         """Get the current day mode.
-
-        Args:
-            vid: The Vantage ID of the thermostat.
 
         Returns:
             The day mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetDayMode
         # -> R:INVOKE <id> <mode (Day|Night|Unknown|Standby)> Thermostat.GetDayMode
-        return await self.invoke(vid, "Thermostat.GetDayMode", as_type=self.DayMode)
+        return await self.invoke("Thermostat.GetDayMode", as_type=self.DayMode)
 
-    async def set_day_mode(self, vid: int, mode: int) -> None:
+    async def set_day_mode(self, mode: int) -> None:
         """Set the current day mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             mode: The day mode to set.
         """
         # INVOKE <id> Thermostat.SetDayMode <mode>
         # -> R:INVOKE <id> Thermostat.SetDayMode <mode>
-        await self.invoke(vid, "Thermostat.SetDayMode", mode)
+        await self.invoke("Thermostat.SetDayMode", mode)
 
-    async def get_hold_mode(self, vid: int) -> HoldMode:
+    async def get_hold_mode(self) -> HoldMode:
         """Get the current hold mode.
-
-        Args:
-            vid: The Vantage ID of the thermostat.
 
         Returns:
             The hold mode of the thermostat.
         """
         # INVOKE <id> Thermostat.GetHoldMode
         # -> R:INVOKE <id> <mode (Normal|Hold|Unknown)> Thermostat.GetHoldMode
-        return await self.invoke(vid, "Thermostat.GetHoldMode", as_type=self.HoldMode)
+        return await self.invoke("Thermostat.GetHoldMode", as_type=self.HoldMode)
 
-    async def set_hold_mode(self, vid: int, mode: int) -> None:
+    async def set_hold_mode(self, mode: int) -> None:
         """Set the current hold mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             mode: The hold mode to set.
         """
         # INVOKE <id> Thermostat.SetHoldMode <mode>
         # -> R:INVOKE <id> Thermostat.SetHoldMode <mode>
-        await self.invoke(vid, "Thermostat.SetHoldMode", mode)
+        await self.invoke("Thermostat.SetHoldMode", mode)
 
-    async def get_status(self, vid: int) -> Status:
+    async def get_status(self) -> Status:
         """Get the current status.
-
-        Args:
-            vid: The Vantage ID of the thermostat.
 
         Returns:
             The status of the thermostat.
         """
         # INVOKE <id> Thermostat.GetStatus
         # -> R:INVOKE <id> <status (Off|Cooling|Heating|Offline)> Thermostat.GetStatus
-        return await self.invoke(vid, "Thermostat.GetStatus", as_type=self.Status)
+        return await self.invoke("Thermostat.GetStatus", as_type=self.Status)
 
-    async def get_auto_set_point(self, vid: int) -> Decimal:
+    async def get_auto_set_point(self) -> Decimal:
         """Get the current auto set point.
-
-        Args:
-            vid: The Vantage ID of the thermostat.
 
         Returns:
             The auto set point of the thermostat, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.GetAutoSetPoint
         # -> R:INVOKE <id> <temp> Thermostat.GetAutoSetPoint
-        return await self.invoke(vid, "Thermostat.GetAutoSetPoint", as_type=Decimal)
+        return await self.invoke("Thermostat.GetAutoSetPoint", as_type=Decimal)
 
-    async def set_auto_set_point(self, vid: int, temp: float | Decimal) -> None:
+    async def set_auto_set_point(self, temp: float | Decimal) -> None:
         """Set the current auto set point.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             temp: The auto set point to set, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.SetAutoSetPoint <temp>
         # -> R:INVOKE <id> Thermostat.SetAutoSetPoint <temp>
-        await self.invoke(vid, "Thermostat.SetAutoSetPoint", temp)
+        await self.invoke("Thermostat.SetAutoSetPoint", temp)

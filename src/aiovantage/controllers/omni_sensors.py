@@ -25,13 +25,13 @@ class OmniSensorsController(BaseController[OmniSensor]):
     """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: OmniSensor) -> None:
         """Fetch the state properties of an omni sensor."""
         state = {
-            "level": await self.get_level(vid, cached=False),
+            "level": await self.get_level(obj, cached=False),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     @override
     def handle_interface_status(
@@ -48,24 +48,22 @@ class OmniSensorsController(BaseController[OmniSensor]):
 
         self.update_state(vid, state)
 
-    async def get_level(self, vid: int, cached: bool = True) -> int | Decimal:
+    async def get_level(self, obj: OmniSensor, cached: bool = True) -> int | Decimal:
         """Get the level of an OmniSensor.
 
         Args:
-            vid: The ID of the sensor.
+            obj: The OmniSensor object to get the level of.
             cached: Whether to use the cached value or fetch a new one.
 
         Returns:
             The level of the sensor.
         """
-        omni_sensor = self[vid]
-
         # INVOKE <id> <method>
         # -> R:INVOKE <id> <value> <method>
-        method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
-        response = await self.command_client.command("INVOKE", vid, method)
+        method = obj.get.method if cached else obj.get.method_hw
+        response = await self.command_client.command("INVOKE", obj.vid, method)
 
-        return self.parse_result(omni_sensor, response.args[1])
+        return self.parse_result(obj, response.args[1])
 
     @classmethod
     def parse_result(cls, sensor: OmniSensor, result: str) -> int | Decimal:

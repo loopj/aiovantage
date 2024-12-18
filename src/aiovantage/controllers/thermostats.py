@@ -13,7 +13,47 @@ from aiovantage.query import QuerySet
 from .base import BaseController
 
 
-class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
+def parse_thermop(value: str) -> ThermostatInterface.OperationMode:
+    """Parse a THERMOP status messages."""
+    match value:
+        case "OFF":
+            return ThermostatInterface.OperationMode.Off
+        case "COOL":
+            return ThermostatInterface.OperationMode.Cool
+        case "HEAT":
+            return ThermostatInterface.OperationMode.Heat
+        case "AUTO":
+            return ThermostatInterface.OperationMode.Auto
+        case _:
+            return ThermostatInterface.OperationMode.Unknown
+
+
+def parse_thermfan(value: str) -> ThermostatInterface.FanMode:
+    """Parse a THERMFAN status messages."""
+    match value:
+        case "AUTO":
+            return ThermostatInterface.FanMode.Off
+        case "ON":
+            return ThermostatInterface.FanMode.On
+        case _:
+            return ThermostatInterface.FanMode.Unknown
+
+
+def parse_thermday(value: str) -> ThermostatInterface.DayMode:
+    """Parse a THERMDAY status messages."""
+    match value:
+        case "DAY":
+            return ThermostatInterface.DayMode.Day
+        case "NIGHT":
+            return ThermostatInterface.DayMode.Night
+        case _:
+            return ThermostatInterface.DayMode.Unknown
+
+
+ThermostatTypes = Thermostat
+
+
+class ThermostatsController(BaseController[ThermostatTypes]):
     """Controller holding and managing thermostats.
 
     Thermostats have a number of temperature sensors associated with them which
@@ -28,23 +68,23 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: ThermostatTypes) -> None:
         """Fetch the state properties of a thermostat."""
         state = {
-            "operation_mode": await ThermostatInterface.get_operation_mode(self, vid),
-            "fan_mode": await ThermostatInterface.get_fan_mode(self, vid),
-            "day_mode": await ThermostatInterface.get_day_mode(self, vid),
+            "operation_mode": await obj.get_operation_mode(),
+            "fan_mode": await obj.get_fan_mode(),
+            "day_mode": await obj.get_day_mode(),
         }
 
         # Hold mode is not supported by every thermostat type.
         with suppress(CommandError):
-            state["hold_mode"] = await ThermostatInterface.get_hold_mode(self, vid)
+            state["hold_mode"] = await obj.get_hold_mode()
 
         # Status is not available on 2.x firmware.
         with suppress(CommandError):
-            state["status"] = await ThermostatInterface.get_status(self, vid)
+            state["status"] = await obj.get_status()
 
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:
@@ -54,15 +94,15 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
         if status == "THERMOP":
             # STATUS THERMOP
             # -> S:THERMOP <id> <operation_mode (OFF/COOL/HEAT/AUTO)>
-            state["operation_mode"] = Thermostat.OperationMode[args[0]]
+            state["operation_mode"] = parse_thermop(args[0])
         elif status == "THERMFAN":
             # STATUS THERMFAN
             # -> S:THERMFAN <id> <fan_mode (ON/AUTO)>
-            state["fan_mode"] = Thermostat.FanMode[args[0]]
+            state["fan_mode"] = parse_thermfan(args[0])
         elif status == "THERMDAY":
             # STATUS THERMDAY
             # -> S:THERMDAY <id> <day_mode (DAY/NIGHT)>
-            state["day_mode"] = Thermostat.DayMode[args[0]]
+            state["day_mode"] = parse_thermday(args[0])
         else:
             return
 
@@ -75,9 +115,11 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
         """Handle object interface status messages from the event stream."""
         state: dict[str, Any] = {}
         if method == "Thermostat.GetHoldMode":
-            state["hold_mode"] = self.parse_response(method, result, *args)
+            state["hold_mode"] = ThermostatInterface.parse_response(
+                method, result, *args
+            )
         elif method == "Thermostat.GetStatus":
-            state["status"] = self.parse_response(method, result, *args)
+            state["status"] = ThermostatInterface.parse_response(method, result, *args)
 
         self.update_state(vid, state)
 

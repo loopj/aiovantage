@@ -13,28 +13,36 @@ class LightSensorInterface(Interface):
         "LightSensor.GetLevelHW": Decimal,
     }
 
-    async def get_level(self, vid: int) -> Decimal:
-        """Get the level of a light sensor, using cached value if available.
+    # Properties
+    level: int | Decimal | None = None
 
-        Args:
-            vid: The Vantage ID of the light sensor.
+    # Methods
+    async def get_level(self) -> Decimal:
+        """Get the level of a light sensor, using cached value if available.
 
         Returns:
             The level of the light sensor, in foot-candles.
         """
         # INVOKE <id> LightSensor.GetLevel
         # -> R:INVOKE <id> <level> LightSensor.GetLevel
-        return await self.invoke(vid, "LightSensor.GetLevel", as_type=Decimal)
+        return await self.invoke("LightSensor.GetLevel", as_type=Decimal)
 
-    async def get_level_hw(self, vid: int) -> Decimal:
+    async def get_level_hw(self) -> Decimal:
         """Get the level of a light sensor directly from the hardware.
-
-        Args:
-            vid: The Vantage ID of the light sensor.
 
         Returns:
             The level of the light sensor, in foot-candles.
         """
         # INVOKE <id> LightSensor.GetLevelHW
         # -> R:INVOKE <id> <level> LightSensor.GetLevelHW
-        return await self.invoke(vid, "LightSensor.GetLevelHW", as_type=Decimal)
+        return await self.invoke("LightSensor.GetLevelHW", as_type=Decimal)
+
+    async def set_level(self, level: Decimal) -> None:
+        """Set the level of a light sensor.
+
+        Args:
+            level: The level to set, in foot-candles.
+        """
+        # INVOKE <id> LightSensor.SetLevel <level>
+        # -> R:INVOKE <id> <rcode> LightSensor.SetLevel <level>
+        await self.invoke("LightSensor.SetLevel", level)

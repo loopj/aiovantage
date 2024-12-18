@@ -9,18 +9,15 @@ from aiovantage.object_interfaces import (
     LoadInterface,
     RGBLoadInterface,
 )
-from aiovantage.objects import RGBLoadBase
+from aiovantage.objects import VantageDDGColorLoad, VantageDGColorLoad
 from aiovantage.query import QuerySet
 
 from .base import BaseController
 
+RGBLoadTypes = VantageDGColorLoad | VantageDDGColorLoad
 
-class RGBLoadsController(
-    BaseController[RGBLoadBase],
-    LoadInterface,
-    RGBLoadInterface,
-    ColorTemperatureInterface,
-):
+
+class RGBLoadsController(BaseController[RGBLoadTypes]):
     """Controller holding and managing Vantage RGB loads."""
 
     vantage_types = ("Vantage.DGColorLoad", "Vantage.DDGColorLoad")
@@ -40,50 +37,44 @@ class RGBLoadsController(
         self._temp_color_map: dict[int, list[int]] = {}
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: RGBLoadTypes) -> None:
         """Fetch the state properties of an RGB load."""
         state: dict[str, Any] = {
-            "level": await LoadInterface.get_level(self, vid),
+            "level": await obj.get_level(),
+            "hsl": await obj.get_hsl_color(),
+            "rgb": await obj.get_rgb_color(),
+            "rgbw": await obj.get_rgbw_color(),
+            "color_temp": await obj.get_temperature(),
         }
 
-        rgb_load: RGBLoadBase = self[vid]
-        if rgb_load.is_rgb:
-            state["hsl"] = await RGBLoadInterface.get_hsl_color(self, vid)
-            state["rgb"] = await RGBLoadInterface.get_rgb_color(self, vid)
-            state["rgbw"] = await RGBLoadInterface.get_rgbw_color(self, vid)
-
-        if rgb_load.is_cct:
-            state["color_temp"] = await ColorTemperatureInterface.get_color_temp(
-                self, vid
-            )
-
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     @override
     def handle_interface_status(
         self, vid: int, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""
-        rgb_load: RGBLoadBase = self[vid]
         state: dict[str, Any] = {}
 
         if method == "Load.GetLevel":
-            state["level"] = self.parse_response(method, result, *args)
+            state["level"] = LoadInterface.parse_response(method, result, *args)
 
-        elif method == "RGBLoad.GetHSL" and rgb_load.is_rgb:
+        elif method == "RGBLoad.GetHSL":
             if color := self._parse_color_channel_response(vid, method, result, *args):
                 state["hsl"] = color
 
-        elif method == "RGBLoad.GetRGB" and rgb_load.is_rgb:
+        elif method == "RGBLoad.GetRGB":
             if color := self._parse_color_channel_response(vid, method, result, *args):
                 state["rgb"] = color
 
-        elif method == "RGBLoad.GetRGBW" and rgb_load.is_rgb:
+        elif method == "RGBLoad.GetRGBW":
             if color := self._parse_color_channel_response(vid, method, result, *args):
                 state["rgbw"] = color
 
-        elif method == "ColorTemperature.Get" and rgb_load.is_cct:
-            state["color_temp"] = self.parse_response(method, result, *args)
+        elif method == "ColorTemperature.Get":
+            state["color_temp"] = ColorTemperatureInterface.parse_response(
+                method, result, *args
+            )
 
         else:
             return
@@ -91,12 +82,12 @@ class RGBLoadsController(
         self.update_state(vid, state)
 
     @property
-    def is_on(self) -> QuerySet[RGBLoadBase]:
+    def is_on(self) -> QuerySet[RGBLoadTypes]:
         """Return a queryset of all RGB loads that are turned on."""
         return self.filter(lambda load: load.is_on)
 
     @property
-    def is_off(self) -> QuerySet[RGBLoadBase]:
+    def is_off(self) -> QuerySet[RGBLoadTypes]:
         """Return a queryset of all RGB loads that are turned off."""
         return self.filter(lambda load: not load.is_on)
 
@@ -116,8 +107,8 @@ class RGBLoadsController(
             raise ValueError(f"Unsupported color channel method {method}")
 
         # Parse the response
-        response = self.parse_response(
-            method, result, *args, as_type=self.ColorChannelResponse
+        response = RGBLoadInterface.parse_response(
+            method, result, *args, as_type=RGBLoadInterface.ColorChannelResponse
         )
 
         # Ignore updates for channels we don't care about

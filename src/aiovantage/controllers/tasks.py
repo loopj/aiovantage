@@ -8,7 +8,7 @@ from aiovantage.objects import Task
 from .base import BaseController
 
 
-class TasksController(BaseController[Task], TaskInterface):
+class TasksController(BaseController[Task]):
     """Controller holding and managing Vantage tasks."""
 
     vantage_types = ("Task",)
@@ -21,14 +21,14 @@ class TasksController(BaseController[Task], TaskInterface):
     """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: Task) -> None:
         """Fetch the state properties of a task."""
         state = {
-            "is_running": await TaskInterface.is_running(self, vid),
-            "state": await TaskInterface.get_state(self, vid),
+            "running": await obj.is_running(),
+            "state": await obj.get_state(),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:
@@ -53,7 +53,7 @@ class TasksController(BaseController[Task], TaskInterface):
             return
 
         state = {
-            "is_running": self.parse_response(method, result, *args),
+            "running": TaskInterface.parse_response(method, result, *args),
         }
 
         self.update_state(vid, state)
