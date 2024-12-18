@@ -136,31 +136,31 @@ class BaseController(QuerySet[T]):
 
             # Fetch all objects managed by this controller
             async for obj in get_objects(self.config_client, types=self.vantage_types):
-                if obj.id in prev_ids:
+                if obj.vid in prev_ids:
                     # This is an existing object.
                     # Update any attributes that have changed and notify subscribers.
-                    # Ignore the mtime attribute, and any state attributes.
+                    # Ignore the m_time attribute, and any state attributes.
                     self.update_state(
-                        obj.id,
+                        obj.vid,
                         {
                             field.name: getattr(obj, field.name)
                             for field in fields(type(obj))
-                            if field.name != "mtime"
+                            if field.name != "m_time"
                             and field.metadata.get("type") != "Ignore"
                         },
                     )
                 else:
                     # This is a new object.
                     # Add it to the controller and notify subscribers
-                    self._items[obj.id] = obj
+                    self._items[obj.vid] = obj
                     self.emit(VantageEvent.OBJECT_ADDED, obj)
 
                     # Fetch the state of stateful objects
                     if self.stateful and fetch_state:
-                        await self.fetch_object_state(obj.id)
+                        await self.fetch_object_state(obj.vid)
 
                 # Keep track of which objects we've seen
-                cur_ids.add(obj.id)
+                cur_ids.add(obj.vid)
 
             # Handle objects that were removed
             for vid in prev_ids - cur_ids:
@@ -185,7 +185,7 @@ class BaseController(QuerySet[T]):
             return
 
         for obj in self._items.values():
-            await self.fetch_object_state(obj.id)
+            await self.fetch_object_state(obj.vid)
 
         self._logger.info("%s fetched state", type(self).__name__)
 
@@ -273,7 +273,7 @@ class BaseController(QuerySet[T]):
             data = {}
 
         # Grab a list of subscribers that care about this object
-        subscribers = self._subscriptions + self._id_subscriptions.get(obj.id, [])
+        subscribers = self._subscriptions + self._id_subscriptions.get(obj.vid, [])
         for callback, event_filter in subscribers:
             if event_filter is not None and event_type not in event_filter:
                 continue
@@ -297,7 +297,7 @@ class BaseController(QuerySet[T]):
                     setattr(obj, key, value)
                     attrs_changed.append(key)
             except AttributeError:
-                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
+                self._logger.warning("Object '%d' has no attribute '%s'", obj.vid, key)
 
         # Notify subscribers if any attributes changed
         if len(attrs_changed) > 0:

@@ -7,11 +7,5 @@ from dataclasses import dataclass, field
 class Parent:
     """Parent tag."""
 
-    id: int
-
-    position: int = field(
-        metadata={
-            "name": "Position",
-            "type": "Attribute",
-        }
-    )
+    vid: int
+    position: int = field(metadata={"type": "Attribute"})

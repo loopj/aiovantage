@@ -55,7 +55,7 @@ async def main() -> None:
         print("Load ID  Name")
         print("-------  ----")
         async for load in vantage.loads:
-            print(f"{load.id: ^7}  {load.name}")
+            print(f"{load.vid: ^7}  {load.name}")
         print()
 
         # Ask which load to control
@@ -85,21 +85,21 @@ async def main() -> None:
 
                 if key == "KEY_UP":
                     # Increase the load's brightness
-                    await vantage.loads.ramp(load.id, level=level + 10, time=1)
+                    await vantage.loads.ramp(load.vid, level=level + 10, time=1)
                     print(f"Increased '{load.name}' brightness to {load.level}%")
 
                 elif key == "KEY_DOWN":
                     # Decrease the load's brightness
-                    await vantage.loads.ramp(load.id, level=level - 10, time=1)
+                    await vantage.loads.ramp(load.vid, level=level - 10, time=1)
                     print(f"Decreased '{load.name}' brightness to {load.level}%")
 
                 elif key == " ":
                     # Toggle load
                     if load.is_on:
-                        await vantage.loads.turn_off(load.id)
+                        await vantage.loads.turn_off(load.vid)
                         print(f"Turned '{load.name}' load off")
                     else:
-                        await vantage.loads.turn_on(load.id)
+                        await vantage.loads.turn_on(load.vid)
                         print(f"Turned '{load.name}' load on")
 
                 elif key == "q":

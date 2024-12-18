@@ -84,7 +84,7 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
     def sensors(self, vid: int) -> QuerySet[Temperature]:
         """Return all sensors associated with this thermostat."""
         return self._vantage.temperature_sensors.filter(
-            lambda obj: obj.parent.id == vid
+            lambda obj: obj.parent.vid == vid
         )
 
     def indoor_sensor(self, vid: int) -> QuerySet[Temperature]:

@@ -9,16 +9,6 @@ from .system_object import SystemObject
 class Task(SystemObject):
     """Task object."""
 
-    is_running: bool | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
-
-    state: int | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    is_running: bool | None = field(default=None, metadata={"type": "Ignore"})
+    state: int | None = field(default=None, metadata={"type": "Ignore"})

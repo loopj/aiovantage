@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id, name, and level of each light sensor
         async for sensor in vantage.light_sensors:
-            print(f"[{sensor.id}] '{sensor.name}' = {sensor.level}")
+            print(f"[{sensor.vid}] '{sensor.name}' = {sensor.level}")
 
 
 with contextlib.suppress(KeyboardInterrupt):

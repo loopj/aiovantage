@@ -26,7 +26,7 @@ async def main() -> None:
         # Print out the id and name of each power profile
         async for profile in vantage.power_profiles:
             print(
-                f"[{profile.id}] '{profile.name}' min={profile.min} max={profile.max}"
+                f"[{profile.vid}] '{profile.name}' min={profile.min} max={profile.max}"
             )
 
 

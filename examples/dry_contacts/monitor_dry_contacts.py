@@ -21,10 +21,10 @@ args = parser.parse_args()
 def callback(event: VantageEvent, obj: DryContact, data: dict[str, Any]) -> None:
     """Print out any state changes."""
     if event == VantageEvent.OBJECT_ADDED:
-        print(f"[DryContact added] '{obj.name}' ({obj.id})")
+        print(f"[DryContact added] '{obj.name}' ({obj.vid})")
 
     elif event == VantageEvent.OBJECT_UPDATED:
-        print(f"[DryContact updated] '{obj.name}' ({obj.id})")
+        print(f"[DryContact updated] '{obj.name}' ({obj.vid})")
         for attr in data.get("attrs_changed", []):
             print(f"    {attr} = {getattr(obj, attr)}")
 

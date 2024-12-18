@@ -26,7 +26,7 @@ async def main() -> None:
         # Print out the id, name, and labels of each button
         async for button in vantage.buttons:
             print(
-                f"[{button.id}] name='{button.name}' "
+                f"[{button.vid}] name='{button.name}' "
                 f"text1='{button.text1}' text2='{button.text2}'"
             )
 

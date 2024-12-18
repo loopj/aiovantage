@@ -53,7 +53,7 @@ async def main() -> None:
                 return
 
         # Set the value
-        print(f"Setting '{gmem.name}' (id = {gmem.id}) to '{args.value}'")
+        print(f"Setting '{gmem.name}' (id = {gmem.vid}) to '{args.value}'")
         await vantage.gmem.set_value(gmem_id, args.value)
 
 

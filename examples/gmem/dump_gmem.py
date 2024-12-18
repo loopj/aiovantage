@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id, name, and value of each variable
         async for gmem in vantage.gmem:
-            print(f"[{gmem.id}] '{gmem.name}' = {repr(gmem.value)}")
+            print(f"[{gmem.vid}] '{gmem.name}' = {repr(gmem.value)}")
 
 
 with contextlib.suppress(KeyboardInterrupt):

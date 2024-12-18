@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id and name of each port device
         async for device in vantage.port_devices:
-            print(f"[{device.id}] '{device.name}'")
+            print(f"[{device.vid}] '{device.name}'")
 
 
 with contextlib.suppress(KeyboardInterrupt):

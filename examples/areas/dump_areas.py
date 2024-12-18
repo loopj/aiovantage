@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id and name of each area
         async for area in vantage.areas:
-            print(f"[{area.id}] '{area.name}'")
+            print(f"[{area.vid}] '{area.name}'")
 
 
 with contextlib.suppress(KeyboardInterrupt):

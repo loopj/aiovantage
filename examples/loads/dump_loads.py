@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id, name, and level of each load
         async for load in vantage.loads:
-            print(f"[{load.id}] '{load.name}' level={load.level}%")
+            print(f"[{load.vid}] '{load.name}' level={load.level}%")
 
 
 with contextlib.suppress(KeyboardInterrupt):

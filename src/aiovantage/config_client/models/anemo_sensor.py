@@ -11,12 +11,9 @@ from .types import Parent
 class AnemoSensor(Sensor):
     """AnemoSensor (wind sensor) object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent
 
+    # State
     speed: Decimal | None = field(
         default=None,
         metadata={

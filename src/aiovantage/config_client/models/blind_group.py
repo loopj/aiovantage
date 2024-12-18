@@ -10,10 +10,6 @@ from .location_object import LocationObject
 class BlindGroup(BlindGroupBase, LocationObject):
     """BlindGroup object."""
 
-    blind_ids: list[int] = field(
-        default_factory=list,
-        metadata={
-            "name": "Blind",
-            "wrapper": "BlindTable",
-        },
+    blind_table: list[int] = field(
+        default_factory=list, metadata={"name": "Blind", "wrapper": "BlindTable"}
     )

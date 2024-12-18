@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id, name, and value of each load
         async for sensor in vantage.temperature_sensors:
-            print(f"[{sensor.id}] '{sensor.name}' = {sensor.value}")
+            print(f"[{sensor.vid}] '{sensor.name}' = {sensor.value}")
 
 
 with contextlib.suppress(KeyboardInterrupt):

@@ -10,30 +10,12 @@ from .types import Parent
 class Load(LocationObject):
     """Load object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent
+    load_type: str
+    power_profile: int
 
-    load_type: str = field(
-        metadata={
-            "name": "LoadType",
-        }
-    )
-
-    power_profile_id: int = field(
-        metadata={
-            "name": "PowerProfile",
-        }
-    )
-
-    level: float | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    level: float | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def is_relay(self) -> bool:
