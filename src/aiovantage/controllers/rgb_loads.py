@@ -4,12 +4,12 @@ from typing import Any
 
 from typing_extensions import override
 
-from aiovantage.models import RGBLoadBase
 from aiovantage.object_interfaces import (
     ColorTemperatureInterface,
     LoadInterface,
     RGBLoadInterface,
 )
+from aiovantage.objects import RGBLoadBase
 from aiovantage.query import QuerySet
 
 from .base import BaseController

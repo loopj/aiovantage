@@ -2,8 +2,8 @@
 
 from typing_extensions import override
 
-from aiovantage.models import Button
 from aiovantage.object_interfaces import ButtonInterface
+from aiovantage.objects import Button
 
 from .base import BaseController
 

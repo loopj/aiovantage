@@ -12,7 +12,7 @@ from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects
 from aiovantage.events import EventCallback, VantageEvent
-from aiovantage.models import SystemObject
+from aiovantage.objects import SystemObject
 from aiovantage.query import QuerySet
 
 if TYPE_CHECKING:

@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage areas."""
 
-from aiovantage.models import Area
+from aiovantage.objects import Area
 
 from .base import BaseController
 

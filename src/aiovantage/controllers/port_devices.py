@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage port devices."""
 
-from aiovantage.models import PortDevice
+from aiovantage.objects import PortDevice
 
 from .base import BaseController
 

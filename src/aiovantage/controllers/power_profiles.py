@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage power profiles."""
 
-from aiovantage.models import PowerProfile
+from aiovantage.objects import PowerProfile
 
 from .base import BaseController
 

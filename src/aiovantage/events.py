@@ -4,7 +4,7 @@ from collections.abc import Awaitable, Callable
 from enum import Enum
 from typing import Any, TypeAlias, TypeVar
 
-from .models import SystemObject
+from .objects import SystemObject
 
 
 class VantageEvent(Enum):

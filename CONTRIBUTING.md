@@ -42,11 +42,11 @@ pip install -e ".[dev]"
 
 To add a new object type to an existing controller, follow these steps:
 
-- Create a new [xsdata-style `@dataclass`](https://xsdata.readthedocs.io/en/latest/models.html) model in `src/aiovantage/config_client/models/`
+- Create a new [xsdata-style `@dataclass`](https://xsdata.readthedocs.io/en/latest/models.html) model in `src/aiovantage/objects/`
 - The new class should inherit from the appropriate subclass expected by the controller
 - Your class name should match the Vantage object name if possible, otherwise use [class metadata](https://xsdata.readthedocs.io/en/latest/models.html#class-metadata) to specify the name
-- Export the class in `src/aiovantage/config_client/models/__init__.py` so it can be automatically parsed
-- Add the object name to the `vantage_types` tuple in the appropriate controller in `src/aiovantage/config_client/controllers/`, so we know to fetch it when populating the controller
+- Export the class in `src/aiovantage/objects/__init__.py` so it can be automatically parsed
+- Add the object name to the `vantage_types` tuple in the appropriate controller in `src/aiovantage/controllers/`, so we know to fetch it when populating the controller
 - Test that the object appears in the controller, by running the `dump_system.py` example script
 
 ### Adding support for a new class of device

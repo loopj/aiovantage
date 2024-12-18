@@ -4,8 +4,8 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.models import Temperature
 from aiovantage.object_interfaces import TemperatureInterface
+from aiovantage.objects import Temperature
 
 from .base import BaseController
 

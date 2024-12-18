@@ -1,7 +1,7 @@
 """Controller holding and managing Vantage 'back boxes'."""
 
 from aiovantage.controllers.base import BaseController
-from aiovantage.models import BackBox
+from aiovantage.objects import BackBox
 
 
 class BackBoxesController(BaseController[BackBox]):

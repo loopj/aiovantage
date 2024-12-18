@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage stations."""
 
-from aiovantage.models import StationObject
+from aiovantage.objects import StationObject
 
 from .base import BaseController
 

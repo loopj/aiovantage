@@ -5,7 +5,7 @@ import re
 from typing_extensions import override
 
 from aiovantage.command_client.utils import parse_byte_param
-from aiovantage.models import GMem
+from aiovantage.objects import GMem
 
 from .base import BaseController
 
