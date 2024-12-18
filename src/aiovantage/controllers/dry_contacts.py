@@ -10,11 +10,8 @@ from .base import BaseController
 class DryContactsController(BaseController[DryContact]):
     """Controller holding and managing Vantage dry contacts."""
 
-    vantage_types = ("DryContact",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (DryContact,)
     status_types = ("BTN",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: DryContact) -> None:

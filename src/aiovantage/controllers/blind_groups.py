@@ -11,18 +11,15 @@ from aiovantage.query import QuerySet
 from .base import BaseController
 from .blinds import BlindTypes
 
+# The various "blind group" object types don't all inherit from the same base class,
+# so for typing purposes we'll use a union of all the types.
 BlindGroupTypes = BlindGroup | SomfyRS485GroupChild | SomfyURTSI2GroupChild
 
 
 class BlindGroupsController(BaseController[BlindGroupTypes]):
     """Controller holding and managing Vantage blind groups."""
 
-    vantage_types = (
-        "BlindGroup",
-        "Somfy.RS-485_Group_CHILD",
-        "Somfy.URTSI_2_Group_CHILD",
-    )
-    """The Vantage object types that this controller will fetch."""
+    vantage_types = (BlindGroup, SomfyRS485GroupChild, SomfyURTSI2GroupChild)
 
     def blinds(self, vid: int) -> QuerySet[BlindTypes]:
         """Return a queryset of all blinds in this blind group."""

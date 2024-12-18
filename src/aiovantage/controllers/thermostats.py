@@ -50,10 +50,7 @@ def parse_thermday(value: str) -> ThermostatInterface.DayMode:
             return ThermostatInterface.DayMode.Unknown
 
 
-ThermostatTypes = Thermostat
-
-
-class ThermostatsController(BaseController[ThermostatTypes]):
+class ThermostatsController(BaseController[Thermostat]):
     """Controller holding and managing thermostats.
 
     Thermostats have a number of temperature sensors associated with them which
@@ -61,14 +58,11 @@ class ThermostatsController(BaseController[ThermostatTypes]):
     current cool and heat setpoints.
     """
 
-    vantage_types = ("Thermostat",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (Thermostat,)
     status_types = ("THERMFAN", "THERMOP", "THERMDAY")
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, obj: ThermostatTypes) -> None:
+    async def fetch_object_state(self, obj: Thermostat) -> None:
         """Fetch the state properties of a thermostat."""
         state = {
             "operation_mode": await obj.get_operation_mode(),

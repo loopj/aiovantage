@@ -12,4 +12,4 @@ class BackBoxesController(BaseController[BackBox]):
     devices so we can set up a proper device hierarchy.
     """
 
-    vantage_types = ("BackBox",)
+    vantage_types = (BackBox,)

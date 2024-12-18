@@ -1,6 +1,11 @@
 """Controller holding and managing Vantage port devices."""
 
-from aiovantage.objects import PortDevice
+from aiovantage.objects import (
+    PortDevice,
+    SomfyRS485SDN20Port,
+    SomfyURTSI2Port,
+    VantageDmxGateway,
+)
 
 from .base import BaseController
 
@@ -13,9 +18,4 @@ class PortDevicesController(BaseController[PortDevice]):
     devices so we can set up a proper device hierarchy.
     """
 
-    vantage_types = (
-        "Somfy.RS-485_SDN_2_x2E_0_PORT",
-        "Somfy.URTSI_2_PORT",
-        "Vantage.DmxGateway",
-    )
-    """The Vantage object types that this controller will fetch."""
+    vantage_types = (SomfyRS485SDN20Port, SomfyURTSI2Port, VantageDmxGateway)

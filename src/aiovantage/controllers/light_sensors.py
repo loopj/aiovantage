@@ -12,11 +12,8 @@ from .base import BaseController
 class LightSensorsController(BaseController[LightSensor]):
     """Controller holding and managing Vantage light sensors."""
 
-    vantage_types = ("LightSensor",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (LightSensor,)
     status_types = ("LIGHT",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: LightSensor) -> None:
