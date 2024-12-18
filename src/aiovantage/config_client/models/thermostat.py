@@ -44,38 +44,12 @@ class Thermostat(StationObject):
         HEATING = 2
         OFFLINE = 3
 
+    # State
+    # "status" Not available in 2.x firmware
     operation_mode: OperationMode | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
+        default=None, metadata={"type": "Ignore"}
     )
-
-    fan_mode: FanMode | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
-
-    day_mode: DayMode | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
-
-    hold_mode: HoldMode | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
-
-    # Not available in 2.x firmware
-    status: Status | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    fan_mode: FanMode | None = field(default=None, metadata={"type": "Ignore"})
+    day_mode: DayMode | None = field(default=None, metadata={"type": "Ignore"})
+    hold_mode: HoldMode | None = field(default=None, metadata={"type": "Ignore"})
+    status: Status | None = field(default=None, metadata={"type": "Ignore"})

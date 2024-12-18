@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id and name of each blind
         async for blind in vantage.blinds:
-            print(f"[{blind.id}] '{blind.name}'")
+            print(f"[{blind.vid}] '{blind.name}'")
 
 
 with contextlib.suppress(KeyboardInterrupt):

@@ -26,7 +26,7 @@ async def main() -> None:
         # Print out the id, name, and level of each omni sensor
         async for omni_sensor in vantage.omni_sensors:
             level = f"{omni_sensor.level}" if omni_sensor.level is not None else "?"
-            print(f"[{omni_sensor.id}] '{omni_sensor.name}' = {level}")
+            print(f"[{omni_sensor.vid}] '{omni_sensor.name}' = {level}")
 
 
 with contextlib.suppress(KeyboardInterrupt):

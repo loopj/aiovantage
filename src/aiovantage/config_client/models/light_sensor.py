@@ -11,15 +11,7 @@ from .types import Parent
 class LightSensor(Sensor):
     """Light sensor object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent
 
-    level: Decimal | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    level: Decimal | None = field(default=None, metadata={"type": "Ignore"})

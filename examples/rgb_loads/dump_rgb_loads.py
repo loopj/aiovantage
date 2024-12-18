@@ -26,7 +26,7 @@ async def main() -> None:
         # Print out the id, name, and state of each RGB load
         async for rgb_load in vantage.rgb_loads:
             print(
-                f"[{rgb_load.id}] '{rgb_load.name}' "
+                f"[{rgb_load.vid}] '{rgb_load.name}' "
                 f"is {'ON' if rgb_load.is_on else 'OFF'}"
             )
 

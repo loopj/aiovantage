@@ -19,64 +19,19 @@ class RGBLoadBase(LocationObject):
         CCT = "CCT"
         COLOR_CHANNEL = "Color Channel"
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent
+    color_type: ColorType
+    min_temp: int
+    max_temp: int
 
-    color_type: ColorType = field(
-        metadata={
-            "name": "ColorType",
-        }
-    )
-
-    min_temp: int = field(
-        metadata={
-            "name": "MinTemp",
-        }
-    )
-
-    max_temp: int = field(
-        metadata={
-            "name": "MaxTemp",
-        }
-    )
-
-    hsl: tuple[int, int, int] | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
-
-    rgb: tuple[int, int, int] | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
-
+    # State
+    hsl: tuple[int, int, int] | None = field(default=None, metadata={"type": "Ignore"})
+    rgb: tuple[int, int, int] | None = field(default=None, metadata={"type": "Ignore"})
     rgbw: tuple[int, int, int, int] | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
+        default=None, metadata={"type": "Ignore"}
     )
-
-    level: int | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
-
-    color_temp: int | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    level: int | None = field(default=None, metadata={"type": "Ignore"})
+    color_temp: int | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def is_on(self) -> bool:

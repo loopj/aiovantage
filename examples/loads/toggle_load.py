@@ -37,11 +37,11 @@ async def main() -> None:
             return
 
         # Toggle the load
-        print(f"Toggling {load.name} (id = {load.id})")
+        print(f"Toggling {load.name} (id = {load.vid})")
         if load.is_on:
-            await vantage.loads.turn_off(load.id)
+            await vantage.loads.turn_off(load.vid)
         else:
-            await vantage.loads.turn_on(load.id)
+            await vantage.loads.turn_on(load.vid)
 
 
 with contextlib.suppress(KeyboardInterrupt):

@@ -1,6 +1,6 @@
 """Station bus object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from .system_object import SystemObject
 from .types import Parent
@@ -10,8 +10,4 @@ from .types import Parent
 class StationBus(SystemObject):
     """Station bus object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent

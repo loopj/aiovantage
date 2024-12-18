@@ -1,6 +1,6 @@
 """Module object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from .system_object import SystemObject
 from .types import Parent
@@ -10,8 +10,4 @@ from .types import Parent
 class Module(SystemObject):
     """Module object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent

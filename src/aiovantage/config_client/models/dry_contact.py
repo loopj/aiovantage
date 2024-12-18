@@ -10,15 +10,7 @@ from .types import Parent
 class DryContact(LocationObject):
     """DryContact object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent
 
-    triggered: bool | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    triggered: bool | None = field(default=None, metadata={"type": "Ignore"})

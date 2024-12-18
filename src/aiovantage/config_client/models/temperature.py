@@ -20,23 +20,8 @@ class Temperature(Sensor):
         AUTO = "Auto"
 
     # Not available in 2.x firmware
-    setpoint: Setpoint | None = field(
-        default=None,
-        metadata={
-            "name": "Setpoint",
-            "type": "Attribute",
-        },
-    )
+    setpoint: Setpoint | None = field(default=None, metadata={"type": "Attribute"})
+    parent: Parent
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
-
-    value: Decimal | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    value: Decimal | None = field(default=None, metadata={"type": "Ignore"})

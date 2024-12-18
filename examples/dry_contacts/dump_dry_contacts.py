@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id and name of each dry contact
         async for dry_contact in vantage.dry_contacts:
-            print(f"[{dry_contact.id}] name='{dry_contact.name}' ")
+            print(f"[{dry_contact.vid}] name='{dry_contact.name}' ")
 
 
 with contextlib.suppress(KeyboardInterrupt):
