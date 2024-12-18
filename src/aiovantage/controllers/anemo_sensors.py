@@ -4,11 +4,11 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import (
+from aiovantage.models import AnemoSensor
+from aiovantage.object_interfaces import (
     AnemoSensorInterface,
     SensorInterface,
 )
-from aiovantage.models import AnemoSensor
 
 from .base import BaseController
 

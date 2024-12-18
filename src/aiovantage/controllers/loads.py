@@ -4,8 +4,8 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import LoadInterface
 from aiovantage.models import Load
+from aiovantage.object_interfaces import LoadInterface
 from aiovantage.query import QuerySet
 
 from .base import BaseController

@@ -5,12 +5,12 @@ from typing import Any
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import (
+from aiovantage.errors import CommandError
+from aiovantage.models import Master
+from aiovantage.object_interfaces import (
     IntrospectionInterface,
     ObjectInterface,
 )
-from aiovantage.errors import CommandError
-from aiovantage.models import Master
 
 from .base import BaseController
 
