@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing_extensions import override
 
 from aiovantage.command_client.utils import parse_fixed_param
-from aiovantage.objects.omni_sensor import OmniSensor
+from aiovantage.objects import OmniSensor
 
 from .base import BaseController
 
