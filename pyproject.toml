@@ -53,6 +53,8 @@ skip-string-normalization = true
 
 [tool.ruff]
 target-version = "py310"
+
+[tool.ruff.lint]
 select = [
     "F",   # pyflakes
     "E",   # pycodestyle errors
@@ -70,17 +72,17 @@ ignore = [
     "E501", # line too long, handled by black
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "src/aiovantage/objects.py" = [
     "D106", # Missing docstring in public nested class
     "C408", # Unnecessary collection call
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["aiovantage"]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 15
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
