@@ -4,6 +4,7 @@ import datetime as dt
 from dataclasses import dataclass, field
 
 from aiovantage.object_interfaces import ObjectInterface
+from aiovantage.object_interfaces.base import Interface
 
 
 @dataclass(kw_only=True)
@@ -33,7 +34,16 @@ class SystemObject(ObjectInterface):
         return self.d_name or self.name
 
     @classmethod
-    def get_element_name(cls) -> str:
+    def element_name(cls) -> str:
         """Return the Vantage XML element name for this object."""
         cls_meta = getattr(cls, "Meta", None)
         return getattr(cls_meta, "name", cls.__qualname__)
+
+    @classmethod
+    def object_interfaces(cls) -> list[type[Interface]]:
+        """Return the interfaces that this object implements."""
+        return [
+            base
+            for base in cls.__mro__
+            if Interface in base.__bases__ and base is not Interface
+        ]
