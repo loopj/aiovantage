@@ -46,6 +46,11 @@ def cbreak_mode(descriptor: int) -> Iterator[None]:
         termios.tcsetattr(descriptor, termios.TCSADRAIN, old_attrs)
 
 
+def clamp(value: int, min_value: int, max_value: int) -> int:
+    """Clamp a value between a minimum and maximum value."""
+    return max(min_value, min(max_value, value))
+
+
 async def main() -> None:
     """Run code example."""
     if args.debug:
@@ -82,17 +87,16 @@ async def main() -> None:
         with cbreak_mode(sys.stdin.fileno()):
             while True:
                 key = await parse_keypress()
-                level = load.level or 0
 
-                if key == "KEY_UP":
-                    # Increase the load's brightness
-                    await load.ramp(Load.RampType.Fixed, 1, level + 10)
-                    print(f"Increased '{load.name}' brightness to {load.level}%")
+                if key == "KEY_UP" or key == "KEY_DOWN":
+                    # Increase or decrease load brightness
+                    level = int(load.level or 0)
+                    new_level = clamp(level + (10 if key == "KEY_UP" else -10), 0, 100)
+                    if new_level == level:
+                        continue
 
-                elif key == "KEY_DOWN":
-                    # Decrease the load's brightness
-                    await load.ramp(Load.RampType.Fixed, 1, level - 10)
-                    print(f"Decreased '{load.name}' brightness to {load.level}%")
+                    await load.ramp(Load.RampType.Fixed, 1, new_level)
+                    print(f"Set '{load.name}' brightness to {new_level}%")
 
                 elif key == " ":
                     # Toggle load
