@@ -120,7 +120,9 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.GetPreset
         # -> R:INVOKE <id> <preset> ColorTemperature.GetPreset
-        return await self.invoke("ColorTemperature.GetPreset", as_type=self.Preset)
+        return await self.invoke(
+            "ColorTemperature.GetPreset", as_type=ColorTemperatureInterface.Preset
+        )
 
     async def get_max_value(self) -> int:
         """Get the maximum color temperature of a light.

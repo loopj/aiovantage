@@ -30,7 +30,7 @@ class ButtonInterface(Interface):
         """
         # INVOKE <id> Button.GetState
         # -> R:INVOKE <id> <state (Up/Down)> Button.GetState
-        return await self.invoke("Button.GetState", as_type=self.State)
+        return await self.invoke("Button.GetState", as_type=ButtonInterface.State)
 
     async def set_state(self, state: State) -> None:
         """Set the state of a button.
@@ -45,11 +45,11 @@ class ButtonInterface(Interface):
     # Additional convenience methods, not part of the Vantage API
     async def press(self) -> None:
         """Press a button."""
-        await self.set_state(self.State.Down)
+        await self.set_state(ButtonInterface.State.Down)
 
     async def release(self) -> None:
         """Release a button."""
-        await self.set_state(self.State.Up)
+        await self.set_state(ButtonInterface.State.Up)
 
     async def press_and_release(self) -> None:
         """Press and release a button."""

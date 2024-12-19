@@ -41,7 +41,7 @@ class IntrospectionInterface(Interface):
             self,
             "Introspection.GetFirmwareVersion",
             image,
-            as_type=self.GetFirmwareVersionResponse,
+            as_type=IntrospectionInterface.GetFirmwareVersionResponse,
         )
 
         return response.version
