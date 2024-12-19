@@ -23,9 +23,9 @@ def callback(event: VantageEvent, obj: SystemObject, data: dict[str, Any]) -> No
     object_type = type(obj).__name__
 
     if event == VantageEvent.OBJECT_ADDED:
-        print(f"[{object_type} added] '{obj.name}' ({obj.vid})")
+        print(f"[{object_type} added] '{obj.name}' ({obj.id})")
     elif event == VantageEvent.OBJECT_UPDATED:
-        print(f"[{object_type} updated] '{obj.name}' ({obj.vid})")
+        print(f"[{object_type} updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):
             print(f"    {attr} = {getattr(obj, attr)}")
 

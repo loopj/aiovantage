@@ -25,10 +25,10 @@ class GMemController(BaseController[GMem]):
     async def fetch_object_state(self, obj: GMem) -> None:
         """Fetch the state properties of a variable."""
         state = {
-            "value": await self.get_value(obj.vid),
+            "value": await self.get_value(obj.id),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

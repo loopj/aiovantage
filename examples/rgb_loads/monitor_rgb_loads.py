@@ -21,9 +21,9 @@ args = parser.parse_args()
 def callback(event: VantageEvent, obj: RGBLoadTypes, data: dict[str, Any]) -> None:
     """Print out any state changes."""
     if event == VantageEvent.OBJECT_ADDED:
-        print(f"[RGBLoad added] '{obj.name}' ({obj.vid})")
+        print(f"[RGBLoad added] '{obj.name}' ({obj.id})")
     elif event == VantageEvent.OBJECT_UPDATED:
-        print(f"[RGBLoad updated] '{obj.name}' ({obj.vid})")
+        print(f"[RGBLoad updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):
             print(f"    {attr} = {getattr(obj, attr)}")
 

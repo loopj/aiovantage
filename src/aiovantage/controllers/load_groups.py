@@ -23,7 +23,7 @@ class LoadGroupsController(BaseController[LoadGroup]):
             "level": await obj.get_level(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:
@@ -43,6 +43,4 @@ class LoadGroupsController(BaseController[LoadGroup]):
         """Return a queryset of all loads in this load group."""
         load_group = self[vid]
 
-        return self._vantage.loads.filter(
-            lambda load: load.vid in load_group.load_table
-        )
+        return self._vantage.loads.filter(lambda load: load.id in load_group.load_table)

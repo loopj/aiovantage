@@ -26,7 +26,7 @@ async def main() -> None:
         # Print out the id, name, and members of each load group
         async for load_group in vantage.load_groups:
             print(
-                f"[{load_group.vid}] '{load_group.name}' loads={load_group.load_table} level={load_group.level}%"
+                f"[{load_group.id}] '{load_group.name}' loads={load_group.load_table} level={load_group.level}%"
             )
 
 

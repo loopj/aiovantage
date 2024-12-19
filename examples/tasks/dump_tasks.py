@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id, name, and state of each task
         async for task in vantage.tasks:
-            print(f"[{task.vid}] '{task.name}' is_running={task.is_running}")
+            print(f"[{task.id}] '{task.name}' is_running={task.is_running}")
 
 
 with contextlib.suppress(KeyboardInterrupt):

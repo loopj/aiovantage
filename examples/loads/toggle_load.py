@@ -37,7 +37,7 @@ async def main() -> None:
             return
 
         # Toggle the load
-        print(f"Toggling {load.name} (id = {load.vid})")
+        print(f"Toggling {load.name} (id = {load.id})")
         if load.is_on:
             await load.turn_off()
         else:
