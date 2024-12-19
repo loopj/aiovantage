@@ -135,7 +135,7 @@ class BaseController(QuerySet[T]):
             cur_ids = set()
 
             # Fetch all objects managed by this controller
-            element_names = tuple(cls.get_element_name() for cls in self.vantage_types)
+            element_names = tuple(cls.element_name() for cls in self.vantage_types)
             async for obj in get_objects(self.config_client, types=element_names):
                 # Give objects access to the command client
                 obj.command_client = self.command_client
