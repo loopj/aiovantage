@@ -177,7 +177,8 @@ For example, to turn on a load:
 
 ```python
 async with Vantage("hostname", "username", "password") as vantage:
-    await vantage.loads.turn_on(118)
+    load = await vantage.loads.aget(name="Study Lights")
+    load.turn_on()
 ```
 
 ### Subscribing to state changes
