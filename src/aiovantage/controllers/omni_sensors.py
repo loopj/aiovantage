@@ -28,7 +28,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
             "level": await self.get_level(obj, cached=False),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_interface_status(
@@ -58,7 +58,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
         # INVOKE <id> <method>
         # -> R:INVOKE <id> <value> <method>
         method = obj.get.method if cached else obj.get.method_hw
-        response = await self.command_client.command("INVOKE", obj.vid, method)
+        response = await self.command_client.command("INVOKE", obj.id, method)
 
         return self.parse_result(obj, response.args[1])
 

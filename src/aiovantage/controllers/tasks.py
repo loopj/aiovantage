@@ -23,7 +23,7 @@ class TasksController(BaseController[Task]):
             "state": await obj.get_state(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

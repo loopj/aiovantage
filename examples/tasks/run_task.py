@@ -37,7 +37,7 @@ async def main() -> None:
             return
 
         # Run the task
-        print(f"{task.name} (id = {task.vid})")
+        print(f"{task.name} (id = {task.id})")
         await task.start()
 
 

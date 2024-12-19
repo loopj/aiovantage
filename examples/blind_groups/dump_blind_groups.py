@@ -25,9 +25,9 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out details of each blind group
         async for blind_group in vantage.blind_groups:
-            print(f"[{blind_group.vid}] '{blind_group.name}'")
-            async for blind in vantage.blind_groups.blinds(blind_group.vid):
-                print(f"    [{blind.vid}] '{blind.name}'")
+            print(f"[{blind_group.id}] '{blind_group.name}'")
+            async for blind in vantage.blind_groups.blinds(blind_group.id):
+                print(f"    [{blind.id}] '{blind.name}'")
 
 
 with contextlib.suppress(KeyboardInterrupt):

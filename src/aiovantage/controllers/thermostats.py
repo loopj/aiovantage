@@ -78,7 +78,7 @@ class ThermostatsController(BaseController[Thermostat]):
         with suppress(CommandError):
             state["status"] = await obj.get_status()
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:
@@ -120,7 +120,7 @@ class ThermostatsController(BaseController[Thermostat]):
     def sensors(self, vid: int) -> QuerySet[Temperature]:
         """Return all sensors associated with this thermostat."""
         return self._vantage.temperature_sensors.filter(
-            lambda obj: obj.parent.vid == vid
+            lambda obj: obj.parent.id == vid
         )
 
     def indoor_sensor(self, vid: int) -> QuerySet[Temperature]:

@@ -26,7 +26,7 @@ async def main() -> None:
         # Print out the id and name of each Vantage controller
         async for master in vantage.masters:
             print(
-                f"[{master.vid}] '{master.name}' "
+                f"[{master.id}] '{master.name}' "
                 f"serial_number={master.serial_number} "
             )
 

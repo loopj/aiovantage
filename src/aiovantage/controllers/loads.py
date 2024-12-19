@@ -23,7 +23,7 @@ class LoadsController(BaseController[Load]):
             "level": await obj.get_level(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

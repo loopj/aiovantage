@@ -22,7 +22,7 @@ class AnemoSensorsController(BaseController[AnemoSensor]):
             "speed": await obj.get_speed(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

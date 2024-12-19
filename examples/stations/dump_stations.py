@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id and name of each station
         async for station in vantage.stations:
-            print(f"[{station.vid}] '{station.name}'")
+            print(f"[{station.id}] '{station.name}'")
 
 
 with contextlib.suppress(KeyboardInterrupt):

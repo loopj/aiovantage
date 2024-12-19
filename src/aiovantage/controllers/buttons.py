@@ -21,7 +21,7 @@ class ButtonsController(BaseController[Button]):
             "state": Button.State.Up,
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

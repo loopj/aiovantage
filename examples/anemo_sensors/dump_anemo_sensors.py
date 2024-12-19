@@ -25,7 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id, name, and speed of each anemo sensor
         async for sensor in vantage.anemo_sensors:
-            print(f"[{sensor.vid}] '{sensor.name}' = {sensor.speed}")
+            print(f"[{sensor.id}] '{sensor.name}' = {sensor.speed}")
 
 
 with contextlib.suppress(KeyboardInterrupt):

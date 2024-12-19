@@ -27,7 +27,7 @@ class MastersController(BaseController[Master]):
         with suppress(CommandError):
             state["m_time"] = await obj.get_mtime()
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_interface_status(

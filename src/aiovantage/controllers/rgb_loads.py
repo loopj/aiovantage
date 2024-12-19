@@ -46,7 +46,7 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
             "color_temp": await obj.get_temperature(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_interface_status(

@@ -7,5 +7,5 @@ from dataclasses import dataclass, field
 class Parent:
     """Parent type."""
 
-    vid: int
+    id: int
     position: int = field(metadata={"type": "Attribute"})

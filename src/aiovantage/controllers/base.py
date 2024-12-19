@@ -140,13 +140,13 @@ class BaseController(QuerySet[T]):
                 # Give objects access to the command client
                 obj.command_client = self.command_client
 
-                if obj.vid in prev_ids:
+                if obj.id in prev_ids:
                     # This is an existing object.
                     # Update any attributes that have changed and notify subscribers.
                     # Ignore the m_time attribute, and any state attributes.
                     # TODO: Check if interface state fields even show up here now
                     self.update_state(
-                        obj.vid,
+                        obj.id,
                         {
                             field.name: getattr(obj, field.name)
                             for field in fields(type(obj))
@@ -157,7 +157,7 @@ class BaseController(QuerySet[T]):
                 else:
                     # This is a new object.
                     # Add it to the controller and notify subscribers
-                    self._items[obj.vid] = obj
+                    self._items[obj.id] = obj
                     self.emit(VantageEvent.OBJECT_ADDED, obj)
 
                     # Fetch the state of stateful objects
@@ -165,7 +165,7 @@ class BaseController(QuerySet[T]):
                         await self.fetch_object_state(obj)
 
                 # Keep track of which objects we've seen
-                cur_ids.add(obj.vid)
+                cur_ids.add(obj.id)
 
             # Handle objects that were removed
             for vid in prev_ids - cur_ids:
@@ -278,7 +278,7 @@ class BaseController(QuerySet[T]):
             data = {}
 
         # Grab a list of subscribers that care about this object
-        subscribers = self._subscriptions + self._id_subscriptions.get(obj.vid, [])
+        subscribers = self._subscriptions + self._id_subscriptions.get(obj.id, [])
         for callback, event_filter in subscribers:
             if event_filter is not None and event_type not in event_filter:
                 continue
@@ -302,7 +302,7 @@ class BaseController(QuerySet[T]):
                     setattr(obj, key, value)
                     attrs_changed.append(key)
             except AttributeError:
-                self._logger.warning("Object '%d' has no attribute '%s'", obj.vid, key)
+                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
 
         # Notify subscribers if any attributes changed
         if len(attrs_changed) > 0:

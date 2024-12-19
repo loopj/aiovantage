@@ -59,7 +59,7 @@ def print_area(vantage: Vantage, area: Area | None, indent: int = 0) -> None:
     print_indented(colorize(area.name, CYAN), indent)
 
     # Print loads in this area, if any
-    loads = vantage.loads.filter(area=area.vid)
+    loads = vantage.loads.filter(area=area.id)
     if loads:
         print_indented(colorize("Loads", YELLOW), indent + 1)
         for load in loads:
@@ -67,7 +67,7 @@ def print_area(vantage: Vantage, area: Area | None, indent: int = 0) -> None:
         print()
 
     # Print RGB loads in this area, if any
-    rgb_loads = vantage.rgb_loads.filter(area=area.vid)
+    rgb_loads = vantage.rgb_loads.filter(area=area.id)
     if rgb_loads:
         print_indented(colorize("RGB Loads", YELLOW), indent + 1)
         for rgb_load in rgb_loads:
@@ -75,7 +75,7 @@ def print_area(vantage: Vantage, area: Area | None, indent: int = 0) -> None:
         print()
 
     # Print stations in this area, if any
-    stations = vantage.stations.filter(area=area.vid)
+    stations = vantage.stations.filter(area=area.id)
     if stations:
         print_indented(colorize("Stations", YELLOW), indent + 1)
         for station in stations:
@@ -83,7 +83,7 @@ def print_area(vantage: Vantage, area: Area | None, indent: int = 0) -> None:
         print()
 
     # Print dry contacts in this area, if any
-    dry_contacts = vantage.dry_contacts.filter(area=area.vid)
+    dry_contacts = vantage.dry_contacts.filter(area=area.id)
     if dry_contacts:
         print_indented(colorize("Dry Contacts", YELLOW), indent + 1)
         for dry_contact in dry_contacts:
@@ -91,7 +91,7 @@ def print_area(vantage: Vantage, area: Area | None, indent: int = 0) -> None:
         print()
 
     # Print any child areas
-    child_areas = vantage.areas.filter(area=area.vid)
+    child_areas = vantage.areas.filter(area=area.id)
     if child_areas:
         for child_area in child_areas:
             print_area(vantage, child_area, indent + 1)

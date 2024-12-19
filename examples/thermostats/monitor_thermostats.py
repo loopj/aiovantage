@@ -21,10 +21,10 @@ args = parser.parse_args()
 def callback(event: VantageEvent, obj: Thermostat, data: dict[str, Any]) -> None:
     """Print out any state changes."""
     if event == VantageEvent.OBJECT_ADDED:
-        print(f"[Thermostat added] '{obj.name}' ({obj.vid})")
+        print(f"[Thermostat added] '{obj.name}' ({obj.id})")
 
     elif event == VantageEvent.OBJECT_UPDATED:
-        print(f"[Thermostat updated] '{obj.name}' ({obj.vid})")
+        print(f"[Thermostat updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):
             print(f"    {attr} = {getattr(obj, attr)}")
 
