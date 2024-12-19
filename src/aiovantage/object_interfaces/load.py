@@ -45,7 +45,7 @@ class LoadInterface(Interface, WidgetPrecludable):
     }
 
     # Properties
-    level: float | None = None
+    level: Decimal | None = None
 
     # Methods
     async def set_level(self, level: float | Decimal) -> None:
