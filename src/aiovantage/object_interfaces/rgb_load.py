@@ -80,7 +80,10 @@ class RGBLoadInterface(Interface):
         # INVOKE <id> RGBLoad.GetRGB <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
         response = await RGBLoadInterface.invoke(
-            self, "RGBLoad.GetRGB", channel, as_type=self.ColorChannelResponse
+            self,
+            "RGBLoad.GetRGB",
+            channel,
+            as_type=RGBLoadInterface.ColorChannelResponse,
         )
         return response.value
 
@@ -110,7 +113,10 @@ class RGBLoadInterface(Interface):
         # INVOKE <id> RGBLoad.GetRGBHW <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBHW <channel>
         response = await RGBLoadInterface.invoke(
-            self, "RGBLoad.GetRGBHW", channel, as_type=self.ColorChannelResponse
+            self,
+            "RGBLoad.GetRGBHW",
+            channel,
+            as_type=RGBLoadInterface.ColorChannelResponse,
         )
         return response.value
 
@@ -144,7 +150,10 @@ class RGBLoadInterface(Interface):
         # INVOKE <id> RGBLoad.GetHSL <attribute>
         # -> R:INVOKE <id> <value> RGBLoad.GetHSL <attribute>
         response = await RGBLoadInterface.invoke(
-            self, "RGBLoad.GetHSL", attribute, as_type=self.ColorChannelResponse
+            self,
+            "RGBLoad.GetHSL",
+            attribute,
+            as_type=RGBLoadInterface.ColorChannelResponse,
         )
         return response.value
 
@@ -173,7 +182,10 @@ class RGBLoadInterface(Interface):
         # INVOKE <id> RGBLoad.GetHSLHW <attribute>
         # -> R:INVOKE <id> <value> RGBLoad.GetHSLHW <attribute>
         response = await RGBLoadInterface.invoke(
-            self, "RGBLoad.GetHSLHW", attribute, as_type=self.ColorChannelResponse
+            self,
+            "RGBLoad.GetHSLHW",
+            attribute,
+            as_type=RGBLoadInterface.ColorChannelResponse,
         )
         return response.value
 
@@ -442,7 +454,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetColorName
         # -> R:INVOKE <id> <color> RGBLoad.GetColorName
-        return await self.invoke("RGBLoad.GetColorName", as_type=self.ColorName)
+        return await self.invoke(
+            "RGBLoad.GetColorName", as_type=RGBLoadInterface.ColorName
+        )
 
     async def get_color(self) -> int:
         """Get the RGB/RGBW color of a load from the controller.
@@ -491,7 +505,7 @@ class RGBLoadInterface(Interface):
         # INVOKE <id> RGBLoad.GetRGBW <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <channel>
         response = await self.invoke(
-            "RGBLoad.GetRGBW", channel, as_type=self.ColorChannelResponse
+            "RGBLoad.GetRGBW", channel, as_type=RGBLoadInterface.ColorChannelResponse
         )
         return response.value
 
@@ -522,7 +536,7 @@ class RGBLoadInterface(Interface):
         # INVOKE <id> RGBLoad.GetRGBWHW <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBWHW <channel>
         response = await self.invoke(
-            "RGBLoad.GetRGBWHW", channel, as_type=self.ColorChannelResponse
+            "RGBLoad.GetRGBWHW", channel, as_type=RGBLoadInterface.ColorChannelResponse
         )
         return response.value
 

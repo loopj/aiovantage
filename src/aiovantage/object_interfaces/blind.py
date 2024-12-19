@@ -196,4 +196,6 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType, WidgetPrecludable):
         """
         # INVOKE <id> Blind.GetBlindState
         # -> R:INVOKE <id> <moving> Blind.GetBlindState <start> <end> <transitionTime> <startTime>
-        return await self.invoke("Blind.GetBlindState", as_type=self.BlindState)
+        return await self.invoke(
+            "Blind.GetBlindState", as_type=BlindInterface.BlindState
+        )

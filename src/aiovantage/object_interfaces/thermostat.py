@@ -143,7 +143,7 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetOperationMode
         # -> R:INVOKE <id> <mode (Off|Cool|Heat|Auto|Unknown)> Thermostat.GetOperationMode
         return await self.invoke(
-            "Thermostat.GetOperationMode", as_type=self.OperationMode
+            "Thermostat.GetOperationMode", as_type=ThermostatInterface.OperationMode
         )
 
     async def set_operation_mode(self, mode: int) -> None:
@@ -164,7 +164,9 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetFanMode
         # -> R:INVOKE <id> <mode (Off|On|Unknown)> Thermostat.GetFanMode
-        return await self.invoke("Thermostat.GetFanMode", as_type=self.FanMode)
+        return await self.invoke(
+            "Thermostat.GetFanMode", as_type=ThermostatInterface.FanMode
+        )
 
     async def set_fan_mode(self, mode: int) -> None:
         """Set the current fan mode.
@@ -184,7 +186,9 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetDayMode
         # -> R:INVOKE <id> <mode (Day|Night|Unknown|Standby)> Thermostat.GetDayMode
-        return await self.invoke("Thermostat.GetDayMode", as_type=self.DayMode)
+        return await self.invoke(
+            "Thermostat.GetDayMode", as_type=ThermostatInterface.DayMode
+        )
 
     async def set_day_mode(self, mode: int) -> None:
         """Set the current day mode.
@@ -204,7 +208,9 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetHoldMode
         # -> R:INVOKE <id> <mode (Normal|Hold|Unknown)> Thermostat.GetHoldMode
-        return await self.invoke("Thermostat.GetHoldMode", as_type=self.HoldMode)
+        return await self.invoke(
+            "Thermostat.GetHoldMode", as_type=ThermostatInterface.HoldMode
+        )
 
     async def set_hold_mode(self, mode: int) -> None:
         """Set the current hold mode.
@@ -224,7 +230,9 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetStatus
         # -> R:INVOKE <id> <status (Off|Cooling|Heating|Offline)> Thermostat.GetStatus
-        return await self.invoke("Thermostat.GetStatus", as_type=self.Status)
+        return await self.invoke(
+            "Thermostat.GetStatus", as_type=ThermostatInterface.Status
+        )
 
     async def get_auto_set_point(self) -> Decimal:
         """Get the current auto set point.

@@ -61,7 +61,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetStatus
         # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        return await self.invoke("Sounder.GetStatus", as_type=self.Status)
+        return await self.invoke("Sounder.GetStatus", as_type=SounderInterface.Status)
 
     async def get_status_hw(self) -> Status:
         """Get the status of the keypad speaker directly from the hardware.
@@ -71,7 +71,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetStatusHW
         # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        return await self.invoke("Sounder.GetStatusHW", as_type=self.Status)
+        return await self.invoke("Sounder.GetStatusHW", as_type=SounderInterface.Status)
 
     async def set_status(self, status: Status) -> None:
         """Set the status of the keypad speaker.

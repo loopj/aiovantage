@@ -171,7 +171,7 @@ class LoadInterface(Interface, WidgetPrecludable):
         """
         # INVOKE <id> Load.GetAlertState
         # -> R:INVOKE <id> <alert state> Load.GetAlertState
-        return await self.invoke("Load.GetAlertState", as_type=self.AlertState)
+        return await self.invoke("Load.GetAlertState", as_type=LoadInterface.AlertState)
 
     async def set_alert_state_sw(self, alert_state: AlertState) -> None:
         """Set the cached alert state of a load.
@@ -191,7 +191,9 @@ class LoadInterface(Interface, WidgetPrecludable):
         """
         # INVOKE <id> Load.GetDimmingConfig
         # -> R:INVOKE <id> <dimming config> Load.GetDimmingConfig
-        return await self.invoke("Load.GetDimmingConfig", as_type=self.DimmingConfig)
+        return await self.invoke(
+            "Load.GetDimmingConfig", as_type=LoadInterface.DimmingConfig
+        )
 
     # Additional convenience methods, not part of the Vantage API
     async def turn_on(
