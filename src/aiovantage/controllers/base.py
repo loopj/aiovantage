@@ -137,7 +137,8 @@ class BaseController(QuerySet[T]):
             # Fetch all objects managed by this controller
             element_names = tuple(cls.get_element_name() for cls in self.vantage_types)
             async for obj in get_objects(self.config_client, types=element_names):
-                obj._command_client = self.command_client
+                # Give objects access to the command client
+                obj.command_client = self.command_client
 
                 if obj.vid in prev_ids:
                     # This is an existing object.
