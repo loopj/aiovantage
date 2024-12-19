@@ -1,6 +1,6 @@
 """Base class for command client interfaces."""
 
-from typing import Any, TypeVar, overload
+from typing import Any, ClassVar, TypeVar, overload
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import (
@@ -16,19 +16,15 @@ T = TypeVar("T")
 class Interface:
     """Base class for command client object interfaces."""
 
-    vid: int
-    _command_client: CommandClient
-    method_signatures: dict[str, type[Any] | None] = {}
+    method_signatures: ClassVar[dict[str, type[Any] | None]] = {}
+    """A mapping of method names to their return types."""
 
-    @property
-    def command_client(self) -> CommandClient:
-        """Return the command client."""
-        return self._command_client
+    command_client: CommandClient | None = None
+    """The command client to use for sending requests."""
 
-    @command_client.setter
-    def command_client(self, command_client: CommandClient) -> None:
-        """Set the command client."""
-        self._command_client = command_client
+    def __init__(self, command_client: CommandClient | None = None) -> None:
+        """Initialize the interface with a command client."""
+        self.command_client = command_client
 
     @overload
     async def invoke(self, method: str, *params: ParameterType) -> Any: ...
@@ -43,6 +39,7 @@ class Interface:
         method: str,
         *params: ParameterType,
         as_type: type[T] | None = None,
+        vid: int | None = None,
     ) -> T | Any | None:
         """Invoke a method on an object, and return the parsed response.
 
@@ -50,13 +47,23 @@ class Interface:
             method: The method to invoke.
             params: The parameters to send with the method.
             as_type: The type to cast the response to.
+            vid: Specify the vid of the object to invoke the method on.
 
         Returns:
             A parsed response, or None if no response was expected.
         """
+        # Make sure we have a vid to invoke the method on
+        vid = vid or getattr(self, "vid", None)
+        if vid is None:
+            raise ValueError("The object must have a vid attribute to invoke methods.")
+
+        # Make sure we have a command client to send requests with
+        if self.command_client is None:
+            raise ValueError("The object has no command client to send requests with.")
+
         # INVOKE <id> <Interface.Method>
         # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
-        request = f"INVOKE {self.vid} {method}"
+        request = f"INVOKE {vid} {method}"
         if params:
             request += f" {encode_params(*params)}"
 
