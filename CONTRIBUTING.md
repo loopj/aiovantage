@@ -18,14 +18,21 @@ First off, thanks for taking the time to contribute!
 
 ## 🔨 Set up Development Environment
 
-### Using `hatch`
+### Using `uv`
 
-aiovantage uses [Hatch](https://hatch.pypa.io/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
+aiovantage uses [uv](https://docs.astral.sh/uv/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) to get started.
 
-If you'd like to run a command in a virtual environment with development dependencies available, prefix it with `hatch -e dev run`. For example,
+To set up your development environment, run the following commands:
 
 ```bash
-hatch -e dev run python examples/dump_system.py hostname
+uv venv
+uv pip install -e ".[dev]"
+```
+
+If you'd like to run a command in a virtual environment with development dependencies available, prefix it with `uv run`. For example,
+
+```bash
+uv run python examples/dump_system.py hostname
 ```
 
 ### Manually
@@ -33,6 +40,8 @@ hatch -e dev run python examples/dump_system.py hostname
 If you'd prefer to manage your own python environment, you can install the development dependencies manually.
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
@@ -78,40 +87,24 @@ pre-commit run --all-files
 
 ## 📦️ Build a package
 
-To build the package, first bump the version
+To build the package, first update the version number:
 
 ```bash
-hatch version <major|minor|patch>
+bumpver update <--major|--minor|--patch>
 ```
 
-Then build the package
+Then build the package:
 
 ```bash
-hatch build -c
+uv build
 ```
 
 ## 🚀 Publish a release
 
-Follow these steps to publish the release on PyPi.
-
-Commit `src/aiovantage/__about__.py` to source control
+To publish the package to PyPi:
 
 ```bash
-git add src/aiovantage/__about__.py
-git commit -m "Preparing release `hatch version`"
+uv publish
 ```
 
-Tag the release
-
-```bash
-git tag `hatch version`
-git push && git push --tags
-```
-
-Publish the release to PyPi
-
-```bash
-hatch publish
-```
-
-Don't forget to [create a release on GitHub](https://github.com/loopj/aiovantage/releases/new).
+Don't forget to [create a release on GitHub](https://github.com/loopj/aiovantage/releases/new)!
