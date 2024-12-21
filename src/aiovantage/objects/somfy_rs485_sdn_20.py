@@ -8,7 +8,7 @@ from .child_device import ChildDevice
 from .port_device import PortDevice
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyRS485SDN20Port(PortDevice):
     """Somfy RS-485 SDN 2.0."""
 
@@ -16,7 +16,7 @@ class SomfyRS485SDN20Port(PortDevice):
         name = "Somfy.RS-485_SDN_2_x2E_0_PORT"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyRS485GroupChild(ChildDevice, BlindInterface):
     """Somfy RS-485 SDN 2.0 blind group."""
 
@@ -24,7 +24,7 @@ class SomfyRS485GroupChild(ChildDevice, BlindInterface):
         name = "Somfy.RS-485_Group_CHILD"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyRS485ShadeChild(ChildDevice, BlindInterface):
     """Somfy RS-485 SDN 2.0 blind."""
 

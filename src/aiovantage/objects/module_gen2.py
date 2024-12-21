@@ -6,7 +6,7 @@ from .system_object import SystemObject
 from .types import Parent
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ModuleGen2(SystemObject):
     """ModuleGen2 object, eg. SDM12-EM, UDM08-EM."""
 

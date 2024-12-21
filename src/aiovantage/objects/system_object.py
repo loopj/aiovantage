@@ -20,7 +20,8 @@ class SystemObject(ObjectInterface):
     note: str
     d_name: str | None = None
     m_time: dt.datetime | None = field(
-        default=None, metadata={"type": "Attribute", "format": "%Y-%m-%dT%H:%M:%S.%f"}
+        default=None,
+        metadata={"type": "Attribute", "format": "%Y-%m-%dT%H:%M:%S.%f"},
     )
 
     @property

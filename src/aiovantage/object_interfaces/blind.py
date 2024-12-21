@@ -3,16 +3,12 @@
 from decimal import Decimal
 from typing import NamedTuple
 
-from aiovantage.object_interfaces.interface_classes import (
-    ShadeOrientation,
-    ShadeType,
-    WidgetPrecludable,
-)
+from aiovantage.object_interfaces.interface_classes import ShadeOrientation, ShadeType
 
 from .base import Interface
 
 
-class BlindInterface(Interface, ShadeOrientation, ShadeType, WidgetPrecludable):
+class BlindInterface(Interface, ShadeOrientation, ShadeType):
     """Interface for querying and controlling blinds."""
 
     class BlindState(NamedTuple):

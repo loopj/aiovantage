@@ -7,7 +7,7 @@ from aiovantage.object_interfaces import LoadInterface
 from .location_object import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class LoadGroup(LocationObject, LoadInterface):
     """LoadGroup object."""
 

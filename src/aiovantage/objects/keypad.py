@@ -8,7 +8,7 @@ from .station_object import StationObject
 from .types import Parent
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Keypad(StationObject, SounderInterface):
     """Keypad Station."""
 

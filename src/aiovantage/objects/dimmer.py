@@ -5,6 +5,6 @@ from dataclasses import dataclass
 from .keypad import Keypad
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Dimmer(Keypad):
     """ScenePoint Dimmer Station."""

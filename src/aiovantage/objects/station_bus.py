@@ -6,7 +6,7 @@ from .system_object import SystemObject
 from .types import Parent
 
 
-@dataclass
+@dataclass(kw_only=True)
 class StationBus(SystemObject):
     """Station bus object."""
 

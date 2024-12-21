@@ -6,7 +6,7 @@ from .custom_device import CustomDevice
 from .types import Parent
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ChildDevice(CustomDevice):
     """Base class for child device (driver-provided) objects."""
 
