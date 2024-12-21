@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Parent:
     """Parent type."""
 

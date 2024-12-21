@@ -5,6 +5,6 @@ from dataclasses import dataclass
 from .station_object import StationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class HighVoltageRelayStation(StationObject):
     """High Voltage Relay Station."""

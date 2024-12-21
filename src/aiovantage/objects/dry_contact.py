@@ -8,7 +8,7 @@ from .location_object import LocationObject
 from .types import Parent
 
 
-@dataclass
+@dataclass(kw_only=True)
 class DryContact(LocationObject, ButtonInterface):
     """DryContact object."""
 

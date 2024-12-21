@@ -7,6 +7,6 @@ from aiovantage.object_interfaces import ThermostatInterface
 from .station_object import StationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Thermostat(StationObject, ThermostatInterface):
     """Thermostat object."""

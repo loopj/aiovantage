@@ -5,11 +5,14 @@ from dataclasses import dataclass
 from .system_object import SystemObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PowerProfile(SystemObject):
     """Power Profile object."""
 
-    # Adjust, Freq, Inductive, not available in 2.x firmware
+    # Significantly different on 2.x firmware.
+    # - Min, Max are ints on 2.x firmware.
+    # - DCPowerProfile doesn't inherit from PowerProfile on 2.x firmware.
+    # - Can rework this once we drop support for 2.x firmware.
 
     min: float
     max: float

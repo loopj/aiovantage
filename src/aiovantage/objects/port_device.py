@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from .location_object import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PortDevice(LocationObject):
     """Base class for Vantage port device (drive-provided) objects."""
 

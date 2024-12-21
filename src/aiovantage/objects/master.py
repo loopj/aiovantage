@@ -7,7 +7,7 @@ from aiovantage.object_interfaces import IntrospectionInterface
 from .system_object import SystemObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Master(SystemObject, IntrospectionInterface):
     """Master (InFusion Controller) object."""
 

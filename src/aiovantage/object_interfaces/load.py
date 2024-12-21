@@ -4,10 +4,9 @@ from decimal import Decimal
 from enum import IntEnum
 
 from .base import Interface
-from .interface_classes import WidgetPrecludable
 
 
-class LoadInterface(Interface, WidgetPrecludable):
+class LoadInterface(Interface):
     """Interface for querying and controlling loads."""
 
     class RampType(IntEnum):

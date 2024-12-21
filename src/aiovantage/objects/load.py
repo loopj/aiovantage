@@ -1,6 +1,7 @@
 """Load object."""
 
 from dataclasses import dataclass
+from decimal import Decimal
 
 from aiovantage.object_interfaces import LoadInterface
 
@@ -8,13 +9,16 @@ from .location_object import LocationObject
 from .types import Parent
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Load(LocationObject, LoadInterface):
     """Load object."""
 
     parent: Parent
-    load_type: str
+    contractor_number: str
+    load_type: str = "Incandescent"
+    power: int = 100
     power_profile: int
+    override_level: Decimal = Decimal("100")
 
     @property
     def is_relay(self) -> bool:

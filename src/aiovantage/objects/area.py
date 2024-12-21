@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from .location_object import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Area(LocationObject):
     """Area object."""
+
+    area_type: str

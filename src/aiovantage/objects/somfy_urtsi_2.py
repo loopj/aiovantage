@@ -8,7 +8,7 @@ from .child_device import ChildDevice
 from .port_device import PortDevice
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyURTSI2Port(PortDevice):
     """Somfy URTSI 2 port device."""
 
@@ -16,7 +16,7 @@ class SomfyURTSI2Port(PortDevice):
         name = "Somfy.URTSI_2_PORT"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyURTSI2GroupChild(ChildDevice, BlindInterface):
     """Somfy URTSI 2 blind group."""
 
@@ -24,7 +24,7 @@ class SomfyURTSI2GroupChild(ChildDevice, BlindInterface):
         name = "Somfy.URTSI_2_Group_CHILD"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyURTSI2ShadeChild(ChildDevice, BlindInterface):
     """Somfy URTSI 2 blind."""
 
