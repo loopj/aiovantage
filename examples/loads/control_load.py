@@ -10,6 +10,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 
 from aiovantage import Vantage
+from aiovantage.objects import Load
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -20,17 +21,17 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def parse_keypress() -> str | None:
-    """Rudimentary keypress parser."""
-    char = sys.stdin.read(1)
+async def parse_keypress() -> str | None:
+    """Rudimentary keypress parser (async version)."""
+    loop = asyncio.get_running_loop()
+    char: str = await loop.run_in_executor(None, sys.stdin.read, 1)
     if char == "\x1b":
-        seq = sys.stdin.read(2)
+        seq = await loop.run_in_executor(None, sys.stdin.read, 2)
         if seq == "[A":
             return "KEY_UP"
         if seq == "[B":
             return "KEY_DOWN"
         return None
-
     return char
 
 
@@ -43,6 +44,11 @@ def cbreak_mode(descriptor: int) -> Iterator[None]:
         yield
     finally:
         termios.tcsetattr(descriptor, termios.TCSADRAIN, old_attrs)
+
+
+def clamp(value: int, min_value: int, max_value: int) -> int:
+    """Clamp a value between a minimum and maximum value."""
+    return max(min_value, min(max_value, value))
 
 
 async def main() -> None:
@@ -80,26 +86,25 @@ async def main() -> None:
         # Listen for control keypresses
         with cbreak_mode(sys.stdin.fileno()):
             while True:
-                key = parse_keypress()
-                level = load.level or 0
+                key = await parse_keypress()
 
-                if key == "KEY_UP":
-                    # Increase the load's brightness
-                    await vantage.loads.ramp(load.id, level=level + 10, time=1)
-                    print(f"Increased '{load.name}' brightness to {load.level}%")
+                if key == "KEY_UP" or key == "KEY_DOWN":
+                    # Increase or decrease load brightness
+                    level = int(load.level or 0)
+                    new_level = clamp(level + (10 if key == "KEY_UP" else -10), 0, 100)
+                    if new_level == level:
+                        continue
 
-                elif key == "KEY_DOWN":
-                    # Decrease the load's brightness
-                    await vantage.loads.ramp(load.id, level=level - 10, time=1)
-                    print(f"Decreased '{load.name}' brightness to {load.level}%")
+                    await load.ramp(Load.RampType.Fixed, 1, new_level)
+                    print(f"Set '{load.name}' brightness to {new_level}%")
 
                 elif key == " ":
                     # Toggle load
                     if load.is_on:
-                        await vantage.loads.turn_off(load.id)
+                        await load.turn_off()
                         print(f"Turned '{load.name}' load off")
                     else:
-                        await vantage.loads.turn_on(load.id)
+                        await load.turn_on()
                         print(f"Turned '{load.name}' load on")
 
                 elif key == "q":

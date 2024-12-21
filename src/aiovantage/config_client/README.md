@@ -14,10 +14,6 @@ Various pre-defined classes are available in [`interfaces`](interfaces) to help 
 creating XML serialized requests, but it is also possible to make raw XML requests to
 a particular interface.
 
-Since a common use case for interacting with the ACI service is to lookup system
-objects, this module also provides models to help with deserializing many of these
-object types, available in [`models`](models).
-
 Additionally, a few helper functions for fetching objects are provided by
 [`requests.py`](requests.py).
 

@@ -28,7 +28,6 @@ async def main() -> None:
             print(
                 f"[{master.id}] '{master.name}' "
                 f"serial_number={master.serial_number} "
-                f"firmware_version={master.firmware_version}"
             )
 
 

@@ -4,7 +4,7 @@ import argparse
 import asyncio
 
 from aiovantage import Vantage
-from aiovantage.command_client.object_interfaces import SounderInterface
+from aiovantage.object_interfaces import SounderInterface
 
 JINGLE_BELLS = [
     ("E", 0.25),
@@ -58,19 +58,31 @@ args = parser.parse_args()
 async def main() -> None:
     """Play Jingle Bells on the sounder of a Vantage keypad."""
     async with Vantage(args.host, args.username, args.password) as vantage:
-        sounder = SounderInterface(vantage.command_client)
+        # Grab the keypad object
+        keypad = await vantage.stations.aget(args.id)
+
+        # Check keypad was found
+        if keypad is None:
+            raise ValueError(f"Keypad {args.id} not found")
+
+        # Attach a command client, so we can use object interfaces
+        keypad.command_client = vantage.command_client
+
+        # Check the keypad object has a sounder interface
+        if not isinstance(keypad, SounderInterface):
+            raise ValueError(f"Object {keypad} does not have a sounder interface")
 
         # Turn on the sounder
-        await sounder.turn_on(args.id)
+        await SounderInterface.turn_on(keypad)
 
         # Play each note in Jingle Bells
         for note, duration in JINGLE_BELLS:
             frequency = FREQUENCIES[note]
-            await sounder.set_frequency(args.id, frequency)
+            await keypad.set_frequency(frequency)
             await asyncio.sleep(duration)
 
         # Turn off the sounder
-        await sounder.turn_off(args.id)
+        await keypad.turn_off()
 
 
 asyncio.run(main())

@@ -19,33 +19,19 @@ various types of events, such as "STATUS" and "ELLOG".
 Connections are created lazily when needed, and closed when the client is closed,
 and will automatically reconnect if the connection is lost.
 
-Various pre-defined interfaces are available in [`object_interfaces`](object_interfaces) to help with
-making object-centric requests, but it is also possible to make raw requests.
-
 ## Examples
 
-### Turn on a load, using the `Load` interface
+### Get the controller firmware version
 
 ```python
 from aiovantage.command_client import CommandClient
-from aiovantage.command_client.object_interfaces import LoadInterface
 
 async with CommandClient("10.2.0.103") as client:
-    # Turn on load with id 118
-    await LoadInterface(client).turn_on(118)
+    # Get the controller firmware version
+    v = await client.command("VERSION").args[0]
 ```
 
-### Get the level of a load, using the `Load` interface
-
-```python
-from aiovantage.command_client import CommandClient
-from aiovantage.command_client.object_interfaces import LoadInterface
-
-async with CommandClient("10.2.0.103") as client:
-    level = await LoadInterface(client).get_level(118)
-```
-
-### Turn on a load, using raw commands
+### Turn on a load
 
 ```python
 from aiovantage.command_client import CommandClient

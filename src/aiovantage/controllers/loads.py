@@ -4,30 +4,26 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import LoadInterface
-from aiovantage.models import Load
+from aiovantage.objects import Load
 from aiovantage.query import QuerySet
 
 from .base import BaseController
 
 
-class LoadsController(BaseController[Load], LoadInterface):
+class LoadsController(BaseController[Load]):
     """Controller holding and managing Vantage loads."""
 
-    vantage_types = ("Load",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (Load,)
     status_types = ("LOAD",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: Load) -> None:
         """Fetch the state properties of a load."""
         state = {
-            "level": await LoadInterface.get_level(self, vid),
+            "level": await obj.get_level(),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

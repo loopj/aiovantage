@@ -5,7 +5,7 @@ import re
 from typing_extensions import override
 
 from aiovantage.command_client.utils import parse_byte_param
-from aiovantage.models import GMem
+from aiovantage.objects import GMem
 
 from .base import BaseController
 
@@ -18,20 +18,17 @@ class GMemController(BaseController[GMem]):
     simpler than working with raw byte arrays.
     """
 
-    vantage_types = ("GMem",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (GMem,)
     status_types = ("VARIABLE",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: GMem) -> None:
         """Fetch the state properties of a variable."""
         state = {
-            "value": await self.get_value(vid),
+            "value": await self.get_value(obj.id),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

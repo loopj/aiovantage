@@ -2,30 +2,26 @@
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import ButtonInterface
-from aiovantage.models import DryContact
+from aiovantage.objects import DryContact
 
 from .base import BaseController
 
 
-class DryContactsController(BaseController[DryContact], ButtonInterface):
+class DryContactsController(BaseController[DryContact]):
     """Controller holding and managing Vantage dry contacts."""
 
-    vantage_types = ("DryContact",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (DryContact,)
     status_types = ("BTN",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: DryContact) -> None:
         """Fetch the state properties of a dry contact."""
         # Dry contacts are momentary, so default to not pressed to avoid a lookup
         state = {
-            "triggered": False,
+            "state": DryContact.State.Up,
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:
@@ -36,7 +32,9 @@ class DryContactsController(BaseController[DryContact], ButtonInterface):
         # STATUS BTN
         # -> S:BTN <id> <state (PRESS/RELEASE)>
         state = {
-            "triggered": args[0] == "PRESS",
+            "state": (
+                DryContact.State.Down if args[0] == "PRESS" else DryContact.State.Up
+            ),
         }
 
         self.update_state(vid, state)
