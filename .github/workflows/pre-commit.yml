@@ -17,10 +17,14 @@ jobs:
     - name: Set up Python
       run: uv python install
 
-    - name: Install the project
+    - name: Install dependencies
       run: uv sync --all-extras --dev
 
-    - uses: pre-commit/action@v3.0.1
+    - name: Run black
+      uses: psf/black@stable
 
-    - uses: pre-commit-ci/lite-action@v1.0.2
-      if: always()
+    - name: Run ruff
+      uses: astral-sh/ruff-action@v2
+
+    - name: Run pyright
+      uses: jakebailey/pyright-action@v2
