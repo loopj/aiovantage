@@ -19,7 +19,7 @@ import asyncio
 import logging
 from ssl import SSLContext
 from types import TracebackType
-from xml.etree import ElementTree
+from xml.etree import ElementTree as ET
 
 from typing_extensions import Self
 from xsdata.formats.dataclass.context import XmlContext
@@ -65,7 +65,9 @@ class ConfigClient:
         read_timeout: float = 60,
     ) -> None:
         """Initialize the client."""
-        self._connection = ConfigConnection(host, port, ssl, conn_timeout)
+        self._connection = ConfigConnection(
+            host, port, ssl=ssl, conn_timeout=conn_timeout
+        )
         self._username = username
         self._password = password
         self._read_timeout = read_timeout
@@ -167,7 +169,7 @@ class ConfigClient:
         )
 
         # Parse the XML doc
-        root = ElementTree.fromstring(response)
+        root = ET.fromstring(response)
 
         # Response root must match the tag of the request
         if root.tag != method.interface:

@@ -16,7 +16,7 @@ T = TypeVar("T")
 class Interface:
     """Base class for command client object interfaces."""
 
-    method_signatures: ClassVar[dict[str, type[Any] | None]] = {}
+    method_signatures: ClassVar[dict[str, type | None]] = {}
     """A mapping of method names to their return types."""
 
     command_client: CommandClient | None = None
@@ -133,7 +133,7 @@ class Interface:
         return parsed_response
 
     @classmethod
-    def _get_signature(cls, method: str) -> type[Any] | None:
+    def _get_signature(cls, method: str) -> type | None:
         # Get the signature of a method.
         for klass in cls.__mro__:
             if issubclass(klass, Interface) and method in klass.method_signatures:

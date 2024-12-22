@@ -8,6 +8,6 @@ from .open_filter import OpenFilter
 __all__ = [
     "CloseFilter",
     "GetFilterResults",
-    "OpenFilter",
     "GetObject",
+    "OpenFilter",
 ]

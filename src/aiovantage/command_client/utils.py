@@ -64,10 +64,8 @@ def parse_param(arg: str, klass: type[T]) -> T:
     elif klass is Decimal:
         parsed = parse_fixed_param(arg)
     elif issubclass(klass, IntEnum):
-        if arg.isdigit():
-            parsed = klass(int(arg))
-        else:
-            parsed = klass[arg]
+        # Support both integer and string values for IntEnum
+        parsed = klass(int(arg)) if arg.isdigit() else klass[arg]
     else:
         raise ValueError(f"Unsupported type: {klass}")
 
@@ -93,7 +91,7 @@ def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
     encoded_params = []
     for value in params:
         if isinstance(value, str):
-            encoded_param = encode_string_param(value, force_quotes)
+            encoded_param = encode_string_param(value, force_quotes=force_quotes)
         elif isinstance(value, bool):
             encoded_param = "1" if value else "0"
         elif isinstance(value, int):
@@ -133,7 +131,7 @@ def parse_string_param(param: str) -> str:
     return param
 
 
-def encode_string_param(param: str, force_quotes: bool = False) -> str:
+def encode_string_param(param: str, *, force_quotes: bool = False) -> str:
     """Encode a string parameter for sending to the Host Command service.
 
     Wraps the string in double quotes if necessary, and escapes double quotes.
@@ -192,6 +190,4 @@ def encode_byte_param(byte_array: bytearray) -> str:
         tokens.append(str(signed_int))
 
     # Join the tokens with commas and wrap in curly braces
-    data = "{" + ",".join(tokens) + "}"
-
-    return data
+    return "{" + ",".join(tokens) + "}"

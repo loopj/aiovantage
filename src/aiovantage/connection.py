@@ -31,6 +31,7 @@ class BaseConnection:
         self,
         host: str,
         port: int | None = None,
+        *,
         ssl: SSLContext | bool = True,
         conn_timeout: float | None = None,
     ) -> None:

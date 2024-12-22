@@ -13,7 +13,6 @@ from .types import Parent
 class Temperature(Sensor, TemperatureInterface):
     """Temperature object."""
 
-    # TODO: Use a different approach to determine the setpoint type
     class Setpoint(Enum):
         HEAT = "Heat"
         COOL = "Cool"
