@@ -28,9 +28,6 @@ Source = "https://github.com/loopj/aiovantage"
 [project.optional-dependencies]
 dev = ["pyright==1.1.391", "ruff==0.8.3", "bumpver==2024.1130"]
 
-[tool.ruff]
-target-version = "py310"
-
 [tool.ruff.lint]
 select = [
     "F",   # pyflakes
@@ -63,6 +60,9 @@ max-complexity = 15
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.pyright]
+typeCheckingMode = "standard"
 
 [tool.bumpver]
 current_version = "0.16.0"
