@@ -25,16 +25,7 @@ Issues = "https://github.com/loopj/aiovantage/issues"
 Source = "https://github.com/loopj/aiovantage"
 
 [project.optional-dependencies]
-dev = [
-    "black==24.10.0",
-    "pyright==1.1.391",
-    "ruff==0.8.3",
-    "bumpver==2024.1130",
-]
-
-[tool.black]
-target-version = ["py310"]
-skip-string-normalization = true
+dev = ["pyright==1.1.391", "ruff==0.8.3", "bumpver==2024.1130"]
 
 [tool.ruff]
 target-version = "py310"
@@ -54,7 +45,7 @@ select = [
     "C90", # mccabe
 ]
 ignore = [
-    "E501", # line too long, handled by black
+    "E501", # line too long, handled by formatter
 ]
 
 [tool.ruff.lint.per-file-ignores]

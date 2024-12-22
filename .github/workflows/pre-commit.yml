@@ -20,13 +20,18 @@ jobs:
     - name: Install dependencies
       run: uv sync --all-extras --dev
 
-    - run: echo "$PWD/.venv/bin" >> $GITHUB_PATH
+    - name: Add venv to PATH
+      run: echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
-    - name: Run black
-      uses: psf/black@stable
-
-    - name: Run ruff
+    - name: Run ruff linter
       uses: astral-sh/ruff-action@v2
+      with:
+        args: check
+
+    - name: Run ruff formatter
+      uses: astral-sh/ruff-action@v2
+      with:
+        args: format --check
 
     - name: Run pyright
       uses: jakebailey/pyright-action@v2
