@@ -52,7 +52,9 @@ class CommandClient:
         read_timeout: float = 60,
     ) -> None:
         """Initialize the client."""
-        self._connection = CommandConnection(host, port, ssl, conn_timeout)
+        self._connection = CommandConnection(
+            host, port, ssl=ssl, conn_timeout=conn_timeout
+        )
         self._username = username
         self._password = password
         self._read_timeout = read_timeout
@@ -82,7 +84,7 @@ class CommandClient:
     async def command(
         self,
         command: str,
-        *params: str | int | float | Decimal,
+        *params: str | float | Decimal,
         force_quotes: bool = False,
         connection: CommandConnection | None = None,
     ) -> CommandResponse:

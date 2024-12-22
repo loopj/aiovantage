@@ -45,7 +45,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
 
         self.update_state(vid, state)
 
-    async def get_level(self, obj: OmniSensor, cached: bool = True) -> int | Decimal:
+    async def get_level(self, obj: OmniSensor, *, cached: bool = True) -> int | Decimal:
         """Get the level of an OmniSensor.
 
         Args:
