@@ -19,7 +19,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         self,
         data: dict[int, T],
         populate: Callable[[], Awaitable[None]],
-        filters: list[Callable[[T], Any]] | None = None,
+        filters: list[Callable[[T], bool]] | None = None,
     ) -> None:
         """Initialize a queryset.
 
@@ -34,7 +34,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         self.__iterator: Iterator[T] | None = None
 
         if filters is None:
-            self.__filters: list[Callable[[T], Any]] = []
+            self.__filters: list[Callable[[T], bool]] = []
         else:
             self.__filters = filters
 
@@ -56,8 +56,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
     async def __anext__(self) -> T:
         """Return the next object in the queryset."""
         if self.__iterator is None:
-            if self.__populate is not None:
-                await self.__populate()
+            await self.__populate()
 
             self.__iterator = iter(self)
 
@@ -66,12 +65,12 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         except StopIteration as exc:
             raise StopAsyncIteration from exc
 
-    def add_filter(self, filter_fn: Callable[[T], Any]) -> None:
+    def add_filter(self, filter_fn: Callable[[T], bool]) -> None:
         """Add a filter to the queryset."""
         self.__filters.append(filter_fn)
 
     @overload
-    def filter(self, match: Callable[[T], Any]) -> "QuerySet[T]": ...
+    def filter(self, match: Callable[[T], bool]) -> "QuerySet[T]": ...
 
     @overload
     def filter(self, **kwargs: Any) -> "QuerySet[T]": ...
@@ -97,7 +96,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
     def get(self, key: int) -> T | None: ...
 
     @overload
-    def get(self, match: Callable[[T], Any]) -> T | None: ...
+    def get(self, match: Callable[[T], bool]) -> T | None: ...
 
     @overload
     def get(self, **kwargs: Any) -> T | None: ...
@@ -115,7 +114,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
     async def aget(self, key: int) -> T | None: ...
 
     @overload
-    async def aget(self, match: Callable[[T], Any]) -> T | None: ...
+    async def aget(self, match: Callable[[T], bool]) -> T | None: ...
 
     @overload
     async def aget(self, **kwargs: Any) -> T | None: ...
