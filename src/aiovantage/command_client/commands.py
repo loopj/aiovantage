@@ -2,7 +2,6 @@
 
 import asyncio
 import logging
-from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
 from ssl import SSLContext
@@ -33,8 +32,8 @@ class CommandResponse:
     """Wrapper for command responses."""
 
     command: str
-    args: Sequence[str]
-    data: Sequence[str]
+    args: list[str]
+    data: list[str]
 
 
 class CommandClient:
@@ -52,7 +51,9 @@ class CommandClient:
         read_timeout: float = 60,
     ) -> None:
         """Initialize the client."""
-        self._connection = CommandConnection(host, port, ssl, conn_timeout)
+        self._connection = CommandConnection(
+            host, port, ssl=ssl, conn_timeout=conn_timeout
+        )
         self._username = username
         self._password = password
         self._read_timeout = read_timeout
@@ -82,7 +83,7 @@ class CommandClient:
     async def command(
         self,
         command: str,
-        *params: str | int | float | Decimal,
+        *params: str | float | Decimal,
         force_quotes: bool = False,
         connection: CommandConnection | None = None,
     ) -> CommandResponse:
@@ -109,7 +110,7 @@ class CommandClient:
 
     async def raw_request(
         self, request: str, connection: CommandConnection | None = None
-    ) -> Sequence[str]:
+    ) -> list[str]:
         """Send a raw command to the Host Command service and return all response lines.
 
         Handles authentication if required, and raises an exception if the response line
@@ -130,7 +131,7 @@ class CommandClient:
             await conn.write(f"{request}\n")
 
             # Read all lines of the response
-            response_lines = []
+            response_lines: list[str] = []
             while True:
                 response_line = await conn.readuntil(b"\r\n", self._read_timeout)
                 response_line = response_line.rstrip()
@@ -140,7 +141,7 @@ class CommandClient:
                     raise self._parse_command_error(response_line)
 
                 # Ignore potentially interleaved "event" messages
-                if any(response_line.startswith(x) for x in ("S:", "L:", "EL:")):
+                if response_line.startswith(("S:", "L:", "EL:")):
                     self._logger.debug("Ignoring event message: %s", response_line)
                     continue
 

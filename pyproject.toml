@@ -4,25 +4,21 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aiovantage"
-dynamic = ["version"]
+version = "0.16.0"
 description = "Interact with and control Vantage InFusion home automation controllers."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [
-    {name = "James Smith", email = "james@loopj.com"},
-]
+authors = [{ name = "James Smith", email = "james@loopj.com" }]
 classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Home Automation",
 ]
-dependencies = [
-    "xsdata==24.11",
-    "typing_extensions>=4.6.3,<5.0",
-]
+dependencies = ["xsdata==24.11", "typing_extensions>=4.6.3,<5.0"]
 
 [project.urls]
 Documentation = "https://github.com/loopj/aiovantage#readme"
@@ -30,72 +26,50 @@ Issues = "https://github.com/loopj/aiovantage/issues"
 Source = "https://github.com/loopj/aiovantage"
 
 [project.optional-dependencies]
-dev = [
-    "black==24.10.0",
-    "mypy==1.13.0",
-    "ruff==0.8.3",
-    "pre-commit==4.0.1",
-]
+dev = ["pyright==1.1.391", "ruff==0.8.3", "bumpver==2024.1130"]
 
-[tool.hatch.version]
-path = "src/aiovantage/__about__.py"
-
-[[tool.hatch.envs.all.matrix]]
-python = ["3.10", "3.11", "3.12"]
-
-[tool.hatch.envs.dev]
-features = ["dev"]
-
-[tool.hatch.envs.lint]
-features = ["dev"]
-
-[tool.hatch.envs.lint.scripts]
-style = [
-  "ruff {args:.}",
-  "black --check --diff {args:.}",
-]
-fmt = [
-  "black {args:.}",
-  "ruff --fix {args:.}",
-]
-typing = "mypy {args:.}"
-
-[tool.mypy]
-strict = true
-
-[tool.black]
-target-version = ["py310"]
-skip-string-normalization = true
-
-[tool.ruff]
-target-version = "py310"
+[tool.ruff.lint]
 select = [
-    "F",    # pyflakes
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "I",    # isort
-    "N",    # pep8-naming
-    "UP",   # pyupgrade
-    "D",    # pydocstyle
-    "C",    # flake8-comprehensions
-    "B",    # flake8-bugbear
-    "Q",    # flake8-quotes
-    "C90",  # mccabe
+    "F",   # pyflakes
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "D",   # pydocstyle
+    "C",   # flake8-comprehensions
+    "B",   # flake8-bugbear
+    "Q",   # flake8-quotes
+    "C90", # mccabe
 ]
 ignore = [
-    "E501",  # line too long, handled by black
+    "E501", # line too long, handled by formatter
 ]
 
-[tool.ruff.per-file-ignores]
-"src/aiovantage/config_client/models/**/*.py" = [
-    "D106"  # Missing docstring in public nested class
+[tool.ruff.lint.per-file-ignores]
+"src/aiovantage/objects/**/*.py" = [
+    "D106", # Missing docstring in public nested class
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["aiovantage"]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 15
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.pyright]
+typeCheckingMode = "standard"
+
+[tool.bumpver]
+current_version = "0.16.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "Bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+push = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = ['current_version = "{version}"', 'version = "{version}"']

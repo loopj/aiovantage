@@ -4,29 +4,25 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import TemperatureInterface
-from aiovantage.models import Temperature
+from aiovantage.objects import Temperature
 
 from .base import BaseController
 
 
-class TemperatureSensorsController(BaseController[Temperature], TemperatureInterface):
+class TemperatureSensorsController(BaseController[Temperature]):
     """Controller holding and managing Vantage temperature sensors."""
 
-    vantage_types = ("Temperature",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (Temperature,)
     status_types = ("TEMP",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: Temperature) -> None:
         """Fetch the state properties of a temperature sensor."""
         state = {
-            "value": await TemperatureInterface.get_value(self, vid),
+            "value": await obj.get_value(),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

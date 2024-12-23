@@ -4,34 +4,25 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.command_client.object_interfaces import (
-    AnemoSensorInterface,
-    SensorInterface,
-)
-from aiovantage.models import AnemoSensor
+from aiovantage.objects import AnemoSensor
 
 from .base import BaseController
 
 
-class AnemoSensorsController(
-    BaseController[AnemoSensor], AnemoSensorInterface, SensorInterface
-):
+class AnemoSensorsController(BaseController[AnemoSensor]):
     """Controller holding and managing Vantage anemo (wind) sensors."""
 
-    vantage_types = ("AnemoSensor",)
-    """The Vantage object types that this controller will fetch."""
-
+    vantage_types = (AnemoSensor,)
     status_types = ("WIND",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: AnemoSensor) -> None:
         """Fetch the state properties of an anemo sensor."""
         state = {
-            "speed": await AnemoSensorInterface.get_speed(self, vid),
+            "speed": await obj.get_speed(),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.id, state)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

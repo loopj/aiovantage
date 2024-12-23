@@ -90,7 +90,9 @@ class EventStream:
         conn_timeout: float = 30,
     ) -> None:
         """Initialize the client."""
-        self._connection = CommandConnection(host, port, ssl, conn_timeout)
+        self._connection = CommandConnection(
+            host, port, ssl=ssl, conn_timeout=conn_timeout
+        )
         self._username = username
         self._password = password
         self._tasks: list[asyncio.Task[None]] = []

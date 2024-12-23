@@ -12,7 +12,7 @@ from aiovantage.command_client.utils import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects
 from aiovantage.events import EventCallback, VantageEvent
-from aiovantage.models import SystemObject
+from aiovantage.objects import SystemObject
 from aiovantage.query import QuerySet
 
 if TYPE_CHECKING:
@@ -28,7 +28,7 @@ EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 class BaseController(QuerySet[T]):
     """Base controller for Vantage objects."""
 
-    vantage_types: tuple[str, ...]
+    vantage_types: tuple[type[SystemObject], ...]
     """The Vantage object types that this controller handles."""
 
     status_types: tuple[str, ...] | None = None
@@ -97,7 +97,7 @@ class BaseController(QuerySet[T]):
         """Return a set of all known object IDs."""
         return set(self._items.keys())
 
-    async def fetch_object_state(self, _vid: int) -> None:
+    async def fetch_object_state(self, _obj: T) -> None:
         """Fetch the full state of an object.
 
         Should be overridden by subclasses that manage stateful objects.
@@ -122,7 +122,7 @@ class BaseController(QuerySet[T]):
         """
         return
 
-    async def initialize(self, fetch_state: bool = True) -> None:
+    async def initialize(self, *, fetch_state: bool = True) -> None:
         """Populate the controller, and optionally fetch initial state.
 
         Args:
@@ -132,20 +132,24 @@ class BaseController(QuerySet[T]):
         # are batch-modifying the _items dict.
         async with self._lock:
             prev_ids = set(self._items.keys())
-            cur_ids = set()
+            cur_ids: set[int] = set()
 
             # Fetch all objects managed by this controller
-            async for obj in get_objects(self.config_client, types=self.vantage_types):
+            element_names = tuple(cls.element_name() for cls in self.vantage_types)
+            async for obj in get_objects(self.config_client, types=element_names):
+                # Give objects access to the command client
+                obj.command_client = self.command_client
+
                 if obj.id in prev_ids:
                     # This is an existing object.
                     # Update any attributes that have changed and notify subscribers.
-                    # Ignore the mtime attribute, and any state attributes.
+                    # Ignore the m_time attribute, and any state attributes.
                     self.update_state(
                         obj.id,
                         {
                             field.name: getattr(obj, field.name)
                             for field in fields(type(obj))
-                            if field.name != "mtime"
+                            if field.name != "m_time"
                             and field.metadata.get("type") != "Ignore"
                         },
                     )
@@ -157,7 +161,7 @@ class BaseController(QuerySet[T]):
 
                     # Fetch the state of stateful objects
                     if self.stateful and fetch_state:
-                        await self.fetch_object_state(obj.id)
+                        await self.fetch_object_state(obj)
 
                 # Keep track of which objects we've seen
                 cur_ids.add(obj.id)
@@ -185,7 +189,7 @@ class BaseController(QuerySet[T]):
             return
 
         for obj in self._items.values():
-            await self.fetch_object_state(obj.id)
+            await self.fetch_object_state(obj)
 
         self._logger.info("%s fetched state", type(self).__name__)
 
@@ -290,7 +294,7 @@ class BaseController(QuerySet[T]):
             return
 
         # Check if any state attributes changed and update them
-        attrs_changed = []
+        attrs_changed: list[str] = []
         for key, value in attrs.items():
             try:
                 if getattr(obj, key) != value:

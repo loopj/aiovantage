@@ -1,6 +1,23 @@
 """Controller holding and managing Vantage stations."""
 
-from aiovantage.models import StationObject
+from aiovantage.objects import (
+    ContactInput,
+    Dimmer,
+    DINContactInput,
+    DINHighVoltageRelayStation,
+    DINLowVoltageRelayStation,
+    DualRelayStation,
+    EqCtrl,
+    EqUX,
+    HighVoltageRelayStation,
+    Keypad,
+    LowVoltageRelayStation,
+    RS232Station,
+    RS485Station,
+    ScenePointRelay,
+    StationObject,
+    VantageDmxDaliGateway,
+)
 
 from .base import BaseController
 
@@ -13,20 +30,19 @@ class StationsController(BaseController[StationObject]):
     """
 
     vantage_types = (
-        "ContactInput",
-        "Dimmer",
-        "DINContactInput",
-        "DINHighVoltageRelayStation",
-        "DINLowVoltageRelayStation",
-        "DualRelayStation",
-        "EqCtrl",
-        "EqUX",
-        "HighVoltageRelayStation",
-        "Keypad",
-        "LowVoltageRelayStation",
-        "RS232Station",
-        "RS485Station",
-        "ScenePointRelay",
-        "Vantage.DmxDaliGateway",
+        ContactInput,
+        Dimmer,
+        DINContactInput,
+        DINHighVoltageRelayStation,
+        DINLowVoltageRelayStation,
+        DualRelayStation,
+        EqCtrl,
+        EqUX,
+        HighVoltageRelayStation,
+        Keypad,
+        LowVoltageRelayStation,
+        RS232Station,
+        RS485Station,
+        ScenePointRelay,
+        VantageDmxDaliGateway,
     )
-    """The Vantage object types that this controller will fetch."""

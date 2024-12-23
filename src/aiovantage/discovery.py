@@ -50,7 +50,7 @@ async def get_controller_details(host: str) -> VantageControllerDetails | None:
     return VantageControllerDetails(host, supports_ssl, requires_auth)
 
 
-async def is_auth_required(host: str, ssl: bool = True) -> bool:
+async def is_auth_required(host: str, *, ssl: bool = True) -> bool:
     """Check if authentication is required for the given controller.
 
     Args:
@@ -68,7 +68,7 @@ async def is_auth_required(host: str, ssl: bool = True) -> bool:
 
 
 async def validate_credentials(
-    host: str, username: str, password: str, ssl: bool = True
+    host: str, username: str, password: str, *, ssl: bool = True
 ) -> bool:
     """Check if the given credentials are valid for the given controller.
 
@@ -96,6 +96,7 @@ async def get_serial_from_controller(
     host: str,
     username: str | None = None,
     password: str | None = None,
+    *,
     ssl: bool = True,
 ) -> int | None:
     """Get the serial number of the given controller.

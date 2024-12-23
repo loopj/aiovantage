@@ -105,7 +105,7 @@ async def main() -> None:
         for interface in interfaces:
             try:
                 schema = await get_interface_info(client, interface.name)
-                file = Path(f"schemas/interfaces/{interface.name}.vidl")
+                file = Path(f"schemas/interfaces/{interface.name}.idl")
                 file.parent.mkdir(parents=True, exist_ok=True)
                 file.write_text(schema, encoding="utf-8")
             except ElementTree.ParseError as exc:

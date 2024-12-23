@@ -18,14 +18,21 @@ First off, thanks for taking the time to contribute!
 
 ## 🔨 Set up Development Environment
 
-### Using `hatch`
+### Using `uv`
 
-aiovantage uses [Hatch](https://hatch.pypa.io/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [Hatch installation guide](https://hatch.pypa.io/latest/install/) to get started.
+aiovantage uses [uv](https://docs.astral.sh/uv/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) to get started.
 
-If you'd like to run a command in a virtual environment with development dependencies available, prefix it with `hatch -e dev run`. For example,
+To set up your development environment, run the following commands:
 
 ```bash
-hatch -e dev run python examples/dump_system.py hostname
+uv venv
+uv pip install -e ".[dev]"
+```
+
+If you'd like to run a command in a virtual environment with development dependencies available, prefix it with `uv run`. For example,
+
+```bash
+uv run python examples/dump_system.py hostname
 ```
 
 ### Manually
@@ -33,6 +40,8 @@ hatch -e dev run python examples/dump_system.py hostname
 If you'd prefer to manage your own python environment, you can install the development dependencies manually.
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
@@ -42,12 +51,12 @@ pip install -e ".[dev]"
 
 To add a new object type to an existing controller, follow these steps:
 
-- Create a new [xsdata-style `@dataclass`](https://xsdata.readthedocs.io/en/latest/models.html) model in `src/aiovantage/config_client/models/`
+- Create a new [xsdata-style `@dataclass`](https://xsdata.readthedocs.io/en/latest/models.html) model in `src/aiovantage/objects/`
 - The new class should inherit from the appropriate subclass expected by the controller
 - Your class name should match the Vantage object name if possible, otherwise use [class metadata](https://xsdata.readthedocs.io/en/latest/models.html#class-metadata) to specify the name
-- Export the class in `src/aiovantage/config_client/models/__init__.py` so it can be automatically parsed
-- Add the object name to the `vantage_types` tuple in the appropriate controller in `src/aiovantage/config_client/controllers/`, so we know to fetch it when populating the controller
-- Test that the object appears in the controller, by running the `dump_system.py` example script
+- Export the class in `src/aiovantage/objects/__init__.py` so it can be automatically parsed
+- Add the object type to the `vantage_types` tuple in the appropriate controller in `src/aiovantage/controllers/`, so we know to fetch it when populating the controller
+- Test that the object appears in the controller as expected
 
 ### Adding support for a new class of device
 
@@ -61,57 +70,48 @@ Good pull requests remain focused in scope and avoid containing unrelated commit
 
 ## 🎨 Style guidelines
 
-This project uses [pre-commit](https://pre-commit.com/) to run code linting and formatting checks before commits are made.
+Before submitting a pull request, make sure your code follows the style guidelines.
 
-To install `pre-commit` and its associated hooks, run the following:
-
-```bash
-pip install pre-commit
-pre-commit install
-```
-
-To run our linters on the full code base, run the following command:
+Use pyright for type checking:
 
 ```bash
-pre-commit run --all-files
+uv run pyright
 ```
+
+Use Ruff for linting:
+
+```bash
+uv run ruff check
+```
+
+Use Ruff for formatting:
+
+```bash
+uv run ruff format
+```
+
+If you are using vscode, you'll be prompted to install the recommended extensions when you open the workspace.
 
 ## 📦️ Build a package
 
-To build the package, first bump the version
+To build the package, first update the version number:
 
 ```bash
-hatch version <major|minor|patch>
+bumpver update --patch # or --major --minor
 ```
 
-Then build the package
+Then build the package:
 
 ```bash
-hatch build -c
+uv build
 ```
 
 ## 🚀 Publish a release
 
-Follow these steps to publish the release on PyPi.
-
-Commit `src/aiovantage/__about__.py` to source control
+To publish the package to PyPi:
 
 ```bash
-git add src/aiovantage/__about__.py
-git commit -m "Preparing release `hatch version`"
+uv publish
 ```
 
-Tag the release
-
-```bash
-git tag `hatch version`
-git push && git push --tags
-```
-
-Publish the release to PyPi
-
-```bash
-hatch publish
-```
-
-Don't forget to [create a release on GitHub](https://github.com/loopj/aiovantage/releases/new).
+Don't forget to [create a release on GitHub](https://github.com/loopj/aiovantage/releases/new)!
