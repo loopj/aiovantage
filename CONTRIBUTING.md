@@ -55,8 +55,8 @@ To add a new object type to an existing controller, follow these steps:
 - The new class should inherit from the appropriate subclass expected by the controller
 - Your class name should match the Vantage object name if possible, otherwise use [class metadata](https://xsdata.readthedocs.io/en/latest/models.html#class-metadata) to specify the name
 - Export the class in `src/aiovantage/objects/__init__.py` so it can be automatically parsed
-- Add the object name to the `vantage_types` tuple in the appropriate controller in `src/aiovantage/controllers/`, so we know to fetch it when populating the controller
-- Test that the object appears in the controller, by running the `dump_system.py` example script
+- Add the object type to the `vantage_types` tuple in the appropriate controller in `src/aiovantage/controllers/`, so we know to fetch it when populating the controller
+- Test that the object appears in the controller as expected
 
 ### Adding support for a new class of device
 
@@ -70,27 +70,34 @@ Good pull requests remain focused in scope and avoid containing unrelated commit
 
 ## 🎨 Style guidelines
 
-This project uses [pre-commit](https://pre-commit.com/) to run code linting and formatting checks before commits are made.
+Before submitting a pull request, make sure your code follows the style guidelines.
 
-To install `pre-commit` and its associated hooks, run the following:
-
-```bash
-pip install pre-commit
-pre-commit install
-```
-
-To run our linters on the full code base, run the following command:
+Use pyright for type checking:
 
 ```bash
-pre-commit run --all-files
+uv run pyright
 ```
+
+Use Ruff for linting:
+
+```bash
+uv run ruff check
+```
+
+Use Ruff for formatting:
+
+```bash
+uv run ruff format
+```
+
+If you are using vscode, you'll be prompted to install the recommended extensions when you open the workspace.
 
 ## 📦️ Build a package
 
 To build the package, first update the version number:
 
 ```bash
-bumpver update <--major|--minor|--patch>
+bumpver update --patch # or --major --minor
 ```
 
 Then build the package:
