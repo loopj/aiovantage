@@ -132,7 +132,7 @@ class BaseController(QuerySet[T]):
         # are batch-modifying the _items dict.
         async with self._lock:
             prev_ids = set(self._items.keys())
-            cur_ids = set()
+            cur_ids: set[int] = set()
 
             # Fetch all objects managed by this controller
             element_names = tuple(cls.element_name() for cls in self.vantage_types)
@@ -294,7 +294,7 @@ class BaseController(QuerySet[T]):
             return
 
         # Check if any state attributes changed and update them
-        attrs_changed = []
+        attrs_changed: list[str] = []
         for key, value in attrs.items():
             try:
                 if getattr(obj, key) != value:

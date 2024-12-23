@@ -64,11 +64,10 @@ class ThermostatsController(BaseController[Thermostat]):
     @override
     async def fetch_object_state(self, obj: Thermostat) -> None:
         """Fetch the state properties of a thermostat."""
-        state = {
-            "operation_mode": await obj.get_operation_mode(),
-            "fan_mode": await obj.get_fan_mode(),
-            "day_mode": await obj.get_day_mode(),
-        }
+        state: dict[str, Any] = {}
+        state["operation_mode"] = await obj.get_operation_mode()
+        state["fan_mode"] = await obj.get_fan_mode()
+        state["day_mode"] = await obj.get_day_mode()
 
         # Hold mode is not supported by every thermostat type.
         with suppress(CommandError):

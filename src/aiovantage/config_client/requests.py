@@ -57,9 +57,6 @@ async def get_objects(
                 break
 
             for obj in response:
-                if obj.choice is None:
-                    continue
-
                 yield obj.choice
     finally:
         # Close the filter
@@ -85,9 +82,6 @@ async def get_objects_by_id(
         return
 
     for obj in response:
-        if obj.choice is None:
-            continue
-
         yield obj.choice
 
 
