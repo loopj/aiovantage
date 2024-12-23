@@ -18,7 +18,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Home Automation",
 ]
-dependencies = ["xsdata==24.11", "typing_extensions>=4.6.3,<5.0"]
+dependencies = ["xsdata==24.12", "typing_extensions>=4.6.3,<5.0"]
 
 [project.urls]
 Documentation = "https://github.com/loopj/aiovantage#readme"
