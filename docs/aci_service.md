@@ -110,7 +110,7 @@ IDiagnostic.GetStations(int)
 IDiagnostic.GetEnhancedLogConfig()
 IDiagnostic.SetEnhancedLogConfig(Aggregator: {Enabled: bool, Status: int}, Logging: {Status: bool})
 IDiagnostic.GetFirewallConfiguration()
-IDiagnostic.SetFirewallConfiguration(OpenPorts: {TCP: List[int], UDP: List[int], ICMP: bool)
+IDiagnostic.SetFirewallConfiguration(OpenPorts: {TCP: List[int], UDP: List[int], ICMP: bool})
 IDiagnostic.ResetEventLog()
 IDiagnostic.GetModules(int)
 ```
