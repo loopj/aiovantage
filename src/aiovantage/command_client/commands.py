@@ -15,6 +15,7 @@ from aiovantage.errors import (
     InvalidObjectError,
     LoginFailedError,
     LoginRequiredError,
+    ObjectOfflineError,
 )
 
 from .utils import encode_params, tokenize_response
@@ -187,6 +188,8 @@ class CommandClient:
         exc: CommandError
         if error_code == 7:
             exc = InvalidObjectError(error_message)
+        elif error_code == 20:
+            exc = ObjectOfflineError(error_message)
         elif error_code == 21:
             exc = LoginRequiredError(error_message)
         elif error_code == 23:

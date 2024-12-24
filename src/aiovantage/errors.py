@@ -33,3 +33,7 @@ class LoginRequiredError(CommandError):
 
 class InvalidObjectError(CommandError):
     """The requested object ID is invalid."""
+
+
+class ObjectOfflineError(CommandError):
+    """The requested object is offline."""
