@@ -10,7 +10,7 @@ The service is discoverable via mDNS as `_hc._tcp.local` and/or `_secure_hc._tcp
 
 ## Authentication
 
-If authentication is enabled on the controller, you must authenticate before making further requests by calling `LOGIN username, password`.
+If authentication is enabled on the controller, you must authenticate before making further requests by calling `LOGIN <username> <password>`.
 
 ## Making Requests
 
