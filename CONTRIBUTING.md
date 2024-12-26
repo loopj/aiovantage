@@ -7,7 +7,7 @@ First off, thanks for taking the time to contribute!
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [🔨 Set up Development Environment](#-set-up-development-environment)
+- [🔨 Set up development environment](#-set-up-development-environment)
 - [💡 Adding support for new devices](#-adding-support-for-new-devices)
 - [✨ Submit your work](#-submit-your-work)
 - [🎨 Style guidelines](#-style-guidelines)
@@ -16,16 +16,19 @@ First off, thanks for taking the time to contribute!
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## 🔨 Set up Development Environment
+## 🔨 Set up development environment
 
 ### Using `uv`
 
-aiovantage uses [uv](https://docs.astral.sh/uv/) to run scripts, manages virtual environments, create reproducible builds, and publish packages. Check out the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) to get started.
+aiovantage uses [uv](https://docs.astral.sh/uv/) to run scripts, manage virtual environments, create reproducible builds, and publish packages. Check out the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/) to get started.
 
 To set up your development environment, run the following commands:
 
 ```bash
+# Create a virtual environment
 uv venv
+
+# Install development dependencies
 uv pip install -e ".[dev]"
 ```
 
@@ -40,8 +43,13 @@ uv run python examples/dump_system.py hostname
 If you'd prefer to manage your own python environment, you can install the development dependencies manually.
 
 ```bash
+# Create a virtual environment
 python -m venv .venv
+
+# Activate the virtual environment
 source .venv/bin/activate
+
+# Install development dependencies
 pip install -e ".[dev]"
 ```
 
@@ -70,27 +78,30 @@ Good pull requests remain focused in scope and avoid containing unrelated commit
 
 ## 🎨 Style guidelines
 
-Before submitting a pull request, make sure your code follows the style guidelines.
+Before submitting a pull request, make sure your code follows the style guidelines. This project uses [pyright](https://microsoft.github.io/pyright/) for type checking, and [ruff](https://docs.astral.sh/ruff/) for linting and formatting.
 
-Use pyright for type checking:
+Pull requests will trigger a CI check that blocks merging if the code does not pass the style guidelines.
+
+### Running checks automatically with vscode
+
+If you are using vscode, you'll be prompted to install the recommended extensions when you open the workspace.
+
+### Running checks manually
 
 ```bash
+# Run type checking
 uv run pyright
 ```
 
-Use Ruff for linting:
-
 ```bash
+# Run linting
 uv run ruff check
 ```
 
-Use Ruff for formatting:
-
 ```bash
+# Format code
 uv run ruff format
 ```
-
-If you are using vscode, you'll be prompted to install the recommended extensions when you open the workspace.
 
 ## 📦️ Build a package
 
