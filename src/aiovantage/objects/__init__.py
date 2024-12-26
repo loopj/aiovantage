@@ -66,6 +66,11 @@ from .vantage_generic_hvac_rs485 import (
     VantageGenericHVACRS485ZoneChild,
     VantageGenericHVACRS485ZoneWithoutFanSpeedChild,
 )
+from .vantage_hvac_iu import (
+    VantageHVACIULineChild,
+    VantageHVACIUPort,
+    VantageHVACIUZoneChild,
+)
 
 __all__ = [
     "AnemoSensor",
@@ -132,4 +137,7 @@ __all__ = [
     "VantageGenericHVACRS485TechContactsChild",
     "VantageGenericHVACRS485ZoneChild",
     "VantageGenericHVACRS485ZoneWithoutFanSpeedChild",
+    "VantageHVACIULineChild",
+    "VantageHVACIUPort",
+    "VantageHVACIUZoneChild",
 ]
