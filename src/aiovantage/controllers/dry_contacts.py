@@ -16,9 +16,8 @@ class DryContactsController(BaseController[DryContact]):
     @override
     async def fetch_object_state(self, obj: DryContact) -> None:
         """Fetch the state properties of a dry contact."""
-        # Dry contacts are momentary, so default to not pressed to avoid a lookup
         state = {
-            "state": DryContact.State.Up,
+            "state": await obj.get_state(),
         }
 
         self.update_state(obj.id, state)
