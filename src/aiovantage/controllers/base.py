@@ -31,10 +31,10 @@ class BaseController(QuerySet[T]):
     vantage_types: tuple[type[SystemObject], ...]
     """The Vantage object types that this controller handles."""
 
-    status_types: tuple[str, ...] | None = None
+    status_types: tuple[str, ...] = ()
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
-    interface_status_types: tuple[str, ...] | Literal["*"] | None = None
+    interface_status_types: tuple[str, ...] | Literal["*"] = ()
     """Which object interface status messages this controller handles, if any."""
 
     def __init__(self, vantage: "Vantage") -> None:
