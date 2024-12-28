@@ -22,12 +22,21 @@ class ColorTemperatureInterface(Interface):
 
     method_signatures = {
         "ColorTemperature.Get": int,
+        "ColorTemperature.GetHW": int,
+        "ColorTemperature.GetPreset": Preset,
+        "ColorTemperature.GetMaxValue": int,
+        "ColorTemperature.GetMaxValueHW": int,
+        "ColorTemperature.GetMinValue": int,
+        "ColorTemperature.GetMinValueHW": int,
+        "ColorTemperature.GetTransitionTemperature": int,
     }
 
-    # Properties
-    color_temp: int | None = None
-    max_value: int | None = None
-    min_value: int | None = None
+    # Status properties
+    color_temp: int | None = None  # ColorTemperature.Get
+    preset: Preset | None = None  # ColorTemperature.GetPreset
+    max_value: int | None = None  # ColorTemperature.GetMaxValue
+    min_value: int | None = None  # ColorTemperature.GetMinValue
+    transition_temp: int | None = None  # ColorTemperature.GetTransitionTemperature
 
     # Methods
     async def set_temperature(self, temp: int, transition: int = 0) -> None:
@@ -49,7 +58,7 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.Get
         # -> R:INVOKE <id> <temp> ColorTemperature.Get
-        return await self.invoke("ColorTemperature.Get", as_type=int)
+        return await self.invoke("ColorTemperature.Get")
 
     async def stop_transition(self) -> None:
         """Stop any ongoing color temperature transitions."""
@@ -75,7 +84,7 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.GetHW
         # -> R:INVOKE <id> <temp> ColorTemperature.GetHW
-        return await self.invoke("ColorTemperature.GetHW", as_type=int)
+        return await self.invoke("ColorTemperature.GetHW")
 
     async def warm(self, amount: int, transition_time: float | Decimal) -> None:
         """Decrease the color temperature of a light.
@@ -120,9 +129,7 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.GetPreset
         # -> R:INVOKE <id> <preset> ColorTemperature.GetPreset
-        return await self.invoke(
-            "ColorTemperature.GetPreset", as_type=ColorTemperatureInterface.Preset
-        )
+        return await self.invoke("ColorTemperature.GetPreset")
 
     async def get_max_value(self) -> int:
         """Get the maximum color temperature of a light.
@@ -132,7 +139,7 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.GetMaxValue
         # -> R:INVOKE <id> <temp> ColorTemperature.GetMaxValue
-        return await self.invoke("ColorTemperature.GetMaxValue", as_type=int)
+        return await self.invoke("ColorTemperature.GetMaxValue")
 
     async def get_max_value_hw(self) -> int:
         """Get the maximum color temperature of a light directly from the hardware.
@@ -142,7 +149,7 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.GetMaxValueHW
         # -> R:INVOKE <id> <temp> ColorTemperature.GetMaxValueHW
-        return await self.invoke("ColorTemperature.GetMaxValueHW", as_type=int)
+        return await self.invoke("ColorTemperature.GetMaxValueHW")
 
     async def set_max_value_sw(self, value: int) -> None:
         """Set the cached maximum color temperature of a light.
@@ -162,7 +169,7 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.GetMinValue
         # -> R:INVOKE <id> <temp> ColorTemperature.GetMinValue
-        return await self.invoke("ColorTemperature.GetMinValue", as_type=int)
+        return await self.invoke("ColorTemperature.GetMinValue")
 
     async def get_min_value_hw(self) -> int:
         """Get the minimum color temperature of a light directly from the hardware.
@@ -172,7 +179,7 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.GetMinValueHW
         # -> R:INVOKE <id> <temp> ColorTemperature.GetMinValueHW
-        return await self.invoke("ColorTemperature.GetMinValueHW", as_type=int)
+        return await self.invoke("ColorTemperature.GetMinValueHW")
 
     async def set_min_value_sw(self, value: int) -> None:
         """Set the cached minimum color temperature of a light.
@@ -192,6 +199,4 @@ class ColorTemperatureInterface(Interface):
         """
         # INVOKE <id> ColorTemperature.GetTransitionTemperature
         # -> R:INVOKE <id> <temp> ColorTemperature.GetTransitionTemperature
-        return await self.invoke(
-            "ColorTemperature.GetTransitionTemperature", as_type=int
-        )
+        return await self.invoke("ColorTemperature.GetTransitionTemperature")

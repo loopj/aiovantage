@@ -29,6 +29,18 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         start_time: int
         """Time the blind started moving (in milliseconds since start of UTC day)"""
 
+    class TravelTimes(NamedTuple):
+        """The travel times of a blind."""
+
+        rcode: int
+        """Response code"""
+
+        open_time: Decimal
+        """Time the blind will take to open (in seconds)"""
+
+        close_time: Decimal
+        """Time the blind will take to close (in seconds)"""
+
     method_signatures = {
         "Blind.GetPosition": Decimal,
         "Blind.GetPositionHW": Decimal,
@@ -36,13 +48,21 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         "Blind.GetTiltAngleHW": int,
         "Blind.IsTiltAvailable": bool,
         "Blind.GetBlindState": BlindState,
+        "Blind.GetUpperLimit": Decimal,
+        "Blind.GetUpperLimitHW": Decimal,
+        "Blind.GetLowerLimit": Decimal,
+        "Blind.GetLowerLimitHW": Decimal,
+        "Blind.GetTravelTimes": TravelTimes,
     }
 
-    # Properties
-    position: Decimal | None = None
-    tilt_angle: int | None = None
-    tilt_available: bool | None = None
-    blind_state: BlindState | None = None
+    # Status properties
+    position: Decimal | None = None  # "Blind.GetPosition"
+    tilt_angle: int | None = None  # "Blind.GetTiltAngle"
+    tilt_available: bool | None = None  # "Blind.IsTiltAvailable"
+    blind_state: BlindState | None = None  # "Blind.GetBlindState"
+    # upper_limit: Decimal | None = None  # "Blind.GetUpperLimit"
+    # lower_limit: Decimal | None = None  # "Blind.GetLowerLimit"
+    travel_times: TravelTimes | None = None  # "Blind.GetTravelTimes"
 
     # Methods
     async def open(self) -> None:
@@ -81,7 +101,7 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         """
         # INVOKE <id> Blind.GetPosition
         # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPosition
-        return await self.invoke("Blind.GetPosition", as_type=Decimal)
+        return await self.invoke("Blind.GetPosition")
 
     async def get_position_hw(self) -> Decimal:
         """Get the position of a blind directly from the hardware.
@@ -91,7 +111,7 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         """
         # INVOKE <id> Blind.GetPositionHW
         # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPositionHW
-        return await self.invoke("Blind.GetPositionHW", as_type=Decimal)
+        return await self.invoke("Blind.GetPositionHW")
 
     async def set_position_sw(self, position: Decimal) -> None:
         """Set the cached position of a blind.
@@ -122,7 +142,7 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         """
         # INVOKE <id> Blind.GetTiltAngle
         # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngle
-        return await self.invoke("Blind.GetTiltAngle", as_type=int)
+        return await self.invoke("Blind.GetTiltAngle")
 
     async def set_tilt_angle_sw(self, angle: int) -> None:
         """Set the cached tilt angle of a blind.
@@ -142,7 +162,7 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         """
         # INVOKE <id> Blind.GetTiltAngleHW
         # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngleHW
-        return await self.invoke("Blind.GetTiltAngleHW", as_type=int)
+        return await self.invoke("Blind.GetTiltAngleHW")
 
     async def tilt_clockwise(self, angle: int) -> None:
         """Tilt the blinds clockwise by the specified angle.
@@ -172,7 +192,7 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         """
         # INVOKE <id> Blind.IsTiltAvailable
         # -> R:INVOKE <id> <available (0/1)> Blind.IsTiltAvailable
-        return await self.invoke("Blind.IsTiltAvailable", as_type=bool)
+        return await self.invoke("Blind.IsTiltAvailable")
 
     async def set_tilt_available_sw(self, available: bool) -> None:
         """Set the cached tilt availability of a blind.
@@ -192,6 +212,94 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         """
         # INVOKE <id> Blind.GetBlindState
         # -> R:INVOKE <id> <moving> Blind.GetBlindState <start> <end> <transitionTime> <startTime>
-        return await self.invoke(
-            "Blind.GetBlindState", as_type=BlindInterface.BlindState
-        )
+        return await self.invoke("Blind.GetBlindState")
+
+    async def set_upper_limit(self, limit: Decimal) -> None:
+        """Set the upper limit of a blind.
+
+        Args:
+            limit: The upper limit to set the blind to, as a percentage.
+        """
+        # INVOKE <id> Blind.SetUpperLimit <limit>
+        # -> R:INVOKE <id> <rcode> Blind.SetUpperLimit <limit>
+        await self.invoke("Blind.SetUpperLimit", limit)
+
+    async def get_upper_limit(self) -> Decimal:
+        """Get the upper limit of a blind.
+
+        Returns:
+            The upper limit of the blind, as a percentage.
+        """
+        # INVOKE <id> Blind.GetUpperLimit
+        # -> R:INVOKE <id> <limit (0-100.000)> Blind.GetUpperLimit
+        return await self.invoke("Blind.GetUpperLimit")
+
+    async def get_upper_limit_hw(self) -> Decimal:
+        """Get the upper limit of a blind directly from the hardware.
+
+        Returns:
+            The upper limit of the blind, as a percentage.
+        """
+        # INVOKE <id> Blind.GetUpperLimitHW
+        # -> R:INVOKE <id> <limit (0-100.000)> Blind.GetUpperLimitHW
+        return await self.invoke("Blind.GetUpperLimitHW")
+
+    async def set_upper_limit_sw(self, limit: Decimal) -> None:
+        """Set the cached upper limit of a blind.
+
+        Args:
+            limit: The upper limit to set the blind to, as a percentage.
+        """
+        # INVOKE <id> Blind.SetUpperLimitSW <limit>
+        # -> R:INVOKE <id> <rcode> Blind.SetUpperLimitSW <limit>
+        await self.invoke("Blind.SetUpperLimitSW", limit)
+
+    async def set_lower_limit(self, limit: Decimal) -> None:
+        """Set the lower limit of a blind.
+
+        Args:
+            limit: The lower limit to set the blind to, as a percentage.
+        """
+        # INVOKE <id> Blind.SetLowerLimit <limit>
+        # -> R:INVOKE <id> <rcode> Blind.SetLowerLimit <limit>
+        await self.invoke("Blind.SetLowerLimit", limit)
+
+    async def get_lower_limit(self) -> Decimal:
+        """Get the lower limit of a blind.
+
+        Returns:
+            The lower limit of the blind, as a percentage.
+        """
+        # INVOKE <id> Blind.GetLowerLimit
+        # -> R:INVOKE <id> <limit (0-100.000)> Blind.GetLowerLimit
+        return await self.invoke("Blind.GetLowerLimit")
+
+    async def get_lower_limit_hw(self) -> Decimal:
+        """Get the lower limit of a blind directly from the hardware.
+
+        Returns:
+            The lower limit of the blind, as a percentage.
+        """
+        # INVOKE <id> Blind.GetLowerLimitHW
+        # -> R:INVOKE <id> <limit (0-100.000)> Blind.GetLowerLimitHW
+        return await self.invoke("Blind.GetLowerLimitHW")
+
+    async def set_lower_limit_sw(self, limit: Decimal) -> None:
+        """Set the cached lower limit of a blind.
+
+        Args:
+            limit: The lower limit to set the blind to, as a percentage.
+        """
+        # INVOKE <id> Blind.SetLowerLimitSW <limit>
+        # -> R:INVOKE <id> <rcode> Blind.SetLowerLimitSW <limit>
+        await self.invoke("Blind.SetLowerLimitSW", limit)
+
+    async def get_travel_times(self) -> TravelTimes:
+        """Get the travel times of a blind.
+
+        Returns:
+            The travel times of the blind.
+        """
+        # INVOKE <id> Blind.GetTravelTimes
+        # -> R:INVOKE <id> <openTime> <closeTime> Blind.GetTravelTimes
+        return await self.invoke("Blind.GetTravelTimes")

@@ -106,9 +106,7 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
             raise ValueError(f"Unsupported color channel method {method}")
 
         # Parse the response
-        response = RGBLoadInterface.parse_response(
-            method, result, *args, as_type=RGBLoadInterface.ColorChannelResponse
-        )
+        response = RGBLoadInterface.parse_response(method, result, *args)
 
         # Ignore updates for channels we don't care about
         if response.channel < 0 or response.channel >= num_channels:

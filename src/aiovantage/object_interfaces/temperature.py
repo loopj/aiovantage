@@ -13,8 +13,8 @@ class TemperatureInterface(Interface):
         "Temperature.GetValueHW": Decimal,
     }
 
-    # Properties
-    value: Decimal | None = None
+    # Status properties
+    value: Decimal | None = None  # "Temperature.GetValue"
 
     # Methods
     async def get_value(self) -> Decimal:
@@ -25,7 +25,7 @@ class TemperatureInterface(Interface):
         """
         # INVOKE <id> Temperature.GetValue
         # -> R:INVOKE <id> <temp> Temperature.GetValue
-        return await self.invoke("Temperature.GetValue", as_type=Decimal)
+        return await self.invoke("Temperature.GetValue")
 
     async def get_value_hw(self) -> Decimal:
         """Get the value of a temperature sensor.
@@ -35,7 +35,7 @@ class TemperatureInterface(Interface):
         """
         # INVOKE <id> Temperature.GetValueHW
         # -> R:INVOKE <id> <temp> Temperature.GetValueHW
-        return await self.invoke("Temperature.GetValueHW", as_type=Decimal)
+        return await self.invoke("Temperature.GetValueHW")
 
     async def set_value(self, value: Decimal) -> None:
         """Set the value of a temperature sensor.

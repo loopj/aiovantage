@@ -20,17 +20,19 @@ class TaskInterface(Interface):
     method_signatures = {
         "Task.IsRunning": bool,
         "Task.GetState": int,
+        "Task.GetStatus": Status,
     }
 
-    # Properties
-    state: int | None = None
-    status: Status | None = Status.NotReady
-    running: bool | None = None
-    context_state: bool | None = None
+    # Status properties
+    state: int | None = None  # Task.GetState
+    status: Status | None = Status.NotReady  # Task.GetStatus
+    running: bool | None = None  # Task.IsRunning
+    context_state: bool | None = None  # Task.GetContextState
 
     # Methods
     async def start(self) -> None:
         """Start a task."""
+        # TODO: Add support for Task.Start parameters
         # INVOKE <id> Task.Start <source> <event> <param1> <param2>
         # -> R:INVOKE <id> <rcode (0/1)> Task.Start <source> <event> <param1> <param2>
         await self.invoke("Task.Start")
@@ -51,7 +53,7 @@ class TaskInterface(Interface):
         """Get the running state of a task."""
         # INVOKE <id> Task.IsRunning
         # -> R:INVOKE <id> <running (0/1)> Task.IsRunning
-        return await self.invoke("Task.IsRunning", as_type=bool)
+        return await self.invoke("Task.IsRunning")
 
     async def get_state(self) -> int:
         """Get the state of a task.
@@ -61,7 +63,7 @@ class TaskInterface(Interface):
         """
         # INVOKE <id> Task.GetState
         # -> R:INVOKE <id> <state> Task.GetState
-        return await self.invoke("Task.GetState", as_type=int)
+        return await self.invoke("Task.GetState")
 
     async def set_state(self, state: int) -> None:
         """Set the state of a task.
@@ -73,3 +75,13 @@ class TaskInterface(Interface):
         # INVOKE <id> Task.SetState <state>
         # -> R:INVOKE <id> <rcode> Task.SetState <state>
         await self.invoke("Task.SetState", state)
+
+    async def get_status(self) -> Status:
+        """Get the status of a task.
+
+        Returns:
+            The status of the task.
+        """
+        # INVOKE <id> Task.GetStatus
+        # -> R:INVOKE <id> <status> Task.GetStatus
+        return await self.invoke("Task.GetStatus")
