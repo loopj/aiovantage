@@ -94,6 +94,8 @@ def encode_params(*params: Any, force_quotes: bool = False) -> str:
             return encode_string_param(param, force_quotes=force_quotes)
         if isinstance(param, bool):
             return "1" if param else "0"
+        if isinstance(param, IntEnum):
+            return str(param.value)
         if isinstance(param, int):
             return str(param)
         if isinstance(param, float | Decimal):
