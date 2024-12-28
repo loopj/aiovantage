@@ -31,7 +31,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetFrequency
         # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
-        return await self.invoke("Sounder.GetFrequency", as_type=Decimal)
+        return await self.invoke("Sounder.GetFrequency")
 
     async def get_frequency_hw(self) -> Decimal:
         """Get the frequency of the keypad speaker directly from the hardware.
@@ -41,7 +41,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetFrequencyHW
         # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
-        return await self.invoke("Sounder.GetFrequencyHW", as_type=Decimal)
+        return await self.invoke("Sounder.GetFrequencyHW")
 
     async def set_frequency(self, frequency: float | Decimal) -> None:
         """Set the frequency of the keypad speaker.
@@ -53,6 +53,36 @@ class SounderInterface(Interface):
         # -> R:INVOKE <id> <rcode> Sounder.SetFrequency
         await self.invoke("Sounder.SetFrequency", frequency)
 
+    async def get_duration(self) -> Decimal:
+        """Get the length of time the keypad speaker will sound.
+
+        Returns:
+            The duration of the keypad speaker sound in seconds.
+        """
+        # INVOKE <id> Sounder.GetDuration
+        # -> R:INVOKE <id> <duration> Sounder.GetDuration
+        return await self.invoke("Sounder.GetDuration")
+
+    async def get_duration_hw(self) -> Decimal:
+        """Get the length of time the keypad speaker will sound directly from the hardware.
+
+        Returns:
+            The duration of the keypad speaker sound in seconds.
+        """
+        # INVOKE <id> Sounder.GetDurationHW
+        # -> R:INVOKE <id> <duration> Sounder.GetDuration
+        return await self.invoke("Sounder.GetDurationHW")
+
+    async def set_duration(self, duration: Decimal) -> None:
+        """Set the length of time the keypad speaker will sound.
+
+        Args:
+            duration: The duration to set the sounder to, in seconds.
+        """
+        # INVOKE <id> Sounder.SetDuration <duration>
+        # -> R:INVOKE <id> <rcode> Sounder.SetDuration
+        await self.invoke("Sounder.SetDuration", duration)
+
     async def get_status(self) -> Status:
         """Get the status of the keypad speaker, using cached value if available.
 
@@ -61,7 +91,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetStatus
         # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        return await self.invoke("Sounder.GetStatus", as_type=SounderInterface.Status)
+        return await self.invoke("Sounder.GetStatus")
 
     async def get_status_hw(self) -> Status:
         """Get the status of the keypad speaker directly from the hardware.
@@ -71,7 +101,7 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetStatusHW
         # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        return await self.invoke("Sounder.GetStatusHW", as_type=SounderInterface.Status)
+        return await self.invoke("Sounder.GetStatusHW")
 
     async def set_status(self, status: Status) -> None:
         """Set the status of the keypad speaker.

@@ -21,4 +21,4 @@ class ObjectInterface(Interface):
         """
         # INVOKE <id> Object.GetMTime
         # -> R:INVOKE <id> <mtime> Object.GetMTime
-        return await self.invoke("Object.GetMTime", as_type=dt.datetime)
+        return await self.invoke("Object.GetMTime")

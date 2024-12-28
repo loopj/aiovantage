@@ -61,17 +61,19 @@ class ThermostatInterface(Interface):
         "Thermostat.GetAutoSetPoint": Decimal,
     }
 
-    # Properties
-    indoor_temperature: Decimal | None = None
-    heat_set_point: Decimal | None = None
-    cool_set_point: Decimal | None = None
-    auto_set_point: Decimal | None = None
-    operation_mode: OperationMode | None = OperationMode.Unknown
-    fan_mode: FanMode | None = FanMode.Unknown
-    status: Status | None = Status.Offline  # Not available in 2.x firmware
-    outdoor_temperature: Decimal | None = None
-    hold_mode: HoldMode | None = None  # Not part of the interface, just for convenience
-    day_mode: DayMode | None = None  # Not part of the interface, just for convenience
+    # Status properties
+    indoor_temperature: Decimal | None = None  # "Thermostat.GetIndoorTemperature"
+    heat_set_point: Decimal | None = None  # "Thermostat.GetHeatSetPoint"
+    cool_set_point: Decimal | None = None  # "Thermostat.GetCoolSetPoint"
+    auto_set_point: Decimal | None = None  # "Thermostat.GetAutoSetPoint"
+    operation_mode: OperationMode | None = (
+        OperationMode.Unknown
+    )  # "Thermostat.GetOperationMode"
+    fan_mode: FanMode | None = FanMode.Unknown  # "Thermostat.GetFanMode"
+    status: Status | None = Status.Offline  # "Thermostat.GetStatus"
+    outdoor_temperature: Decimal | None = None  # "Thermostat.GetOutdoorTemperature"
+    hold_mode: HoldMode | None = None  # "Thermostat.GetHoldMode"
+    day_mode: DayMode | None = None  # "Thermostat.GetDayMode"
 
     # Methods
     async def get_indoor_temperature(self) -> Decimal:
@@ -82,7 +84,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetIndoorTemperature
         # -> R:INVOKE <id> <temp> Thermostat.GetIndoorTemperature
-        return await self.invoke("Thermostat.GetIndoorTemperature", as_type=Decimal)
+        return await self.invoke("Thermostat.GetIndoorTemperature")
 
     async def get_outdoor_temperature(self) -> Decimal:
         """Get the current outdoor temperature.
@@ -92,7 +94,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetOutdoorTemperature
         # -> R:INVOKE <id> <temp> Thermostat.GetOutdoorTemperature
-        return await self.invoke("Thermostat.GetOutdoorTemperature", as_type=Decimal)
+        return await self.invoke("Thermostat.GetOutdoorTemperature")
 
     async def get_heat_set_point(self) -> Decimal:
         """Get the current heat set point.
@@ -102,7 +104,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetHeatSetPoint
         # -> R:INVOKE <id> <temp> Thermostat.GetHeatSetPoint
-        return await self.invoke("Thermostat.GetHeatSetPoint", as_type=Decimal)
+        return await self.invoke("Thermostat.GetHeatSetPoint")
 
     async def set_heat_set_point(self, temp: float | Decimal) -> None:
         """Set the current heat set point.
@@ -122,7 +124,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetCoolSetPoint
         # -> R:INVOKE <id> <temp> Thermostat.GetCoolSetPoint
-        return await self.invoke("Thermostat.GetCoolSetPoint", as_type=Decimal)
+        return await self.invoke("Thermostat.GetCoolSetPoint")
 
     async def set_cool_set_point(self, temp: float | Decimal) -> None:
         """Set the current cool set point.
@@ -142,9 +144,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetOperationMode
         # -> R:INVOKE <id> <mode (Off|Cool|Heat|Auto|Unknown)> Thermostat.GetOperationMode
-        return await self.invoke(
-            "Thermostat.GetOperationMode", as_type=ThermostatInterface.OperationMode
-        )
+        return await self.invoke("Thermostat.GetOperationMode")
 
     async def set_operation_mode(self, mode: int) -> None:
         """Set the current operation mode.
@@ -164,9 +164,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetFanMode
         # -> R:INVOKE <id> <mode (Off|On|Unknown)> Thermostat.GetFanMode
-        return await self.invoke(
-            "Thermostat.GetFanMode", as_type=ThermostatInterface.FanMode
-        )
+        return await self.invoke("Thermostat.GetFanMode")
 
     async def set_fan_mode(self, mode: int) -> None:
         """Set the current fan mode.
@@ -186,9 +184,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetDayMode
         # -> R:INVOKE <id> <mode (Day|Night|Unknown|Standby)> Thermostat.GetDayMode
-        return await self.invoke(
-            "Thermostat.GetDayMode", as_type=ThermostatInterface.DayMode
-        )
+        return await self.invoke("Thermostat.GetDayMode")
 
     async def set_day_mode(self, mode: int) -> None:
         """Set the current day mode.
@@ -208,9 +204,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetHoldMode
         # -> R:INVOKE <id> <mode (Normal|Hold|Unknown)> Thermostat.GetHoldMode
-        return await self.invoke(
-            "Thermostat.GetHoldMode", as_type=ThermostatInterface.HoldMode
-        )
+        return await self.invoke("Thermostat.GetHoldMode")
 
     async def set_hold_mode(self, mode: int) -> None:
         """Set the current hold mode.
@@ -230,9 +224,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetStatus
         # -> R:INVOKE <id> <status (Off|Cooling|Heating|Offline)> Thermostat.GetStatus
-        return await self.invoke(
-            "Thermostat.GetStatus", as_type=ThermostatInterface.Status
-        )
+        return await self.invoke("Thermostat.GetStatus")
 
     async def get_auto_set_point(self) -> Decimal:
         """Get the current auto set point.
@@ -242,7 +234,7 @@ class ThermostatInterface(Interface):
         """
         # INVOKE <id> Thermostat.GetAutoSetPoint
         # -> R:INVOKE <id> <temp> Thermostat.GetAutoSetPoint
-        return await self.invoke("Thermostat.GetAutoSetPoint", as_type=Decimal)
+        return await self.invoke("Thermostat.GetAutoSetPoint")
 
     async def set_auto_set_point(self, temp: float | Decimal) -> None:
         """Set the current auto set point.

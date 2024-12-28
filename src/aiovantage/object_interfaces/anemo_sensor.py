@@ -13,8 +13,8 @@ class AnemoSensorInterface(Interface):
         "AnemoSensor.GetSpeedHW": Decimal,
     }
 
-    # Properties
-    speed: Decimal | None = None
+    # Status properties
+    speed: Decimal | None = None  # "AnemoSensor.GetSpeed"
 
     # Methods
     async def get_speed(self) -> Decimal:
@@ -25,7 +25,7 @@ class AnemoSensorInterface(Interface):
         """
         # INVOKE <id> AnemoSensor.GetSpeed
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
-        return await self.invoke("AnemoSensor.GetSpeed", as_type=Decimal)
+        return await self.invoke("AnemoSensor.GetSpeed")
 
     async def get_speed_hw(self) -> Decimal:
         """Get the speed of an anemo sensor directly from the hardware.
@@ -35,7 +35,7 @@ class AnemoSensorInterface(Interface):
         """
         # INVOKE <id> AnemoSensor.GetSpeedHW
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeedHW
-        return await self.invoke("AnemoSensor.GetSpeedHW", as_type=Decimal)
+        return await self.invoke("AnemoSensor.GetSpeedHW")
 
     async def set_speed(self, speed: Decimal) -> None:
         """Set the speed of an anemo sensor.
@@ -44,6 +44,7 @@ class AnemoSensorInterface(Interface):
             speed: The speed to set, in mph.
         """
         # INVOKE <id> <rcode> AnemoSensor.SetSpeed <speed>
+        # -> R:INVOKE <id> <rcode> AnemoSensor.SetSpeed <speed>
         await self.invoke("AnemoSensor.SetSpeed", speed)
 
     async def set_speed_sw(self, speed: Decimal) -> None:
@@ -53,4 +54,5 @@ class AnemoSensorInterface(Interface):
             speed: The speed to set, in mph.
         """
         # INVOKE <id> <rcode> AnemoSensor.SetSpeedSW <speed>
+        # -> R:INVOKE <id> <rcode> AnemoSensor.SetSpeedSW <speed>
         await self.invoke("AnemoSensor.SetSpeedSW", speed)

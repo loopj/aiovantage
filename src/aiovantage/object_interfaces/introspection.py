@@ -37,11 +37,6 @@ class IntrospectionInterface(Interface):
         """
         # INVOKE <id> Introspection.GetFirmwareVersion <image>
         # -> R:INVOKE <id> <rcode> Introspection.GetFirmwareVersion <image> <version>
-        response = await IntrospectionInterface.invoke(
-            self,
-            "Introspection.GetFirmwareVersion",
-            image,
-            as_type=IntrospectionInterface.GetFirmwareVersionResponse,
-        )
+        response = await self.invoke("Introspection.GetFirmwareVersion", image)
 
         return response.version

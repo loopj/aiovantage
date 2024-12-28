@@ -41,10 +41,15 @@ class LoadInterface(Interface):
     method_signatures = {
         "Load.GetLevel": Decimal,
         "Load.GetLevelHW": Decimal,
+        "Load.GetProfile": int,
+        "Load.GetOverrideLevel": Decimal,
+        "Load.GetAlertState": AlertState,
+        "Load.GetDimmingConfig": DimmingConfig,
     }
 
-    # Properties
-    level: Decimal | None = None
+    # Status properties
+    level: Decimal | None = None  # Load.GetLevel
+    profile: int | None = None  # Load.GetProfile
 
     # Methods
     async def set_level(self, level: float | Decimal) -> None:
@@ -65,7 +70,7 @@ class LoadInterface(Interface):
         """
         # INVOKE <id> Load.GetLevel
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevel
-        return await self.invoke("Load.GetLevel", as_type=Decimal)
+        return await self.invoke("Load.GetLevel")
 
     async def get_level_hw(self) -> Decimal:
         """Get the level of a load directly from the hardware.
@@ -75,7 +80,7 @@ class LoadInterface(Interface):
         """
         # INVOKE <id> Load.GetLevelHW
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevelHW
-        return await self.invoke("Load.GetLevelHW", as_type=Decimal)
+        return await self.invoke("Load.GetLevelHW")
 
     async def ramp(
         self, cmd: RampType, ramptime: float | Decimal, finallevel: float | Decimal
@@ -109,7 +114,7 @@ class LoadInterface(Interface):
         """
         # INVOKE <id> Load.GetProfile
         # -> R:INVOKE <id> <profile> Load.GetProfile
-        return await self.invoke("Load.GetProfile", as_type=int)
+        return await self.invoke("Load.GetProfile")
 
     async def get_override_level(self) -> Decimal:
         """Get the override level of a load.
@@ -119,7 +124,7 @@ class LoadInterface(Interface):
         """
         # INVOKE <id> Load.GetOverrideLevel
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetOverrideLevel
-        return await self.invoke("Load.GetOverrideLevel", as_type=Decimal)
+        return await self.invoke("Load.GetOverrideLevel")
 
     async def set_level_sw(self, level: float | Decimal) -> None:
         """Set the cached level of a load.
@@ -170,7 +175,7 @@ class LoadInterface(Interface):
         """
         # INVOKE <id> Load.GetAlertState
         # -> R:INVOKE <id> <alert state> Load.GetAlertState
-        return await self.invoke("Load.GetAlertState", as_type=LoadInterface.AlertState)
+        return await self.invoke("Load.GetAlertState")
 
     async def set_alert_state_sw(self, alert_state: AlertState) -> None:
         """Set the cached alert state of a load.
@@ -190,9 +195,7 @@ class LoadInterface(Interface):
         """
         # INVOKE <id> Load.GetDimmingConfig
         # -> R:INVOKE <id> <dimming config> Load.GetDimmingConfig
-        return await self.invoke(
-            "Load.GetDimmingConfig", as_type=LoadInterface.DimmingConfig
-        )
+        return await self.invoke("Load.GetDimmingConfig")
 
     # Additional convenience methods, not part of the Vantage API
     async def turn_on(
@@ -210,7 +213,7 @@ class LoadInterface(Interface):
         if transition is None:
             return await self.set_level(level)
 
-        await self.ramp(LoadInterface.RampType.Fixed, transition, level)
+        await self.ramp(self.RampType.Fixed, transition, level)
 
     async def turn_off(self, transition: float | None = None) -> None:
         """Turn off a load with an optional transition time.
@@ -221,7 +224,7 @@ class LoadInterface(Interface):
         if transition is None:
             return await self.set_level(0)
 
-        await self.ramp(LoadInterface.RampType.Fixed, transition, 0)
+        await self.ramp(self.RampType.Fixed, transition, 0)
 
     @property
     def is_on(self) -> bool:
