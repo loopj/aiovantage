@@ -16,6 +16,4 @@ class QISBlind(StationObject, BlindInterface):
         open: float = 5.0
         close: float = 5.0
 
-    upper_limit: float
-    lower_limit: float
     movement: Movement
