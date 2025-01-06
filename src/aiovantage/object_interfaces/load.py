@@ -3,12 +3,13 @@
 from decimal import Decimal
 from enum import IntEnum
 
-from .base import Interface
+from .base import Interface, method
 
 
 class LoadInterface(Interface):
     """Interface for querying and controlling loads."""
 
+    # Types
     class RampType(IntEnum):
         """The type of ramp to perform."""
 
@@ -38,20 +39,12 @@ class LoadInterface(Interface):
         Reverse = 2
         Auto = 3
 
-    method_signatures = {
-        "Load.GetLevel": Decimal,
-        "Load.GetLevelHW": Decimal,
-        "Load.GetProfile": int,
-        "Load.GetOverrideLevel": Decimal,
-        "Load.GetAlertState": AlertState,
-        "Load.GetDimmingConfig": DimmingConfig,
-    }
-
-    # Status properties
-    level: Decimal | None = None  # Load.GetLevel
-    profile: int | None = None  # Load.GetProfile
+    # Properties
+    level: Decimal | None = None
+    profile: int | None = None
 
     # Methods
+    @method("Load.SetLevel")
     async def set_level(self, level: float | Decimal) -> None:
         """Set the level of a load.
 
@@ -62,6 +55,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> Load.SetLevel <level (0-100)>
         await self.invoke("Load.SetLevel", level)
 
+    @method("Load.GetLevel", property="level")
     async def get_level(self) -> Decimal:
         """Get the level of a load, using cached value if available.
 
@@ -72,6 +66,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevel
         return await self.invoke("Load.GetLevel")
 
+    @method("Load.GetLevelHW")
     async def get_level_hw(self) -> Decimal:
         """Get the level of a load directly from the hardware.
 
@@ -82,6 +77,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevelHW
         return await self.invoke("Load.GetLevelHW")
 
+    @method("Load.Ramp")
     async def ramp(
         self, cmd: RampType, ramptime: float | Decimal, finallevel: float | Decimal
     ) -> None:
@@ -96,6 +92,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> Load.Ramp <cmd> <time> <level>
         await self.invoke("Load.Ramp", cmd, ramptime, finallevel)
 
+    @method("Load.SetProfile")
     async def set_profile(self, profile: int) -> None:
         """Set the id of the power profile used by this load.
 
@@ -106,6 +103,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> Load.SetProfile <profile>
         await self.invoke("Load.SetProfile", profile)
 
+    @method("Load.GetProfile", property="profile")
     async def get_profile(self) -> int:
         """Get the id of the power profile used by this load.
 
@@ -116,6 +114,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <profile> Load.GetProfile
         return await self.invoke("Load.GetProfile")
 
+    @method("Load.GetOverrideLevel")
     async def get_override_level(self) -> Decimal:
         """Get the override level of a load.
 
@@ -126,6 +125,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetOverrideLevel
         return await self.invoke("Load.GetOverrideLevel")
 
+    @method("Load.SetLevelSW")
     async def set_level_sw(self, level: float | Decimal) -> None:
         """Set the cached level of a load.
 
@@ -136,6 +136,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> Load.SetLevelSW <level (0-100)>
         await self.invoke("Load.SetLevelSW", level)
 
+    @method("Load.RampAutoOff")
     async def ramp_auto_off(
         self,
         cmd: RampType,
@@ -167,6 +168,7 @@ class LoadInterface(Interface):
             offtimeout,
         )
 
+    @method("Load.GetAlertState")
     async def get_alert_state(self) -> AlertState:
         """Get the alert state of a load.
 
@@ -177,6 +179,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <alert state> Load.GetAlertState
         return await self.invoke("Load.GetAlertState")
 
+    @method("Load.SetAlertStateSW")
     async def set_alert_state_sw(self, alert_state: AlertState) -> None:
         """Set the cached alert state of a load.
 
@@ -187,6 +190,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> Load.SetAlertStateSW <alert state>
         await self.invoke("Load.SetAlertStateSW", alert_state)
 
+    @method("Load.GetDimmingConfig")
     async def get_dimming_config(self) -> DimmingConfig:
         """Get the dimming configuration of a load.
 
