@@ -5,12 +5,13 @@ from enum import IntEnum
 from itertools import islice
 from typing import NamedTuple
 
-from .base import Interface
+from .base import Interface, method
 
 
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""
 
+    # Types
     class RGBChannel(IntEnum):
         """The RGB color channels."""
 
@@ -44,31 +45,14 @@ class RGBLoadInterface(Interface):
         value: int
         channel: int
 
-    method_signatures = {
-        "RGBLoad.GetRGB": ColorChannelResponse,
-        "RGBLoad.GetRGBHW": ColorChannelResponse,
-        "RGBLoad.GetHSL": ColorChannelResponse,
-        "RGBLoad.GetHSLHW": ColorChannelResponse,
-        "RGBLoad.GetDissolveRate": Decimal,
-        "RGBLoad.GetDissolveRateHW": Decimal,
-        "RGBLoad.GetPreset": int,
-        "RGBLoad.GetPresetHW": int,
-        "RGBLoad.GetEffect": int,
-        "RGBLoad.GetEffectHW": int,
-        "RGBLoad.GetColorName": ColorName,
-        "RGBLoad.GetColor": int,
-        "RGBLoad.GetColorHW": int,
-        "RGBLoad.GetRGBW": ColorChannelResponse,
-        "RGBLoad.GetRGBWHW": ColorChannelResponse,
-        "RGBLoad.GetTransitionLevel": Decimal,
-    }
-
-    # Status properties
+    # Properties
     rgb: tuple[int, int, int] | None = None  # RGBLoad.GetRGB
     rgbw: tuple[int, int, int, int] | None = None  # RGBLoad.GetRGBW
     hsl: tuple[int, int, int] | None = None  # RGBLoad.GetHSL
-    color_name: ColorName | None = None  # RGBLoad.GetColorName
+    color_name: ColorName | None = None
 
+    # Methods
+    @method("RGBLoad.SetRGB")
     async def set_rgb(self, red: int = 255, green: int = 255, blue: int = 255) -> None:
         """Set the color of an RGB load.
 
@@ -81,7 +65,8 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGB <red> <green> <blue>
         await self.invoke("RGBLoad.SetRGB", red, green, blue)
 
-    async def get_rgb(self, channel: RGBChannel) -> int:
+    @method("RGBLoad.GetRGB")
+    async def get_rgb(self, channel: RGBChannel) -> ColorChannelResponse:
         """Get a single RGB color channel of a load from the controller.
 
         Args:
@@ -92,9 +77,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetRGB <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGB <channel>
-        response = await self.invoke("RGBLoad.GetRGB", channel)
-        return response.value
+        return await self.invoke("RGBLoad.GetRGB", channel)
 
+    @method("RGBLoad.SetRGBSW")
     async def set_rgb_sw(
         self, red: int = 255, green: int = 255, blue: int = 255
     ) -> None:
@@ -109,7 +94,8 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBSW <red> <green> <blue>
         await self.invoke("RGBLoad.SetRGBSW", red, green, blue)
 
-    async def get_rgb_hw(self, channel: RGBChannel) -> int:
+    @method("RGBLoad.GetRGBHW")
+    async def get_rgb_hw(self, channel: RGBChannel) -> ColorChannelResponse:
         """Get a single RGB color channel of a load directly from the hardware.
 
         Args:
@@ -120,9 +106,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetRGBHW <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBHW <channel>
-        response = await self.invoke("RGBLoad.GetRGBHW", channel)
-        return response.value
+        return await self.invoke("RGBLoad.GetRGBHW", channel)
 
+    @method("RGBLoad.SetHSL")
     async def set_hsl(
         self,
         hue: int,
@@ -140,7 +126,8 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetHSL <hue> <saturation> <lightness>
         await self.invoke("RGBLoad.SetHSL", hue, saturation, lightness)
 
-    async def get_hsl(self, attribute: HSLAttribute) -> int:
+    @method("RGBLoad.GetHSL")
+    async def get_hsl(self, attribute: HSLAttribute) -> ColorChannelResponse:
         """Get a single HSL color attribute of a load from the controller.
 
         Args:
@@ -152,9 +139,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetHSL <attribute>
         # -> R:INVOKE <id> <value> RGBLoad.GetHSL <attribute>
-        response = await self.invoke("RGBLoad.GetHSL", attribute)
-        return response.value
+        return await self.invoke("RGBLoad.GetHSL", attribute)
 
+    @method("RGBLoad.SetHSLSW")
     async def set_hsl_sw(self, hue: int, saturation: int, lightness: int) -> None:
         """Set the cached color of an HSL load.
 
@@ -167,7 +154,8 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetHSLSW <hue> <saturation> <lightness>
         await self.invoke("RGBLoad.SetHSLSW", hue, saturation, lightness)
 
-    async def get_hsl_hw(self, attribute: HSLAttribute) -> int:
+    @method("RGBLoad.GetHSLHW")
+    async def get_hsl_hw(self, attribute: HSLAttribute) -> ColorChannelResponse:
         """Get a single HSL color attribute of a load directly from the hardware.
 
         Args:
@@ -179,9 +167,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetHSLHW <attribute>
         # -> R:INVOKE <id> <value> RGBLoad.GetHSLHW <attribute>
-        response = await self.invoke("RGBLoad.GetHSLHW", attribute)
-        return response.value
+        return await self.invoke("RGBLoad.GetHSLHW", attribute)
 
+    @method("RGBLoad.DissolveRGB")
     async def dissolve_rgb(
         self, red: int, green: int, blue: int, rate: float | Decimal
     ) -> None:
@@ -197,6 +185,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.DissolveRGB <red> <green> <blue> <rate>
         await self.invoke("RGBLoad.DissolveRGB", red, green, blue, rate)
 
+    @method("RGBLoad.DissolveHSL")
     async def dissolve_hsl(
         self,
         hue: int,
@@ -216,6 +205,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.DissolveHSL <hue> <saturation> <lightness> <rate>
         await self.invoke("RGBLoad.DissolveHSL", hue, saturation, lightness, rate)
 
+    @method("RGBLoad.SetDissolveRate")
     async def set_dissolve_rate(self, rate: float | Decimal) -> None:
         """Set the default dissolve rate for RGB and HSL transitions.
 
@@ -226,6 +216,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetDissolveRate <rate>
         await self.invoke("RGBLoad.SetDissolveRate", rate)
 
+    @method("RGBLoad.GetDissolveRate")
     async def get_dissolve_rate(self) -> Decimal:
         """Get the default dissolve rate for RGB and HSL transitions.
 
@@ -236,6 +227,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rate> RGBLoad.GetDissolveRate
         return await self.invoke("RGBLoad.GetDissolveRate")
 
+    @method("RGBLoad.SetDissolveRateSW")
     async def set_dissolve_rate_sw(self, rate: float | Decimal) -> None:
         """Set the cached default dissolve rate for RGB and HSL transitions.
 
@@ -246,6 +238,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetDissolveRateSW <rate>
         await self.invoke("RGBLoad.SetDissolveRateSW", rate)
 
+    @method("RGBLoad.GetDissolveRateHW")
     async def get_dissolve_rate_hw(self) -> Decimal:
         """Get the default dissolve rate for RGB and HSL transitions directly from the hardware.
 
@@ -256,6 +249,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rate> RGBLoad.GetDissolveRateHW
         return await self.invoke("RGBLoad.GetDissolveRateHW")
 
+    @method("RGBLoad.IncrementRGBComponent")
     async def increment_rgb_component(self, channel: RGBChannel) -> None:
         """Increment a single RGB color channel of a load.
 
@@ -266,6 +260,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.IncrementRGBComponent <channel>
         await self.invoke("RGBLoad.IncrementRGBComponent", channel)
 
+    @method("RGBLoad.DecrementRGBComponent")
     async def decrement_rgb_component(self, channel: RGBChannel) -> None:
         """Decrement a single RGB color channel of a load.
 
@@ -276,6 +271,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.DecrementRGBComponent <channel>
         await self.invoke("RGBLoad.DecrementRGBComponent", channel)
 
+    @method("RGBLoad.SetRGBComponent")
     async def set_rgb_component(self, channel: RGBChannel, value: int) -> None:
         """Set a single RGB(W) color channel of a load.
 
@@ -287,6 +283,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBComponent <channel> <value>
         await self.invoke("RGBLoad.SetRGBComponent", channel, value)
 
+    @method("RGBLoad.IncrementHSLAttribute")
     async def increment_hsl_attribute(self, attribute: HSLAttribute) -> None:
         """Increment a single HSL color attribute of a load.
 
@@ -297,6 +294,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.IncrementHSLAttribute <attribute>
         await self.invoke("RGBLoad.IncrementHSLAttribute", attribute)
 
+    @method("RGBLoad.DecrementHSLAttribute")
     async def decrement_hsl_attribute(self, attribute: HSLAttribute) -> None:
         """Decrement a single HSL color attribute of a load.
 
@@ -307,6 +305,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.DecrementHSLAttribute <attribute>
         await self.invoke("RGBLoad.DecrementHSLAttribute", attribute)
 
+    @method("RGBLoad.SetHSLAttribute")
     async def set_hsl_attribute(self, attribute: HSLAttribute, value: int) -> None:
         """Set a single HSL color attribute of a load.
 
@@ -319,36 +318,42 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetHSLAttribute <attribute> <value>
         await self.invoke("RGBLoad.SetHSLAttribute", attribute, value)
 
+    @method("RGBLoad.Stop")
     async def stop(self) -> None:
         """Stop the transition."""
         # INVOKE <id> RGBLoad.Stop
         # -> R:INVOKE <id> <rcode> RGBLoad.Stop
         await self.invoke("RGBLoad.Stop")
 
+    @method("RGBLoad.NextPreset")
     async def next_preset(self) -> None:
         """Change to the next lighting preset."""
         # INVOKE <id> RGBLoad.NextPreset
         # -> R:INVOKE <id> <rcode> RGBLoad.NextPreset
         await self.invoke("RGBLoad.NextPreset")
 
+    @method("RGBLoad.PreviousPreset")
     async def previous_preset(self) -> None:
         """Change to the previous lighting preset."""
         # INVOKE <id> RGBLoad.PreviousPreset
         # -> R:INVOKE <id> <rcode> RGBLoad.PreviousPreset
         await self.invoke("RGBLoad.PreviousPreset")
 
+    @method("RGBLoad.NextEffect")
     async def next_effect(self) -> None:
         """Change to the next lighting effect."""
         # INVOKE <id> RGBLoad.NextEffect
         # -> R:INVOKE <id> <rcode> RGBLoad.NextEffect
         await self.invoke("RGBLoad.NextEffect")
 
+    @method("RGBLoad.PreviousEffect")
     async def previous_effect(self) -> None:
         """Change to the previous lighting effect."""
         # INVOKE <id> RGBLoad.PreviousEffect
         # -> R:INVOKE <id> <rcode> RGBLoad.PreviousEffect
         await self.invoke("RGBLoad.PreviousEffect")
 
+    @method("RGBLoad.SetPreset")
     async def set_preset(self, index: int) -> None:
         """Change to a specific lighting preset.
 
@@ -359,6 +364,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetPreset <index>
         await self.invoke("RGBLoad.SetPreset", index)
 
+    @method("RGBLoad.GetPreset")
     async def get_preset(self) -> int:
         """Get the current lighting preset.
 
@@ -369,6 +375,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <index> RGBLoad.GetPreset
         return await self.invoke("RGBLoad.GetPreset")
 
+    @method("RGBLoad.SetPresetSW")
     async def set_preset_sw(self, index: int) -> None:
         """Set the cached lighting preset.
 
@@ -379,6 +386,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetPresetSW <index>
         await self.invoke("RGBLoad.SetPresetSW", index)
 
+    @method("RGBLoad.GetPresetHW")
     async def get_preset_hw(self) -> int:
         """Get the current lighting preset directly from the hardware.
 
@@ -389,6 +397,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <index> RGBLoad.GetPresetHW
         return await self.invoke("RGBLoad.GetPresetHW")
 
+    @method("RGBLoad.SetEffect")
     async def set_effect(self, index: int) -> None:
         """Change to a specific lighting effect.
 
@@ -399,6 +408,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetEffect <index>
         await self.invoke("RGBLoad.SetEffect", index)
 
+    @method("RGBLoad.GetEffect")
     async def get_effect(self) -> int:
         """Get the current lighting effect.
 
@@ -409,6 +419,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <index> RGBLoad.GetEffect
         return await self.invoke("RGBLoad.GetEffect")
 
+    @method("RGBLoad.SetEffectSW")
     async def set_effect_sw(self, index: int) -> None:
         """Set the cached lighting effect.
 
@@ -419,6 +430,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetEffectSW <index>
         await self.invoke("RGBLoad.SetEffectSW", index)
 
+    @method("RGBLoad.GetEffectHW")
     async def get_effect_hw(self) -> int:
         """Get the current lighting effect directly from the hardware.
 
@@ -429,6 +441,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <index> RGBLoad.GetEffectHW
         return await self.invoke("RGBLoad.GetEffectHW")
 
+    @method("RGBLoad.SetColorByName")
     async def set_color_by_name(self, color: ColorName) -> None:
         """Set the color of an RGB load by name.
 
@@ -439,6 +452,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetColorByName <color>
         await self.invoke("RGBLoad.SetColorByName", color)
 
+    @method("RGBLoad.GetColorName", property="color_name")
     async def get_color_name(self) -> ColorName:
         """Get the name of the color of a load from the controller.
 
@@ -449,6 +463,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <color> RGBLoad.GetColorName
         return await self.invoke("RGBLoad.GetColorName")
 
+    @method("RGBLoad.GetColor")
     async def get_color(self) -> int:
         """Get the RGB/RGBW color of a load from the controller.
 
@@ -463,6 +478,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <color> RGBLoad.GetColor
         return await self.invoke("RGBLoad.GetColor")
 
+    @method("RGBLoad.GetColorHW")
     async def get_color_hw(self) -> int:
         """Get the RGB/RGBW color of a load directly from the hardware.
 
@@ -473,6 +489,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <color> RGBLoad.GetColorHW
         return await self.invoke("RGBLoad.GetColorHW")
 
+    @method("RGBLoad.SetRGBW")
     async def set_rgbw(
         self, red: int = 255, green: int = 255, blue: int = 255, white: int = 255
     ) -> None:
@@ -488,7 +505,8 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBW <red> <green> <blue> <white>
         await self.invoke("RGBLoad.SetRGBW", red, green, blue, white)
 
-    async def get_rgbw(self, channel: int) -> int:
+    @method("RGBLoad.GetRGBW")
+    async def get_rgbw(self, channel: int) -> ColorChannelResponse:
         """Get a single RGBW color channel of a load from the controller.
 
         Args:
@@ -499,9 +517,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetRGBW <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBW <channel>
-        response = await self.invoke("RGBLoad.GetRGBW", channel)
-        return response.value
+        return await self.invoke("RGBLoad.GetRGBW", channel)
 
+    @method("RGBLoad.SetRGBWSW")
     async def set_rgbw_sw(
         self, red: int = 255, green: int = 255, blue: int = 255, white: int = 255
     ) -> None:
@@ -517,6 +535,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBWSW <red> <green> <blue> <white>
         await self.invoke("RGBLoad.SetRGBWSW", red, green, blue, white)
 
+    @method("RGBLoad.GetRGBWHW")
     async def get_rgbw_hw(self, channel: int) -> int:
         """Get a single RGBW color channel of a load directly from the hardware.
 
@@ -528,9 +547,9 @@ class RGBLoadInterface(Interface):
         """
         # INVOKE <id> RGBLoad.GetRGBWHW <channel>
         # -> R:INVOKE <id> <value> RGBLoad.GetRGBWHW <channel>
-        response = await self.invoke("RGBLoad.GetRGBWHW", channel)
-        return response.value
+        return await self.invoke("RGBLoad.GetRGBWHW", channel)
 
+    @method("RGBLoad.GetTransitionLevel")
     async def get_transition_level(self) -> Decimal:
         """Get the transition level of a load.
 
@@ -548,7 +567,12 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGB color as a tuple of (red, green, blue).
         """
-        return tuple([await self.get_rgb(attr) for attr in islice(self.RGBChannel, 3)])
+        rgb = []
+        for chan in islice(self.RGBChannel, 3):
+            result = await self.get_rgb(chan)
+            rgb.append(result.value)
+
+        return tuple(rgb)
 
     async def get_rgbw_color(self) -> tuple[int, ...]:
         """Get the RGBW color of a load from the controller.
@@ -556,7 +580,12 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGBW color as a tuple of (red, green, blue, white).
         """
-        return tuple([await self.get_rgbw(chan) for chan in self.RGBChannel])
+        rgbw = []
+        for chan in self.RGBChannel:
+            result = await self.get_rgbw(chan)
+            rgbw.append(result.value)
+
+        return tuple(rgbw)
 
     async def get_hsl_color(self) -> tuple[int, ...]:
         """Get the HSL color of a load from the controller.
@@ -564,4 +593,9 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the HSL color as a tuple of (hue, saturation, lightness).
         """
-        return tuple([await self.get_hsl(attr) for attr in self.HSLAttribute])
+        hsl = []
+        for attr in self.HSLAttribute:
+            result = await self.get_hsl(attr)
+            hsl.append(result.value)
+
+        return tuple(hsl)

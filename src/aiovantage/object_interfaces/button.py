@@ -3,12 +3,13 @@
 from decimal import Decimal
 from enum import IntEnum
 
-from .base import Interface
+from .base import Interface, method
 
 
 class ButtonInterface(Interface):
     """Interface for querying and controlling buttons."""
 
+    # Types
     class State(IntEnum):
         """Button state."""
 
@@ -28,27 +29,15 @@ class ButtonInterface(Interface):
         NormallyOpen = 0
         NormallyClosed = 1
 
-    method_signatures = {
-        "Button.GetState": State,
-        "Button.GetHoldOn": Decimal,
-        "Button.GetPolarity": Polarity,
-        "Button.GetSndType": SndType,
-        "Button.GetPlacement": int,
-        "Button.GetPlacementHW": int,
-        "Button.GetStateHW": State,
-        "Button.GetHoldOnHW": Decimal,
-        "Button.GetPolarityHW": Polarity,
-        "Button.GetSndTypeHW": SndType,
-    }
-
-    # Status properties
-    state: State | None = State.Up  # Button.GetState
-    hold_on: Decimal | None = None  # Button.GetHoldOn
-    polarity: Polarity | None = None  # Button.GetPolarity
-    snd_type: SndType | None = None  # Button.GetSndType
-    placement: int | None = None  # Button.GetPlacement
+    # Properties
+    state: State | None = State.Up
+    hold_on: Decimal | None = None
+    polarity: Polarity | None = None
+    snd_type: SndType | None = None
+    placement: int | None = None
 
     # Methods
+    @method("Button.GetState", property="state")
     async def get_state(self) -> State:
         """Get the state of a button.
 
@@ -59,6 +48,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <state (Up/Down)> Button.GetState
         return await self.invoke("Button.GetState")
 
+    @method("Button.SetState")
     async def set_state(self, state: State) -> None:
         """Set the state of a button.
 
@@ -69,6 +59,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetState <state (Up/Down)>
         await self.invoke("Button.SetState", state)
 
+    @method("Button.GetHoldOn", property="hold_on")
     async def get_hold_on(self) -> Decimal:
         """Get the hold on time of a button.
 
@@ -79,6 +70,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <seconds> Button.GetHoldOn
         return await self.invoke("Button.GetHoldOn")
 
+    @method("Button.SetHoldOn")
     async def set_hold_on(self, seconds: Decimal) -> None:
         """Set the hold on time of a button.
 
@@ -89,6 +81,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetHoldOn <seconds>
         await self.invoke("Button.SetHoldOn", seconds)
 
+    @method("Button.GetPolarity", property="polarity")
     async def get_polarity(self) -> Polarity:
         """Get the polarity of a button.
 
@@ -99,6 +92,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <polarity> Button.GetPolarity
         return await self.invoke("Button.GetPolarity")
 
+    @method("Button.SetPolarity")
     async def set_polarity(self, polarity: Polarity) -> None:
         """Set the polarity of a button.
 
@@ -109,6 +103,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetPolarity <polarity (NormallyOpen/NormallyClosed)>
         await self.invoke("Button.SetPolarity", polarity)
 
+    @method("Button.GetSndType", property="snd_type")
     async def get_snd_type(self) -> SndType:
         """Get the sound type of a button.
 
@@ -119,6 +114,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <snd_type> Button.GetSndType
         return await self.invoke("Button.GetSndType")
 
+    @method("Button.SetSndType")
     async def set_snd_type(self, snd_type: SndType) -> None:
         """Set the sound type of a button.
 
@@ -129,6 +125,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetSndType <snd_type (Continuous/Pulsed/Off)>
         await self.invoke("Button.SetSndType", snd_type)
 
+    @method("Button.GetPlacement", property="placement")
     async def get_placement(self) -> int:
         """Get the placement of a button.
 
@@ -139,6 +136,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <placement> Button.GetPlacement
         return await self.invoke("Button.GetPlacement")
 
+    @method("Button.GetPlacementHW")
     async def get_placement_hw(self) -> int:
         """Get the hardware placement of a button directly from the hardware.
 
@@ -149,6 +147,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <placement> Button.GetPlacementHW
         return await self.invoke("Button.GetPlacementHW")
 
+    @method("Button.SetPlacement")
     async def set_placement(self, placement: int) -> None:
         """Set the placement of a button.
 
@@ -159,6 +158,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetPlacement <placement>
         await self.invoke("Button.SetPlacement", placement)
 
+    @method("Button.GetStateHW")
     async def get_state_hw(self) -> State:
         """Get the state of a button directly from the hardware.
 
@@ -169,6 +169,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <state (Up/Down)> Button.GetStateHW
         return await self.invoke("Button.GetStateHW")
 
+    @method("Button.SetStateSW")
     async def set_state_sw(self, state: State) -> None:
         """Set the cached state of a button.
 
@@ -179,6 +180,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetStateSW <state (Up/Down)>
         await self.invoke("Button.SetStateSW", state)
 
+    @method("Button.GetHoldOnHW")
     async def get_hold_on_hw(self) -> Decimal:
         """Get the hold on time of a button directly from the hardware.
 
@@ -189,6 +191,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <seconds> Button.GetHoldOnHW
         return await self.invoke("Button.GetHoldOnHW")
 
+    @method("Button.SetHoldOnSW")
     async def set_hold_on_sw(self, seconds: Decimal) -> None:
         """Set the cached hold on time of a button.
 
@@ -199,6 +202,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetHoldOnSW <seconds>
         await self.invoke("Button.SetHoldOnSW", seconds)
 
+    @method("Button.GetPolarityHW")
     async def get_polarity_hw(self) -> Polarity:
         """Get the polarity of a button directly from the hardware.
 
@@ -209,6 +213,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <polarity> Button.GetPolarityHW
         return await self.invoke("Button.GetPolarityHW")
 
+    @method("Button.SetPolaritySW")
     async def set_polarity_sw(self, polarity: Polarity) -> None:
         """Set the cached polarity of a button.
 
@@ -219,6 +224,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetPolaritySW <polarity (NormallyOpen/NormallyClosed)>
         await self.invoke("Button.SetPolaritySW", polarity)
 
+    @method("Button.GetSndTypeHW")
     async def get_snd_type_hw(self) -> SndType:
         """Get the sound type of a button directly from the hardware.
 
@@ -229,6 +235,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <snd_type> Button.GetSndTypeHW
         return await self.invoke("Button.GetSndTypeHW")
 
+    @method("Button.SetSndTypeSW")
     async def set_snd_type_sw(self, snd_type: SndType) -> None:
         """Set the cached sound type of a button.
 
@@ -239,6 +246,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetSndTypeSW <snd_type (Continuous/Pulsed/Off)>
         await self.invoke("Button.SetSndTypeSW", snd_type)
 
+    @method("Button.SetPlacementSW")
     async def set_placement_sw(self, placement: int) -> None:
         """Set the cached placement of a button.
 

@@ -2,21 +2,17 @@
 
 from decimal import Decimal
 
-from .base import Interface
+from .base import Interface, method
 
 
 class LightSensorInterface(Interface):
     """Interface for querying and controlling light sensors."""
 
-    method_signatures = {
-        "LightSensor.GetLevel": Decimal,
-        "LightSensor.GetLevelHW": Decimal,
-    }
-
-    # Status properties
-    level: int | Decimal | None = None  # "LightSensor.GetLevel"
+    # Properties
+    level: int | Decimal | None = None
 
     # Methods
+    @method("LightSensor.GetLevel", property="level")
     async def get_level(self) -> Decimal:
         """Get the level of a light sensor, using cached value if available.
 
@@ -27,6 +23,7 @@ class LightSensorInterface(Interface):
         # -> R:INVOKE <id> <level> LightSensor.GetLevel
         return await self.invoke("LightSensor.GetLevel")
 
+    @method("LightSensor.GetLevelHW")
     async def get_level_hw(self) -> Decimal:
         """Get the level of a light sensor directly from the hardware.
 
@@ -37,6 +34,7 @@ class LightSensorInterface(Interface):
         # -> R:INVOKE <id> <level> LightSensor.GetLevelHW
         return await self.invoke("LightSensor.GetLevelHW")
 
+    @method("LightSensor.SetLevel")
     async def set_level(self, level: Decimal) -> None:
         """Set the level of a light sensor.
 

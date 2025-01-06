@@ -1,6 +1,7 @@
 """Base class for command client interfaces."""
 
-from typing import Any, ClassVar, TypeVar, overload
+from types import NoneType
+from typing import Any, Protocol, TypeVar, get_type_hints, overload, runtime_checkable
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import (
@@ -13,11 +14,72 @@ from aiovantage.command_client.utils import (
 T = TypeVar("T")
 
 
-class Interface:
-    """Base class for command client object interfaces."""
+@runtime_checkable
+class MethodFunction(Protocol):
+    """Type hint for a function tagged with a Vantage method."""
 
-    method_signatures: ClassVar[dict[str, type | None]] = {}
-    """A mapping of method names to their return types."""
+    _method: str
+    _property: str | None
+
+    async def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """Call the getter function."""
+
+
+def method(method: str, *, property: str | None = None):
+    """Decorator to map a python function to a Vantage method.
+
+    This is used to automatically keep track of expected return types for
+    Vantage method calls so we can parse responses correctly, both when
+    directly invoking methods and when receiving status messages.
+
+    Optionally, a property name can be associated with the method, which can
+    be used to update the state of the object when receiving status messages,
+    or to fetch the initial state of the object.
+
+    Args:
+        method: The vantage method name to associate with the function.
+        property: Optional property name to associate with the function.
+    """
+
+    def decorator(func):
+        func._method = method
+        func._property = property
+        return func
+
+    return decorator
+
+
+class InterfaceMeta(type):
+    """Metaclass for object interfaces."""
+
+    method_signatures: dict[str, type]
+
+    def __new__(
+        cls: type["InterfaceMeta"],
+        name: str,
+        bases: tuple[type, ...],
+        dct: dict[str, Any],
+    ):
+        """Create a new object interface class."""
+        cls_obj = super().__new__(cls, name, bases, dct)
+        cls_obj.method_signatures = {}
+
+        # Include getter methods from base classes
+        for base in bases:
+            if hasattr(base, "method_signatures"):
+                cls_obj.method_signatures.update(base.method_signatures)
+
+        for attr in dct.values():
+            if isinstance(attr, MethodFunction):
+                # Collect method signatures
+                if method_signature := get_type_hints(attr).get("return"):
+                    cls_obj.method_signatures[attr._method] = method_signature
+
+        return cls_obj
+
+
+class Interface(metaclass=InterfaceMeta):
+    """Base class for command client object interfaces."""
 
     command_client: CommandClient | None = None
     """The command client to use for sending requests."""
@@ -111,7 +173,7 @@ class Interface:
         signature = as_type or cls._get_signature(method)
 
         # Return early if this method has no return value
-        if signature is None:
+        if signature is NoneType:
             return None
 
         # Parse the response
@@ -133,10 +195,10 @@ class Interface:
         return parsed_response
 
     @classmethod
-    def _get_signature(cls, method: str) -> type | None:
+    def _get_signature(cls, method: str) -> type:
         # Get the signature of a method.
         for klass in cls.__mro__:
             if issubclass(klass, Interface) and method in klass.method_signatures:
                 return klass.method_signatures[method]
 
-        return None
+        raise ValueError(f"No signature found for method '{method}'.")

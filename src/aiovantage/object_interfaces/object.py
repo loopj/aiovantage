@@ -2,17 +2,14 @@
 
 import datetime as dt
 
-from .base import Interface
+from .base import Interface, method
 
 
 class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""
 
-    method_signatures = {
-        "Object.GetMTime": dt.datetime,
-    }
-
     # Methods
+    @method("Object.GetMTime")
     async def get_mtime(self) -> dt.datetime:
         """Get the modification time of an object.
 
