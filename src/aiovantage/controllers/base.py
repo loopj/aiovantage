@@ -287,6 +287,14 @@ class BaseController(QuerySet[T]):
             else:
                 callback(event_type, obj, data)
 
+    def object_updated(self, obj: T, attrs_changed: list[str]) -> None:
+        """Notify subscribers that an object has been updated."""
+        self.emit(
+            VantageEvent.OBJECT_UPDATED,
+            obj,
+            {"attrs_changed": attrs_changed},
+        )
+
     def update_state(self, vid: int, attrs: dict[str, Any]) -> None:
         """Update the attributes of an object and notify subscribers of changes."""
         # Ignore updates for objects that this controller doesn't manage
@@ -305,11 +313,7 @@ class BaseController(QuerySet[T]):
 
         # Notify subscribers if any attributes changed
         if len(attrs_changed) > 0:
-            self.emit(
-                VantageEvent.OBJECT_UPDATED,
-                obj,
-                {"attrs_changed": attrs_changed},
-            )
+            self.object_updated(obj, attrs_changed)
 
     async def _handle_event(self, event: Event) -> None:
         # Handle events from the event stream
