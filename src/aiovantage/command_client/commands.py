@@ -15,6 +15,7 @@ from aiovantage.errors import (
     InvalidObjectError,
     LoginFailedError,
     LoginRequiredError,
+    NotImplementedError,
     ObjectOfflineError,
 )
 
@@ -188,6 +189,8 @@ class CommandClient:
         exc: CommandError
         if error_code == 7:
             exc = InvalidObjectError(error_message)
+        elif error_code == 8:
+            exc = NotImplementedError(error_message)
         elif error_code == 20:
             exc = ObjectOfflineError(error_message)
         elif error_code == 21:

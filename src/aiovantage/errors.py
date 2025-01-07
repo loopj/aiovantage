@@ -37,3 +37,7 @@ class InvalidObjectError(CommandError):
 
 class ObjectOfflineError(CommandError):
     """The requested object is offline."""
+
+
+class NotImplementedError(CommandError):
+    """The requested command is not implemented."""

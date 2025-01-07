@@ -1,7 +1,8 @@
 """Base class for command client interfaces."""
 
+from collections.abc import Sequence
 from types import NoneType
-from typing import Any, Protocol, TypeVar, get_type_hints, overload, runtime_checkable
+from typing import Any, TypeVar, get_type_hints, overload
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import (
@@ -10,19 +11,9 @@ from aiovantage.command_client.utils import (
     parse_param,
     tokenize_response,
 )
+from aiovantage.errors import NotImplementedError
 
 T = TypeVar("T")
-
-
-@runtime_checkable
-class MethodFunction(Protocol):
-    """Type hint for a function tagged with a Vantage method."""
-
-    _method: str
-    _property: str | None
-
-    async def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        """Call the getter function."""
 
 
 def method(method: str, *, property: str | None = None):
@@ -44,6 +35,8 @@ def method(method: str, *, property: str | None = None):
     def decorator(func):
         func._method = method
         func._property = property
+        func._return_type = get_type_hints(func).get("return")
+
         return func
 
     return decorator
@@ -53,6 +46,7 @@ class InterfaceMeta(type):
     """Metaclass for object interfaces."""
 
     method_signatures: dict[str, type]
+    property_getters: dict[str, Any]
 
     def __new__(
         cls: type["InterfaceMeta"],
@@ -63,17 +57,23 @@ class InterfaceMeta(type):
         """Create a new object interface class."""
         cls_obj = super().__new__(cls, name, bases, dct)
         cls_obj.method_signatures = {}
+        cls_obj.property_getters = {}
 
-        # Include getter methods from base classes
+        # Include method signatures from base classes
         for base in bases:
             if hasattr(base, "method_signatures"):
                 cls_obj.method_signatures.update(base.method_signatures)
 
+            if hasattr(base, "property_getters"):
+                cls_obj.property_getters.update(base.property_getters)
+
+        # Collect method signatures
         for attr in dct.values():
-            if isinstance(attr, MethodFunction):
-                # Collect method signatures
-                if method_signature := get_type_hints(attr).get("return"):
-                    cls_obj.method_signatures[attr._method] = method_signature
+            if hasattr(attr, "_method") and hasattr(attr, "_return_type"):
+                cls_obj.method_signatures[attr._method] = attr._return_type
+
+            if hasattr(attr, "_property") and attr._property:
+                cls_obj.property_getters[attr._property] = attr
 
         return cls_obj
 
@@ -202,3 +202,35 @@ class Interface(metaclass=InterfaceMeta):
                 return klass.method_signatures[method]
 
         raise ValueError(f"No signature found for method '{method}'.")
+
+    async def fetch_state(self, fields: Sequence[str] | None = None) -> list[str]:
+        """Fetch state properties provided by the interface(s) this object implements.
+
+        Args:
+            fields: An optional list of fields to fetch, or None to fetch all.
+        """
+        cls = type(self)
+
+        # Allow fetching a subset of state properties
+        fields_to_fetch = [
+            field
+            for field in cls.property_getters.keys()
+            if fields is None or field in fields
+        ]
+
+        # Fetch each state property
+        attrs_changed: list[str] = []
+        for field in fields_to_fetch:
+            if getter := cls.property_getters.get(field):
+                # Call the getter function
+                try:
+                    result = await getter(self)
+                except NotImplementedError:
+                    continue
+
+                # Update the attribute if the result has changed
+                if getattr(self, field) != result:
+                    setattr(self, field, result)
+                    attrs_changed.append(field)
+
+        return attrs_changed
