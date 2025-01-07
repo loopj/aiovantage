@@ -41,6 +41,16 @@ async with CommandClient("10.2.0.103") as client:
     await client.command("LOAD", 118, 100)
 ```
 
+### Invoke a method on an object
+
+```python
+from aiovantage.command_client import CommandClient
+
+async with CommandClient("10.2.0.103") as client:
+    # Get the current level of load with id 118, as a Decimal
+    await client.invoke(118, "Load.GetLevel", as_type=Decimal)
+```
+
 ### Subscribe to load events
 
 ```python

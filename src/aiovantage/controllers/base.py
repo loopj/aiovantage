@@ -52,7 +52,7 @@ class BaseController(QuerySet[T]):
         self._initialized = False
         self._lock = asyncio.Lock()
 
-        QuerySet.__init__(self, self._items, self._lazy_initialize)
+        super().__init__(self._items, self._lazy_initialize)
 
         self.__post_init__()
 
@@ -148,7 +148,7 @@ class BaseController(QuerySet[T]):
                         obj.id,
                         {
                             field.name: getattr(obj, field.name)
-                            for field in fields(type(obj))
+                            for field in fields(type(obj))  # type: ignore
                             if field.name != "m_time"
                             and field.metadata.get("type") != "Ignore"
                         },
