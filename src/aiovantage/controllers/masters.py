@@ -38,7 +38,7 @@ class MastersController(BaseController[Master]):
             return
 
         state = {
-            "m_time": ObjectInterface.parse_response(method, result, *args),
+            "m_time": ObjectInterface.parse_status(method, result, *args),
         }
 
         self.update_state(vid, state)

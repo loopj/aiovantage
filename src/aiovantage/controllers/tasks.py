@@ -48,7 +48,7 @@ class TasksController(BaseController[Task]):
             return
 
         state = {
-            "running": TaskInterface.parse_response(method, result, *args),
+            "running": TaskInterface.parse_status(method, result, *args),
         }
 
         self.update_state(vid, state)

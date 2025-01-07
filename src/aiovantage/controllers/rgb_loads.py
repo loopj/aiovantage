@@ -56,7 +56,7 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
         state: dict[str, Any] = {}
 
         if method == "Load.GetLevel":
-            state["level"] = LoadInterface.parse_response(method, result, *args)
+            state["level"] = LoadInterface.parse_status(method, result, *args)
 
         elif method == "RGBLoad.GetHSL":
             if color := self._parse_color_channel_response(vid, method, result, *args):
@@ -71,7 +71,7 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
                 state["rgbw"] = color
 
         elif method == "ColorTemperature.Get":
-            state["color_temp"] = ColorTemperatureInterface.parse_response(
+            state["color_temp"] = ColorTemperatureInterface.parse_status(
                 method, result, *args
             )
 
@@ -106,7 +106,7 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
             raise ValueError(f"Unsupported color channel method {method}")
 
         # Parse the response
-        response = RGBLoadInterface.parse_response(method, result, *args)
+        response = RGBLoadInterface.parse_status(method, result, *args)
 
         # Ignore updates for channels we don't care about
         if response.channel < 0 or response.channel >= num_channels:

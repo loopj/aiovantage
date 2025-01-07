@@ -567,7 +567,7 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGB color as a tuple of (red, green, blue).
         """
-        rgb = []
+        rgb: list[int] = []
         for chan in islice(self.RGBChannel, 3):
             result = await self.get_rgb(chan)
             rgb.append(result.value)
@@ -580,7 +580,7 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGBW color as a tuple of (red, green, blue, white).
         """
-        rgbw = []
+        rgbw: list[int] = []
         for chan in self.RGBChannel:
             result = await self.get_rgbw(chan)
             rgbw.append(result.value)
@@ -593,7 +593,7 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the HSL color as a tuple of (hue, saturation, lightness).
         """
-        hsl = []
+        hsl: list[int] = []
         for attr in self.HSLAttribute:
             result = await self.get_hsl(attr)
             hsl.append(result.value)

@@ -165,7 +165,9 @@ class ConfigClient:
 
         # Render the method object to XML with xsdata and send the request
         response = await self.raw_request(
-            method.interface, self._serializer.render(method), connection
+            method.interface,
+            self._serializer.render(method),  # type: ignore
+            connection,
         )
 
         # Parse the XML doc

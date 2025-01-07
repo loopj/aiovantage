@@ -61,7 +61,7 @@ max-complexity = 15
 convention = "google"
 
 [tool.pyright]
-typeCheckingMode = "standard"
+typeCheckingMode = "strict"
 
 [tool.bumpver]
 current_version = "0.16.0"
