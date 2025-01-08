@@ -1,5 +1,7 @@
 """Base class for command client interfaces."""
 
+# pyright: reportFunctionMemberAccess=false
+
 from collections.abc import Callable, Sequence
 from typing import Any, TypeVar, get_type_hints
 
@@ -33,9 +35,9 @@ def method(method: str, *, property: str | None = None) -> Callable[[T], T]:
             raise ValueError(f"Method {method} has no return type defined")
 
         # Attach metadata to the function
-        func._method = method  # type: ignore
-        func._property = property  # type: ignore
-        func._return_type = return_type  # type: ignore
+        func._method = method
+        func._property = property
+        func._return_type = return_type
 
         return func
 
