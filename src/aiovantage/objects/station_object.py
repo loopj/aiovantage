@@ -9,5 +9,5 @@ from .location_object import LocationObject
 class StationObject(LocationObject):
     """Base class for all station objects."""
 
-    serial_number: str
+    serial_number: int
     bus: int
