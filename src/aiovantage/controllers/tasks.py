@@ -14,16 +14,7 @@ class TasksController(BaseController[Task]):
     vantage_types = (Task,)
     status_types = ("TASK",)
     interface_status_types = ("Task.IsRunning",)
-
-    @override
-    async def fetch_object_state(self, obj: Task) -> None:
-        """Fetch the state properties of a task."""
-        state = {
-            "running": await obj.is_running(),
-            "state": await obj.get_state(),
-        }
-
-        self.update_state(obj.id, state)
+    fetch_properties = ("running", "state")
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

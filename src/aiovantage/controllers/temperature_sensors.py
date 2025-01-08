@@ -14,15 +14,7 @@ class TemperatureSensorsController(BaseController[Temperature]):
 
     vantage_types = (Temperature,)
     status_types = ("TEMP",)
-
-    @override
-    async def fetch_object_state(self, obj: Temperature) -> None:
-        """Fetch the state properties of a temperature sensor."""
-        state = {
-            "value": await obj.get_value(),
-        }
-
-        self.update_state(obj.id, state)
+    fetch_properties = ("value",)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

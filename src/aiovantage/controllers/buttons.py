@@ -14,16 +14,6 @@ class ButtonsController(BaseController[Button]):
     status_types = ("BTN",)
 
     @override
-    async def fetch_object_state(self, obj: Button) -> None:
-        """Fetch the state properties of a dry contact."""
-        state = {
-            # Buttons are momentary, default to not pressed to avoid a lookup
-            "state": Button.State.Up,
-        }
-
-        self.update_state(obj.id, state)
-
-    @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "BTN":

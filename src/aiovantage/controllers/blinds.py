@@ -32,15 +32,7 @@ class BlindsController(BaseController[BlindTypes]):
         SomfyURTSI2ShadeChild,
     )
     status_types = ("BLIND",)
-
-    @override
-    async def fetch_object_state(self, obj: BlindTypes) -> None:
-        """Fetch the state properties of a blind."""
-        state = {
-            "position": await obj.get_position(),
-        }
-
-        self.update_state(obj.id, state)
+    fetch_properties = ("position",)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

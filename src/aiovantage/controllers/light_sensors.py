@@ -14,15 +14,7 @@ class LightSensorsController(BaseController[LightSensor]):
 
     vantage_types = (LightSensor,)
     status_types = ("LIGHT",)
-
-    @override
-    async def fetch_object_state(self, obj: LightSensor) -> None:
-        """Fetch the state properties of a light sensor."""
-        state = {
-            "level": await obj.get_level(),
-        }
-
-        self.update_state(obj.id, state)
+    fetch_properties = ("level",)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

@@ -15,15 +15,7 @@ class LoadsController(BaseController[Load]):
 
     vantage_types = (Load,)
     status_types = ("LOAD",)
-
-    @override
-    async def fetch_object_state(self, obj: Load) -> None:
-        """Fetch the state properties of a load."""
-        state = {
-            "level": await obj.get_level(),
-        }
-
-        self.update_state(obj.id, state)
+    fetch_properties = ("level",)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

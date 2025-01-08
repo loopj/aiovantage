@@ -1,11 +1,9 @@
 """Controller holding and managing thermostats."""
 
-from contextlib import suppress
 from typing import Any
 
 from typing_extensions import override
 
-from aiovantage.errors import CommandError
 from aiovantage.object_interfaces import ThermostatInterface
 from aiovantage.objects import Temperature, Thermostat
 from aiovantage.query import QuerySet
@@ -60,24 +58,7 @@ class ThermostatsController(BaseController[Thermostat]):
 
     vantage_types = (Thermostat,)
     status_types = ("THERMFAN", "THERMOP", "THERMDAY")
-
-    @override
-    async def fetch_object_state(self, obj: Thermostat) -> None:
-        """Fetch the state properties of a thermostat."""
-        state: dict[str, Any] = {}
-        state["operation_mode"] = await obj.get_operation_mode()
-        state["fan_mode"] = await obj.get_fan_mode()
-        state["day_mode"] = await obj.get_day_mode()
-
-        # Hold mode is not supported by every thermostat type.
-        with suppress(CommandError):
-            state["hold_mode"] = await obj.get_hold_mode()
-
-        # Status is not available on 2.x firmware.
-        with suppress(CommandError):
-            state["status"] = await obj.get_status()
-
-        self.update_state(obj.id, state)
+    fetch_properties = ("operation_mode", "fan_mode", "day_mode", "hold_mode", "status")
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

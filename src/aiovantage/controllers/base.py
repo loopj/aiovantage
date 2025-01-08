@@ -37,6 +37,9 @@ class BaseController(QuerySet[T]):
     interface_status_types: tuple[str, ...] | Literal["*"] = ()
     """Which object interface status messages this controller handles, if any."""
 
+    fetch_properties: tuple[str, ...] = ()
+    """The properties to fetch when fetching the state of an object."""
+
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize a controller.
 
@@ -97,12 +100,11 @@ class BaseController(QuerySet[T]):
         """Return a set of all known object IDs."""
         return set(self._items.keys())
 
-    async def fetch_object_state(self, _obj: T) -> None:
-        """Fetch the full state of an object.
-
-        Should be overridden by subclasses that manage stateful objects.
-        """
-        return
+    async def fetch_object_state(self, obj: T) -> None:
+        """Fetch the state of an object."""
+        if self.fetch_properties:
+            changed_properties = await obj.fetch_state(self.fetch_properties)
+            self.object_updated(obj, changed_properties)
 
     def handle_status(self, _vid: int, _status: str, *_args: str) -> None:
         """Handle simple status messages from the event stream.
@@ -289,6 +291,9 @@ class BaseController(QuerySet[T]):
 
     def object_updated(self, obj: T, attrs_changed: list[str]) -> None:
         """Notify subscribers that an object has been updated."""
+        if not attrs_changed:
+            return
+
         self.emit(
             VantageEvent.OBJECT_UPDATED,
             obj,
@@ -312,8 +317,7 @@ class BaseController(QuerySet[T]):
                 self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
 
         # Notify subscribers if any attributes changed
-        if len(attrs_changed) > 0:
-            self.object_updated(obj, attrs_changed)
+        self.object_updated(obj, attrs_changed)
 
     async def _handle_event(self, event: Event) -> None:
         # Handle events from the event stream
