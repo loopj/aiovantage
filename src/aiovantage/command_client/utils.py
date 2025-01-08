@@ -5,6 +5,7 @@ import re
 import struct
 from decimal import Decimal
 from enum import IntEnum
+from types import NoneType
 from typing import Any, TypeVar, cast, get_type_hints
 
 TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\[.*?\])|(\S+)')
@@ -216,7 +217,7 @@ def parse_object_response(
     # -> S:STATUS <id> <Interface.Method> <result> <arg1> <arg2> ...
 
     # If no type is specified, return early
-    if as_type is None:
+    if as_type in (None, NoneType):
         return None
 
     # Otherwise, parse the result into the expected type
