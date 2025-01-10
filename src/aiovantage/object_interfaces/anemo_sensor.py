@@ -8,10 +8,8 @@ from .base import Interface, method
 class AnemoSensorInterface(Interface):
     """Interface for querying and controlling anemo (wind) sensors."""
 
-    # Properties
     speed: Decimal | None = None
 
-    # Methods
     @method("AnemoSensor.GetSpeed", property="speed")
     async def get_speed(self) -> Decimal:
         """Get the speed of an anemo sensor, using cached value if available.
@@ -41,7 +39,7 @@ class AnemoSensorInterface(Interface):
         Args:
             speed: The speed to set, in mph.
         """
-        # INVOKE <id> <rcode> AnemoSensor.SetSpeed <speed>
+        # INVOKE <id> AnemoSensor.SetSpeed <speed>
         # -> R:INVOKE <id> <rcode> AnemoSensor.SetSpeed <speed>
         await self.invoke("AnemoSensor.SetSpeed", speed)
 
@@ -52,6 +50,6 @@ class AnemoSensorInterface(Interface):
         Args:
             speed: The speed to set, in mph.
         """
-        # INVOKE <id> <rcode> AnemoSensor.SetSpeedSW <speed>
+        # INVOKE <id> AnemoSensor.SetSpeedSW <speed>
         # -> R:INVOKE <id> <rcode> AnemoSensor.SetSpeedSW <speed>
         await self.invoke("AnemoSensor.SetSpeedSW", speed)

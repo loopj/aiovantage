@@ -9,7 +9,6 @@ from .base import Interface, method
 class IntrospectionInterface(Interface):
     """Interface for controller introspection."""
 
-    # Types
     class Firmware(IntEnum):
         """Firmware images."""
 
@@ -25,7 +24,6 @@ class IntrospectionInterface(Interface):
         version: str
         size: int
 
-    # Methods
     @method("Introspection.GetFirmwareVersion")
     async def get_firmware_version(self, image: Firmware) -> FirmwareVersion:
         """Get the firmware version.
@@ -37,7 +35,6 @@ class IntrospectionInterface(Interface):
         # -> R:INVOKE <id> <rcode> Introspection.GetFirmwareVersion <image> <version>
         return await self.invoke("Introspection.GetFirmwareVersion", image)
 
-    # Additional convenience methods, not part of the Vantage API
     async def get_application_version(self) -> str:
         """Get the application firmware version."""
         response = await self.get_firmware_version(self.Firmware.Application)

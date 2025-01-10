@@ -4,8 +4,8 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.command_client.utils import parse_fixed_param
-from aiovantage.objects import OmniSensor
+from aiovantage.command_client.utils import parse_object_response
+from aiovantage.objects.omni_sensor import OmniSensor
 
 from .base import BaseController
 
@@ -25,7 +25,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
     async def fetch_object_state(self, obj: OmniSensor) -> None:
         """Fetch the state properties of an omni sensor."""
         state = {
-            "level": await self.get_level(obj, cached=False),
+            "level": await obj.get_level(use_cache=False),
         }
 
         self.update_state(obj.id, state)
@@ -40,34 +40,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
             return
 
         state = {
-            "level": self.parse_result(omni_sensor, result),
+            "level": parse_object_response(result, as_type=Decimal),
         }
 
         self.update_state(vid, state)
-
-    async def get_level(self, obj: OmniSensor, *, cached: bool = True) -> int | Decimal:
-        """Get the level of an OmniSensor.
-
-        Args:
-            obj: The OmniSensor object to get the level of.
-            cached: Whether to use the cached value or fetch a new one.
-
-        Returns:
-            The level of the sensor.
-        """
-        # INVOKE <id> <method>
-        # -> R:INVOKE <id> <value> <method>
-        method = obj.get.method if cached else obj.get.method_hw
-        response = await self.command_client.command("INVOKE", obj.id, method)
-
-        return self.parse_result(obj, response.args[1])
-
-    @classmethod
-    def parse_result(cls, sensor: OmniSensor, result: str) -> int | Decimal:
-        """Parse an OmniSensor response, eg. 'PowerSensor.GetPower'."""
-        # NOTE: This currently doesn't handle conversion formulas, or return_type
-        level = parse_fixed_param(result)
-        if sensor.get.formula.level_type == OmniSensor.ConversionType.INT:
-            return int(level)
-
-        return level
