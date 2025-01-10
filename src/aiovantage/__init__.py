@@ -3,7 +3,7 @@
 __all__ = ["Vantage", "VantageEvent"]
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from ssl import SSLContext
 from types import TracebackType
 from typing import Any, TypeVar, cast
@@ -116,6 +116,11 @@ class Vantage:
     def __contains__(self, vid: int) -> bool:
         """Is the given Vantage ID known by any controller."""
         return any(vid in controller for controller in self._controllers)
+
+    def __iter__(self) -> Iterator[SystemObject]:
+        """Iterate over all objects known by the controllers."""
+        for controller in self._controllers:
+            yield from controller
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
