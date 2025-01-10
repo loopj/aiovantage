@@ -231,6 +231,9 @@ def parse_object_response(
             parsed_values.append(parse_param(arg, klass))
 
         parsed_response = as_type(*parsed_values)
+    elif as_type is str:
+        # Simple string responses contain the string value in the first argument
+        parsed_response = cast(T, parse_param(args[0], str))
     else:
         # Otherwise, parse a single return value
         parsed_response = parse_param(result, as_type)
