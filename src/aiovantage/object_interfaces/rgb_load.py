@@ -11,7 +11,6 @@ from .base import Interface, method
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""
 
-    # Types
     class RGBChannel(IntEnum):
         """The RGB color channels."""
 
@@ -45,13 +44,11 @@ class RGBLoadInterface(Interface):
         value: int
         channel: int
 
-    # Properties
     rgb: tuple[int, int, int] | None = None  # RGBLoad.GetRGB
     rgbw: tuple[int, int, int, int] | None = None  # RGBLoad.GetRGBW
     hsl: tuple[int, int, int] | None = None  # RGBLoad.GetHSL
     color_name: ColorName | None = None
 
-    # Methods
     @method("RGBLoad.SetRGB")
     async def set_rgb(self, red: int = 255, green: int = 255, blue: int = 255) -> None:
         """Set the color of an RGB load.
@@ -452,7 +449,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> RGBLoad.SetColorByName <color>
         await self.invoke("RGBLoad.SetColorByName", color)
 
-    @method("RGBLoad.GetColorName", property="color_name")
+    @method("RGBLoad.GetColorName")
     async def get_color_name(self) -> ColorName:
         """Get the name of the color of a load from the controller.
 
@@ -560,7 +557,6 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <level> RGBLoad.GetTransitionLevel
         return await self.invoke("RGBLoad.GetTransitionLevel")
 
-    # Additional convenience methods, not part of the Vantage API
     async def get_rgb_color(self) -> tuple[int, ...]:
         """Get the RGB color of a load from the controller.
 

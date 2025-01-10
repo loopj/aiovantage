@@ -9,7 +9,6 @@ from .base import Interface, method
 class ColorTemperatureInterface(Interface):
     """Interface for querying and controlling color temperature."""
 
-    # Types
     class Preset(IntEnum):
         """Color temperature presets."""
 
@@ -21,14 +20,10 @@ class ColorTemperatureInterface(Interface):
         Natural = 5000
         Daylight = 6500
 
-    # Properties
     color_temp: int | None = None
-    preset: Preset | None = None
     max_value: int | None = None
     min_value: int | None = None
-    transition_temp: int | None = None
 
-    # Methods
     @method("ColorTemperature.Set")
     async def set_temperature(self, temp: int, transition: int = 0) -> None:
         """Set the color temperature of a light.
@@ -119,7 +114,7 @@ class ColorTemperatureInterface(Interface):
         # -> R:INVOKE <id> <rcode> ColorTemperature.SetPreset <value> <transition_time>
         await self.invoke("ColorTemperature.SetPreset", value, transition_time)
 
-    @method("ColorTemperature.GetPreset", property="preset")
+    @method("ColorTemperature.GetPreset")
     async def get_temperature_preset(self) -> Preset:
         """Get the color temperature preset of a light.
 
@@ -196,7 +191,7 @@ class ColorTemperatureInterface(Interface):
         # -> R:INVOKE <id> <rcode> ColorTemperature.SetMinValueSW <value>
         await self.invoke("ColorTemperature.SetMinValueSW", value)
 
-    @method("ColorTemperature.GetTransitionTemperature", property="transition_temp")
+    @method("ColorTemperature.GetTransitionTemperature")
     async def get_transition_temperature(self) -> int:
         """Get the current color temperature of a light in transition.
 

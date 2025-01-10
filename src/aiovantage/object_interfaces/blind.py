@@ -11,7 +11,6 @@ from .base import Interface, method
 class BlindInterface(Interface, ShadeOrientation, ShadeType):
     """Interface for querying and controlling blinds."""
 
-    # Types
     class BlindState(NamedTuple):
         """The state of a blind."""
 
@@ -28,16 +27,11 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         open_time: Decimal
         close_time: Decimal
 
-    # Properties
     position: Decimal | None = None
     tilt_angle: int | None = None
     tilt_available: bool | None = None
     blind_state: BlindState | None = None
-    upper_limit: Decimal | None = None
-    lower_limit: Decimal | None = None
-    travel_times: TravelTimes | None = None
 
-    # Methods
     @method("Blind.Open")
     async def open(self) -> None:
         """Open a blind."""
@@ -214,7 +208,7 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         # -> R:INVOKE <id> <rcode> Blind.SetUpperLimit <limit>
         await self.invoke("Blind.SetUpperLimit", limit)
 
-    @method("Blind.GetUpperLimit", property="upper_limit")
+    @method("Blind.GetUpperLimit")
     async def get_upper_limit(self) -> Decimal:
         """Get the upper limit of a blind.
 
@@ -258,7 +252,7 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         # -> R:INVOKE <id> <rcode> Blind.SetLowerLimit <limit>
         await self.invoke("Blind.SetLowerLimit", limit)
 
-    @method("Blind.GetLowerLimit", property="lower_limit")
+    @method("Blind.GetLowerLimit")
     async def get_lower_limit(self) -> Decimal:
         """Get the lower limit of a blind.
 
@@ -291,7 +285,7 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         # -> R:INVOKE <id> <rcode> Blind.SetLowerLimitSW <limit>
         await self.invoke("Blind.SetLowerLimitSW", limit)
 
-    @method("Blind.GetTravelTimes", property="travel_times")
+    @method("Blind.GetTravelTimes")
     async def get_travel_times(self) -> TravelTimes:
         """Get the travel times of a blind.
 

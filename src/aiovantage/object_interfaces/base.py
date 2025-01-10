@@ -106,12 +106,15 @@ class Interface(metaclass=InterfaceMeta):
         # Parse the response
         return parse_object_response(result, *args, as_type=signature)  # type: ignore
 
-    async def invoke(self, method: str, *params: ParameterType) -> Any:
+    async def invoke(
+        self, method: str, *params: ParameterType, as_type: type | None = None
+    ) -> Any:
         """Invoke a method on an object, and return the parsed response.
 
         Args:
             method: The method to invoke.
             params: The parameters to send with the method.
+            as_type: The expected return type of the method, will attempt to infer if not provided.
 
         Returns:
             A parsed response, or None if no response was expected.
@@ -125,7 +128,7 @@ class Interface(metaclass=InterfaceMeta):
             raise ValueError("The object has no command client to send requests with.")
 
         # Get the expected return type of the method
-        signature = self.method_signatures[method]
+        signature = as_type or self.method_signatures[method]
 
         # Invoke the method
         return await self.command_client.invoke(vid, method, *params, as_type=signature)

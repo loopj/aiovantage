@@ -9,7 +9,6 @@ from .base import Interface, method
 class LoadInterface(Interface):
     """Interface for querying and controlling loads."""
 
-    # Types
     class RampType(IntEnum):
         """The type of ramp to perform."""
 
@@ -39,11 +38,8 @@ class LoadInterface(Interface):
         Reverse = 2
         Auto = 3
 
-    # Properties
     level: Decimal | None = None
-    profile: int | None = None
 
-    # Methods
     @method("Load.SetLevel")
     async def set_level(self, level: float | Decimal) -> None:
         """Set the level of a load.
@@ -103,7 +99,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <rcode> Load.SetProfile <profile>
         await self.invoke("Load.SetProfile", profile)
 
-    @method("Load.GetProfile", property="profile")
+    @method("Load.GetProfile")
     async def get_profile(self) -> int:
         """Get the id of the power profile used by this load.
 
@@ -201,7 +197,6 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <dimming config> Load.GetDimmingConfig
         return await self.invoke("Load.GetDimmingConfig")
 
-    # Additional convenience methods, not part of the Vantage API
     async def turn_on(
         self, transition: float | None = None, level: float | None = None
     ) -> None:

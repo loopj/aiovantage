@@ -9,7 +9,6 @@ from .base import Interface, method
 class ButtonInterface(Interface):
     """Interface for querying and controlling buttons."""
 
-    # Types
     class State(IntEnum):
         """Button state."""
 
@@ -29,14 +28,8 @@ class ButtonInterface(Interface):
         NormallyOpen = 0
         NormallyClosed = 1
 
-    # Properties
     state: State | None = State.Up
-    hold_on: Decimal | None = None
-    polarity: Polarity | None = None
-    snd_type: SndType | None = None
-    placement: int | None = None
 
-    # Methods
     @method("Button.GetState", property="state")
     async def get_state(self) -> State:
         """Get the state of a button.
@@ -59,7 +52,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetState <state (Up/Down)>
         await self.invoke("Button.SetState", state)
 
-    @method("Button.GetHoldOn", property="hold_on")
+    @method("Button.GetHoldOn")
     async def get_hold_on(self) -> Decimal:
         """Get the hold on time of a button.
 
@@ -77,11 +70,11 @@ class ButtonInterface(Interface):
         Args:
             seconds: The hold on time to set, in seconds.
         """
-        # INVOKE <id> <rcode> Button.SetHoldOn <seconds>
+        # INVOKE <id> Button.SetHoldOn <seconds>
         # -> R:INVOKE <id> <rcode> Button.SetHoldOn <seconds>
         await self.invoke("Button.SetHoldOn", seconds)
 
-    @method("Button.GetPolarity", property="polarity")
+    @method("Button.GetPolarity")
     async def get_polarity(self) -> Polarity:
         """Get the polarity of a button.
 
@@ -103,7 +96,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetPolarity <polarity (NormallyOpen/NormallyClosed)>
         await self.invoke("Button.SetPolarity", polarity)
 
-    @method("Button.GetSndType", property="snd_type")
+    @method("Button.GetSndType")
     async def get_snd_type(self) -> SndType:
         """Get the sound type of a button.
 
@@ -125,7 +118,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetSndType <snd_type (Continuous/Pulsed/Off)>
         await self.invoke("Button.SetSndType", snd_type)
 
-    @method("Button.GetPlacement", property="placement")
+    @method("Button.GetPlacement")
     async def get_placement(self) -> int:
         """Get the placement of a button.
 
@@ -257,7 +250,11 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetPlacementSW <placement>
         await self.invoke("Button.SetPlacementSW", placement)
 
-    # Additional convenience methods, not part of the Vantage API
+    @property
+    def is_down(self) -> bool:
+        """Return if the button is pressed."""
+        return self.state == self.State.Down
+
     async def press(self) -> None:
         """Press a button."""
         await self.set_state(self.State.Down)

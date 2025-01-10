@@ -9,7 +9,6 @@ from .base import Interface, method
 class ThermostatInterface(Interface):
     """Interface for querying and controlling thermostats."""
 
-    # Types
     class OperationMode(IntEnum):
         """The operation mode of the thermostat."""
 
@@ -49,7 +48,6 @@ class ThermostatInterface(Interface):
         Heating = 2
         Offline = 3
 
-    # Properties
     indoor_temperature: Decimal | None = None
     heat_set_point: Decimal | None = None
     cool_set_point: Decimal | None = None
@@ -58,10 +56,7 @@ class ThermostatInterface(Interface):
     fan_mode: FanMode | None = FanMode.Unknown
     status: Status | None = Status.Offline
     outdoor_temperature: Decimal | None = None
-    hold_mode: HoldMode | None = None
-    day_mode: DayMode | None = None
 
-    # Methods
     @method("Thermostat.GetIndoorTemperature", property="indoor_temperature")
     async def get_indoor_temperature(self) -> Decimal:
         """Get the current indoor temperature.
@@ -172,7 +167,7 @@ class ThermostatInterface(Interface):
         # -> R:INVOKE <id> Thermostat.SetFanMode <mode>
         await self.invoke("Thermostat.SetFanMode", mode)
 
-    @method("Thermostat.GetDayMode", property="day_mode")
+    @method("Thermostat.GetDayMode")
     async def get_day_mode(self) -> DayMode:
         """Get the current day mode.
 
@@ -194,7 +189,7 @@ class ThermostatInterface(Interface):
         # -> R:INVOKE <id> Thermostat.SetDayMode <mode>
         await self.invoke("Thermostat.SetDayMode", mode)
 
-    @method("Thermostat.GetHoldMode", property="hold_mode")
+    @method("Thermostat.GetHoldMode")
     async def get_hold_mode(self) -> HoldMode:
         """Get the current hold mode.
 

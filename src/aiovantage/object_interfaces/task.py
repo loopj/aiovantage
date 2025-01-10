@@ -8,7 +8,6 @@ from .base import Interface, method
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""
 
-    # Types
     class Status(IntEnum):
         """Task status."""
 
@@ -18,13 +17,10 @@ class TaskInterface(Interface):
         OutOfSync = 3
         Invalid = 4
 
-    # Properties
     state: int | None = None
-    status: Status | None = Status.NotReady
     running: bool | None = None
     context_state: bool | None = None
 
-    # Methods
     @method("Task.Start")
     async def start(self) -> None:
         """Start a task."""
@@ -77,7 +73,7 @@ class TaskInterface(Interface):
         # -> R:INVOKE <id> <rcode> Task.SetState <state>
         await self.invoke("Task.SetState", state)
 
-    @method("Task.GetStatus", property="status")
+    @method("Task.GetStatus")
     async def get_status(self) -> Status:
         """Get the status of a task.
 

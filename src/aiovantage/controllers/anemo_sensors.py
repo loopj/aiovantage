@@ -14,15 +14,7 @@ class AnemoSensorsController(BaseController[AnemoSensor]):
 
     vantage_types = (AnemoSensor,)
     status_types = ("WIND",)
-
-    @override
-    async def fetch_object_state(self, obj: AnemoSensor) -> None:
-        """Fetch the state properties of an anemo sensor."""
-        state = {
-            "speed": await obj.get_speed(),
-        }
-
-        self.update_state(obj.id, state)
+    fetch_state_properties = ("speed",)
 
     @override
     def handle_status(self, vid: int, status: str, *args: str) -> None:

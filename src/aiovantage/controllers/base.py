@@ -37,6 +37,9 @@ class BaseController(QuerySet[T]):
     interface_status_types: tuple[str, ...] | Literal["*"] = ()
     """Which object interface status messages this controller handles, if any."""
 
+    fetch_state_properties: tuple[str, ...] = ()
+    """Which Vantage methods to call to fetch the state of an object."""
+
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize a controller.
 
@@ -97,12 +100,11 @@ class BaseController(QuerySet[T]):
         """Return a set of all known object IDs."""
         return set(self._items.keys())
 
-    async def fetch_object_state(self, _obj: T) -> None:
-        """Fetch the full state of an object.
-
-        Should be overridden by subclasses that manage stateful objects.
-        """
-        return
+    async def fetch_object_state(self, obj: T) -> None:
+        """Fetch the state properties of an object."""
+        if self.fetch_state_properties:
+            changed_state = await obj.fetch_state(self.fetch_state_properties)
+            self.object_updated(obj, changed_state)
 
     def handle_status(self, _vid: int, _status: str, *_args: str) -> None:
         """Handle simple status messages from the event stream.
@@ -110,7 +112,6 @@ class BaseController(QuerySet[T]):
         Should be overridden by subclasses that manage stateful objects using
         "STATUS {type}" messages.
         """
-        return
 
     def handle_interface_status(
         self, _vid: int, _method: str, _result: str, *_args: str
@@ -120,7 +121,6 @@ class BaseController(QuerySet[T]):
         Should be overridden by subclasses that manage stateful objects using object
         interface status messages from "ADDSTATUS {vid}" or "ELLOG STATUS" events.
         """
-        return
 
     async def initialize(self, *, fetch_state: bool = True) -> None:
         """Populate the controller, and optionally fetch initial state.

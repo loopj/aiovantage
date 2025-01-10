@@ -9,14 +9,12 @@ from .base import Interface, method
 class SounderInterface(Interface):
     """Interface for keypad speakers."""
 
-    # Types
     class Status(IntEnum):
         """Sounder status."""
 
         On = 0
         Off = 1
 
-    # Methods
     @method("Sounder.GetFrequency")
     async def get_frequency(self) -> Decimal:
         """Get the frequency of the keypad speaker, using cached value if available.
@@ -131,7 +129,6 @@ class SounderInterface(Interface):
         # -> R:INVOKE <id> <rcode> Sounder.PlayFX
         await self.invoke("Sounder.PlayFX", effect, duration, volume)
 
-    # Additional convenience methods, not part of the Vantage API
     async def turn_on(self) -> None:
         """Turn on the keypad speaker."""
         await self.set_status(self.Status.On)
