@@ -107,7 +107,11 @@ class Interface(metaclass=InterfaceMeta):
         return parse_object_response(result, *args, as_type=signature)  # type: ignore
 
     async def invoke(
-        self, method: str, *params: ParameterType, as_type: type | None = None
+        self,
+        method: str,
+        *params: ParameterType,
+        as_type: type | None = None,
+        force_quotes: bool = False,
     ) -> Any:
         """Invoke a method on an object, and return the parsed response.
 
@@ -115,6 +119,7 @@ class Interface(metaclass=InterfaceMeta):
             method: The method to invoke.
             params: The parameters to send with the method.
             as_type: The expected return type of the method, will attempt to infer if not provided.
+            force_quotes: Whether to force quotes around the string parameters.
 
         Returns:
             A parsed response, or None if no response was expected.
@@ -131,7 +136,9 @@ class Interface(metaclass=InterfaceMeta):
         signature = as_type or self.method_signatures[method]
 
         # Invoke the method
-        return await self.command_client.invoke(vid, method, *params, as_type=signature)
+        return await self.command_client.invoke(
+            vid, method, *params, as_type=signature, force_quotes=force_quotes
+        )
 
     async def fetch_state(self, fields: Sequence[str] | None = None) -> list[str]:
         """Fetch state properties provided by the interface(s) this object implements.

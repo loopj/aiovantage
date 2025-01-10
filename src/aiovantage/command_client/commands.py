@@ -127,6 +127,7 @@ class CommandClient:
         method: str,
         *params: ParameterType,
         as_type: type[T] | None = None,
+        force_quotes: bool = False,
     ) -> T | None:
         """Invoke a method on an object, and return the parsed response.
 
@@ -135,6 +136,7 @@ class CommandClient:
             method: The method to invoke.
             params: The parameters to send with the method.
             as_type: The expected return type of the method.
+            force_quotes: Whether to force string params to be wrapped in double quotes.
 
         Returns:
             A parsed response, or None if no response was expected.
@@ -143,7 +145,9 @@ class CommandClient:
         # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
 
         # Send the command
-        response = await self.command("INVOKE", vid, method, *params)
+        response = await self.command(
+            "INVOKE", vid, method, *params, force_quotes=force_quotes
+        )
 
         # Break the response into tokens
         _id, result, _method, *args = response.args
