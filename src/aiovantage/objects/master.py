@@ -2,13 +2,13 @@
 
 from dataclasses import dataclass
 
-from aiovantage.object_interfaces import IntrospectionInterface
+from aiovantage.object_interfaces import ConfigurationInterface, IntrospectionInterface
 
 from .system_object import SystemObject
 
 
 @dataclass(kw_only=True)
-class Master(SystemObject, IntrospectionInterface):
+class Master(SystemObject, IntrospectionInterface, ConfigurationInterface):
     """Master (InFusion Controller) object."""
 
     # ModuleCount, SerialNumber, not available in 2.x firmware
