@@ -9,6 +9,7 @@ from .base import Interface, method
 class ThermostatInterface(Interface):
     """Interface for querying and controlling thermostats."""
 
+    # Types
     class OperationMode(IntEnum):
         """The operation mode of the thermostat."""
 
@@ -48,6 +49,7 @@ class ThermostatInterface(Interface):
         Heating = 2
         Offline = 3
 
+    # Properties
     indoor_temperature: Decimal | None = None
     heat_set_point: Decimal | None = None
     cool_set_point: Decimal | None = None
@@ -57,6 +59,7 @@ class ThermostatInterface(Interface):
     status: Status | None = Status.Offline
     outdoor_temperature: Decimal | None = None
 
+    # Methods
     @method("Thermostat.GetIndoorTemperature", property="indoor_temperature")
     async def get_indoor_temperature(self) -> Decimal:
         """Get the current indoor temperature.

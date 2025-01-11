@@ -9,6 +9,7 @@ from .base import Interface, method
 class ConfigurationInterface(Interface):
     """Interface for controller introspection."""
 
+    # Types
     class Store(IntEnum):
         """Configuration stores."""
 
@@ -29,6 +30,7 @@ class ConfigurationInterface(Interface):
         Sunrise = 0
         Sunset = 1
 
+    # Methods
     @method("Configuration.GetControllerVID")
     async def get_controller_vid(self, controller: int) -> int:
         """Get the VID of a controller, based on the controller number.

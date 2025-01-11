@@ -9,6 +9,7 @@ from .base import Interface, method
 class LoadInterface(Interface):
     """Interface for querying and controlling loads."""
 
+    # Types
     class RampType(IntEnum):
         """The type of ramp to perform."""
 
@@ -38,8 +39,10 @@ class LoadInterface(Interface):
         Reverse = 2
         Auto = 3
 
+    # Properties
     level: Decimal | None = None
 
+    # Methods
     @method("Load.SetLevel")
     async def set_level(self, level: float | Decimal) -> None:
         """Set the level of a load.

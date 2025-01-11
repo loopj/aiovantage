@@ -8,8 +8,10 @@ from .base import Interface, method
 class TemperatureInterface(Interface):
     """Interface for querying and controlling sensors."""
 
+    # Properties
     value: Decimal | None = None
 
+    # Methods
     @method("Temperature.GetValue", property="value")
     async def get_value(self) -> Decimal:
         """Get the value of a temperature sensor, using cached value if available.

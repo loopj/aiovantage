@@ -8,8 +8,10 @@ from .base import Interface, method
 class SensorInterface(Interface):
     """Interface for querying and controlling sensors."""
 
+    # Properties
     level: Decimal | None = None
 
+    # Methods
     @method("Sensor.GetLevel", property="level")
     async def get_level(self) -> Decimal:
         """Get the level of a sensor, using cached value if available.

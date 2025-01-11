@@ -8,8 +8,10 @@ from .base import Interface, method
 class AnemoSensorInterface(Interface):
     """Interface for querying and controlling anemo (wind) sensors."""
 
+    # Properties
     speed: Decimal | None = None
 
+    # Methods
     @method("AnemoSensor.GetSpeed", property="speed")
     async def get_speed(self) -> Decimal:
         """Get the speed of an anemo sensor, using cached value if available.
