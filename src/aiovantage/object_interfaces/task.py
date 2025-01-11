@@ -8,6 +8,7 @@ from .base import Interface, method
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""
 
+    # Types
     class Status(IntEnum):
         """Task status."""
 
@@ -17,10 +18,12 @@ class TaskInterface(Interface):
         OutOfSync = 3
         Invalid = 4
 
+    # Properties
     state: int | None = None
     running: bool | None = None
     context_state: bool | None = None
 
+    # Methods
     @method("Task.Start")
     async def start(self) -> None:
         """Start a task."""

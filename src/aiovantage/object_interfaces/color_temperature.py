@@ -9,6 +9,7 @@ from .base import Interface, method
 class ColorTemperatureInterface(Interface):
     """Interface for querying and controlling color temperature."""
 
+    # Types
     class Preset(IntEnum):
         """Color temperature presets."""
 
@@ -20,10 +21,12 @@ class ColorTemperatureInterface(Interface):
         Natural = 5000
         Daylight = 6500
 
+    # Properties
     color_temp: int | None = None
     max_value: int | None = None
     min_value: int | None = None
 
+    # Methods
     @method("ColorTemperature.Set")
     async def set_temperature(self, temp: int, transition: int = 0) -> None:
         """Set the color temperature of a light.

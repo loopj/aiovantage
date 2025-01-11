@@ -9,6 +9,7 @@ from .base import Interface, method
 class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""
 
+    # Types
     class PropertyExResponse(NamedTuple):
         """Response from Object.GetPropertyEx."""
 
@@ -17,6 +18,7 @@ class ObjectInterface(Interface):
         value: str
         size: int
 
+    # Methods
     @method("Object.GetVID")
     async def get_vid(self) -> int:
         """Get the Vantage ID of an object.

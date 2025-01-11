@@ -9,6 +9,7 @@ from .base import Interface, method
 class ButtonInterface(Interface):
     """Interface for querying and controlling buttons."""
 
+    # Types
     class State(IntEnum):
         """Button state."""
 
@@ -28,8 +29,10 @@ class ButtonInterface(Interface):
         NormallyOpen = 0
         NormallyClosed = 1
 
+    # Properties
     state: State | None = State.Up
 
+    # Methods
     @method("Button.GetState", property="state")
     async def get_state(self) -> State:
         """Get the state of a button.
@@ -250,6 +253,7 @@ class ButtonInterface(Interface):
         # -> R:INVOKE <id> <rcode> Button.SetPlacementSW <placement>
         await self.invoke("Button.SetPlacementSW", placement)
 
+    # Convenience functions, not part of the interface
     @property
     def is_down(self) -> bool:
         """Return if the button is pressed."""

@@ -11,6 +11,7 @@ from .base import Interface, method
 class BlindInterface(Interface, ShadeOrientation, ShadeType):
     """Interface for querying and controlling blinds."""
 
+    # Types
     class BlindState(NamedTuple):
         """The state of a blind."""
 
@@ -27,11 +28,13 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         open_time: Decimal
         close_time: Decimal
 
+    # Properties
     position: Decimal | None = None
     tilt_angle: int | None = None
     tilt_available: bool | None = None
     blind_state: BlindState | None = None
 
+    # Methods
     @method("Blind.Open")
     async def open(self) -> None:
         """Open a blind."""
