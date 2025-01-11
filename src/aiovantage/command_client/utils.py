@@ -61,7 +61,7 @@ def parse_param(arg: str, klass: type[T]) -> T:
     elif klass is bytearray:
         parsed = parse_byte_param(arg)
     elif klass is dt.datetime:
-        parsed = dt.datetime.fromtimestamp(int(arg))
+        parsed = dt.datetime.fromtimestamp(int(arg), dt.timezone.utc)
     elif klass is Decimal:
         parsed = parse_fixed_param(arg)
     elif klass is float:
