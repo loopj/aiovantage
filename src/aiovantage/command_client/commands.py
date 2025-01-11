@@ -13,6 +13,7 @@ from aiovantage.connection import BaseConnection
 from aiovantage.errors import (
     CommandError,
     InvalidObjectError,
+    InvalidParameterError,
     LoginFailedError,
     LoginRequiredError,
     NotImplementedError,
@@ -228,7 +229,9 @@ class CommandClient:
         error_code = int(error_code_str)
 
         exc: CommandError
-        if error_code == 7:
+        if error_code == 4:
+            exc = InvalidParameterError(error_message)
+        elif error_code == 7:
             exc = InvalidObjectError(error_message)
         elif error_code == 8:
             exc = NotImplementedError(error_message)
