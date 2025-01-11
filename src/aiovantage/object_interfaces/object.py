@@ -136,6 +136,59 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <locked (0/1)> Object.IsLocked
         return await self.invoke("Object.IsLocked")
 
+    @method("Object.IsInterfaceSupported")
+    async def is_interface_supported(self, iid: int) -> bool:
+        """Check if an interface is supported by an object.
+
+        Args:
+            iid: The interface ID to check.
+
+        Returns:
+            True if the interface is supported, False otherwise.
+        """
+        # INVOKE <id> Object.IsInterfaceSupported <iid>
+        # -> R:INVOKE <id> <supported (0/1)> Object.IsInterfaceSupported <iid>
+        return await self.invoke("Object.IsInterfaceSupported", iid)
+
+    @method("Object.IsMethodSupported")
+    async def is_method_supported(self, iid: int, mid: int) -> bool:
+        """Check if a method is supported by an object.
+
+        Args:
+            iid: The interface ID to check.
+            mid: The method ID to check.
+
+        Returns:
+            True if the method is supported, False otherwise.
+        """
+        # INVOKE <id> Object.IsMethodSupported <iid> <mid>
+        # -> R:INVOKE <id> <supported (0/1)> Object.IsMethodSupported <iid> <mid>
+        return await self.invoke("Object.IsMethodSupported", iid, mid)
+
+    @method("Object.SetProperty")
+    async def set_property(self, property: str, value: int) -> None:
+        """Set an integer property of an object.
+
+        Args:
+            property: The property to set.
+            value: The value to set the property to.
+        """
+        # INVOKE <id> Object.SetProperty <property> <value>
+        # -> R:INVOKE <id> <rcode> Object.SetProperty <property> <value>
+        await self.invoke("Object.SetProperty", property, value)
+
+    @method("Object.SetPropertyEx")
+    async def set_property_ex(self, property: str, value: str) -> None:
+        """Set a string property of an object.
+
+        Args:
+            property: The property to set.
+            value: The value to set the property to.
+        """
+        # INVOKE <id> Object.SetPropertyEx <property> <value>
+        # -> R:INVOKE <id> <rcode> Object.SetPropertyEx <property> <value>
+        await self.invoke("Object.SetPropertyEx", property, value)
+
     @method("Object.GetMTime")
     async def get_mtime(self) -> dt.datetime:
         """Get the modification time of an object.
@@ -146,3 +199,25 @@ class ObjectInterface(Interface):
         # INVOKE <id> Object.GetMTime
         # -> R:INVOKE <id> <mtime> Object.GetMTime
         return await self.invoke("Object.GetMTime")
+
+    @method("Object.GetDName")
+    async def get_dname(self) -> str:
+        """Get the display name of an object.
+
+        Returns:
+            The display name of the object.
+        """
+        # INVOKE <id> Object.GetDName
+        # -> R:INVOKE <id> <dname> Object.GetDName
+        return await self.invoke("Object.GetDName")
+
+    @method("Object.GetArea")
+    async def get_area(self) -> int:
+        """Get the area of an object.
+
+        Returns:
+            The area of the object.
+        """
+        # INVOKE <id> Object.GetArea
+        # -> R:INVOKE <id> <area> Object.GetArea
+        return await self.invoke("Object.GetArea")
