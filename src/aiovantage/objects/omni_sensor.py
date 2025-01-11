@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
+from types import NoneType
 
 from aiovantage.object_interfaces import SensorInterface
 
@@ -61,20 +62,37 @@ class OmniSensor(Sensor, SensorInterface):
     get: Get
     set: Set
 
-    async def get_level(self, use_cache: bool = False) -> Decimal:
-        """Get the value of the OmniSensor object.
-
-        Args:
-            use_cache: Use the cached value if available.
+    async def get_level(self) -> Decimal:
+        """Get the value of the OmniSensor object, using cached value if available.
 
         Returns:
             The level of the sensor.
         """
-        # Determine which method to use
-        method = self.get.method if use_cache else self.get.method_hw
+        return await self.invoke(self.get.method, as_type=Decimal)
 
-        # Fetch the value
-        return await self.invoke(method, as_type=Decimal)
+    async def get_level_hw(self) -> Decimal:
+        """Get the value of the OmniSensor object directly from the hardware.
+
+        Returns:
+            The level of the sensor.
+        """
+        return await self.invoke(self.get.method_hw, as_type=Decimal)
+
+    async def set_level(self, level: Decimal) -> None:
+        """Set the value of the OmniSensor object.
+
+        Args:
+            level: The value to set the sensor to.
+        """
+        await self.invoke(self.set.method, level, as_type=NoneType)
+
+    async def set_level_sw(self, level: Decimal) -> None:
+        """Set the cached value of the OmniSensor object.
+
+        Args:
+            level: The value to set the sensor to.
+        """
+        await self.invoke(self.set.method_sw, level, as_type=NoneType)
 
     @property
     def is_current_sensor(self) -> bool:
