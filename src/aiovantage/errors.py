@@ -23,6 +23,10 @@ class CommandError(ClientError):
     """Base exception for errors caused by sending commands or requests."""
 
 
+class InvalidParameterError(CommandError):
+    """An invalid parameter was provided."""
+
+
 class LoginFailedError(CommandError):
     """Login failed."""
 
