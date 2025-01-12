@@ -2,7 +2,7 @@
 
 # pyright: reportFunctionMemberAccess=false
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from typing import Any, TypeVar, get_type_hints
 
 from aiovantage.command_client import CommandClient
@@ -48,6 +48,7 @@ class InterfaceMeta(type):
     """Metaclass to collect method metadata from member functions and base classes."""
 
     method_signatures: dict[str, type]
+    method_properties: dict[str, str]
     property_getters: dict[str, Any]
 
     def __new__(
@@ -59,18 +60,23 @@ class InterfaceMeta(type):
         """Create a new object interface class."""
         cls_obj = super().__new__(cls, name, bases, dct)
         cls_obj.method_signatures = {}
+        cls_obj.method_properties = {}
         cls_obj.property_getters = {}
 
         # Include method metadata from base classes
         for base in bases:
             if issubclass(base, Interface):
                 cls_obj.method_signatures.update(base.method_signatures)
+                cls_obj.method_properties.update(base.method_properties)
                 cls_obj.property_getters.update(base.property_getters)
 
         # Collect method metadata from member functions
         for attr in dct.values():
             if hasattr(attr, "_method") and hasattr(attr, "_return_type"):
                 cls_obj.method_signatures[attr._method] = attr._return_type
+
+            if hasattr(attr, "_method") and hasattr(attr, "_property"):
+                cls_obj.method_properties[attr._method] = attr._property
 
             if hasattr(attr, "_property") and attr._property:
                 cls_obj.property_getters[attr._property] = attr
@@ -87,24 +93,6 @@ class Interface(metaclass=InterfaceMeta):
     def __init__(self, command_client: CommandClient | None = None) -> None:
         """Initialize the interface with a command client."""
         self.command_client = command_client
-
-    @classmethod
-    def parse_status(cls, method: str, result: str, *args: str) -> Any:
-        """Parse an object interface status message.
-
-        Args:
-            method: The method that was invoked.
-            result: The result of the command.
-            args: The arguments that were sent with the command.
-
-        Returns:
-            A parsed response, or None if no response was expected.
-        """
-        # Get the expected return type of the method
-        signature = cls.method_signatures[method]
-
-        # Parse the response
-        return parse_object_response(result, *args, as_type=signature)  # type: ignore
 
     async def invoke(
         self, method: str, *params: ParameterType, as_type: type | None = None
@@ -133,7 +121,7 @@ class Interface(metaclass=InterfaceMeta):
         # Invoke the method
         return await self.command_client.invoke(vid, method, *params, as_type=signature)
 
-    async def fetch_state(self, fields: Sequence[str] | None = None) -> list[str]:
+    async def fetch_state(self) -> list[str]:
         """Fetch state properties provided by the interface(s) this object implements.
 
         Args:
@@ -141,16 +129,9 @@ class Interface(metaclass=InterfaceMeta):
         """
         cls = type(self)
 
-        # Allow fetching a subset of state properties
-        fields_to_fetch = [
-            field
-            for field in cls.property_getters.keys()
-            if fields is None or field in fields
-        ]
-
         # Fetch each state property
         attrs_changed: list[str] = []
-        for field in fields_to_fetch:
+        for field in cls.property_getters.keys():
             if getter := cls.property_getters.get(field):
                 # Call the getter function
                 try:
@@ -164,3 +145,29 @@ class Interface(metaclass=InterfaceMeta):
                     attrs_changed.append(field)
 
         return attrs_changed
+
+    def handle_object_status(self, method: str, result: str, *args: str) -> str | None:
+        """Handle an object interface status message.
+
+        Args:
+            method: The method that was invoked.
+            result: The result of the command.
+            args: The arguments that were sent with the command.
+        """
+        # Look up the property associated with this method
+        property = self.method_properties.get(method)
+        if property is None:
+            return
+
+        # Get the expected return type of the method
+        signature = self.method_signatures.get(method)
+        if signature is None:
+            raise NotImplementedError(f"No signature found for method {method}")
+
+        # Parse the response
+        value = parse_object_response(result, *args, as_type=signature)  # type: ignore
+
+        # Update the property if it has changed
+        if hasattr(self, property) and getattr(self, property) != value:
+            setattr(self, property, value)
+            return property

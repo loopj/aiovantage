@@ -5,6 +5,9 @@ from decimal import Decimal
 from enum import Enum
 from types import NoneType
 
+from typing_extensions import override
+
+from aiovantage.command_client.utils import parse_param
 from aiovantage.object_interfaces import SensorInterface
 
 from .sensor import Sensor
@@ -108,3 +111,26 @@ class OmniSensor(Sensor, SensorInterface):
     def is_temperature_sensor(self) -> bool:
         """Return True if the sensor is a temperature sensor."""
         return self.model == "Temperature"
+
+    @override
+    async def fetch_state(self) -> list[str]:
+        level = await self.get_level_hw()
+        if self.level != level:
+            self.level = level
+            return ["level"]
+
+        return []
+
+    @override
+    def handle_object_status(self, method: str, result: str, *args: str) -> str | None:
+        # Check if the method is one we're interested in
+        if method != self.get.method:
+            return
+
+        # Parse the response
+        value = parse_param(result, Decimal)
+
+        # Update the property if it has changed
+        if self.level != value:
+            self.level = value
+            return "level"
