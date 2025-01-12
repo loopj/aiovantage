@@ -3,7 +3,10 @@
 from decimal import Decimal
 from enum import IntEnum
 from itertools import islice
-from typing import NamedTuple
+
+from typing_extensions import override
+
+from aiovantage.command_client.utils import parse_param
 
 from .base import Interface, method
 
@@ -39,17 +42,10 @@ class RGBLoadInterface(Interface):
         Blue = 6
         Cyan = 7
 
-    class ColorChannelResponse(NamedTuple):
-        """A RGB(W) color channel response."""
-
-        value: int
-        channel: int
-
     # Properties
-    rgb: tuple[int, int, int] | None = None  # RGBLoad.GetRGB
-    rgbw: tuple[int, int, int, int] | None = None  # RGBLoad.GetRGBW
-    hsl: tuple[int, int, int] | None = None  # RGBLoad.GetHSL
-    color_name: ColorName | None = None
+    rgb: tuple[int, int, int] | None = None
+    rgbw: tuple[int, int, int, int] | None = None
+    hsl: tuple[int, int, int] | None = None
 
     # Methods
     @method("RGBLoad.SetRGB")
@@ -66,7 +62,7 @@ class RGBLoadInterface(Interface):
         await self.invoke("RGBLoad.SetRGB", red, green, blue)
 
     @method("RGBLoad.GetRGB")
-    async def get_rgb(self, channel: RGBChannel) -> ColorChannelResponse:
+    async def get_rgb(self, channel: RGBChannel) -> int:
         """Get a single RGB color channel of a load from the controller.
 
         Args:
@@ -95,7 +91,7 @@ class RGBLoadInterface(Interface):
         await self.invoke("RGBLoad.SetRGBSW", red, green, blue)
 
     @method("RGBLoad.GetRGBHW")
-    async def get_rgb_hw(self, channel: RGBChannel) -> ColorChannelResponse:
+    async def get_rgb_hw(self, channel: RGBChannel) -> int:
         """Get a single RGB color channel of a load directly from the hardware.
 
         Args:
@@ -127,7 +123,7 @@ class RGBLoadInterface(Interface):
         await self.invoke("RGBLoad.SetHSL", hue, saturation, lightness)
 
     @method("RGBLoad.GetHSL")
-    async def get_hsl(self, attribute: HSLAttribute) -> ColorChannelResponse:
+    async def get_hsl(self, attribute: HSLAttribute) -> int:
         """Get a single HSL color attribute of a load from the controller.
 
         Args:
@@ -155,7 +151,7 @@ class RGBLoadInterface(Interface):
         await self.invoke("RGBLoad.SetHSLSW", hue, saturation, lightness)
 
     @method("RGBLoad.GetHSLHW")
-    async def get_hsl_hw(self, attribute: HSLAttribute) -> ColorChannelResponse:
+    async def get_hsl_hw(self, attribute: HSLAttribute) -> int:
         """Get a single HSL color attribute of a load directly from the hardware.
 
         Args:
@@ -506,7 +502,7 @@ class RGBLoadInterface(Interface):
         await self.invoke("RGBLoad.SetRGBW", red, green, blue, white)
 
     @method("RGBLoad.GetRGBW")
-    async def get_rgbw(self, channel: int) -> ColorChannelResponse:
+    async def get_rgbw(self, channel: int) -> int:
         """Get a single RGBW color channel of a load from the controller.
 
         Args:
@@ -561,41 +557,84 @@ class RGBLoadInterface(Interface):
         return await self.invoke("RGBLoad.GetTransitionLevel")
 
     # Convenience functions, not part of the interface
-    async def get_rgb_color(self) -> tuple[int, ...]:
+    async def get_rgb_color(self) -> tuple[int, int, int]:
         """Get the RGB color of a load from the controller.
 
         Returns:
             The value of the RGB color as a tuple of (red, green, blue).
         """
-        rgb: list[int] = []
-        for chan in islice(self.RGBChannel, 3):
-            result = await self.get_rgb(chan)
-            rgb.append(result.value)
+        return tuple([await self.get_rgb(chan) for chan in islice(self.RGBChannel, 3)])  # type: ignore
 
-        return tuple(rgb)
-
-    async def get_rgbw_color(self) -> tuple[int, ...]:
+    async def get_rgbw_color(self) -> tuple[int, int, int, int]:
         """Get the RGBW color of a load from the controller.
 
         Returns:
             The value of the RGBW color as a tuple of (red, green, blue, white).
         """
-        rgbw: list[int] = []
-        for chan in self.RGBChannel:
-            result = await self.get_rgbw(chan)
-            rgbw.append(result.value)
+        return tuple([await self.get_rgbw(chan) for chan in self.RGBChannel])  # type: ignore
 
-        return tuple(rgbw)
-
-    async def get_hsl_color(self) -> tuple[int, ...]:
+    async def get_hsl_color(self) -> tuple[int, int, int]:
         """Get the HSL color of a load from the controller.
 
         Returns:
             The value of the HSL color as a tuple of (hue, saturation, lightness).
         """
-        hsl: list[int] = []
-        for attr in self.HSLAttribute:
-            result = await self.get_hsl(attr)
-            hsl.append(result.value)
+        return tuple([await self.get_hsl(attr) for attr in self.HSLAttribute])  # type: ignore
 
-        return tuple(hsl)
+    @override
+    async def fetch_state(self) -> list[str]:
+        # Fetch state from other interfaces
+        attrs_changed = await super().fetch_state()
+
+        # Fetch RGB, HSL, and RGBW colors
+        for attr, fn in (
+            ("rgb", self.get_rgb_color),
+            ("hsl", self.get_hsl_color),
+            ("rgbw", self.get_rgbw_color),
+        ):
+            value = await fn()
+            if getattr(self, attr) != value:
+                setattr(self, attr, value)
+                attrs_changed.append(attr)
+
+        return attrs_changed
+
+    @override
+    def handle_object_status(self, method: str, result: str, *args: str) -> str | None:
+        # Status updates for GetRGB, GetRGBW, and GetHSL arrive on multiple lines,
+        # one line per channel/attribute. We want to cache the values until we have
+        # all of them, then update the property.
+
+        # Allow other interfaces to handle their status updates
+        if not method.startswith("RGBLoad"):
+            return super().handle_object_status(method, result, *args)
+
+        # Define the methods and the number of channels/attributes they return
+        methods = {
+            "RGBLoad.GetRGB": ("rgb", 3),
+            "RGBLoad.GetHSL": ("hsl", 3),
+            "RGBLoad.GetRGBW": ("rgbw", 4),
+        }
+
+        # Check if the method is one we're interested in
+        if method not in methods:
+            return
+
+        # Get the attribute and number of channels/attributes
+        attr, num_channels = methods[method]
+
+        # Ignore channels that are out of range
+        channel = parse_param(args[0], int)
+        if channel not in range(num_channels):
+            return
+
+        # Cache the value
+        self._cache = getattr(self, "_cache", [0, 0, 0, 0])
+        self._cache[channel] = parse_param(result, int)
+
+        # Update the property if all channels have been received
+        if channel == num_channels - 1:
+            new_value = tuple(self._cache[:num_channels])
+            if getattr(self, attr) != new_value:
+                setattr(self, attr, new_value)
+                return attr

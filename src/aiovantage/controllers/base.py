@@ -5,7 +5,7 @@ import logging
 from collections.abc import Callable, Iterable
 from dataclasses import fields
 from inspect import iscoroutinefunction
-from typing import TYPE_CHECKING, Any, Literal, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.utils import tokenize_response
@@ -33,12 +33,6 @@ class BaseController(QuerySet[T]):
 
     status_types: tuple[str, ...] = ()
     """Which Vantage 'STATUS' types this controller handles, if any."""
-
-    interface_status_types: tuple[str, ...] | Literal["*"] = ()
-    """Which object interface status messages this controller handles, if any."""
-
-    fetch_state_properties: tuple[str, ...] = ()
-    """Which Vantage methods to call to fetch the state of an object."""
 
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize a controller.
@@ -91,36 +85,29 @@ class BaseController(QuerySet[T]):
         return self._initialized
 
     @property
-    def stateful(self) -> bool:
-        """Return True if this controller manages stateful objects."""
-        return bool(self.status_types or self.interface_status_types)
-
-    @property
     def known_ids(self) -> set[int]:
         """Return a set of all known object IDs."""
         return set(self._items.keys())
 
     async def fetch_object_state(self, obj: T) -> None:
         """Fetch the state properties of an object."""
-        if self.fetch_state_properties:
-            changed_state = await obj.fetch_state(self.fetch_state_properties)
-            self.object_updated(obj, changed_state)
+        self.object_updated(obj, await obj.fetch_state())
 
-    def handle_status(self, _vid: int, _status: str, *_args: str) -> None:
+    def handle_category_status(self, _vid: int, _status: str, *_args: str) -> None:
         """Handle simple status messages from the event stream.
 
         Should be overridden by subclasses that manage stateful objects using
         "STATUS {type}" messages.
         """
 
-    def handle_interface_status(
-        self, _vid: int, _method: str, _result: str, *_args: str
+    def handle_object_status(
+        self, vid: int, method: str, result: str, *args: str
     ) -> None:
-        """Handle object interface status messages from the event stream.
-
-        Should be overridden by subclasses that manage stateful objects using object
-        interface status messages from "ADDSTATUS {vid}" or "ELLOG STATUS" events.
-        """
+        """Handle object interface status messages from the event stream."""
+        obj = self[vid]
+        updated_properties = obj.handle_object_status(method, result, *args)
+        if updated_properties:
+            self.object_updated(obj, [updated_properties])
 
     async def initialize(self, *, fetch_state: bool = True) -> None:
         """Populate the controller, and optionally fetch initial state.
@@ -160,7 +147,7 @@ class BaseController(QuerySet[T]):
                     self.emit(VantageEvent.OBJECT_ADDED, obj)
 
                     # Fetch the state of stateful objects
-                    if self.stateful and fetch_state:
+                    if fetch_state:
                         await self.fetch_object_state(obj)
 
                 # Keep track of which objects we've seen
@@ -185,9 +172,6 @@ class BaseController(QuerySet[T]):
 
     async def fetch_full_state(self) -> None:
         """Fetch the full state of all objects managed by this controller."""
-        if not self.stateful:
-            return
-
         for obj in self._items.values():
             await self.fetch_object_state(obj)
 
@@ -195,7 +179,7 @@ class BaseController(QuerySet[T]):
 
     async def subscribe_to_state_changes(self) -> None:
         """Subscribe to state changes for objects managed by this controller."""
-        if self._subscribed_to_state_changes or not self.stateful:
+        if self._subscribed_to_state_changes:
             return
 
         # Ensure that the event stream is running
@@ -205,13 +189,10 @@ class BaseController(QuerySet[T]):
         if self.status_types:
             self.event_stream.subscribe_status(self._handle_event, self.status_types)
 
-        # Some state changes are only available from "object" status events.
-        # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
-        if self.interface_status_types:
-            # Subscribe to "object status" events from the Enhanced Log.
-            self.event_stream.subscribe_enhanced_log(
-                self._handle_event, ("STATUS", "STATUSEX")
-            )
+        # Subscribe to "object status" events from the Enhanced Log.
+        self.event_stream.subscribe_enhanced_log(
+            self._handle_event, ("STATUS", "STATUSEX")
+        )
 
         self._subscribed_to_state_changes = True
         self._logger.info("%s subscribed to state changes", type(self).__name__)
@@ -326,10 +307,12 @@ class BaseController(QuerySet[T]):
                 # Handle "object interface" status events of the form:
                 # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
                 method, result, *args = event["args"]
-                self.handle_interface_status(event["id"], method, result, *args)
+                self.handle_object_status(event["id"], method, result, *args)
             else:
                 # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
-                self.handle_status(event["id"], event["status_type"], *event["args"])
+                self.handle_category_status(
+                    event["id"], event["status_type"], *event["args"]
+                )
 
         elif event["type"] == EventType.ENHANCED_LOG:
             # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.
@@ -343,7 +326,7 @@ class BaseController(QuerySet[T]):
                 return
 
             # Pass the event to the controller
-            self.handle_interface_status(vid, method, result, *args)
+            self.handle_object_status(vid, method, result, *args)
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized
