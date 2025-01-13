@@ -7,7 +7,7 @@ from typing import Any, TypeVar, get_type_hints
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import ParameterType, parse_object_response
-from aiovantage.errors import NotImplementedError
+from aiovantage.errors import NotImplementedError, NotSupportedError
 
 T = TypeVar("T", bound=Callable[..., Any])
 
@@ -136,7 +136,7 @@ class Interface(metaclass=InterfaceMeta):
                 # Call the getter function
                 try:
                     result = await getter(self)
-                except NotImplementedError:
+                except (NotImplementedError, NotSupportedError):
                     continue
 
                 # Update the attribute if the result has changed

@@ -27,21 +27,46 @@ class InvalidParameterError(CommandError):
     """An invalid parameter was provided."""
 
 
-class LoginFailedError(CommandError):
-    """Login failed."""
-
-
-class LoginRequiredError(CommandError):
-    """Login is required to perform this command."""
-
-
 class InvalidObjectError(CommandError):
     """The requested object ID is invalid."""
+
+
+class NotImplementedError(CommandError):
+    """The requested command is not implemented."""
+
+
+class NotSupportedError(CommandError):
+    """The requested command is not supported."""
 
 
 class ObjectOfflineError(CommandError):
     """The requested object is offline."""
 
 
-class NotImplementedError(CommandError):
-    """The requested command is not implemented."""
+class LoginRequiredError(CommandError):
+    """Login is required to perform this command."""
+
+
+class LoginFailedError(CommandError):
+    """Login failed."""
+
+
+COMMAND_ERROR_CODES = {
+    4: InvalidParameterError,
+    7: InvalidObjectError,
+    8: NotImplementedError,
+    17: NotSupportedError,
+    20: ObjectOfflineError,
+    21: LoginRequiredError,
+    23: LoginFailedError,
+}
+
+
+def raise_command_error(code: int, message: str) -> None:
+    """Raise a command error based on the error code."""
+    error_cls = COMMAND_ERROR_CODES.get(code)
+
+    if error_cls is None:
+        raise CommandError(f"{message} (Error code {code})")
+
+    raise error_cls(message)
