@@ -3,7 +3,7 @@
 # pyright: reportFunctionMemberAccess=false
 
 from collections.abc import Callable
-from typing import Any, TypeVar, get_type_hints
+from typing import Any, ClassVar, Protocol, TypeVar, get_type_hints, runtime_checkable
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.utils import ParameterType, parse_object_response
@@ -29,27 +29,27 @@ def method(method: str, *, property: str | None = None) -> Callable[[T], T]:
     """
 
     def decorator(func: T) -> T:
-        # Make sure the method has a return type defined
-        return_type = get_type_hints(func).get("return")
-        if return_type is None:
-            raise ValueError(f"Method {method} has no return type defined")
-
         # Attach metadata to the function
-        func._method = method
-        func._property = property
-        func._return_type = return_type
+        metadata: list[tuple[str, str | None]] = getattr(func, "method_metadata", [])
+        metadata.append((method, property))
+        func.method_metadata = metadata
 
         return func
 
     return decorator
 
 
+@runtime_checkable
+class MethodCallable(Protocol):
+    """Protocol for an interface methods, with method metadata."""
+
+    method_metadata: list[tuple[str, str | None]]
+
+    async def __call__(self, *args: Any, **kwargs: Any) -> ParameterType: ...  # noqa: D102
+
+
 class InterfaceMeta(type):
     """Metaclass to collect method metadata from member functions and base classes."""
-
-    method_signatures: dict[str, type]
-    method_properties: dict[str, str]
-    property_getters: dict[str, Any]
 
     def __new__(
         cls: type["InterfaceMeta"],
@@ -58,34 +58,51 @@ class InterfaceMeta(type):
         dct: dict[str, Any],
     ):
         """Create a new object interface class."""
-        cls_obj = super().__new__(cls, name, bases, dct)
-        cls_obj.method_signatures = {}
-        cls_obj.method_properties = {}
-        cls_obj.property_getters = {}
+        method_signatures: dict[str, type[ParameterType]] = {}
+        method_properties: dict[str, str] = {}
+        property_getters: dict[str, MethodCallable] = {}
 
         # Include method metadata from base classes
         for base in bases:
             if issubclass(base, Interface):
-                cls_obj.method_signatures.update(base.method_signatures)
-                cls_obj.method_properties.update(base.method_properties)
-                cls_obj.property_getters.update(base.property_getters)
+                method_signatures.update(base.method_signatures)
+                method_properties.update(base.method_properties)
+                property_getters.update(base.property_getters)
 
         # Collect method metadata from member functions
         for attr in dct.values():
-            if hasattr(attr, "_method") and hasattr(attr, "_return_type"):
-                cls_obj.method_signatures[attr._method] = attr._return_type
+            if not isinstance(attr, MethodCallable):
+                continue
 
-            if hasattr(attr, "_method") and hasattr(attr, "_property"):
-                cls_obj.method_properties[attr._method] = attr._property
+            for method, property in attr.method_metadata:
+                type_hints = get_type_hints(attr)
+                if "return" not in type_hints:
+                    raise NotImplementedError(f"Return type missing for {method}")
 
-            if hasattr(attr, "_property") and attr._property:
-                cls_obj.property_getters[attr._property] = attr
+                method_signatures[method] = type_hints["return"]
+                if property:
+                    method_properties[method] = property
+                    property_getters[property] = attr
 
-        return cls_obj
+        # Attach the method metadata to the class
+        dct["method_signatures"] = method_signatures
+        dct["method_properties"] = method_properties
+        dct["property_getters"] = property_getters
+
+        return super().__new__(cls, name, bases, dct)
 
 
 class Interface(metaclass=InterfaceMeta):
     """Base class for command client object interfaces."""
+
+    method_signatures: ClassVar[dict[str, type[ParameterType]]]
+    """A mapping of method names to return types, for parsing statuses and responses."""
+
+    method_properties: ClassVar[dict[str, str]]
+    """A mapping of method names to property names, for updating object state."""
+
+    property_getters: ClassVar[dict[str, MethodCallable]]
+    """A mapping of property names to getter functions, for fetching object state."""
 
     command_client: CommandClient | None = None
     """The command client to use for sending requests."""
@@ -165,7 +182,7 @@ class Interface(metaclass=InterfaceMeta):
             raise NotImplementedError(f"No signature found for method {method}")
 
         # Parse the response
-        value = parse_object_response(result, *args, as_type=signature)  # type: ignore
+        value = parse_object_response(result, *args, as_type=signature)
 
         # Update the property if it has changed
         if hasattr(self, property) and getattr(self, property) != value:
