@@ -27,7 +27,7 @@ async def main() -> None:
 
         # Print a list of all loads that are currently on every 5 seconds
         while True:
-            on_loads = list(vantage.loads.is_on)
+            on_loads = list(vantage.loads.on)
             print(f"{len(on_loads)} loads are ON")
             for load in on_loads:
                 print(f"- {load.name}")

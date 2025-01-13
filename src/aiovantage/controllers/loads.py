@@ -12,12 +12,12 @@ class LoadsController(BaseController[Load]):
     vantage_types = (Load,)
 
     @property
-    def is_on(self) -> QuerySet[Load]:
+    def on(self) -> QuerySet[Load]:
         """Return a queryset of all loads that are turned on."""
         return self.filter(lambda load: load.is_on)
 
     @property
-    def is_off(self) -> QuerySet[Load]:
+    def off(self) -> QuerySet[Load]:
         """Return a queryset of all loads that are turned off."""
         return self.filter(lambda load: not load.is_on)
 
