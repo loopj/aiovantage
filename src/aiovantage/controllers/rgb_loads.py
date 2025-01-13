@@ -16,11 +16,11 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
     vantage_types = (VantageDGColorLoad, VantageDDGColorLoad)
 
     @property
-    def is_on(self) -> QuerySet[RGBLoadTypes]:
+    def on(self) -> QuerySet[RGBLoadTypes]:
         """Return a queryset of all RGB loads that are turned on."""
         return self.filter(lambda load: load.is_on)
 
     @property
-    def is_off(self) -> QuerySet[RGBLoadTypes]:
+    def off(self) -> QuerySet[RGBLoadTypes]:
         """Return a queryset of all RGB loads that are turned off."""
         return self.filter(lambda load: not load.is_on)
