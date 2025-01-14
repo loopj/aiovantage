@@ -13,26 +13,19 @@ class SensorInterface(Interface):
 
     # Methods
     @method("Sensor.GetLevel", property="level")
-    async def get_level(self) -> Decimal:
-        """Get the level of a sensor, using cached value if available.
+    @method("Sensor.GetLevelHW")
+    async def get_level(self, *, hw: bool = False) -> Decimal:
+        """Get the level of a sensor.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The level of the sensor.
         """
         # INVOKE <id> Sensor.GetLevel
         # -> R:INVOKE <id> <level (0-100)> Sensor.GetLevel
-        return await self.invoke("Sensor.GetLevel")
-
-    @method("Sensor.GetLevelHW")
-    async def get_level_hw(self) -> Decimal:
-        """Get the level of a sensor directly from the hardware.
-
-        Returns:
-            The level of the sensor.
-        """
-        # INVOKE <id> Sensor.GetLevelHW
-        # -> R:INVOKE <id> <level (0-100)> Sensor.GetLevelHW
-        return await self.invoke("Sensor.GetLevelHW")
+        return await self.invoke("Sensor.GetLevelHW" if hw else "Sensor.GetLevel")
 
     @method("Sensor.SetLevel")
     async def set_level(self, level: Decimal) -> None:

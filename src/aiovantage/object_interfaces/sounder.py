@@ -18,26 +18,21 @@ class SounderInterface(Interface):
 
     # Methods
     @method("Sounder.GetFrequency")
-    async def get_frequency(self) -> Decimal:
-        """Get the frequency of the keypad speaker, using cached value if available.
+    @method("Sounder.GetFrequencyHW")
+    async def get_frequency(self, *, hw: bool = False) -> Decimal:
+        """Get the frequency of the keypad speaker.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The frequency of the keypad speaker in Hz.
         """
         # INVOKE <id> Sounder.GetFrequency
         # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
-        return await self.invoke("Sounder.GetFrequency")
-
-    @method("Sounder.GetFrequencyHW")
-    async def get_frequency_hw(self) -> Decimal:
-        """Get the frequency of the keypad speaker directly from the hardware.
-
-        Returns:
-            The frequency of the keypad speaker in Hz.
-        """
-        # INVOKE <id> Sounder.GetFrequencyHW
-        # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
-        return await self.invoke("Sounder.GetFrequencyHW")
+        return await self.invoke(
+            "Sounder.GetFrequencyHW" if hw else "Sounder.GetFrequency"
+        )
 
     @method("Sounder.SetFrequency")
     async def set_frequency(self, frequency: float | Decimal) -> None:
@@ -51,26 +46,21 @@ class SounderInterface(Interface):
         await self.invoke("Sounder.SetFrequency", frequency)
 
     @method("Sounder.GetDuration")
-    async def get_duration(self) -> Decimal:
+    @method("Sounder.GetDurationHW")
+    async def get_duration(self, *, hw: bool = False) -> Decimal:
         """Get the length of time the keypad speaker will sound.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The duration of the keypad speaker sound in seconds.
         """
         # INVOKE <id> Sounder.GetDuration
         # -> R:INVOKE <id> <duration> Sounder.GetDuration
-        return await self.invoke("Sounder.GetDuration")
-
-    @method("Sounder.GetDurationHW")
-    async def get_duration_hw(self) -> Decimal:
-        """Get the length of time the keypad speaker will sound directly from the hardware.
-
-        Returns:
-            The duration of the keypad speaker sound in seconds.
-        """
-        # INVOKE <id> Sounder.GetDurationHW
-        # -> R:INVOKE <id> <duration> Sounder.GetDuration
-        return await self.invoke("Sounder.GetDurationHW")
+        return await self.invoke(
+            "Sounder.GetDurationHW" if hw else "Sounder.GetDuration"
+        )
 
     @method("Sounder.SetDuration")
     async def set_duration(self, duration: Decimal) -> None:
@@ -84,26 +74,19 @@ class SounderInterface(Interface):
         await self.invoke("Sounder.SetDuration", duration)
 
     @method("Sounder.GetStatus")
-    async def get_status(self) -> Status:
-        """Get the status of the keypad speaker, using cached value if available.
+    @method("Sounder.GetStatusHW")
+    async def get_status(self, *, hw: bool = False) -> Status:
+        """Get the status of the keypad speaker.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The status of the keypad speaker.
         """
         # INVOKE <id> Sounder.GetStatus
         # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        return await self.invoke("Sounder.GetStatus")
-
-    @method("Sounder.GetStatusHW")
-    async def get_status_hw(self) -> Status:
-        """Get the status of the keypad speaker directly from the hardware.
-
-        Returns:
-            The status of the keypad speaker.
-        """
-        # INVOKE <id> Sounder.GetStatusHW
-        # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        return await self.invoke("Sounder.GetStatusHW")
+        return await self.invoke("Sounder.GetStatusHW" if hw else "Sounder.GetStatus")
 
     @method("Sounder.SetStatus")
     async def set_status(self, status: Status) -> None:

@@ -28,27 +28,39 @@ class ColorTemperatureInterface(Interface):
 
     # Methods
     @method("ColorTemperature.Set")
-    async def set_temperature(self, temp: int, transition: int = 0) -> None:
+    @method("ColorTemperature.SetSW")
+    async def set_temperature(
+        self, temp: int, transition: int = 0, *, sw: bool = False
+    ) -> None:
         """Set the color temperature of a light.
 
         Args:
             temp: The color temperature to set the light to, in Kelvin.
-            transition: The time in seconds to transition to the new color
+            transition: The time in seconds to transition to the new color temperature.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> ColorTemperature.Set <temp> <seconds>
         # -> R:INVOKE <id> <rcode> ColorTemperature.Set <temp>
-        await self.invoke("ColorTemperature.Set", temp, transition)
+        await self.invoke(
+            "ColorTemperature.SetSW" if sw else "ColorTemperature.Set", temp, transition
+        )
 
     @method("ColorTemperature.Get", property="color_temp")
-    async def get_temperature(self) -> int:
+    @method("ColorTemperature.GetHW")
+    async def get_temperature(self, *, hw: bool = False) -> int:
         """Get the color temperature of a light.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The color temperature of the light, in Kelvin.
         """
         # INVOKE <id> ColorTemperature.Get
         # -> R:INVOKE <id> <temp> ColorTemperature.Get
-        return await self.invoke("ColorTemperature.Get")
+        return await self.invoke(
+            "ColorTemperature.GetHW" if hw else "ColorTemperature.Get"
+        )
 
     @method("ColorTemperature.StopTransition")
     async def stop_transition(self) -> None:
@@ -56,28 +68,6 @@ class ColorTemperatureInterface(Interface):
         # INVOKE <id> ColorTemperature.StopTransition
         # -> R:INVOKE <id> <rcode> ColorTemperature.StopTransition
         await self.invoke("ColorTemperature.StopTransition")
-
-    @method("ColorTemperature.SetSW")
-    async def set_temperature_sw(self, temp: int) -> None:
-        """Set the cached color temperature of a light.
-
-        Args:
-            temp: The color temperature to set the light to, in Kelvin.
-        """
-        # INVOKE <id> ColorTemperature.SetSW <temp>
-        # -> R:INVOKE <id> <rcode> ColorTemperature.SetSW <temp>
-        await self.invoke("ColorTemperature.SetSW", temp)
-
-    @method("ColorTemperature.GetHW")
-    async def get_temperature_hw(self) -> int:
-        """Get the color temperature of a light directly from the hardware.
-
-        Returns:
-            The color temperature of the light, in Kelvin.
-        """
-        # INVOKE <id> ColorTemperature.GetHW
-        # -> R:INVOKE <id> <temp> ColorTemperature.GetHW
-        return await self.invoke("ColorTemperature.GetHW")
 
     @method("ColorTemperature.Warm")
     async def warm(self, amount: int, transition_time: float | Decimal) -> None:
@@ -129,29 +119,24 @@ class ColorTemperatureInterface(Interface):
         return await self.invoke("ColorTemperature.GetPreset")
 
     @method("ColorTemperature.GetMaxValue", property="max_value")
-    async def get_max_value(self) -> int:
+    @method("ColorTemperature.GetMaxValueHW")
+    async def get_max_value(self, *, hw: bool = False) -> int:
         """Get the maximum color temperature of a light.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The maximum color temperature of the light, in Kelvin.
         """
         # INVOKE <id> ColorTemperature.GetMaxValue
         # -> R:INVOKE <id> <temp> ColorTemperature.GetMaxValue
-        return await self.invoke("ColorTemperature.GetMaxValue")
-
-    @method("ColorTemperature.GetMaxValueHW")
-    async def get_max_value_hw(self) -> int:
-        """Get the maximum color temperature of a light directly from the hardware.
-
-        Returns:
-            The maximum color temperature of the light, in Kelvin.
-        """
-        # INVOKE <id> ColorTemperature.GetMaxValueHW
-        # -> R:INVOKE <id> <temp> ColorTemperature.GetMaxValueHW
-        return await self.invoke("ColorTemperature.GetMaxValueHW")
+        return await self.invoke(
+            "ColorTemperature.GetMaxValueHW" if hw else "ColorTemperature.GetMaxValue"
+        )
 
     @method("ColorTemperature.SetMaxValueSW")
-    async def set_max_value_sw(self, value: int) -> None:
+    async def set_max_value(self, value: int) -> None:
         """Set the cached maximum color temperature of a light.
 
         Args:
@@ -162,29 +147,24 @@ class ColorTemperatureInterface(Interface):
         await self.invoke("ColorTemperature.SetMaxValueSW", value)
 
     @method("ColorTemperature.GetMinValue", property="min_value")
-    async def get_min_value(self) -> int:
+    @method("ColorTemperature.GetMinValueHW")
+    async def get_min_value(self, *, hw: bool = False) -> int:
         """Get the minimum color temperature of a light.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The minimum color temperature of the light, in Kelvin.
         """
         # INVOKE <id> ColorTemperature.GetMinValue
         # -> R:INVOKE <id> <temp> ColorTemperature.GetMinValue
-        return await self.invoke("ColorTemperature.GetMinValue")
-
-    @method("ColorTemperature.GetMinValueHW")
-    async def get_min_value_hw(self) -> int:
-        """Get the minimum color temperature of a light directly from the hardware.
-
-        Returns:
-            The minimum color temperature of the light, in Kelvin.
-        """
-        # INVOKE <id> ColorTemperature.GetMinValueHW
-        # -> R:INVOKE <id> <temp> ColorTemperature.GetMinValueHW
-        return await self.invoke("ColorTemperature.GetMinValueHW")
+        return await self.invoke(
+            "ColorTemperature.GetMinValueHW" if hw else "ColorTemperature.GetMinValue"
+        )
 
     @method("ColorTemperature.SetMinValueSW")
-    async def set_min_value_sw(self, value: int) -> None:
+    async def set_min_value(self, value: int) -> None:
         """Set the cached minimum color temperature of a light.
 
         Args:

@@ -13,26 +13,21 @@ class LightSensorInterface(Interface):
 
     # Methods
     @method("LightSensor.GetLevel", property="level")
-    async def get_level(self) -> Decimal:
-        """Get the level of a light sensor, using cached value if available.
+    @method("LightSensor.GetLevelHW")
+    async def get_level(self, *, hw: bool = False) -> Decimal:
+        """Get the level of a light sensor.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The level of the light sensor, in foot-candles.
         """
         # INVOKE <id> LightSensor.GetLevel
         # -> R:INVOKE <id> <level> LightSensor.GetLevel
-        return await self.invoke("LightSensor.GetLevel")
-
-    @method("LightSensor.GetLevelHW")
-    async def get_level_hw(self) -> Decimal:
-        """Get the level of a light sensor directly from the hardware.
-
-        Returns:
-            The level of the light sensor, in foot-candles.
-        """
-        # INVOKE <id> LightSensor.GetLevelHW
-        # -> R:INVOKE <id> <level> LightSensor.GetLevelHW
-        return await self.invoke("LightSensor.GetLevelHW")
+        return await self.invoke(
+            "LightSensor.GetLevelHW" if hw else "LightSensor.GetLevel"
+        )
 
     @method("LightSensor.SetLevel")
     async def set_level(self, level: Decimal) -> None:

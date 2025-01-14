@@ -13,45 +13,33 @@ class AnemoSensorInterface(Interface):
 
     # Methods
     @method("AnemoSensor.GetSpeed", property="speed")
-    async def get_speed(self) -> Decimal:
-        """Get the speed of an anemo sensor, using cached value if available.
+    @method("AnemoSensor.GetSpeedHW")
+    async def get_speed(self, *, hw: bool = False) -> Decimal:
+        """Get the speed of an anemo sensor.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The speed of the anemo sensor, in mph.
         """
         # INVOKE <id> AnemoSensor.GetSpeed
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
-        return await self.invoke("AnemoSensor.GetSpeed")
-
-    @method("AnemoSensor.GetSpeedHW")
-    async def get_speed_hw(self) -> Decimal:
-        """Get the speed of an anemo sensor directly from the hardware.
-
-        Returns:
-            The speed of the anemo sensor, in mph.
-        """
-        # INVOKE <id> AnemoSensor.GetSpeedHW
-        # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeedHW
-        return await self.invoke("AnemoSensor.GetSpeedHW")
+        return await self.invoke(
+            "AnemoSensor.GetSpeedHW" if hw else "AnemoSensor.GetSpeed"
+        )
 
     @method("AnemoSensor.SetSpeed")
-    async def set_speed(self, speed: Decimal) -> None:
+    @method("AnemoSensor.SetSpeedSW")
+    async def set_speed(self, speed: Decimal, *, sw: bool = False) -> None:
         """Set the speed of an anemo sensor.
 
         Args:
             speed: The speed to set, in mph.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> AnemoSensor.SetSpeed <speed>
         # -> R:INVOKE <id> <rcode> AnemoSensor.SetSpeed <speed>
-        await self.invoke("AnemoSensor.SetSpeed", speed)
-
-    @method("AnemoSensor.SetSpeedSW")
-    async def set_speed_sw(self, speed: Decimal) -> None:
-        """Set the cached speed of an anemo sensor.
-
-        Args:
-            speed: The speed to set, in mph.
-        """
-        # INVOKE <id> AnemoSensor.SetSpeedSW <speed>
-        # -> R:INVOKE <id> <rcode> AnemoSensor.SetSpeedSW <speed>
-        await self.invoke("AnemoSensor.SetSpeedSW", speed)
+        await self.invoke(
+            "AnemoSensor.SetSpeedSW" if sw else "AnemoSensor.SetSpeed", speed
+        )

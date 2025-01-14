@@ -40,6 +40,7 @@ class IntrospectionInterface(Interface):
         used: int
         total: int
 
+    # Methods
     @method("Introspection.GetAppControllers")
     async def get_app_controllers(self) -> str:
         """Get a list of controllers in application mode, exclidng this controller.
@@ -73,6 +74,7 @@ class IntrospectionInterface(Interface):
         # -> R:INVOKE <id> <rcode> Introspection.GetLicenseInfo <type> <used> <total>
         return await self.invoke("Introspection.GetLicenseInfo", type)
 
+    # Convenience functions, not part of the interface
     async def get_application_version(self) -> str:
         """Get the application firmware version."""
         response = await self.get_firmware_version(self.Firmware.Application)
