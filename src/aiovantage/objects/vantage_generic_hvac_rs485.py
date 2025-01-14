@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from aiovantage.object_interfaces import ThermostatInterface
+from aiovantage.object_interfaces import FanInterface, ThermostatInterface
 
 from .child_device import ChildDevice
 from .port_device import PortDevice
@@ -33,7 +33,7 @@ class VantageGenericHVACRS485CompoundChild(ChildDevice, ThermostatInterface):
 
 
 @dataclass(kw_only=True)
-class VantageGenericHVACRS485ZoneChild(ChildDevice, ThermostatInterface):
+class VantageGenericHVACRS485ZoneChild(ChildDevice, ThermostatInterface, FanInterface):
     """Vantage Generic HVAC RS485 zone child device."""
 
     class Meta:
@@ -41,7 +41,9 @@ class VantageGenericHVACRS485ZoneChild(ChildDevice, ThermostatInterface):
 
 
 @dataclass(kw_only=True)
-class VantageGenericHVACRS485ZoneWithoutFanSpeedChild(ChildDevice, ThermostatInterface):
+class VantageGenericHVACRS485ZoneWithoutFanSpeedChild(
+    ChildDevice, ThermostatInterface, FanInterface
+):
     """Vantage Generic HVAC RS485 zone child device without fan speed."""
 
     class Meta:
