@@ -27,6 +27,10 @@ class InvalidParameterError(CommandError):
     """An invalid parameter was provided."""
 
 
+class WrongNumberOfParametersError(CommandError):
+    """The wrong number of parameters was provided."""
+
+
 class InvalidObjectError(CommandError):
     """The requested object ID is invalid."""
 
@@ -53,6 +57,7 @@ class LoginFailedError(CommandError):
 
 COMMAND_ERROR_CODES = {
     4: InvalidParameterError,
+    5: WrongNumberOfParametersError,
     7: InvalidObjectError,
     8: NotImplementedError,
     17: NotSupportedError,
