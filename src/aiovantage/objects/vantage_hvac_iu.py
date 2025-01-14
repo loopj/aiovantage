@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from aiovantage.object_interfaces import ThermostatInterface
+from aiovantage.object_interfaces import FanInterface, ThermostatInterface
 
 from .child_device import ChildDevice
 from .port_device import PortDevice
@@ -25,7 +25,7 @@ class VantageHVACIULineChild(ChildDevice):
 
 
 @dataclass(kw_only=True)
-class VantageHVACIUZoneChild(ChildDevice, ThermostatInterface):
+class VantageHVACIUZoneChild(ChildDevice, ThermostatInterface, FanInterface):
     """Vantage HVAC-IU zone child device."""
 
     class Meta:
