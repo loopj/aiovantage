@@ -4,6 +4,8 @@ from decimal import Decimal
 
 from .base import Interface, method
 
+# TODO S:TEMP
+
 
 class TemperatureInterface(Interface):
     """Interface for querying and controlling sensors."""
@@ -13,45 +15,33 @@ class TemperatureInterface(Interface):
 
     # Methods
     @method("Temperature.GetValue", property="value")
-    async def get_value(self) -> Decimal:
-        """Get the value of a temperature sensor, using cached value if available.
+    @method("Temperature.GetValueHW")
+    async def get_value(self, *, hw: bool = False) -> Decimal:
+        """Get the value of a temperature sensor.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The value of the temperature sensor, in degrees Celsius.
         """
         # INVOKE <id> Temperature.GetValue
         # -> R:INVOKE <id> <temp> Temperature.GetValue
-        return await self.invoke("Temperature.GetValue")
-
-    @method("Temperature.GetValueHW")
-    async def get_value_hw(self) -> Decimal:
-        """Get the value of a temperature sensor.
-
-        Returns:
-            The value of the temperature sensor, in degrees Celsius.
-        """
-        # INVOKE <id> Temperature.GetValueHW
-        # -> R:INVOKE <id> <temp> Temperature.GetValueHW
-        return await self.invoke("Temperature.GetValueHW")
+        return await self.invoke(
+            "Temperature.GetValueHW" if hw else "Temperature.GetValue"
+        )
 
     @method("Temperature.SetValue")
-    async def set_value(self, value: Decimal) -> None:
+    @method("Temperature.SetValueSW")
+    async def set_value(self, value: Decimal, *, sw: bool = False) -> None:
         """Set the value of a temperature sensor.
 
         Args:
             value: The value to set the sensor to.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Temperature.SetValue <value>
         # -> R:INVOKE <id> <rcode> Temperature.SetValue <value>
-        await self.invoke("Temperature.SetValue", value)
-
-    @method("Temperature.SetValueSW")
-    async def set_value_sw(self, value: Decimal) -> None:
-        """Set the cached value of a temperature sensor.
-
-        Args:
-            value: The value to set the sensor to.
-        """
-        # INVOKE <id> Temperature.SetValueSW <value>
-        # -> R:INVOKE <id> <rcode> Temperature.SetValueSW <value>
-        await self.invoke("Temperature.SetValueSW", value)
+        await self.invoke(
+            "Temperature.SetValueSW" if sw else "Temperature.SetValue", value
+        )

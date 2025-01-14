@@ -44,37 +44,32 @@ class LoadInterface(Interface):
 
     # Methods
     @method("Load.SetLevel")
-    async def set_level(self, level: float | Decimal) -> None:
+    @method("Load.SetLevelSW")
+    async def set_level(self, level: float | Decimal, *, sw: bool = False) -> None:
         """Set the level of a load.
 
         Args:
             level: The level to set the load to (0-100).
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Load.SetLevel <level (0-100)>
         # -> R:INVOKE <id> <rcode> Load.SetLevel <level (0-100)>
-        await self.invoke("Load.SetLevel", level)
+        await self.invoke("Load.SetLevelSW" if sw else "Load.SetLevel", level)
 
     @method("Load.GetLevel", property="level")
-    async def get_level(self) -> Decimal:
-        """Get the level of a load, using cached value if available.
+    @method("Load.GetLevelHW")
+    async def get_level(self, *, hw: bool = False) -> Decimal:
+        """Get the level of a load.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The level of the load, as a percentage (0-100).
         """
         # INVOKE <id> Load.GetLevel
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevel
-        return await self.invoke("Load.GetLevel")
-
-    @method("Load.GetLevelHW")
-    async def get_level_hw(self) -> Decimal:
-        """Get the level of a load directly from the hardware.
-
-        Returns:
-            The level of the load, as a percentage (0-100).
-        """
-        # INVOKE <id> Load.GetLevelHW
-        # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevelHW
-        return await self.invoke("Load.GetLevelHW")
+        return await self.invoke("Load.GetLevelHW" if hw else "Load.GetLevel")
 
     @method("Load.Ramp")
     async def ramp(
@@ -124,17 +119,6 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetOverrideLevel
         return await self.invoke("Load.GetOverrideLevel")
 
-    @method("Load.SetLevelSW")
-    async def set_level_sw(self, level: float | Decimal) -> None:
-        """Set the cached level of a load.
-
-        Args:
-            level: The level to set the load to (0-100).
-        """
-        # INVOKE <id> Load.SetLevelSW <level (0-100)>
-        # -> R:INVOKE <id> <rcode> Load.SetLevelSW <level (0-100)>
-        await self.invoke("Load.SetLevelSW", level)
-
     @method("Load.RampAutoOff")
     async def ramp_auto_off(
         self,
@@ -179,7 +163,7 @@ class LoadInterface(Interface):
         return await self.invoke("Load.GetAlertState")
 
     @method("Load.SetAlertStateSW")
-    async def set_alert_state_sw(self, alert_state: AlertState) -> None:
+    async def set_alert_state(self, alert_state: AlertState) -> None:
         """Set the cached alert state of a load.
 
         Args:
@@ -200,6 +184,7 @@ class LoadInterface(Interface):
         # -> R:INVOKE <id> <dimming config> Load.GetDimmingConfig
         return await self.invoke("Load.GetDimmingConfig")
 
+    # Convenience functions, not part of the interface
     async def turn_on(
         self, transition: float | None = None, level: float | None = None
     ) -> None:

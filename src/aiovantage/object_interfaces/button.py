@@ -34,224 +34,152 @@ class ButtonInterface(Interface):
 
     # Methods
     @method("Button.GetState", property="state")
-    async def get_state(self) -> State:
+    @method("Button.GetStateHW")
+    async def get_state(self, *, hw: bool = False) -> State:
         """Get the state of a button.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The pressed state of the button.
         """
         # INVOKE <id> Button.GetState
         # -> R:INVOKE <id> <state (Up/Down)> Button.GetState
-        return await self.invoke("Button.GetState")
+        return await self.invoke("Button.GetStateHW" if hw else "Button.GetState")
 
     @method("Button.SetState")
-    async def set_state(self, state: State) -> None:
+    @method("Button.SetStateSW")
+    async def set_state(self, state: State, *, sw: bool = False) -> None:
         """Set the state of a button.
 
         Args:
             state: The state to set the button to, either a State.Up or State.Down.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetState <state (0/1/Up/Down)>
         # -> R:INVOKE <id> <rcode> Button.SetState <state (Up/Down)>
-        await self.invoke("Button.SetState", state)
+        await self.invoke("Button.SetStateSW" if sw else "Button.SetState", state)
 
     @method("Button.GetHoldOn")
-    async def get_hold_on(self) -> Decimal:
+    @method("Button.GetHoldOnHW")
+    async def get_hold_on(self, *, hw: bool = False) -> Decimal:
         """Get the hold on time of a button.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The hold on time of the button, in seconds.
         """
         # INVOKE <id> Button.GetHoldOn
         # -> R:INVOKE <id> <seconds> Button.GetHoldOn
-        return await self.invoke("Button.GetHoldOn")
+        return await self.invoke("Button.GetHoldOnHW" if hw else "Button.GetHoldOn")
 
     @method("Button.SetHoldOn")
-    async def set_hold_on(self, seconds: Decimal) -> None:
+    @method("Button.SetHoldOnSW")
+    async def set_hold_on(self, seconds: Decimal, *, sw: bool = False) -> None:
         """Set the hold on time of a button.
 
         Args:
             seconds: The hold on time to set, in seconds.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetHoldOn <seconds>
         # -> R:INVOKE <id> <rcode> Button.SetHoldOn <seconds>
-        await self.invoke("Button.SetHoldOn", seconds)
+        await self.invoke("Button.SetHoldOnSW" if sw else "Button.SetHoldOn", seconds)
 
     @method("Button.GetPolarity")
-    async def get_polarity(self) -> Polarity:
+    @method("Button.GetPolarityHW")
+    async def get_polarity(self, *, hw: bool = False) -> Polarity:
         """Get the polarity of a button.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The polarity of the button.
         """
         # INVOKE <id> Button.GetPolarity
         # -> R:INVOKE <id> <polarity> Button.GetPolarity
-        return await self.invoke("Button.GetPolarity")
+        return await self.invoke("Button.GetPolarityHW" if hw else "Button.GetPolarity")
 
     @method("Button.SetPolarity")
-    async def set_polarity(self, polarity: Polarity) -> None:
+    @method("Button.SetPolaritySW")
+    async def set_polarity(self, polarity: Polarity, *, sw: bool = False) -> None:
         """Set the polarity of a button.
 
         Args:
             polarity: The polarity to set the button to.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetPolarity <polarity (0/1/NormallyOpen/NormallyClosed)>
         # -> R:INVOKE <id> <rcode> Button.SetPolarity <polarity (NormallyOpen/NormallyClosed)>
-        await self.invoke("Button.SetPolarity", polarity)
+        await self.invoke(
+            "Button.SetPolaritySW" if sw else "Button.SetPolarity", polarity
+        )
 
     @method("Button.GetSndType")
-    async def get_snd_type(self) -> SndType:
+    @method("Button.GetSndTypeHW")
+    async def get_snd_type(self, *, hw: bool = False) -> SndType:
         """Get the sound type of a button.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The sound type of the button.
         """
         # INVOKE <id> Button.GetSndType
         # -> R:INVOKE <id> <snd_type> Button.GetSndType
-        return await self.invoke("Button.GetSndType")
+        return await self.invoke("Button.GetSndTypeHW" if hw else "Button.GetSndType")
 
     @method("Button.SetSndType")
-    async def set_snd_type(self, snd_type: SndType) -> None:
+    @method("Button.SetSndTypeSW")
+    async def set_snd_type(self, snd_type: SndType, *, sw: bool = False) -> None:
         """Set the sound type of a button.
 
         Args:
             snd_type: The sound type to set the button to.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetSndType <snd_type (0/1/2/Continuous/Pulsed/Off)>
         # -> R:INVOKE <id> <rcode> Button.SetSndType <snd_type (Continuous/Pulsed/Off)>
-        await self.invoke("Button.SetSndType", snd_type)
+        await self.invoke(
+            "Button.SetSndTypeSW" if sw else "Button.SetSndType", snd_type
+        )
 
     @method("Button.GetPlacement")
-    async def get_placement(self) -> int:
+    @method("Button.GetPlacementHW")
+    async def get_placement(self, *, hw: bool = False) -> int:
         """Get the placement of a button.
+
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The placement of the button on the keypad.
         """
         # INVOKE <id> Button.GetPlacement
         # -> R:INVOKE <id> <placement> Button.GetPlacement
-        return await self.invoke("Button.GetPlacement")
-
-    @method("Button.GetPlacementHW")
-    async def get_placement_hw(self) -> int:
-        """Get the hardware placement of a button directly from the hardware.
-
-        Returns:
-            The placement of the button on the keypad.
-        """
-        # INVOKE <id> Button.GetPlacementHW
-        # -> R:INVOKE <id> <placement> Button.GetPlacementHW
-        return await self.invoke("Button.GetPlacementHW")
+        return await self.invoke(
+            "Button.GetPlacementHW" if hw else "Button.GetPlacement"
+        )
 
     @method("Button.SetPlacement")
-    async def set_placement(self, placement: int) -> None:
+    @method("Button.SetPlacementSW")
+    async def set_placement(self, placement: int, *, sw: bool = False) -> None:
         """Set the placement of a button.
 
         Args:
             placement: The placement of the button on the keypad.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetPlacement <placement>
         # -> R:INVOKE <id> <rcode> Button.SetPlacement <placement>
-        await self.invoke("Button.SetPlacement", placement)
-
-    @method("Button.GetStateHW")
-    async def get_state_hw(self) -> State:
-        """Get the state of a button directly from the hardware.
-
-        Returns:
-            The pressed state of the button.
-        """
-        # INVOKE <id> Button.GetStateHW
-        # -> R:INVOKE <id> <state (Up/Down)> Button.GetStateHW
-        return await self.invoke("Button.GetStateHW")
-
-    @method("Button.SetStateSW")
-    async def set_state_sw(self, state: State) -> None:
-        """Set the cached state of a button.
-
-        Args:
-            state: The state to set the button to.
-        """
-        # INVOKE <id> Button.SetStateSW <state (0/1/Up/Down)>
-        # -> R:INVOKE <id> <rcode> Button.SetStateSW <state (Up/Down)>
-        await self.invoke("Button.SetStateSW", state)
-
-    @method("Button.GetHoldOnHW")
-    async def get_hold_on_hw(self) -> Decimal:
-        """Get the hold on time of a button directly from the hardware.
-
-        Returns:
-            The hold on time of the button, in seconds.
-        """
-        # INVOKE <id> Button.GetHoldOnHW
-        # -> R:INVOKE <id> <seconds> Button.GetHoldOnHW
-        return await self.invoke("Button.GetHoldOnHW")
-
-    @method("Button.SetHoldOnSW")
-    async def set_hold_on_sw(self, seconds: Decimal) -> None:
-        """Set the cached hold on time of a button.
-
-        Args:
-            seconds: The hold on time to set, in seconds.
-        """
-        # INVOKE <id> Button.SetHoldOnSW <seconds>
-        # -> R:INVOKE <id> <rcode> Button.SetHoldOnSW <seconds>
-        await self.invoke("Button.SetHoldOnSW", seconds)
-
-    @method("Button.GetPolarityHW")
-    async def get_polarity_hw(self) -> Polarity:
-        """Get the polarity of a button directly from the hardware.
-
-        Returns:
-            The polarity of the button.
-        """
-        # INVOKE <id> Button.GetPolarityHW
-        # -> R:INVOKE <id> <polarity> Button.GetPolarityHW
-        return await self.invoke("Button.GetPolarityHW")
-
-    @method("Button.SetPolaritySW")
-    async def set_polarity_sw(self, polarity: Polarity) -> None:
-        """Set the cached polarity of a button.
-
-        Args:
-            polarity: The polarity to set the button to.
-        """
-        # INVOKE <id> Button.SetPolaritySW <polarity (0/1/NormallyOpen/NormallyClosed)>
-        # -> R:INVOKE <id> <rcode> Button.SetPolaritySW <polarity (NormallyOpen/NormallyClosed)>
-        await self.invoke("Button.SetPolaritySW", polarity)
-
-    @method("Button.GetSndTypeHW")
-    async def get_snd_type_hw(self) -> SndType:
-        """Get the sound type of a button directly from the hardware.
-
-        Returns:
-            The sound type of the button.
-        """
-        # INVOKE <id> Button.GetSndTypeHW
-        # -> R:INVOKE <id> <snd_type> Button.GetSndTypeHW
-        return await self.invoke("Button.GetSndTypeHW")
-
-    @method("Button.SetSndTypeSW")
-    async def set_snd_type_sw(self, snd_type: SndType) -> None:
-        """Set the cached sound type of a button.
-
-        Args:
-            snd_type: The sound type to set the button to.
-        """
-        # INVOKE <id> Button.SetSndTypeSW <snd_type (0/1/2/Continuous/Pulsed/Off)>
-        # -> R:INVOKE <id> <rcode> Button.SetSndTypeSW <snd_type (Continuous/Pulsed/Off)>
-        await self.invoke("Button.SetSndTypeSW", snd_type)
-
-    @method("Button.SetPlacementSW")
-    async def set_placement_sw(self, placement: int) -> None:
-        """Set the cached placement of a button.
-
-        Args:
-            placement: The placement of the button on the keypad.
-        """
-        # INVOKE <id> Button.SetPlacementSW <placement>
-        # -> R:INVOKE <id> <rcode> Button.SetPlacementSW <placement>
-        await self.invoke("Button.SetPlacementSW", placement)
+        await self.invoke(
+            "Button.SetPlacementSW" if sw else "Button.SetPlacement", placement
+        )
 
     # Convenience functions, not part of the interface
     @property

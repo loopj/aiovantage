@@ -65,37 +65,29 @@ class OmniSensor(Sensor, SensorInterface):
     get: Get
     set: Set
 
-    async def get_level(self) -> Decimal:
+    async def get_level(self, *, hw: bool = False) -> Decimal:
         """Get the value of the OmniSensor object, using cached value if available.
 
-        Returns:
-            The level of the sensor.
-        """
-        return await self.invoke(self.get.method, as_type=Decimal)
-
-    async def get_level_hw(self) -> Decimal:
-        """Get the value of the OmniSensor object directly from the hardware.
+        Args:
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The level of the sensor.
         """
-        return await self.invoke(self.get.method_hw, as_type=Decimal)
+        return await self.invoke(
+            self.get.method_hw if hw else self.get.method, as_type=Decimal
+        )
 
-    async def set_level(self, level: Decimal) -> None:
+    async def set_level(self, level: Decimal, *, sw: bool = False) -> None:
         """Set the value of the OmniSensor object.
 
         Args:
             level: The value to set the sensor to.
+            sw: Set the cached value instead of the hardware value.
         """
-        await self.invoke(self.set.method, level, as_type=NoneType)
-
-    async def set_level_sw(self, level: Decimal) -> None:
-        """Set the cached value of the OmniSensor object.
-
-        Args:
-            level: The value to set the sensor to.
-        """
-        await self.invoke(self.set.method_sw, level, as_type=NoneType)
+        await self.invoke(
+            self.set.method_sw if sw else self.set.method, level, as_type=NoneType
+        )
 
     @property
     def is_current_sensor(self) -> bool:
@@ -114,7 +106,7 @@ class OmniSensor(Sensor, SensorInterface):
 
     @override
     async def fetch_state(self) -> list[str]:
-        level = await self.get_level_hw()
+        level = await self.get_level(hw=True)
         if self.level != level:
             self.level = level
             return ["level"]
