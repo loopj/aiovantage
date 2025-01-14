@@ -71,6 +71,7 @@ from .vantage_hvac_iu import (
     VantageHVACIUPort,
     VantageHVACIUZoneChild,
 )
+from .vantage_virtual_thermostat import VantageVirtualThermostatPort
 
 __all__ = [
     "AnemoSensor",
@@ -140,4 +141,5 @@ __all__ = [
     "VantageHVACIULineChild",
     "VantageHVACIUPort",
     "VantageHVACIUZoneChild",
+    "VantageVirtualThermostatPort",
 ]
