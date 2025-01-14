@@ -5,7 +5,7 @@ import logging
 from collections.abc import Callable, Iterable
 from dataclasses import fields
 from inspect import iscoroutinefunction
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.utils import tokenize_response
@@ -28,10 +28,10 @@ EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 class BaseController(QuerySet[T]):
     """Base controller for Vantage objects."""
 
-    vantage_types: tuple[type[SystemObject], ...]
+    vantage_types: ClassVar[tuple[type[SystemObject], ...]]
     """The Vantage object types that this controller handles."""
 
-    status_types: tuple[str, ...] = ()
+    status_types: ClassVar[tuple[str, ...]] = ()
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     def __init__(self, vantage: "Vantage") -> None:
@@ -91,7 +91,11 @@ class BaseController(QuerySet[T]):
 
     async def fetch_object_state(self, obj: T) -> None:
         """Fetch the state properties of an object."""
-        self.object_updated(obj, await obj.fetch_state())
+        # Fetch the state of the object
+        props_changed = await obj.fetch_state()
+
+        # Notify subscribers if any attributes changed
+        self.object_updated(obj, props_changed)
 
     def handle_category_status(self, _vid: int, _status: str, *_args: str) -> None:
         """Handle simple status messages from the event stream.
@@ -109,11 +113,14 @@ class BaseController(QuerySet[T]):
         if updated_properties:
             self.object_updated(obj, [updated_properties])
 
-    async def initialize(self, *, fetch_state: bool = True) -> None:
-        """Populate the controller, and optionally fetch initial state.
+    async def initialize(
+        self, *, fetch_state: bool = True, subscribe_state: bool = True
+    ) -> None:
+        """Populate the controller, and optionally fetch object state.
 
         Args:
-            fetch_state: Whether to also fetch the state of each object.
+            fetch_state: Whether to fetch the state of stateful objects.
+            subscribe_state: Whether to keep the state of stateful objects up-to-date.
         """
         # Prevent concurrent controller initialization from multiple tasks, since we
         # are batch-modifying the _items dict.
@@ -159,7 +166,7 @@ class BaseController(QuerySet[T]):
                 self.emit(VantageEvent.OBJECT_DELETED, obj)
 
         # Subscribe to state changes for objects managed by this controller
-        if fetch_state and len(self._items) > 0:
+        if subscribe_state and len(self._items) > 0:
             await self.subscribe_to_state_changes()
 
         # Mark the controller as initialized
