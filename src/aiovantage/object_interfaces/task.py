@@ -4,8 +4,6 @@ from enum import IntEnum
 
 from .base import Interface, method
 
-# TODO: S:TASK
-
 
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""

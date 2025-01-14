@@ -4,8 +4,6 @@ from decimal import Decimal
 
 from .base import Interface, method
 
-# TODO S:TEMP
-
 
 class TemperatureInterface(Interface):
     """Interface for querying and controlling sensors."""
