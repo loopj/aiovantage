@@ -6,19 +6,14 @@ import re
 from dataclasses import dataclass
 from ssl import SSLContext
 from types import TracebackType
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from typing_extensions import Self
 
 from aiovantage.connection import BaseConnection
 from aiovantage.errors import CommandError, raise_command_error
 
-from .utils import (
-    ParameterType,
-    encode_params,
-    parse_object_response,
-    tokenize_response,
-)
+from .utils import encode_params, tokenize_response
 
 T = TypeVar("T")
 
@@ -86,7 +81,7 @@ class CommandClient:
     async def command(
         self,
         command: str,
-        *params: ParameterType,
+        *params: Any,
         force_quotes: bool = False,
         connection: CommandConnection | None = None,
     ) -> CommandResponse:
@@ -114,36 +109,6 @@ class CommandClient:
 
         # Parse the response
         return CommandResponse(command[2:], args, data)
-
-    async def invoke(
-        self,
-        vid: int,
-        method: str,
-        *params: ParameterType,
-        as_type: type[T] | None = None,
-    ) -> T | None:
-        """Invoke a method on an object, and return the parsed response.
-
-        Args:
-            vid: The vid of the object to invoke the method on.
-            method: The method to invoke.
-            params: The parameters to send with the method.
-            as_type: The expected return type of the method.
-
-        Returns:
-            A parsed response, or None if no response was expected.
-        """
-        # INVOKE <id> <Interface.Method> <arg1> <arg2> ...
-        # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
-
-        # Send the command
-        response = await self.command("INVOKE", vid, method, *params, force_quotes=True)
-
-        # Break the response into tokens
-        _id, result, _method, *args = response.args
-
-        # Parse the response
-        return parse_object_response(result, *args, as_type=as_type)
 
     async def raw_request(
         self, request: str, connection: CommandConnection | None = None

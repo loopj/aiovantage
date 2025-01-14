@@ -271,7 +271,7 @@ class BaseController(QuerySet[T]):
                 continue
 
             if iscoroutinefunction(callback):
-                asyncio.create_task(callback(event_type, obj, data))  # noqa: RUF006
+                asyncio.create_task(callback(event_type, obj, data))
             else:
                 callback(event_type, obj, data)
 

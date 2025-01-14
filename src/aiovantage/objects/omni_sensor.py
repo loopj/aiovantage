@@ -1,5 +1,6 @@
 """OmniSensor object."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum
@@ -104,8 +105,12 @@ class OmniSensor(Sensor, SensorInterface):
         """Return True if the sensor is a temperature sensor."""
         return self.model == "Temperature"
 
+    # NOTE: We are explicitly not calling the parent methods in fetch_state and
+    # handle_object_status, as we don't want SensorInterface to handle the state.
+    # OmniSensors do additional conversion behind the scenes.
+
     @override
-    async def fetch_state(self) -> list[str]:
+    async def fetch_state(self, properties: Sequence[str] | None = None) -> list[str]:
         level = await self.get_level(hw=True)
         if self.level != level:
             self.level = level

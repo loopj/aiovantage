@@ -6,11 +6,9 @@ import struct
 from decimal import Decimal
 from enum import IntEnum
 from types import NoneType
-from typing import Any, TypeVar, cast, get_type_hints
+from typing import Any, TypeVar, cast
 
 TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\[.*?\])|(\S+)')
-
-ParameterType = str | bool | int | float | bytearray | Decimal | IntEnum | dt.datetime
 
 T = TypeVar("T")
 
@@ -69,13 +67,15 @@ def parse_param(arg: str, klass: type[T]) -> T:
     elif issubclass(klass, IntEnum):
         # Support both integer and string values for IntEnum
         parsed = klass(int(arg)) if arg.isdigit() else klass[arg]
+    elif klass is NoneType:
+        parsed = None
     else:
         raise ValueError(f"Unsupported type: {klass}")
 
     return cast(T, parsed)
 
 
-def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
+def encode_params(*params: Any, force_quotes: bool = False) -> str:
     """Encode a list of parameters for sending to the Host Command service.
 
     Converts all params to strings, wraps strings in double quotes, and escapes
@@ -92,7 +92,7 @@ def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
         TypeError: If a parameter is of an unsupported type.
     """
 
-    def encode(param: ParameterType) -> str:
+    def encode(param: Any) -> str:
         match param:
             case str():
                 return encode_string_param(param, force_quotes=force_quotes)
@@ -110,6 +110,10 @@ def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
                 return encode_byte_param(param)
             case dt.datetime():
                 return str(int(param.timestamp()))
+            case NoneType():
+                return ""
+            case _:
+                raise TypeError(f"Unsupported type: {type(param)}")
 
     return " ".join(encode(param) for param in params)
 
@@ -197,46 +201,3 @@ def encode_byte_param(byte_array: bytearray) -> str:
 
     # Join the tokens with commas and wrap in curly braces
     return "{" + ",".join(tokens) + "}"
-
-
-def parse_object_response(
-    result: str, *args: str, as_type: type[T] | None = None
-) -> T | None:
-    """Parse an object interface "INVOKE" response or status message.
-
-    Args:
-        result: The result of the command.
-        args: The arguments that were sent with the command.
-        as_type: The expected return type of the method.
-
-    Returns:
-        A response parsed into the expected type.
-    """
-    # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
-    # -> EL: <id> <Interface.Method> <result> <arg1> <arg2> ...
-    # -> S:STATUS <id> <Interface.Method> <result> <arg1> <arg2> ...
-
-    # If no type is specified, return early
-    if as_type in (None, NoneType):
-        return None
-
-    # Otherwise, parse the result into the expected type
-    if type_hints := get_type_hints(as_type):
-        # Some methods return multiple values, in the result and in the arguments
-        # To support this, if the signature is an object with type hints, we'll assume
-        # we are packing the values into the attributes of the object
-        # The "result" is packed into the first argument, followed by the rest of the arguments
-        parsed_values: list[Any] = []
-        for arg, klass in zip([result, *args], type_hints.values(), strict=True):
-            parsed_values.append(parse_param(arg, klass))
-
-        parsed_response = as_type(*parsed_values)
-    elif as_type is str:
-        # Simple string responses contain the string value in the first argument
-        parsed_response = cast(T, parse_param(args[0], str))
-    else:
-        # Otherwise, parse a single return value
-        parsed_response = parse_param(result, as_type)
-
-    # Return the parsed result
-    return parsed_response
