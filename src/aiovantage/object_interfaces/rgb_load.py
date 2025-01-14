@@ -1,5 +1,6 @@
 """Interface for querying and controlling RGB loads."""
 
+from collections.abc import Sequence
 from decimal import Decimal
 from enum import IntEnum
 from itertools import islice
@@ -461,7 +462,7 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGB color as a tuple of (red, green, blue).
         """
-        return tuple([await self.get_rgb(chan) for chan in islice(self.RGBChannel, 3)])  # type: ignore
+        return tuple([await self.get_rgb(chan) for chan in islice(self.RGBChannel, 3)])
 
     async def get_rgbw_color(self) -> tuple[int, int, int, int]:
         """Get the RGBW color of a load from the controller.
@@ -469,7 +470,7 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the RGBW color as a tuple of (red, green, blue, white).
         """
-        return tuple([await self.get_rgbw(chan) for chan in self.RGBChannel])  # type: ignore
+        return tuple([await self.get_rgbw(chan) for chan in self.RGBChannel])
 
     async def get_hsl_color(self) -> tuple[int, int, int]:
         """Get the HSL color of a load from the controller.
@@ -477,12 +478,12 @@ class RGBLoadInterface(Interface):
         Returns:
             The value of the HSL color as a tuple of (hue, saturation, lightness).
         """
-        return tuple([await self.get_hsl(attr) for attr in self.HSLAttribute])  # type: ignore
+        return tuple([await self.get_hsl(attr) for attr in self.HSLAttribute])
 
     @override
-    async def fetch_state(self) -> list[str]:
+    async def fetch_state(self, properties: Sequence[str] | None = None) -> list[str]:
         # Fetch state from other interfaces
-        attrs_changed = await super().fetch_state()
+        attrs_changed = await super().fetch_state(properties)
 
         # Fetch RGB, HSL, and RGBW colors
         for attr, fn in (
@@ -503,10 +504,6 @@ class RGBLoadInterface(Interface):
         # one line per channel/attribute. We want to cache the values until we have
         # all of them, then update the property.
 
-        # Allow other interfaces to handle their status updates
-        if not method.startswith("RGBLoad"):
-            return super().handle_object_status(method, result, *args)
-
         # Define the methods and the number of channels/attributes they return
         methods = {
             "RGBLoad.GetRGB": ("rgb", 3),
@@ -516,7 +513,7 @@ class RGBLoadInterface(Interface):
 
         # Check if the method is one we're interested in
         if method not in methods:
-            return
+            return super().handle_object_status(method, result, *args)
 
         # Get the attribute and number of channels/attributes
         attr, num_channels = methods[method]
