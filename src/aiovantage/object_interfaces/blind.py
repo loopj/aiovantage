@@ -1,7 +1,7 @@
 """Interface for querying and controlling blinds."""
 
+from dataclasses import dataclass
 from decimal import Decimal
-from typing import NamedTuple
 
 from aiovantage.object_interfaces.interface_classes import ShadeOrientation, ShadeType
 
@@ -12,7 +12,8 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
     """Interface for querying and controlling blinds."""
 
     # Types
-    class BlindState(NamedTuple):
+    @dataclass
+    class BlindState:
         """The state of a blind."""
 
         is_moving: bool
@@ -21,7 +22,8 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         transition_time: Decimal
         start_time: int
 
-    class TravelTimes(NamedTuple):
+    @dataclass
+    class TravelTimes:
         """The travel times of a blind."""
 
         rcode: int

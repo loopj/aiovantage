@@ -1,7 +1,7 @@
 """Interface for controller introspection."""
 
+from dataclasses import dataclass
 from enum import IntEnum
-from typing import NamedTuple
 
 from .base import Interface, method
 
@@ -24,7 +24,8 @@ class IntrospectionInterface(Interface):
         Equinox = 1
         All = -1
 
-    class FirmwareVersionResponse(NamedTuple):
+    @dataclass
+    class FirmwareVersion:
         """A firmware version response."""
 
         rcode: int
@@ -32,7 +33,8 @@ class IntrospectionInterface(Interface):
         version: str
         size: int
 
-    class LicenseInfoResponse(NamedTuple):
+    @dataclass
+    class LicenseInfo:
         """A license info response."""
 
         rcode: int
@@ -53,7 +55,7 @@ class IntrospectionInterface(Interface):
         return await self.invoke("Introspection.GetAppControllers")
 
     @method("Introspection.GetFirmwareVersion")
-    async def get_firmware_version(self, image: Firmware) -> FirmwareVersionResponse:
+    async def get_firmware_version(self, image: Firmware) -> FirmwareVersion:
         """Get the firmware version.
 
         Args:
@@ -64,7 +66,7 @@ class IntrospectionInterface(Interface):
         return await self.invoke("Introspection.GetFirmwareVersion", image)
 
     @method("Introspection.GetLicenseInfo")
-    async def get_license_info(self, type: LicenseType) -> LicenseInfoResponse:
+    async def get_license_info(self, type: LicenseType) -> LicenseInfo:
         """Get license information.
 
         Args:

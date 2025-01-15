@@ -1,7 +1,7 @@
 """Interface for querying and controlling system objects."""
 
 import datetime as dt
-from typing import NamedTuple
+from dataclasses import dataclass
 
 from .base import Interface, method
 
@@ -10,8 +10,9 @@ class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""
 
     # Types
-    class PropertyExResponse(NamedTuple):
-        """Response from Object.GetPropertyEx."""
+    @dataclass
+    class PropertyEx:
+        """Extended property information."""
 
         rcode: int
         property: str
@@ -100,7 +101,7 @@ class ObjectInterface(Interface):
         return await self.invoke("Object.GetProperty", property)
 
     @method("Object.GetPropertyEx")
-    async def get_property_ex(self, property: str) -> PropertyExResponse:
+    async def get_property_ex(self, property: str) -> PropertyEx:
         """Get a string property of an object.
 
         Args:
