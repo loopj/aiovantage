@@ -4,7 +4,7 @@ import re
 
 from typing_extensions import override
 
-from aiovantage.command_client.utils import parse_byte_param
+from aiovantage.command_client.types import converter
 from aiovantage.objects import GMem
 
 from .base import BaseController
@@ -76,7 +76,7 @@ class GMemController(BaseController[GMem]):
         if gmem.is_str:
             # Handle byte array strings
             if re.match(r"^[\[\{].*[\]\}]$", value):
-                byte_param = parse_byte_param(value)
+                byte_param = converter.deserialize(bytearray, value)
                 return byte_param.decode().rstrip("\x00")
 
             return value
