@@ -13,7 +13,7 @@ from typing_extensions import Self
 from aiovantage.connection import BaseConnection
 from aiovantage.errors import CommandError, raise_command_error
 
-from .utils import encode_params, tokenize_response
+from .types import converter, tokenize_response
 
 T = TypeVar("T")
 
@@ -99,7 +99,11 @@ class CommandClient:
         # Build the request
         request = command
         if params:
-            request += f" {encode_params(*params, force_quotes=force_quotes)}"
+            serialized_params = " ".join(
+                converter.serialize(params, force_quotes=force_quotes)
+                for params in params
+            )
+            request += f" {serialized_params}"
 
         # Send the request
         *data, return_line = await self.raw_request(request, connection=connection)

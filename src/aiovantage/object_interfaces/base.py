@@ -13,7 +13,7 @@ from typing import (
 )
 
 from aiovantage.command_client import CommandClient
-from aiovantage.command_client.utils import parse_param
+from aiovantage.command_client.types import converter
 from aiovantage.errors import NotImplementedError, NotSupportedError
 
 T = TypeVar("T")
@@ -151,9 +151,8 @@ class Interface(metaclass=InterfaceMeta):
         if self.command_client is None:
             raise ValueError("The object has no command client to send requests with.")
 
-        # Get the expected return type of the method
-        signature = as_type or self.method_signatures.get(method)
-        if signature is None:
+        # Make sure we have a signature for the method
+        if as_type is None and method not in self.method_signatures:
             raise NotImplementedError(f"No signature found for method {method}")
 
         # Send the command
@@ -165,6 +164,7 @@ class Interface(metaclass=InterfaceMeta):
         _id, result, _method, *args = response.args
 
         # Parse the response
+        signature = as_type or self.method_signatures[method]
         return _parse_object_response(result, *args, as_type=signature)
 
     async def fetch_state(self, properties: Sequence[str] | None = None) -> list[str]:
@@ -208,12 +208,12 @@ class Interface(metaclass=InterfaceMeta):
         if property is None:
             return
 
-        # Get the expected return type of the method
-        signature = self.method_signatures.get(method)
-        if signature is None:
+        # Make sure we have a signature for the method
+        if method not in self.method_signatures:
             raise NotImplementedError(f"No signature found for method {method}")
 
         # Parse the response
+        signature = self.method_signatures[method]
         value = _parse_object_response(result, *args, as_type=signature)
 
         # Update the property if it has changed
@@ -222,7 +222,7 @@ class Interface(metaclass=InterfaceMeta):
             return property
 
 
-def _parse_object_response(result: str, *args: str, as_type: type[T]) -> T:
+def _parse_object_response(result: str, *args: str, as_type: type[T]) -> T | None:
     """Parse an object interface response message.
 
     Args:
@@ -237,21 +237,27 @@ def _parse_object_response(result: str, *args: str, as_type: type[T]) -> T:
     # -> EL: <id> <Interface.Method> <result> <arg1> <arg2> ...
     # -> S:STATUS <id> <Interface.Method> <result> <arg1> <arg2> ...
 
+    # Return early if the expected type is NoneType
+    if as_type is type(None):
+        return None
+
     # Otherwise, parse the result into the expected type
     if type_hints := get_type_hints(as_type):
         # Some methods return multiple values, in the result and in the arguments
         # To support this, if the signature is an object with type hints, we'll assume
         # we are packing the values into the attributes of the object
         # The "result" is packed into the first argument, followed by the rest of the arguments
+        # Typically we'll use NamedTuples for this, but we'll support any object with type hints
         parsed_values: list[Any] = []
         for arg, klass in zip([result, *args], type_hints.values(), strict=True):
-            parsed_values.append(parse_param(arg, klass))
+            parsed_value = converter.deserialize(klass, arg)
+            parsed_values.append(parsed_value)
 
         parsed_response = as_type(*parsed_values)
     else:
         # Simple string responses contain the string value in the first argument
         param = args[0] if as_type is str else result
-        parsed_response = parse_param(param, as_type)
+        parsed_response = converter.deserialize(as_type, param)
 
     # Return the parsed result
     return parsed_response
