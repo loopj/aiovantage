@@ -9,11 +9,6 @@ from .system_object import SystemObject
 class PowerProfile(SystemObject):
     """Power Profile object."""
 
-    # Significantly different on 2.x firmware.
-    # - Min, Max are ints on 2.x firmware.
-    # - DCPowerProfile doesn't inherit from PowerProfile on 2.x firmware.
-    # - Can rework this once we drop support for 2.x firmware.
-
     min: float
     max: float
     adjust: int | None = None
