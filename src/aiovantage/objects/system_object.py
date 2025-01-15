@@ -11,8 +11,6 @@ from aiovantage.object_interfaces.base import Interface
 class SystemObject(ObjectInterface):
     """Base class for all objects."""
 
-    # MTime, DName, not available in 2.x firmware
-
     vid: int = field(metadata={"name": "VID", "type": "Attribute"})
     master: int = field(metadata={"type": "Attribute"})
     name: str

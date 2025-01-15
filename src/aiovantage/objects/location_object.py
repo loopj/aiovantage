@@ -9,7 +9,5 @@ from .system_object import SystemObject
 class LocationObject(SystemObject):
     """Base class for system objects in an area."""
 
-    # Some objects in firmware 2.x do not have Area or Location
-
-    area: int | None = None
-    location: str | None = None
+    area: int
+    location: str

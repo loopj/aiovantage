@@ -88,7 +88,6 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPosition
         return await self.invoke("Blind.GetPositionHW" if hw else "Blind.GetPosition")
 
-    # Methods below here are not available in 2.x firmware.
     @method("Blind.SetTiltAngle")
     @method("Blind.SetTiltAngleSW")
     async def set_tilt_angle(self, angle: int, *, sw: bool = False) -> None:

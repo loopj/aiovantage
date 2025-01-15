@@ -11,9 +11,8 @@ from .system_object import SystemObject
 class Master(SystemObject, IntrospectionInterface, ConfigurationInterface):
     """Master (InFusion Controller) object."""
 
-    # ModuleCount, SerialNumber, not available in 2.x firmware
-
     number: int
+    boot: int = 0
     volts: float
     amps: float
     module_count: int | None = None
