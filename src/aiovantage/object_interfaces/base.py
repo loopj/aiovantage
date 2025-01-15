@@ -243,11 +243,9 @@ def _parse_object_response(result: str, *args: str, as_type: type[T]) -> T | Non
 
     # Otherwise, parse the result into the expected type
     if type_hints := get_type_hints(as_type):
-        # Some methods return multiple values, in the result and in the arguments
-        # To support this, if the signature is an object with type hints, we'll assume
-        # we are packing the values into the attributes of the object
-        # The "result" is packed into the first argument, followed by the rest of the arguments
-        # Typically we'll use NamedTuples for this, but we'll support any object with type hints
+        # Some methods return multiple values, in the "return" field and in the
+        # "params" fields. This adds support for parsing multiple values into
+        # a dataclass or NamedTuple.
         parsed_values: list[Any] = []
         for arg, klass in zip([result, *args], type_hints.values(), strict=True):
             parsed_value = converter.deserialize(klass, arg)
