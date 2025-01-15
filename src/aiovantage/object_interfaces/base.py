@@ -12,6 +12,8 @@ from typing import (
     runtime_checkable,
 )
 
+from typing_extensions import Self
+
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.types import converter
 from aiovantage.errors import NotImplementedError, NotSupportedError
@@ -220,6 +222,13 @@ class Interface(metaclass=InterfaceMeta):
         if hasattr(self, property) and getattr(self, property) != value:
             setattr(self, property, value)
             return property
+
+    @classmethod
+    def implementers(cls) -> set[type[Self]]:
+        """Return the subclasses of this object."""
+        return set(cls.__subclasses__()).union(
+            subclass for sub in cls.__subclasses__() for subclass in sub.implementers()
+        )
 
 
 def _parse_object_response(result: str, *args: str, as_type: type[T]) -> T | None:
