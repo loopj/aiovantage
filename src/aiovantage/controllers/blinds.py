@@ -11,8 +11,6 @@ from aiovantage.objects import (
 
 from .base import BaseController
 
-# Manually define the union type of all types that implement the BlindInterface
-# Change this to "SystemObject & BlindInterface" once Python has intersection types
 BlindTypes = (
     BlindGroup
     | QISBlind
@@ -26,4 +24,11 @@ BlindTypes = (
 class BlindsController(BaseController[BlindTypes]):
     """Controller holding and managing Vantage blinds."""
 
-    vantage_types = BlindTypes.__args__
+    vantage_types = (
+        BlindGroup,
+        QISBlind,
+        QubeBlind,
+        RelayBlind,
+        SomfyRS485ShadeChild,
+        SomfyURTSI2ShadeChild,
+    )

@@ -17,13 +17,11 @@ from .controllers import (
     AreasController,
     BackBoxesController,
     BaseController,
-    BlindGroupsController,
     BlindsController,
     ButtonsController,
     DryContactsController,
     GMemController,
     LightSensorsController,
-    LoadGroupsController,
     LoadsController,
     MastersController,
     ModulesController,
@@ -84,13 +82,11 @@ class Vantage:
         self._anemo_sensors = self._add_controller(AnemoSensorsController)
         self._areas = self._add_controller(AreasController)
         self._back_boxes = self._add_controller(BackBoxesController)
-        self._blind_groups = self._add_controller(BlindGroupsController)
         self._blinds = self._add_controller(BlindsController)
         self._buttons = self._add_controller(ButtonsController)
         self._dry_contacts = self._add_controller(DryContactsController)
         self._gmem = self._add_controller(GMemController)
         self._light_sensors = self._add_controller(LightSensorsController)
-        self._load_groups = self._add_controller(LoadGroupsController)
         self._loads = self._add_controller(LoadsController)
         self._masters = self._add_controller(MastersController)
         self._modules = self._add_controller(ModulesController)
@@ -178,11 +174,6 @@ class Vantage:
         return self._blinds
 
     @property
-    def blind_groups(self) -> BlindGroupsController:
-        """Controller for interacting with groups of blinds."""
-        return self._blind_groups
-
-    @property
     def buttons(self) -> ButtonsController:
         """Controller for interacting with keypad buttons."""
         return self._buttons
@@ -206,11 +197,6 @@ class Vantage:
     def loads(self) -> LoadsController:
         """Controller for interacting with loads (lights, fans, etc)."""
         return self._loads
-
-    @property
-    def load_groups(self) -> LoadGroupsController:
-        """Controller for interacting with groups of loads."""
-        return self._load_groups
 
     @property
     def masters(self) -> MastersController:
