@@ -49,13 +49,11 @@ The following interfaces/controllers are currently supported.
 | Area          | Rooms, etc            | `vantage.areas`               | [Examples](examples/areas)                |
 | BackBox       | Backboxes             | `vantage.backboxes`           |                                           |
 | Blind         | Shades, blinds        | `vantage.blinds`              | [Examples](examples/blinds)               |
-| BlindGroups   | Groups of blinds      | `vantage.blind_groups`        | [Examples](examples/blind_groups)         |
 | Buttons       | Keypad buttons        | `vantage.buttons`             | [Examples](examples/buttons)              |
 | DryContacts   | Motion sensors, etc   | `vantage.dry_contacts`        | [Examples](examples/dry_contacts)         |
 | GMem          | Vantage variables     | `vantage.gmem`                | [Examples](examples/gmem)                 |
 | LightSensor   | Light sensors         | `vantage.light_sensors`       | [Examples](examples/light_sensors)        |
 | Load          | Lights, relays, etc   | `vantage.loads`               | [Examples](examples/loads)                |
-| LoadGroup     | Groups of loads       | `vantage.load_groups`         | [Examples](examples/load_groups)          |
 | Master        | Vantage controllers   | `vantage.masters`             | [Examples](examples/masters)              |
 | Module        | Dimmer modules        | `vantage.modules`             |                                           |
 | OmniSensor    | Power, current, etc   | `vantage.omni_sensors`        | [Examples](examples/omni_sensors)         |
