@@ -208,7 +208,7 @@ class Interface(metaclass=InterfaceMeta):
         # Look up the property associated with this method
         property = self.method_properties.get(method)
         if property is None:
-            return
+            return None
 
         # Make sure we have a signature for the method
         if method not in self.method_signatures:
