@@ -70,15 +70,14 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         self.__filters.append(filter_fn)
 
     @overload
-    def filter(self, match: Callable[[T], bool]) -> Self: ...
+    def filter(self, match: Callable[[T], bool]) -> "QuerySet[T]": ...
 
     @overload
-    def filter(self, **kwargs: Any) -> Self: ...
+    def filter(self, **kwargs: Any) -> "QuerySet[T]": ...
 
-    def filter(self, *args: Any, **kwargs: Any) -> Self:
+    def filter(self, *args: Any, **kwargs: Any) -> "QuerySet[T]":
         """Return a queryset of items that match the given filter."""
-        cls = type(self)
-        queryset = cls(self.__data, self.__populate, self.__filters.copy())
+        queryset = QuerySet(self.__data, self.__populate, self.__filters.copy())
 
         if len(args) == 1:
             queryset.add_filter(args[0])
