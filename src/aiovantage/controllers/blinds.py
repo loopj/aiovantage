@@ -1,6 +1,7 @@
 """Controller holding and managing Vantage blinds."""
 
 from aiovantage.objects import (
+    BlindGroup,
     QISBlind,
     QubeBlind,
     RelayBlind,
@@ -10,20 +11,19 @@ from aiovantage.objects import (
 
 from .base import BaseController
 
-# The various "blind" object types don't all inherit from the same base class,
-# so for typing purposes we'll use a union of all the types.
+# Manually define the union type of all types that implement the BlindInterface
+# Change this to "SystemObject & BlindInterface" once Python has intersection types
 BlindTypes = (
-    QISBlind | QubeBlind | RelayBlind | SomfyRS485ShadeChild | SomfyURTSI2ShadeChild
+    BlindGroup
+    | QISBlind
+    | QubeBlind
+    | RelayBlind
+    | SomfyRS485ShadeChild
+    | SomfyURTSI2ShadeChild
 )
 
 
 class BlindsController(BaseController[BlindTypes]):
     """Controller holding and managing Vantage blinds."""
 
-    vantage_types = (
-        QISBlind,
-        QubeBlind,
-        RelayBlind,
-        SomfyRS485ShadeChild,
-        SomfyURTSI2ShadeChild,
-    )
+    vantage_types = BlindTypes.__args__
