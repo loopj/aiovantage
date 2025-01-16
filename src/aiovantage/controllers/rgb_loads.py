@@ -5,8 +5,6 @@ from aiovantage.query import QuerySet
 
 from .base import BaseController
 
-# The various "rgb load" object types don't all inherit from the same base class,
-# so for typing purposes we'll use a union of all the types.
 RGBLoadTypes = VantageDGColorLoad | VantageDDGColorLoad
 
 

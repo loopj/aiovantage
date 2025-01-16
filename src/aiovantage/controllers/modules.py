@@ -4,8 +4,6 @@ from aiovantage.objects import Module, ModuleGen2
 
 from .base import BaseController
 
-# The various "module" object types don't all inherit from the same base class,
-# so for typing purposes we'll export a union of all the types.
 ModuleTypes = Module | ModuleGen2
 
 
