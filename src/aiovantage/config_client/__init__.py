@@ -19,9 +19,11 @@ import asyncio
 import logging
 from ssl import SSLContext
 from types import TracebackType
+from typing import Any
 from xml.etree import ElementTree as ET
 
 from typing_extensions import Self
+from xsdata.formats.converter import BoolConverter, converter
 from xsdata.formats.dataclass.context import XmlContext
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -234,3 +236,16 @@ class ConfigClient:
                 )
 
             return self._connection
+
+
+# Looser bool converter that accepts "True" and "False" strings
+# in addition to the standard values supported by xs:bool.
+class _LooseBoolConverter(BoolConverter):
+    def deserialize(self, value: Any, **kwargs: Any) -> bool:
+        if isinstance(value, str):
+            value = value.lower()
+
+        return super().deserialize(value, **kwargs)
+
+
+converter.register_converter(bool, _LooseBoolConverter())  # type: ignore

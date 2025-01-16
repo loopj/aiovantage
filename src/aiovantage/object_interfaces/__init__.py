@@ -1,4 +1,4 @@
-"""Command client object interfaces."""
+"""Object interfaces classes."""
 
 from .anemo_sensor import AnemoSensorInterface
 from .blind import BlindInterface

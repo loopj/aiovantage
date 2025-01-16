@@ -3,10 +3,12 @@
 from decimal import Decimal
 from enum import IntEnum
 
+from aiovantage.object_interfaces.interface_classes import WidgetPrecludable
+
 from .base import Interface, method
 
 
-class ThermostatInterface(Interface):
+class ThermostatInterface(Interface, WidgetPrecludable):
     """Interface for querying and controlling thermostats."""
 
     # Types
