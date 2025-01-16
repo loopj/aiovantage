@@ -3,12 +3,16 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
-from aiovantage.object_interfaces.interface_classes import ShadeOrientation, ShadeType
+from aiovantage.object_interfaces.interface_classes import (
+    ShadeOrientation,
+    ShadeType,
+    WidgetPrecludable,
+)
 
 from .base import Interface, method
 
 
-class BlindInterface(Interface, ShadeOrientation, ShadeType):
+class BlindInterface(Interface, ShadeOrientation, ShadeType, WidgetPrecludable):
     """Interface for querying and controlling blinds."""
 
     # Types

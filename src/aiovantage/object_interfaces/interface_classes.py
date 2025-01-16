@@ -13,6 +13,7 @@ class ShadeOrientation:
 
     shade_orientation: str | None = field(
         default=None,
+        repr=False,
         metadata={"type": "Attribute"},
     )
 
@@ -23,5 +24,17 @@ class ShadeType:
 
     shade_type: str | None = field(
         default=None,
+        repr=False,
+        metadata={"type": "Attribute"},
+    )
+
+
+@dataclass
+class WidgetPrecludable:
+    """Widget precludable field support."""
+
+    exclude_from_widgets: bool | None = field(
+        default=None,
+        repr=False,
         metadata={"type": "Attribute"},
     )
