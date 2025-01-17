@@ -2,30 +2,31 @@
 
 from dataclasses import dataclass, field
 
+from aiovantage.object_interfaces import GMemInterface
+
 from .system_object import SystemObject
+from .types import Array
 
 
 @dataclass(kw_only=True)
-class GMem(SystemObject):
+class GMem(SystemObject, GMemInterface):
     """GMem (variable) object."""
 
     @dataclass
     class Tag:
-        type: str
+        type: str = ""
         object: bool = field(
             default=False, metadata={"name": "object", "type": "Attribute"}
         )
 
     @dataclass
-    class Data:
+    class Data(Array):
         fixed: bool = field(default=False, metadata={"type": "Attribute"})
 
+    category: int
     data: Data = field(metadata={"name": "data"})
-    persistent: bool
+    persistent: bool = True
     tag: Tag
-
-    # State
-    value: int | str | bool | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def is_bool(self) -> bool:

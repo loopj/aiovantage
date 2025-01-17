@@ -6,6 +6,7 @@ from .button import ButtonInterface
 from .color_temperature import ColorTemperatureInterface
 from .configuration import ConfigurationInterface
 from .fan import FanInterface
+from .gmem import GMemInterface
 from .introspection import IntrospectionInterface
 from .light_sensor import LightSensorInterface
 from .load import LoadInterface
@@ -24,6 +25,7 @@ __all__ = [
     "ColorTemperatureInterface",
     "ConfigurationInterface",
     "FanInterface",
+    "GMemInterface",
     "IntrospectionInterface",
     "LightSensorInterface",
     "LoadInterface",
