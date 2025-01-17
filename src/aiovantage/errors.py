@@ -31,12 +31,20 @@ class WrongNumberOfParametersError(CommandError):
     """The wrong number of parameters was provided."""
 
 
+class SyntaxError(CommandError):
+    """The command syntax is invalid."""
+
+
 class InvalidObjectError(CommandError):
     """The requested object ID is invalid."""
 
 
 class NotImplementedError(CommandError):
     """The requested command is not implemented."""
+
+
+class FailedError(CommandError):
+    """The requested command failed."""
 
 
 class NotSupportedError(CommandError):
@@ -58,8 +66,10 @@ class LoginFailedError(CommandError):
 COMMAND_ERROR_CODES = {
     4: InvalidParameterError,
     5: WrongNumberOfParametersError,
+    6: SyntaxError,
     7: InvalidObjectError,
     8: NotImplementedError,
+    12: FailedError,
     17: NotSupportedError,
     20: ObjectOfflineError,
     21: LoginRequiredError,
