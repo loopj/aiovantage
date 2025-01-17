@@ -24,7 +24,7 @@ class GMemController(BaseController[GMem]):
     @override
     async def fetch_object_state(self, obj: GMem) -> None:
         """Fetch the state properties of a variable."""
-        self.update_state(obj.id, {"value": await self.get_value(obj.id)})
+        self.update_state(obj.vid, {"value": await self.get_value(obj.vid)})
 
     @override
     def handle_category_status(self, vid: int, status: str, *args: str) -> None:

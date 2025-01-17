@@ -5,12 +5,12 @@ import logging
 from collections.abc import Callable, Iterable
 from dataclasses import fields
 from inspect import iscoroutinefunction
-from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.types import tokenize_response
 from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.requests import get_objects
+from aiovantage.config_client.requests import get_objects_by_type
 from aiovantage.events import EventCallback, VantageEvent
 from aiovantage.objects import SystemObject
 from aiovantage.query import QuerySet
@@ -28,10 +28,10 @@ EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 class BaseController(QuerySet[T]):
     """Base controller for Vantage objects."""
 
-    vantage_types: ClassVar[tuple[type[SystemObject], ...]]
+    vantage_types: tuple[type[T], ...]
     """The Vantage object types that this controller handles."""
 
-    status_types: ClassVar[tuple[str, ...]] = ()
+    status_types: tuple[str, ...] = ()
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     def __init__(self, vantage: "Vantage") -> None:
@@ -129,36 +129,36 @@ class BaseController(QuerySet[T]):
             cur_ids: set[int] = set()
 
             # Fetch all objects managed by this controller
-            element_names = tuple(cls.element_name() for cls in self.vantage_types)
-            async for obj in get_objects(self.config_client, types=element_names):
-                # Give objects access to the command client
-                obj.command_client = self.command_client
+            for vantage_type in self.vantage_types:
+                async for obj in get_objects_by_type(self.config_client, vantage_type):
+                    # Give objects access to the command client
+                    obj.command_client = self.command_client
 
-                if obj.id in prev_ids:
-                    # This is an existing object.
-                    # Update any attributes that have changed and notify subscribers.
-                    # Ignore the m_time attribute, and any state attributes.
-                    self.update_state(
-                        obj.id,
-                        {
-                            field.name: getattr(obj, field.name)
-                            for field in fields(type(obj))  # type: ignore
-                            if field.name != "m_time"
-                            and field.metadata.get("type") != "Ignore"
-                        },
-                    )
-                else:
-                    # This is a new object.
-                    # Add it to the controller and notify subscribers
-                    self._items[obj.id] = obj
-                    self.emit(VantageEvent.OBJECT_ADDED, obj)
+                    if obj.vid in prev_ids:
+                        # This is an existing object.
+                        # Update any attributes that have changed and notify subscribers.
+                        # Ignore the m_time attribute, and any state attributes.
+                        self.update_state(
+                            obj.vid,
+                            {
+                                field.name: getattr(obj, field.name)
+                                for field in fields(type(obj))
+                                if field.name != "m_time"
+                                and field.metadata.get("type") != "Ignore"
+                            },
+                        )
+                    else:
+                        # This is a new object.
+                        # Add it to the controller and notify subscribers
+                        self._items[obj.vid] = obj
+                        self.emit(VantageEvent.OBJECT_ADDED, obj)
 
-                    # Fetch the state of stateful objects
-                    if fetch_state:
-                        await self.fetch_object_state(obj)
+                        # Fetch the state of stateful objects
+                        if fetch_state:
+                            await self.fetch_object_state(obj)
 
-                # Keep track of which objects we've seen
-                cur_ids.add(obj.id)
+                    # Keep track of which objects we've seen
+                    cur_ids.add(obj.vid)
 
             # Handle objects that were removed
             for vid in prev_ids - cur_ids:
@@ -265,7 +265,7 @@ class BaseController(QuerySet[T]):
             data = {}
 
         # Grab a list of subscribers that care about this object
-        subscribers = self._subscriptions + self._id_subscriptions.get(obj.id, [])
+        subscribers = self._subscriptions + self._id_subscriptions.get(obj.vid, [])
         for callback, event_filter in subscribers:
             if event_filter is not None and event_type not in event_filter:
                 continue
@@ -297,7 +297,7 @@ class BaseController(QuerySet[T]):
                     setattr(obj, key, value)
                     attrs_changed.append(key)
             except AttributeError:
-                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
+                self._logger.warning("Object '%d' has no attribute '%s'", obj.vid, key)
 
         # Notify subscribers if any attributes changed
         if len(attrs_changed) > 0:
