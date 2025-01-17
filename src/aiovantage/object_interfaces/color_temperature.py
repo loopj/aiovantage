@@ -13,15 +13,15 @@ class ColorTemperatureInterface(Interface, WidgetPrecludable):
 
     # Types
     class Preset(IntEnum):
-        """Color temperature presets."""
+        """Color temperature preset."""
 
         NONE = 0
-        Soft = 2700
-        Warm = 3000
-        Neutral = 3500
-        Cool = 4100
-        Natural = 5000
-        Daylight = 6500
+        SOFT = 2700
+        WARM = 3000
+        NEUTRAL = 3500
+        COOL = 4100
+        NATURAL = 5000
+        DAYLIGHT = 6500
 
     # Properties
     color_temp: int | None = None

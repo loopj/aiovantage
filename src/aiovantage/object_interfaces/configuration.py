@@ -11,24 +11,24 @@ class ConfigurationInterface(Interface):
 
     # Types
     class Store(IntEnum):
-        """Configuration stores."""
+        """Configuration store."""
 
-        Unspecified = 0
-        Datastore = 1
-        Userstore = 2
+        UNSPECIFIED = 0
+        DATASTORE = 1
+        USERSTORE = 2
 
     class Compression(IntFlag):
-        """Configuration compression types."""
+        """Configuration compression type."""
 
-        none = 1
-        zlib = 2
-        snappy = 4
+        NONE = 1
+        ZLIB = 2
+        SNAPPY = 4
 
     class SolarEvent(IntEnum):
         """Solar event types."""
 
-        Sunrise = 0
-        Sunset = 1
+        SUNRISE = 0
+        SUNSET = 1
 
     # Methods
     @method("Configuration.GetControllerVID")

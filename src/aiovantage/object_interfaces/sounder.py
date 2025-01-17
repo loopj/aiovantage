@@ -13,8 +13,8 @@ class SounderInterface(Interface):
     class Status(IntEnum):
         """Sounder status."""
 
-        On = 0
-        Off = 1
+        ON = 0
+        OFF = 1
 
     # Methods
     @method("Sounder.GetFrequency")
@@ -117,8 +117,8 @@ class SounderInterface(Interface):
     # Convenience functions, not part of the interface
     async def turn_on(self) -> None:
         """Turn on the keypad speaker."""
-        await self.set_status(self.Status.On)
+        await self.set_status(self.Status.ON)
 
     async def turn_off(self) -> None:
         """Turn off the keypad speaker."""
-        await self.set_status(self.Status.Off)
+        await self.set_status(self.Status.OFF)

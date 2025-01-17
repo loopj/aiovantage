@@ -11,18 +11,18 @@ class IntrospectionInterface(Interface):
 
     # Types
     class Firmware(IntEnum):
-        """Firmware images."""
+        """Firmware image."""
 
-        Kernel = 0
-        RootFs = 1
-        Application = 2
+        KERNEL = 0
+        ROOT_FS = 1
+        APPLICATION = 2
 
     class LicenseType(IntEnum):
-        """License types."""
+        """License type."""
 
-        Unknown = 0
-        Equinox = 1
-        All = -1
+        UNKNOWN = 0
+        EQUINOX = 1
+        ALL = -1
 
     @dataclass
     class FirmwareVersion:
@@ -79,6 +79,6 @@ class IntrospectionInterface(Interface):
     # Convenience functions, not part of the interface
     async def get_application_version(self) -> str:
         """Get the application firmware version."""
-        response = await self.get_firmware_version(self.Firmware.Application)
+        response = await self.get_firmware_version(self.Firmware.APPLICATION)
 
         return response.version

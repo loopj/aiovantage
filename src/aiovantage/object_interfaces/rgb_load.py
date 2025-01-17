@@ -17,31 +17,31 @@ class RGBLoadInterface(Interface):
 
     # Types
     class RGBChannel(IntEnum):
-        """The RGB color channels."""
+        """RGB channel."""
 
-        Red = 0
-        Green = 1
-        Blue = 2
-        White = 3
+        RED = 0
+        GREEN = 1
+        BLUE = 2
+        WHITE = 3
 
     class HSLAttribute(IntEnum):
-        """The HSL color attributes."""
+        """HSL attribute."""
 
-        Hue = 0
-        Saturation = 1
-        Lightness = 2
+        HUE = 0
+        SATURATION = 1
+        LIGHTNESS = 2
 
     class ColorName(IntEnum):
-        """The color names."""
+        """Color."""
 
-        Unknown = 0
-        White = 1
-        Red = 2
-        Yellow = 3
-        Green = 4
-        Magenta = 5
-        Blue = 6
-        Cyan = 7
+        UNKNOWN = 0
+        WHITE = 1
+        RED = 2
+        YELLOW = 3
+        GREEN = 4
+        MAGENTA = 5
+        BLUE = 6
+        CYAN = 7
 
     # Properties
     rgb: tuple[int, int, int] | None = None

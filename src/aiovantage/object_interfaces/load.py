@@ -13,33 +13,33 @@ class LoadInterface(Interface, WidgetPrecludable):
 
     # Types
     class RampType(IntEnum):
-        """The type of ramp to perform."""
+        """Load ramp type."""
 
-        Up = 5
-        Down = 4
-        Opposite = 3
-        Stop = 2
-        Fixed = 6
-        Variable = 7
-        Adjust = 8
+        UP = 5
+        DOWN = 4
+        OPPOSITE = 3
+        STOP = 2
+        FIXED = 6
+        VARIABLE = 7
+        ADJUST = 8
 
     class AlertState(IntEnum):
-        """The alert state of the load."""
+        """Load alert state."""
 
-        Clear = 0
-        Overload = 1
-        BulbChange = 2
-        WrongType = 3
-        DCCurrent = 4
-        ShortCircuit = 5
+        CLEAR = 0
+        OVERLOAD = 1
+        BULB_CHANGE = 2
+        WRONG_TYPE = 3
+        DC_CURRENT = 4
+        SHORT_CIRCUIT = 5
 
     class DimmingConfig(IntEnum):
-        """The type of dimming the load should perform."""
+        """Load dimming config."""
 
-        Manual = 0
-        Forward = 1
-        Reverse = 2
-        Auto = 3
+        MANUAL = 0
+        FORWARD = 1
+        REVERSE = 2
+        AUTO = 3
 
     # Properties
     level: Decimal | None = None
@@ -202,7 +202,7 @@ class LoadInterface(Interface, WidgetPrecludable):
         if transition is None:
             return await self.set_level(level)
 
-        await self.ramp(self.RampType.Fixed, transition, level)
+        await self.ramp(self.RampType.FIXED, transition, level)
 
     async def turn_off(self, transition: float | None = None) -> None:
         """Turn off a load with an optional transition time.
@@ -213,7 +213,7 @@ class LoadInterface(Interface, WidgetPrecludable):
         if transition is None:
             return await self.set_level(0)
 
-        await self.ramp(self.RampType.Fixed, transition, 0)
+        await self.ramp(self.RampType.FIXED, transition, 0)
 
     @property
     def is_on(self) -> bool:

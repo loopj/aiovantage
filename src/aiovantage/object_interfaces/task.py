@@ -12,11 +12,11 @@ class TaskInterface(Interface):
     class Status(IntEnum):
         """Task status."""
 
-        NotReady = 0
-        Ready = 1
-        Compiling = 2
-        OutOfSync = 3
-        Invalid = 4
+        NOT_READY = 0
+        READY = 1
+        COMPILING = 2
+        OUT_OF_SYNC = 3
+        INVALID = 4
 
     # Properties
     state: int | None = None
