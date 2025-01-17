@@ -205,30 +205,25 @@ class DecimalConverter(Converter):
         return f"{value:.{precision}f}"
 
 
-class ByteArrayConverter(Converter):
-    """A bytearray converter.
+class BytesConverter(Converter):
+    """A bytes converter.
 
     Vantage "bytes" parameters are encoded as a string of signed 32-bit integers,
     separated by commas or spaces, and wrapped in curly or square braces.
 
-    Byte arrays representing strings have a header of {1, 34}
+    Bytes representing strings have a header of {1, 32}
     """
 
-    def deserialize(self, value: Any, **_kwargs: Any) -> bytearray:
-        """Deserialize a byte array parameter."""
+    def deserialize(self, value: Any, **_kwargs: Any) -> bytes:
+        """Deserialize a bytes parameter."""
         # Extract all integer tokens from the string
         tokens = [int(x) for x in re.findall(r"-?\d+", value)]
 
-        # Convert each token to a signed 32-bit integer and create a byte array
-        byte_array = bytearray()
-        for token in tokens:
-            signed_int = struct.pack("i", token)
-            byte_array.extend(signed_int)
+        # Convert each token to a signed 32-bit integer and concatenate them into bytes
+        return b"".join(struct.pack("i", token) for token in tokens)
 
-        return byte_array
-
-    def serialize(self, value: bytearray, **_kwargs: Any) -> str:
-        """Serialize a byte array parameter."""
+    def serialize(self, value: bytes, **_kwargs: Any) -> str:
+        """Serialize a bytes parameter."""
         # Pad the data to a multiple of 4 bytes
         value += b"\x00" * (-len(value) % 4)
 
@@ -283,7 +278,7 @@ converter.register(str, StringConverter())
 converter.register(int, IntConverter())
 converter.register(bool, BoolConverter())
 converter.register(float, FloatConverter())
+converter.register(bytes, BytesConverter())
 converter.register(Decimal, DecimalConverter())
-converter.register(bytearray, ByteArrayConverter())
 converter.register(dt.datetime, DateTimeConverter())
 converter.register(IntEnum, IntEnumConverter())
