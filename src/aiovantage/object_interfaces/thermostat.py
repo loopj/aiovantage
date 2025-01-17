@@ -13,52 +13,52 @@ class ThermostatInterface(Interface, WidgetPrecludable):
 
     # Types
     class OperationMode(IntEnum):
-        """The operation mode of the thermostat."""
+        """Thermostat operation mode."""
 
-        Off = 0
-        Cool = 1
-        Heat = 2
-        Auto = 3
-        Unknown = 4
+        OFF = 0
+        COOL = 1
+        HEAT = 2
+        AUTO = 3
+        UNKNOWN = 4
 
     class FanMode(IntEnum):
-        """The fan mode of the thermostat."""
+        """Thermostat fan mode."""
 
-        Off = 0
-        On = 1
-        Unknown = 2
+        OFF = 0
+        ON = 1
+        UNKNOWN = 2
 
     class DayMode(IntEnum):
-        """The day mode of the thermostat."""
+        """Thermostat day mode."""
 
-        Day = 0
-        Night = 1
-        Unknown = 2
-        Standby = 3
+        DAY = 0
+        NIGHT = 1
+        UNKNOWN = 2
+        STANDBY = 3
 
     class HoldMode(IntEnum):
         """The hold mode of the thermostat."""
 
-        Normal = 0
-        Hold = 1
-        Unknown = 2
+        NORMAL = 0
+        HOLD = 1
+        UNKNOWN = 2
 
     class Status(IntEnum):
         """The status of the thermostat."""
 
-        Off = 0
-        Cooling = 1
-        Heating = 2
-        Offline = 3
+        OFF = 0
+        COOLING = 1
+        HEATING = 2
+        OFFLINE = 3
 
     # Properties
     indoor_temperature: Decimal | None = None
     heat_set_point: Decimal | None = None
     cool_set_point: Decimal | None = None
     auto_set_point: Decimal | None = None
-    operation_mode: OperationMode | None = OperationMode.Unknown
-    fan_mode: FanMode | None = FanMode.Unknown
-    status: Status | None = Status.Offline
+    operation_mode: OperationMode | None = OperationMode.UNKNOWN
+    fan_mode: FanMode | None = FanMode.UNKNOWN
+    status: Status | None = Status.OFFLINE
     outdoor_temperature: Decimal | None = None
 
     # Methods

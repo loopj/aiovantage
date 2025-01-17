@@ -13,24 +13,24 @@ class ButtonInterface(Interface):
     class State(IntEnum):
         """Button state."""
 
-        Up = 0
-        Down = 1
+        UP = 0
+        DOWN = 1
 
     class SndType(IntEnum):
         """Button sound type."""
 
-        Continuous = 0
-        Pulsed = 1
-        Off = 2
+        CONTINUOUS = 0
+        PULSED = 1
+        OFF = 2
 
     class Polarity(IntEnum):
         """Button polarity."""
 
-        NormallyOpen = 0
-        NormallyClosed = 1
+        NORMALLY_OPEN = 0
+        NORMALLY_CLOSED = 1
 
     # Properties
-    state: State | None = State.Up
+    state: State | None = State.UP
 
     # Methods
     @method("Button.GetState", property="state")
@@ -54,7 +54,7 @@ class ButtonInterface(Interface):
         """Set the state of a button.
 
         Args:
-            state: The state to set the button to, either a State.Up or State.Down.
+            state: The state to set the button to, either a State.UP or State.DOWN.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetState <state (0/1/Up/Down)>
@@ -185,15 +185,15 @@ class ButtonInterface(Interface):
     @property
     def is_down(self) -> bool:
         """Return if the button is pressed."""
-        return self.state == self.State.Down
+        return self.state == self.State.DOWN
 
     async def press(self) -> None:
         """Press a button."""
-        await self.set_state(self.State.Down)
+        await self.set_state(self.State.DOWN)
 
     async def release(self) -> None:
         """Release a button."""
-        await self.set_state(self.State.Up)
+        await self.set_state(self.State.UP)
 
     async def press_and_release(self) -> None:
         """Press and release a button."""

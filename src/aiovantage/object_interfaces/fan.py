@@ -9,14 +9,14 @@ class FanInterface(Interface):
     """Interface for querying and controlling fans."""
 
     class FanSpeed(IntEnum):
-        """The speed of the fan."""
+        """Fan speed."""
 
-        Off = 0
-        Low = 1
-        Medium = 2
-        High = 3
-        Max = 4
-        Auto = 5
+        OFF = 0
+        LOW = 1
+        MEDIUM = 2
+        HIGH = 3
+        MAX = 4
+        AUTO = 5
 
     @method("Fan.GetSpeed")
     @method("Fan.GetSpeedHW")

@@ -35,6 +35,15 @@ def tokenize_response(string: str) -> list[str]:
     return tokens
 
 
+def snake_case(word: str) -> str:
+    """Convert a camelCase or PascalCase word to snake_case."""
+    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", word)
+    word = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", word)
+    word = word.replace("-", "_")
+
+    return word.lower()
+
+
 class Converter(ABC):
     """Abstract data converter class."""
 
@@ -120,7 +129,7 @@ class StringConverter(Converter):
     the string are escaped with an additional double quote.
     """
 
-    def deserialize(self, value: Any, **_kwargs: Any) -> str:
+    def deserialize(self, value: str, **_kwargs: Any) -> str:
         """Deserialize a string value."""
         if value.startswith('"') and value.endswith('"'):
             return value[1:-1].replace('""', '"')
@@ -144,7 +153,7 @@ class BoolConverter(Converter):
     Vantage "bool" parameters are encoded as either "0" or "1".
     """
 
-    def deserialize(self, value: Any, **_kwargs: Any) -> bool:
+    def deserialize(self, value: str, **_kwargs: Any) -> bool:
         """Deserialize a bool value."""
         return bool(int(value))
 
@@ -156,7 +165,7 @@ class BoolConverter(Converter):
 class IntConverter(Converter):
     """An int converter."""
 
-    def deserialize(self, value: Any, **kwargs: Any) -> int:
+    def deserialize(self, value: str, **kwargs: Any) -> int:
         """Deserialize an int value."""
         return int(value)
 
@@ -174,7 +183,7 @@ class FloatConverter(Converter):
     If these types are tagged as "fixed", they should be handled as Decimal values.
     """
 
-    def deserialize(self, value: Any, **kwargs: Any) -> float:
+    def deserialize(self, value: str, **kwargs: Any) -> float:
         """Deserialize a float value."""
         return float(value)
 
@@ -189,14 +198,13 @@ class DecimalConverter(Converter):
 
     Vantage "fixed" parameters are encoded as a string representation of a
     fixed-point value, with three decimal places.
-
-    For example, the Decimal value 123.456 would be encoded as:
-        "123.456" (In a reply to an INVOKE command)
-        "123456"  (In an S:STATUS message)
     """
 
-    def deserialize(self, value: Any, **kwargs: Any) -> Decimal:
+    def deserialize(self, value: str, **kwargs: Any) -> Decimal:
         """Deserialize a Decimal value."""
+        # Handle both forms of fixed-point values:
+        # - "123.456" (INVOKE replies)
+        # - "123456"  (S:STATUS messages)
         return Decimal(value.replace(".", "")) / 1000
 
     def serialize(self, value: Decimal, **kwargs: Any) -> str:
@@ -210,11 +218,9 @@ class BytesConverter(Converter):
 
     Vantage "bytes" parameters are encoded as a string of signed 32-bit integers,
     separated by commas or spaces, and wrapped in curly or square braces.
-
-    Bytes representing strings have a header of {1, 32}
     """
 
-    def deserialize(self, value: Any, **_kwargs: Any) -> bytes:
+    def deserialize(self, value: str, **_kwargs: Any) -> bytes:
         """Deserialize a bytes parameter."""
         # Extract all integer tokens from the string
         tokens = [int(x) for x in re.findall(r"-?\d+", value)]
@@ -243,7 +249,7 @@ class DateTimeConverter(Converter):
     Vantage "Time" parameters are encoded as a Unix timestamp.
     """
 
-    def deserialize(self, value: Any, **_kwargs: Any) -> dt.datetime:
+    def deserialize(self, value: str, **_kwargs: Any) -> dt.datetime:
         """Deserialize a datetime value."""
         return dt.datetime.fromtimestamp(int(value), dt.timezone.utc)
 
@@ -255,20 +261,30 @@ class DateTimeConverter(Converter):
 class IntEnumConverter(Converter):
     """An IntEnum converter.
 
-    "IntEnum" type parameters may be encoded as either their integer or string
-    representations.
+    Vantage "Enum" values are encoded as either their integer or string
+    representation.
+
+    String representations are either lowercase single words or PascalCase.
     """
 
-    def deserialize(self, value: Any, **kwargs: Any) -> Any:
+    def deserialize(self, value: str, **kwargs: Any) -> Any:
         """Deserialize an IntEnum value."""
         enum_type = kwargs.get("data_type")
         if enum_type is None or not issubclass(enum_type, IntEnum):
             raise ValueError("IntEnumConverter requires a data_type argument")
 
-        return enum_type(int(value)) if value.isdigit() else enum_type[value]
+        # Handle integer representations of enum values
+        if value.isdigit():
+            return enum_type(int(value))
+
+        # Handle string representations of enum values.
+        # We'll first convert the string to SNAKE_CASE for lookup.
+        return enum_type[snake_case(value).upper()]
 
     def serialize(self, value: Any, **kwargs: Any) -> str:
         """Serialize an IntEnum value."""
+        # The API accepts either the integer or string representation of the enum
+        # We'll always serialize to the integer representation for simplicity
         return str(value.value)
 
 
