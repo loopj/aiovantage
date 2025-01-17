@@ -18,6 +18,7 @@ class GetObject:
         vids: list[int] = field(
             metadata={
                 "name": "VID",
+                "type": "Element",
             }
         )
 
