@@ -87,32 +87,32 @@ class ObjectInterface(Interface):
         return await self.invoke("Object.GetNote")
 
     @method("Object.GetProperty")
-    async def get_property(self, property: str) -> int:
+    async def get_property(self, xpath: str) -> int:
         """Get an integer property of an object.
 
         Args:
-            property: The property to get.
+            xpath: XPath of the property to get, eg: "DName", "Get/Formula/@ReturnType, etc.
 
         Returns:
             The value of the property.
         """
-        # INVOKE <id> Object.GetProperty <property>
-        # -> R:INVOKE <id> <value> Object.GetProperty <property>
-        return await self.invoke("Object.GetProperty", property)
+        # INVOKE <id> Object.GetProperty <xpath>
+        # -> R:INVOKE <id> <value> Object.GetProperty <xpath>
+        return await self.invoke("Object.GetProperty", xpath)
 
     @method("Object.GetPropertyEx")
-    async def get_property_ex(self, property: str) -> PropertyEx:
+    async def get_property_ex(self, xpath: str) -> PropertyEx:
         """Get a string property of an object.
 
         Args:
-            property: The property to get.
+            xpath: XPath of the property to get, eg: "DName", "Get/Formula/@ReturnType, etc.
 
         Returns:
             The value of the property.
         """
-        # INVOKE <id> Object.GetPropertyEx <property>
-        # -> R:INVOKE <id> <value> Object.GetPropertyEx <property>
-        return await self.invoke("Object.GetPropertyEx", property)
+        # INVOKE <id> Object.GetPropertyEx <xpath>
+        # -> R:INVOKE <id> <value> Object.GetPropertyEx <xpath>
+        return await self.invoke("Object.GetPropertyEx", xpath)
 
     @method("Object.Lock")
     async def lock(self) -> None:
