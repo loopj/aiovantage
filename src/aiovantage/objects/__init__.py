@@ -12,7 +12,6 @@ from .custom_device import CustomDevice
 from .dc_power_profile import DCPowerProfile
 from .dimmer import Dimmer
 from .din_contact_input import DINContactInput
-from .din_high_voltage_relay_station import DINHighVoltageRelayStation
 from .din_low_voltage_relay_station import DINLowVoltageRelayStation
 from .din_station import DINStation
 from .dry_contact import DryContact
@@ -85,7 +84,6 @@ __all__ = [
     "CustomDevice",
     "DCPowerProfile",
     "DINContactInput",
-    "DINHighVoltageRelayStation",
     "DINLowVoltageRelayStation",
     "DINStation",
     "Dimmer",
