@@ -177,9 +177,6 @@ class IntConverter(Converter):
 class FloatConverter(Converter):
     """A float converter.
 
-    Common Vantage "float" types include those labeled as:
-        Seconds, Level, Celsius, MPH, Footcandles, and DeviceUnits
-
     If these types are tagged as "fixed", they should be handled as Decimal values.
     """
 
