@@ -3,7 +3,7 @@
 from decimal import Decimal
 from enum import IntEnum
 
-from aiovantage.object_interfaces.interface_classes import WidgetPrecludable
+from aiovantage.object_interfaces.mixins import WidgetPrecludable
 
 from .base import Interface, method
 
