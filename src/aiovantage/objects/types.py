@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 @dataclass(kw_only=True)
 class Parent:
-    """Parent type."""
+    """Vantage parent type."""
 
     id: int
     position: int = field(metadata={"type": "Attribute"})
@@ -13,7 +13,7 @@ class Parent:
 
 @dataclass(kw_only=True)
 class Array:
-    """Array type."""
+    """Vantage array type."""
 
     @dataclass(kw_only=True)
     class StringData:

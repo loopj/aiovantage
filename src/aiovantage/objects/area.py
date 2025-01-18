@@ -10,3 +10,4 @@ class Area(LocationObject):
     """Area object."""
 
     area_type: str
+    enclosure_area: int | None = None
