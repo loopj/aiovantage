@@ -110,6 +110,9 @@ class InterfaceMeta(type):
 class Interface(metaclass=InterfaceMeta):
     """Base class for command client object interfaces."""
 
+    interface_name: ClassVar[str]
+    """The name of the interface."""
+
     method_signatures: ClassVar[dict[str, type[Any]]]
     """A mapping of method names to return types, for parsing statuses and responses."""
 

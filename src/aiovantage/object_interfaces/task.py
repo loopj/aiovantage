@@ -8,6 +8,8 @@ from .base import Interface, method
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""
 
+    interface_name = "Task"
+
     # Types
     class Status(IntEnum):
         """Task status."""

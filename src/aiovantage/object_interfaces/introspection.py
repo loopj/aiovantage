@@ -9,6 +9,8 @@ from .base import Interface, method
 class IntrospectionInterface(Interface):
     """Interface for controller introspection."""
 
+    interface_name = "Introspection"
+
     # Types
     class Firmware(IntEnum):
         """Firmware image."""

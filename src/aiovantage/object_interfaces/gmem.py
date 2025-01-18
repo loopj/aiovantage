@@ -10,6 +10,8 @@ STRING_HEADER = b"\x01\x00\x00\x00\x20\x00\x00\x00"
 class GMemInterface(Interface):
     """Interface for querying and controlling variables."""
 
+    interface_name = "GMem"
+
     @dataclass
     class Buffer:
         """Response from a GMem fetch operation."""

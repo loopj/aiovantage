@@ -11,6 +11,8 @@ from .base import Interface, method
 class ColorTemperatureInterface(Interface, WidgetPrecludable):
     """Interface for querying and controlling color temperature."""
 
+    interface_name = "ColorTemperature"
+
     # Types
     class Preset(IntEnum):
         """Color temperature preset."""

@@ -9,6 +9,8 @@ from .base import Interface, method
 class ConfigurationInterface(Interface):
     """Interface for controller introspection."""
 
+    interface_name = "Configuration"
+
     # Types
     class Store(IntEnum):
         """Configuration store."""

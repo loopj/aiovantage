@@ -8,6 +8,8 @@ from .base import Interface, method
 class SensorInterface(Interface):
     """Interface for querying and controlling sensors."""
 
+    interface_name = "Sensor"
+
     # Properties
     level: Decimal | None = None
 

@@ -15,6 +15,8 @@ from .base import Interface, method
 class RGBLoadInterface(Interface):
     """Interface for querying and controlling RGB loads."""
 
+    interface_name = "RGBLoad"
+
     # Types
     class RGBChannel(IntEnum):
         """RGB channel."""
