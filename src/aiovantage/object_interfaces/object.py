@@ -9,6 +9,8 @@ from .base import Interface, method
 class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""
 
+    interface_name = "Object"
+
     # Types
     @dataclass
     class PropertyEx:

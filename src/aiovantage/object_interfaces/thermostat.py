@@ -11,6 +11,8 @@ from .base import Interface, method
 class ThermostatInterface(Interface, WidgetPrecludable):
     """Interface for querying and controlling thermostats."""
 
+    interface_name = "Thermostat"
+
     # Types
     class OperationMode(IntEnum):
         """Thermostat operation mode."""

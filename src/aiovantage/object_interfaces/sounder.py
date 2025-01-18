@@ -9,6 +9,8 @@ from .base import Interface, method
 class SounderInterface(Interface):
     """Interface for keypad speakers."""
 
+    interface_name = "Sounder"
+
     # Types
     class Status(IntEnum):
         """Sounder status."""

@@ -11,6 +11,8 @@ from .base import Interface, method
 class LoadInterface(Interface, WidgetPrecludable):
     """Interface for querying and controlling loads."""
 
+    interface_name = "Load"
+
     # Types
     class RampType(IntEnum):
         """Load ramp type."""

@@ -15,6 +15,8 @@ from .base import Interface, method
 class BlindInterface(Interface, ShadeOrientation, ShadeType, WidgetPrecludable):
     """Interface for querying and controlling blinds."""
 
+    interface_name = "Blind"
+
     # Types
     @dataclass
     class BlindState:

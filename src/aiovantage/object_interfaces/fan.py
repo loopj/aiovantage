@@ -8,6 +8,8 @@ from .base import Interface, method
 class FanInterface(Interface):
     """Interface for querying and controlling fans."""
 
+    interface_name = "Fan"
+
     class FanSpeed(IntEnum):
         """Fan speed."""
 

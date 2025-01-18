@@ -9,6 +9,8 @@ from .base import Interface, method
 class ButtonInterface(Interface):
     """Interface for querying and controlling buttons."""
 
+    interface_name = "Button"
+
     # Types
     class State(IntEnum):
         """Button state."""

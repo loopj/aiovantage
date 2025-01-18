@@ -8,6 +8,8 @@ from .base import Interface, method
 class AnemoSensorInterface(Interface):
     """Interface for querying and controlling anemo (wind) sensors."""
 
+    interface_name = "AnemoSensor"
+
     # Properties
     speed: Decimal | None = None
 
