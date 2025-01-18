@@ -1,6 +1,8 @@
 """Base class for command client interfaces."""
 
+import inspect
 from collections.abc import Callable, Sequence
+from enum import Enum
 from typing import (
     Any,
     ClassVar,
@@ -61,6 +63,19 @@ def method(
         return func
 
     return decorator
+
+
+def interface_enums() -> dict[str, type[Enum]]:
+    """Return all enums provided by object interfaces."""
+    enum_classes: dict[str, type[Enum]] = {}
+
+    for cls in Interface.__subclasses__():
+        # Iterate over all members of the class
+        for _name, obj in inspect.getmembers(cls):
+            if inspect.isclass(obj) and issubclass(obj, Enum):
+                enum_classes[f"{cls.interface_name}_{obj.__name__}"] = obj
+
+    return enum_classes
 
 
 class InterfaceMeta(type):
