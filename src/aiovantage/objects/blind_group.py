@@ -11,6 +11,7 @@ from .location_object import LocationObject
 class BlindGroup(LocationObject, BlindInterface):
     """BlindGroup object."""
 
+    category: int
     blind_table: list[int] = field(
         default_factory=list,
         metadata={
