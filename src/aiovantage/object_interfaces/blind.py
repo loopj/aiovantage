@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
-from aiovantage.object_interfaces.interface_classes import (
+from aiovantage.object_interfaces.mixins import (
     ShadeOrientation,
     ShadeType,
     WidgetPrecludable,
