@@ -62,6 +62,11 @@ class GMemInterface(Interface):
         await self.invoke("GMem.Commit", buffer)
 
     # Convenience functions, not part of the interface
+    @property
+    def value(self) -> int | str | None:
+        """Return the value of the variable."""
+        return self.buffer.value if self.buffer else None
+
     async def set_value(self, value: int | str) -> None:
         """Set the value of the variable."""
         # NOTE: The `GMem.Commit` method is marked as "INTERNAL", so although it seems
