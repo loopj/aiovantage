@@ -13,17 +13,8 @@ class Login:
     class Params:
         """Method parameters."""
 
-        user: str = field(
-            metadata={
-                "name": "User",
-            }
-        )
-
-        password: str = field(
-            metadata={
-                "name": "Password",
-            }
-        )
+        user: str = field(metadata={"name": "User"})
+        password: str = field(metadata={"name": "Password"})
 
     call: Params | None = field(default=None)
     return_value: bool | None = field(
