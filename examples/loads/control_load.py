@@ -95,7 +95,7 @@ async def main() -> None:
                     if new_level == level:
                         continue
 
-                    await load.ramp(Load.RampType.Fixed, 1, new_level)
+                    await load.ramp(Load.RampType.FIXED, 1, new_level)
                     print(f"Set '{load.name}' brightness to {new_level}%")
 
                 elif key == " ":
