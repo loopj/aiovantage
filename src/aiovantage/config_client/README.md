@@ -29,14 +29,34 @@ async with ConfigClient("hostname") as client:
     loads = get_objects(client, types=["Load", "Button"])
 ```
 
-### Lookup objects by id, using a helper
+### Fetch multiple objects by id, using a helper
 
 ```python
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects_by_id
 
 async with ConfigClient("hostname") as client:
-    objects = get_objects_by_id(client, [118])
+    async for obj in get_objects_by_id(client, 118, 117):
+        print(obj)
+```
+
+### Fetch a single object by id, using a helper
+
+```python
+from aiovantage.config_client import ConfigClient
+from aiovantage.config_client.requests import get_object_by_id
+
+async with ConfigClient("hostname") as client:
+    obj = await get_object_by_id(client, 118)
+    print(obj)
+
+```python
+from aiovantage.config_client import ConfigClient
+from aiovantage.config_client.requests import get_objects_by_id
+
+async with ConfigClient("hostname") as client:
+    async for obj in get_objects_by_id(client, 118):
+        print(obj)
 ```
 
 ### Make a request using a method class
