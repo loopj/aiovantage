@@ -47,6 +47,6 @@ class ObjectChoice:
     choice: object = field(
         metadata={
             "type": "Wildcard",
-            "choices": get_all_object_choices(models),
+            "choices": get_all_object_choices(models),  # type: ignore
         },
     )
