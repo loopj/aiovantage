@@ -105,7 +105,7 @@ class OmniSensor(Sensor, SensorInterface):
         """Return True if the sensor is a temperature sensor."""
         return self.model == "Temperature"
 
-    # NOTE: We are explicitly not calling the parent methods in fetch_state and
+    # NOTE: We are explicitly _not_ calling the parent methods in fetch_state and
     # handle_object_status, as we don't want SensorInterface to handle the state.
     # OmniSensors do additional conversion behind the scenes.
 
