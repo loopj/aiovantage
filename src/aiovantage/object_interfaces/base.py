@@ -112,7 +112,7 @@ class Interface:
 
         # Parse the response
         parsed_response: Any
-        if issubclass(signature, tuple) and hasattr(signature, "__annotations__"):
+        if issubclass(signature, tuple) and hasattr(signature, "__annotations__"):  # type: ignore
             # If the signature is a NamedTuple, parse each component
             parsed_values: list[Any] = []
             for arg, klass in zip(
@@ -123,7 +123,7 @@ class Interface:
             parsed_response = signature(*parsed_values)
         else:
             # Otherwise, parse a single return value
-            parsed_response = parse_param(result, signature)
+            parsed_response = parse_param(result, signature)  # type: ignore
 
         # Return the parsed result
         return parsed_response

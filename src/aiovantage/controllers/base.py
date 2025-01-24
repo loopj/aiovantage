@@ -52,7 +52,7 @@ class BaseController(QuerySet[T]):
         self._initialized = False
         self._lock = asyncio.Lock()
 
-        QuerySet.__init__(self, self._items, self._lazy_initialize)
+        super().__init__(self._items, self._lazy_initialize)
 
         self.__post_init__()
 
@@ -132,7 +132,7 @@ class BaseController(QuerySet[T]):
         # are batch-modifying the _items dict.
         async with self._lock:
             prev_ids = set(self._items.keys())
-            cur_ids = set()
+            cur_ids: set[int] = set()
 
             # Fetch all objects managed by this controller
             async for obj in get_objects(self.config_client, types=self.vantage_types):
@@ -144,7 +144,7 @@ class BaseController(QuerySet[T]):
                         obj.id,
                         {
                             field.name: getattr(obj, field.name)
-                            for field in fields(type(obj))
+                            for field in fields(type(obj))  # type: ignore
                             if field.name != "mtime"
                             and field.metadata.get("type") != "Ignore"
                         },
@@ -290,7 +290,7 @@ class BaseController(QuerySet[T]):
             return
 
         # Check if any state attributes changed and update them
-        attrs_changed = []
+        attrs_changed: list[str] = []
         for key, value in attrs.items():
             try:
                 if getattr(obj, key) != value:

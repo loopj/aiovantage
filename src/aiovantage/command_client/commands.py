@@ -130,7 +130,7 @@ class CommandClient:
             await conn.write(f"{request}\n")
 
             # Read all lines of the response
-            response_lines = []
+            response_lines: list[str] = []
             while True:
                 response_line = await conn.readuntil(b"\r\n", self._read_timeout)
                 response_line = response_line.rstrip()
