@@ -5,6 +5,8 @@
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator
 from typing import Any, TypeVar, cast, overload
 
+from typing_extensions import Self
+
 T = TypeVar("T")
 U = TypeVar("U")
 
@@ -49,7 +51,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         """Return True if the queryset contains any objects."""
         return any(True for _ in self)
 
-    def __aiter__(self) -> AsyncIterator[T]:
+    def __aiter__(self) -> Self:
         """Return an async iterator over the queryset."""
         self.__iterator = None
         return self
@@ -57,8 +59,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
     async def __anext__(self) -> T:
         """Return the next object in the queryset."""
         if self.__iterator is None:
-            if self.__populate is not None:
-                await self.__populate()
+            await self.__populate()
 
             self.__iterator = iter(self)
 

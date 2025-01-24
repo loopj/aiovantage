@@ -30,7 +30,7 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
     @override
     async def fetch_object_state(self, vid: int) -> None:
         """Fetch the state properties of a thermostat."""
-        state = {
+        state: dict[str, Any] = {
             "operation_mode": await ThermostatInterface.get_operation_mode(self, vid),
             "fan_mode": await ThermostatInterface.get_fan_mode(self, vid),
             "day_mode": await ThermostatInterface.get_day_mode(self, vid),

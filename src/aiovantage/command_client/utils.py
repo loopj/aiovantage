@@ -23,7 +23,7 @@ def tokenize_response(string: str) -> list[str]:
     Returns:
         A list of string tokens.
     """
-    tokens = []
+    tokens: list[str] = []
     for match in TOKEN_PATTERN.finditer(string):
         token = match.group(0)
 
@@ -87,7 +87,7 @@ def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
     Raises:
         TypeError: If a parameter is of an unsupported type.
     """
-    encoded_params = []
+    encoded_params: list[str] = []
     for value in params:
         if isinstance(value, str):
             encoded_param = encode_string_param(value, force_quotes)
@@ -97,7 +97,7 @@ def encode_params(*params: ParameterType, force_quotes: bool = False) -> str:
             encoded_param = str(value)
         elif isinstance(value, float | Decimal):
             encoded_param = f"{value:.3f}"
-        elif isinstance(value, bytearray):
+        elif isinstance(value, bytearray):  # type: ignore
             encoded_param = encode_byte_param(value)
         else:
             raise TypeError(f"Invalid value type: {type(value)}")
@@ -183,7 +183,7 @@ def encode_byte_param(byte_array: bytearray) -> str:
         The byte array parameter, as a string.
     """
     # Convert each signed 32-bit integer in the byte array to a string token
-    tokens = []
+    tokens: list[str] = []
     for byte in range(0, len(byte_array), 4):
         signed_int = struct.unpack("i", byte_array[byte : byte + 4])[0]
         tokens.append(str(signed_int))

@@ -11,7 +11,7 @@ from aiovantage.config_client import models
 
 def get_all_module_classes(module: ModuleType) -> list[type[Any]]:
     """Get all classes from a module."""
-    classes = []
+    classes: list[type[Any]] = []
     for _, cls in inspect.getmembers(module, inspect.isclass):
         classes.append(cls)
 
@@ -21,7 +21,7 @@ def get_all_module_classes(module: ModuleType) -> list[type[Any]]:
 @cache
 def get_all_object_choices(module: ModuleType) -> list[dict[str, Any]]:
     """Get all object choices from a module."""
-    choices = []
+    choices: list[dict[str, Any]] = []
     for cls in get_all_module_classes(module):
         # Get the name of the XML element
         meta = getattr(cls, "Meta", None)
