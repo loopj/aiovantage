@@ -15,7 +15,7 @@ class GetInterfaces:
 
         name: str = field(metadata={"name": "Name"})
         version: str = field(metadata={"name": "Version"})
-        id: int = field(metadata={"name": "IID"})
+        iid: int = field(metadata={"name": "IID"})
 
     call = None
     return_value: list[Interface] | None = field(
