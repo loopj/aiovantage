@@ -2,6 +2,7 @@
 
 import re
 from dataclasses import dataclass
+from ssl import SSLContext
 
 from .command_client.commands import CommandClient
 from .config_client import ConfigClient
@@ -23,18 +24,23 @@ class VantageControllerDetails:
     requires_auth: bool
 
 
-async def get_controller_details(host: str) -> VantageControllerDetails | None:
+async def get_controller_details(
+    host: str, ssl_context: SSLContext | None = None
+) -> VantageControllerDetails | None:
     """Discover Vantage controller details from given hostname/ip.
 
     Args:
         host: The hostname/ip of a Vantage controller.
+        ssl_context: Optional SSL context to use when connecting using SSL.
 
     Returns:
         A DiscoveredVantageController, or None if a controller could not be reached.
     """
     try:
         # Try connecting with SSL first
-        async with CommandClient(host) as client:
+        async with CommandClient(
+            host, ssl=ssl_context if ssl_context else True
+        ) as client:
             supports_ssl = True
             requires_auth = await _auth_required(client)
     except ClientConnectionError:
@@ -50,7 +56,7 @@ async def get_controller_details(host: str) -> VantageControllerDetails | None:
     return VantageControllerDetails(host, supports_ssl, requires_auth)
 
 
-async def is_auth_required(host: str, ssl: bool = True) -> bool:
+async def is_auth_required(host: str, *, ssl: SSLContext | bool = True) -> bool:
     """Check if authentication is required for the given controller.
 
     Args:
@@ -68,7 +74,7 @@ async def is_auth_required(host: str, ssl: bool = True) -> bool:
 
 
 async def validate_credentials(
-    host: str, username: str, password: str, ssl: bool = True
+    host: str, username: str, password: str, *, ssl: SSLContext | bool = True
 ) -> bool:
     """Check if the given credentials are valid for the given controller.
 
@@ -96,7 +102,8 @@ async def get_serial_from_controller(
     host: str,
     username: str | None = None,
     password: str | None = None,
-    ssl: bool = True,
+    *,
+    ssl: SSLContext | bool = True,
 ) -> int | None:
     """Get the serial number of the given controller.
 
