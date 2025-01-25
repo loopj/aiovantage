@@ -6,7 +6,7 @@ from typing import Any
 from typing_extensions import override
 
 from aiovantage.errors import CommandError
-from aiovantage.models import Master
+from aiovantage.objects import Master
 from aiovantage.object_interfaces import (
     IntrospectionInterface,
     ObjectInterface,

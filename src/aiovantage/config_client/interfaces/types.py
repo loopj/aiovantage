@@ -6,7 +6,7 @@ from functools import cache
 from types import ModuleType
 from typing import Any
 
-from aiovantage.config_client import models
+from aiovantage import objects
 
 
 def get_all_module_classes(module: ModuleType) -> list[type[Any]]:
@@ -47,6 +47,6 @@ class ObjectChoice:
     choice: object = field(
         metadata={
             "type": "Wildcard",
-            "choices": get_all_object_choices(models),  # type: ignore
+            "choices": get_all_object_choices(objects),  # type: ignore
         },
     )

@@ -1,6 +1,6 @@
 """Controller holding and managing Vantage blind groups."""
 
-from aiovantage.models import BlindBase, BlindGroup, BlindGroupBase, ChildDevice
+from aiovantage.objects import BlindBase, BlindGroup, BlindGroupBase, ChildDevice
 from aiovantage.object_interfaces import BlindInterface
 from aiovantage.query import QuerySet
 

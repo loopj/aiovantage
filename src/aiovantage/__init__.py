@@ -37,7 +37,7 @@ from .controllers import (
     ThermostatsController,
 )
 from .events import EventCallback, VantageEvent
-from .models import SystemObject
+from .objects import SystemObject
 
 ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
 
