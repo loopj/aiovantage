@@ -2,7 +2,7 @@
 
 from typing_extensions import override
 
-from aiovantage.models import Task
+from aiovantage.objects import Task
 from aiovantage.object_interfaces import TaskInterface
 
 from .base import BaseController

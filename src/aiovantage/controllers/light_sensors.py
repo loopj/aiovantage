@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.models import LightSensor
+from aiovantage.objects import LightSensor
 from aiovantage.object_interfaces import (
     LightSensorInterface,
     SensorInterface,

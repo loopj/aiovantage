@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from typing_extensions import override
 
-from aiovantage.models import Load
+from aiovantage.objects import Load
 from aiovantage.object_interfaces import LoadInterface
 from aiovantage.query import QuerySet
 
