@@ -6,8 +6,8 @@ from typing import Any
 from typing_extensions import override
 
 from aiovantage.errors import CommandError
-from aiovantage.objects import Temperature, Thermostat
 from aiovantage.object_interfaces import ThermostatInterface
+from aiovantage.objects import Temperature, Thermostat
 from aiovantage.query import QuerySet
 
 from .base import BaseController
