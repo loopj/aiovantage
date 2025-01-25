@@ -1,7 +1,7 @@
 """Controller holding and managing Vantage blind groups."""
 
-from aiovantage.objects import BlindBase, BlindGroup, BlindGroupBase, ChildDevice
 from aiovantage.object_interfaces import BlindInterface
+from aiovantage.objects import BlindBase, BlindGroup, BlindGroupBase, ChildDevice
 from aiovantage.query import QuerySet
 
 from .base import BaseController
