@@ -13,19 +13,17 @@ class BlindInterface(Interface):
         """The state of a blind."""
 
         is_moving: bool
-        """Is the blind currently moving?"""
-
         start_pos: Decimal
-        """Position the blind is moving from (as a percentage)"""
-
         end_pos: Decimal
-        """Position the blind is moving to (as a percentage)"""
-
         transition_time: Decimal
-        """Time the blind will take to move (in seconds)"""
-
         start_time: int
-        """Time the blind started moving (in milliseconds since start of UTC day)"""
+
+    class TravelTimes(NamedTuple):
+        """The travel times of a blind."""
+
+        rcode: int
+        open_time: Decimal
+        close_time: Decimal
 
     method_signatures = {
         "Blind.GetPosition": Decimal,
@@ -34,6 +32,11 @@ class BlindInterface(Interface):
         "Blind.GetTiltAngleHW": int,
         "Blind.IsTiltAvailable": bool,
         "Blind.GetBlindState": BlindState,
+        "Blind.GetUpperLimit": Decimal,
+        "Blind.GetUpperLimitHW": Decimal,
+        "Blind.GetLowerLimit": Decimal,
+        "Blind.GetLowerLimitHW": Decimal,
+        "Blind.GetTravelTimes": TravelTimes,
     }
 
     async def open(self, vid: int) -> None:
@@ -66,80 +69,67 @@ class BlindInterface(Interface):
         # -> R:INVOKE <id> <rcode> Blind.Stop
         await self.invoke(vid, "Blind.Stop")
 
-    async def set_position(self, vid: int, position: float) -> None:
+    async def set_position(
+        self, vid: int, position: float, *, sw: bool = False
+    ) -> None:
         """Set the position of a blind.
 
         Args:
             vid: The Vantage ID of the blind.
             position: The position to set the blind to, as a percentage.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Blind.SetPosition <position>
         # -> R:INVOKE <id> <rcode> Blind.SetPosition <position>
-        await self.invoke(vid, "Blind.SetPosition", position)
+        await self.invoke(
+            vid, "Blind.SetPositionSW" if sw else "Blind.SetPosition", position
+        )
 
-    async def get_position(self, vid: int) -> Decimal:
-        """Get the position of a blind, using cached value if available.
+    async def get_position(self, vid: int, *, hw: bool = False) -> Decimal:
+        """Get the position of a blind.
 
         Args:
             vid: The Vantage ID of the blind.
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The position of the blind, as a percentage.
         """
         # INVOKE <id> Blind.GetPosition
         # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPosition
-        return await self.invoke(vid, "Blind.GetPosition", as_type=Decimal)
+        return await self.invoke(
+            vid, "Blind.GetPositionHW" if hw else "Blind.GetPosition"
+        )
 
-    async def get_position_hw(self, vid: int) -> Decimal:
-        """Get the position of a blind directly from the hardware.
-
-        Args:
-            vid: The Vantage ID of the blind.
-
-        Returns:
-            The position of the blind, as a percentage.
-        """
-        # INVOKE <id> Blind.GetPositionHW
-        # -> R:INVOKE <id> <position (0-100.000)> Blind.GetPositionHW
-        return await self.invoke(vid, "Blind.GetPositionHW", as_type=Decimal)
-
-    # Methods below here are not available in 2.x firmware.
-    async def set_tilt_angle(self, vid: int, angle: int) -> None:
+    async def set_tilt_angle(self, vid: int, angle: int, *, sw: bool = False) -> None:
         """Set the tilt angle of a blind.
 
         Args:
             vid: The Vantage ID of the blind.
             angle: The angle to set the blind to, from -100 to 100.
+            sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Blind.SetTiltAngle <angle>
         # -> R:INVOKE <id> <rcode> Blind.SetTiltAngle <angle>
-        await self.invoke(vid, "Blind.SetTiltAngle", angle)
+        await self.invoke(
+            vid, "Blind.SetTiltAngleSW" if sw else "Blind.SetTiltAngle", angle
+        )
 
-    async def get_tilt_angle(self, vid: int) -> int:
-        """Get the tilt angle of a blind, using cached value if available.
+    async def get_tilt_angle(self, vid: int, *, hw: bool = False) -> int:
+        """Get the tilt angle of a blind.
 
         Args:
             vid: The Vantage ID of the blind.
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The tilt angle of the blind, from -100 to 100.
         """
         # INVOKE <id> Blind.GetTiltAngle
         # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngle
-        return await self.invoke(vid, "Blind.GetTiltAngle", as_type=int)
-
-    async def get_tilt_angle_hw(self, vid: int) -> int:
-        """Get the tilt angle of a blind directly from the hardware.
-
-        Args:
-            vid: The Vantage ID of the blind.
-
-        Returns:
-            The tilt angle of the blind, from -100 to 100.
-        """
-        # INVOKE <id> Blind.GetTiltAngleHW
-        # -> R:INVOKE <id> <angle (-100-100)> Blind.GetTiltAngleHW
-        return await self.invoke(vid, "Blind.GetTiltAngleHW", as_type=int)
+        return await self.invoke(
+            vid, "Blind.GetTiltAngleHW" if hw else "Blind.GetTiltAngle"
+        )
 
     async def tilt_clockwise(self, vid: int, angle: int) -> None:
         """Tilt the blinds clockwise by the specified angle.
@@ -174,7 +164,18 @@ class BlindInterface(Interface):
         """
         # INVOKE <id> Blind.IsTiltAvailable
         # -> R:INVOKE <id> <available (0/1)> Blind.IsTiltAvailable
-        return await self.invoke(vid, "Blind.IsTiltAvailable", as_type=bool)
+        return await self.invoke(vid, "Blind.IsTiltAvailable")
+
+    async def set_tilt_available(self, vid: int, available: bool) -> None:
+        """Set the cached tilt availability of a blind.
+
+        Args:
+            vid: The Vantage ID of the blind.
+            available: Whether the blind supports tilting.
+        """
+        # INVOKE <id> Blind.SetTiltAvailableSW <available>
+        # -> R:INVOKE <id> <rcode> Blind.SetTiltAvailableSW <available>
+        await self.invoke(vid, "Blind.SetTiltAvailableSW", available)
 
     async def get_blind_state(self, vid: int) -> BlindState:
         """Get the state of a blind.
@@ -187,4 +188,81 @@ class BlindInterface(Interface):
         """
         # INVOKE <id> Blind.GetBlindState
         # -> R:INVOKE <id> <moving> Blind.GetBlindState <start> <end> <transitionTime> <startTime>
-        return await self.invoke(vid, "Blind.GetBlindState", as_type=self.BlindState)
+        return await self.invoke(vid, "Blind.GetBlindState")
+
+    async def set_upper_limit(
+        self, vid: int, limit: Decimal, *, sw: bool = False
+    ) -> None:
+        """Set the upper limit of a blind.
+
+        Args:
+            vid: The Vantage ID of the blind.
+            limit: The upper limit to set the blind to, as a percentage.
+            sw: Set the cached value instead of the hardware value.
+        """
+        # INVOKE <id> Blind.SetUpperLimit <limit>
+        # -> R:INVOKE <id> <rcode> Blind.SetUpperLimit <limit>
+        await self.invoke(
+            vid, "Blind.SetUpperLimitSW" if sw else "Blind.SetUpperLimit", limit
+        )
+
+    async def get_upper_limit(self, vid: int, *, hw: bool = False) -> Decimal:
+        """Get the upper limit of a blind.
+
+        Args:
+            vid: The Vantage ID of the blind.
+            hw: Fetch the value from hardware instead of cache.
+
+        Returns:
+            The upper limit of the blind, as a percentage.
+        """
+        # INVOKE <id> Blind.GetUpperLimit
+        # -> R:INVOKE <id> <limit (0-100.000)> Blind.GetUpperLimit
+        return await self.invoke(
+            vid, "Blind.GetUpperLimitHW" if hw else "Blind.GetUpperLimit"
+        )
+
+    async def set_lower_limit(
+        self, vid: int, limit: Decimal, *, sw: bool = False
+    ) -> None:
+        """Set the lower limit of a blind.
+
+        Args:
+            vid: The Vantage ID of the blind.
+            limit: The lower limit to set the blind to, as a percentage.
+            sw: Set the cached value instead of the hardware value.
+        """
+        # INVOKE <id> Blind.SetLowerLimit <limit>
+        # -> R:INVOKE <id> <rcode> Blind.SetLowerLimit <limit>
+        await self.invoke(
+            vid, "Blind.SetLowerLimitSW" if sw else "Blind.SetLowerLimit", limit
+        )
+
+    async def get_lower_limit(self, vid: int, *, hw: bool = False) -> Decimal:
+        """Get the lower limit of a blind.
+
+        Args:
+            vid: The Vantage ID of the blind.
+            hw: Fetch the value from hardware instead of cache.
+
+        Returns:
+            The lower limit of the blind, as a percentage.
+        """
+        # INVOKE <id> Blind.GetLowerLimit
+        # -> R:INVOKE <id> <limit (0-100.000)> Blind.GetLowerLimit
+        return await self.invoke(
+            vid, "Blind.GetLowerLimitHW" if hw else "Blind.GetLowerLimit"
+        )
+
+    async def get_travel_times(self, vid: int) -> TravelTimes:
+        """Get the travel times of a blind.
+
+        Args:
+            vid: The Vantage ID of the blind.
+
+        Returns:
+            The travel times of the blind.
+        """
+        # INVOKE <id> Blind.GetTravelTimes
+        # -> R:INVOKE <id> <openTime> <closeTime> Blind.GetTravelTimes
+        return await self.invoke(vid, "Blind.GetTravelTimes")
