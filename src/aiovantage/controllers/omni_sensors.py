@@ -70,7 +70,6 @@ class OmniSensorsController(BaseController[OmniSensor]):
     @classmethod
     def parse_result(cls, sensor: OmniSensor, result: str) -> int | Decimal:
         """Parse an OmniSensor response, eg. 'PowerSensor.GetPower'."""
-        # NOTE: This currently doesn't handle conversion formulas, or return_type
         level = converter.deserialize(Decimal, result)
         if sensor.get.formula.level_type == ConversionType.INT:
             return int(level)

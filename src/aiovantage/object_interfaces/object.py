@@ -1,6 +1,6 @@
 """Interface for querying and controlling system objects."""
 
-from typing import NamedTuple
+from dataclasses import dataclass
 
 from .base import Interface
 
@@ -8,7 +8,8 @@ from .base import Interface
 class ObjectInterface(Interface):
     """Interface for querying and controlling system objects."""
 
-    class PropertyEx(NamedTuple):
+    @dataclass
+    class PropertyEx:
         """Extended property information."""
 
         rcode: int

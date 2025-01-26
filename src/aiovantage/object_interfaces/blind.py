@@ -1,7 +1,7 @@
 """Interface for querying and controlling blinds."""
 
+from dataclasses import dataclass
 from decimal import Decimal
-from typing import NamedTuple
 
 from .base import Interface
 
@@ -9,7 +9,8 @@ from .base import Interface
 class BlindInterface(Interface):
     """Interface for querying and controlling blinds."""
 
-    class BlindState(NamedTuple):
+    @dataclass
+    class BlindState:
         """The state of a blind."""
 
         is_moving: bool
@@ -18,7 +19,8 @@ class BlindInterface(Interface):
         transition_time: Decimal
         start_time: int
 
-    class TravelTimes(NamedTuple):
+    @dataclass
+    class TravelTimes:
         """The travel times of a blind."""
 
         rcode: int

@@ -61,13 +61,11 @@ class Interface:
         return _parse_object_response(result, *args, as_type=signature)
 
     @classmethod
-    def get_method_signature(cls, method: str) -> type[Any]:
+    def get_method_signature(cls, method: str) -> type[Any] | None:
         """Get the signature of a method."""
         for klass in cls.__mro__:
             if issubclass(klass, Interface) and method in klass.method_signatures:
                 return klass.method_signatures[method]
-
-        raise KeyError(f"No method signature found for {method}")
 
     @classmethod
     def parse_object_status(cls, method: str, result: str, *args: str) -> Any:
@@ -78,16 +76,14 @@ class Interface:
             result: The result of the command.
             args: The arguments that were sent with the command.
         """
-        # Make sure we have a signature for the method
-        if method not in cls.method_signatures:
-            raise NotImplementedError(f"No signature found for method {method}")
-
         # Parse the response
         signature = cls.get_method_signature(method)
         return _parse_object_response(result, *args, as_type=signature)
 
 
-def _parse_object_response(result: str, *args: str, as_type: type[T]) -> T | None:
+def _parse_object_response(
+    result: str, *args: str, as_type: type[T] | None
+) -> T | None:
     """Parse an object interface response message.
 
     Args:
@@ -103,7 +99,7 @@ def _parse_object_response(result: str, *args: str, as_type: type[T]) -> T | Non
     # -> S:STATUS <id> <Interface.Method> <result> <arg1> <arg2> ...
 
     # Return early if the expected type is NoneType
-    if as_type is type(None):
+    if as_type in (None, type(None)):
         return None
 
     # Otherwise, parse the result into the expected type
