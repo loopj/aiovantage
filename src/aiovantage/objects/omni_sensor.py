@@ -15,7 +15,7 @@ class ConversionType(Enum):
     INT = "int"
 
 
-@dataclass
+@dataclass(kw_only=True)
 class OmniSensor(Sensor):
     """OmniSensor object."""
 

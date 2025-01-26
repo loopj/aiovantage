@@ -6,7 +6,7 @@ from .blind_base import BlindBase
 from .child_device import ChildDevice
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyRS485ShadeChild(BlindBase, ChildDevice):
     """Somfy RS-485 SDN 2.0 blind."""
 

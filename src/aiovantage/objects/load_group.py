@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from .location_object import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class LoadGroup(LocationObject):
     """LoadGroup object."""
 

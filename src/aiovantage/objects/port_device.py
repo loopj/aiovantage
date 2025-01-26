@@ -7,6 +7,6 @@ from .location_object import LocationObject
 # NOTE: Inherits from LocationObject on 2.x firmware, ParentDevice on 3.x firmware.
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PortDevice(LocationObject):
     """Base class for Vantage port devices."""

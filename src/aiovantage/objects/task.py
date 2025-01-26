@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from .system_object import SystemObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Task(SystemObject):
     """Task object."""
 

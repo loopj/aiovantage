@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from .rgb_load_base import RGBLoadBase
 
 
-@dataclass
+@dataclass(kw_only=True)
 class VantageDDGColorLoad(RGBLoadBase):
     """DMX/DALI Gateway color load object."""
 
