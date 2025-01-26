@@ -1,10 +1,7 @@
 """Controller holding and managing Vantage variables."""
 
-import re
-
 from typing_extensions import override
 
-from aiovantage.command_client.utils import parse_byte_param
 from aiovantage.objects import GMem
 
 from .base import BaseController
@@ -81,11 +78,6 @@ class GMemController(BaseController[GMem]):
         if gmem.is_bool:
             return bool(int(value))
         if gmem.is_str:
-            # Handle byte array strings
-            if re.match(r"^[\[\{].*[\]\}]$", value):
-                byte_param = parse_byte_param(value)
-                return byte_param.decode().rstrip("\x00")
-
             return value
 
         return int(value)

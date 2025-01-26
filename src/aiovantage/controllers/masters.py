@@ -48,7 +48,7 @@ class MastersController(
             return
 
         state = {
-            "last_updated": self.parse_response(method, result, *args),
+            "last_updated": self.parse_object_status(method, result, *args),
         }
 
         self.update_state(vid, state)
