@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing_extensions import override
 
 from aiovantage.command_client.types import converter
-from aiovantage.objects.omni_sensor import ConversionType, OmniSensor
+from aiovantage.objects.omni_sensor import OmniSensor
 
 from .base import BaseController
 
@@ -70,8 +70,4 @@ class OmniSensorsController(BaseController[OmniSensor]):
     @classmethod
     def parse_result(cls, sensor: OmniSensor, result: str) -> int | Decimal:
         """Parse an OmniSensor response, eg. 'PowerSensor.GetPower'."""
-        level = converter.deserialize(Decimal, result)
-        if sensor.get.formula.level_type == ConversionType.INT:
-            return int(level)
-
-        return level
+        return converter.deserialize(Decimal, result)
