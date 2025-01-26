@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
@@ -11,12 +12,7 @@ from types import TracebackType
 from typing_extensions import Self
 
 from aiovantage.connection import BaseConnection
-from aiovantage.errors import (
-    CommandError,
-    InvalidObjectError,
-    LoginFailedError,
-    LoginRequiredError,
-)
+from aiovantage.errors import CommandError, raise_command_error
 
 from .types import converter, tokenize_response
 
@@ -142,12 +138,18 @@ class CommandClient:
                 response_line = await conn.readuntil(b"\r\n", self._read_timeout)
                 response_line = response_line.rstrip()
 
-                # Handle error codes
+                # Handle command errors
                 if response_line.startswith("R:ERROR"):
-                    raise self._parse_command_error(response_line)
+                    # Parse a command error from a message.
+                    match = re.match(r"R:ERROR:(\d+) (.+)", response_line)
+                    if not match:
+                        raise CommandError(response_line)
+
+                    # Convert the error code to a specific exception, if possible
+                    raise_command_error(int(match.group(1)), match.group(2))
 
                 # Ignore potentially interleaved "event" messages
-                if any(response_line.startswith(x) for x in ("S:", "L:", "EL:")):
+                if response_line.startswith(("S:", "L:", "EL:")):
                     self._logger.debug("Ignoring event message: %s", response_line)
                     continue
 
@@ -183,21 +185,3 @@ class CommandClient:
                 )
 
             return self._connection
-
-    def _parse_command_error(self, message: str) -> CommandError:
-        # Parse a command error from a message.
-        tag, error_message = message.split(" ", 1)
-        _, _, error_code_str = tag.split(":")
-        error_code = int(error_code_str)
-
-        exc: CommandError
-        if error_code == 7:
-            exc = InvalidObjectError(error_message)
-        elif error_code == 21:
-            exc = LoginRequiredError(error_message)
-        elif error_code == 23:
-            exc = LoginFailedError(error_message)
-        else:
-            exc = CommandError(f"{error_message} (Error code {error_code})")
-
-        return exc
