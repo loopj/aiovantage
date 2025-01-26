@@ -18,7 +18,7 @@ from aiovantage.errors import (
     LoginRequiredError,
 )
 
-from .utils import encode_params, tokenize_response
+from .types import converter, tokenize_response
 
 
 class CommandConnection(BaseConnection):
@@ -97,14 +97,21 @@ class CommandClient:
         Returns:
             A CommandResponse instance.
         """
-        # Build the request
         request = command
         if params:
-            request += f" {encode_params(*params, force_quotes=force_quotes)}"
+            serialized_params = " ".join(
+                converter.serialize(params, force_quotes=force_quotes)
+                for params in params
+            )
+            request += f" {serialized_params}"
 
-        # Send the request and parse the response
+        # Send the request
         *data, return_line = await self.raw_request(request, connection=connection)
+
+        # Break the response into tokens
         command, *args = tokenize_response(return_line)
+
+        # Parse the response
         return CommandResponse(command[2:], args, data)
 
     async def raw_request(

@@ -8,7 +8,7 @@ from inspect import iscoroutinefunction
 from typing import TYPE_CHECKING, Any, Literal, TypeVar
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
-from aiovantage.command_client.utils import tokenize_response
+from aiovantage.command_client.types import tokenize_response
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects
 from aiovantage.events import EventCallback, VantageEvent

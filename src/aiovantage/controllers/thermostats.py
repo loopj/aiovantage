@@ -75,9 +75,9 @@ class ThermostatsController(BaseController[Thermostat], ThermostatInterface):
         """Handle object interface status messages from the event stream."""
         state: dict[str, Any] = {}
         if method == "Thermostat.GetHoldMode":
-            state["hold_mode"] = self.parse_response(method, result, *args)
+            state["hold_mode"] = self.parse_object_status(method, result, *args)
         elif method == "Thermostat.GetStatus":
-            state["status"] = self.parse_response(method, result, *args)
+            state["status"] = self.parse_object_status(method, result, *args)
 
         self.update_state(vid, state)
 

@@ -68,7 +68,7 @@ class RGBLoadsController(
         state: dict[str, Any] = {}
 
         if method == "Load.GetLevel":
-            state["level"] = self.parse_response(method, result, *args)
+            state["level"] = self.parse_object_status(method, result, *args)
 
         elif method == "RGBLoad.GetHSL" and rgb_load.is_rgb:
             if color := self._parse_color_channel_response(vid, method, result, *args):
@@ -83,7 +83,7 @@ class RGBLoadsController(
                 state["rgbw"] = color
 
         elif method == "ColorTemperature.Get" and rgb_load.is_cct:
-            state["color_temp"] = self.parse_response(method, result, *args)
+            state["color_temp"] = self.parse_object_status(method, result, *args)
 
         else:
             return

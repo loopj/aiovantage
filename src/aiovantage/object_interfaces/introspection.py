@@ -1,7 +1,7 @@
 """Interface for controller introspection."""
 
+from dataclasses import dataclass
 from enum import IntEnum
-from typing import NamedTuple
 
 from .base import Interface
 
@@ -23,7 +23,8 @@ class IntrospectionInterface(Interface):
         Equinox = 1
         All = -1
 
-    class FirmwareVersion(NamedTuple):
+    @dataclass
+    class FirmwareVersion:
         """A firmware version response."""
 
         rcode: int
@@ -31,7 +32,8 @@ class IntrospectionInterface(Interface):
         version: str
         size: int
 
-    class LicenseInfo(NamedTuple):
+    @dataclass
+    class LicenseInfo:
         """A license info response."""
 
         rcode: int

@@ -1,14 +1,9 @@
 """Base class for command client interfaces."""
 
-from typing import Any, TypeVar, overload
+from typing import Any, TypeVar, get_type_hints, overload
 
 from aiovantage.command_client import CommandClient
-from aiovantage.command_client.utils import (
-    ParameterType,
-    encode_params,
-    parse_param,
-    tokenize_response,
-)
+from aiovantage.command_client.types import converter
 
 T = TypeVar("T")
 
@@ -16,7 +11,7 @@ T = TypeVar("T")
 class Interface:
     """Base class for command client object interfaces."""
 
-    method_signatures: dict[str, type[Any] | None] = {}
+    method_signatures: dict[str, type[Any]] = {}
 
     def __init__(self, client: CommandClient) -> None:
         """Initialize an object interface for standalone use.
@@ -32,20 +27,16 @@ class Interface:
         return self._command_client
 
     @overload
-    async def invoke(self, vid: int, method: str, *params: ParameterType) -> Any: ...
+    async def invoke(self, vid: int, method: str, *params: Any) -> Any: ...
 
     @overload
     async def invoke(
-        self, vid: int, method: str, *params: ParameterType, as_type: type[T]
+        self, vid: int, method: str, *params: Any, as_type: type[T]
     ) -> T: ...
 
     async def invoke(
-        self,
-        vid: int,
-        method: str,
-        *params: ParameterType,
-        as_type: type[T] | None = None,
-    ) -> T | Any | None:
+        self, vid: int, method: str, *params: Any, as_type: type[T] | None = None
+    ) -> T | Any:
         """Invoke a method on an object, and return the parsed response.
 
         Args:
@@ -57,82 +48,75 @@ class Interface:
         Returns:
             A parsed response, or None if no response was expected.
         """
-        # INVOKE <id> <Interface.Method>
-        # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
-        request = f"INVOKE {vid} {method}"
-        if params:
-            request += f" {encode_params(*params)}"
-
-        # Send the request
-        raw_response = await self.command_client.raw_request(request)
+        # Send the command
+        response = await self.command_client.command(
+            "INVOKE", vid, method, *params, force_quotes=True
+        )
 
         # Break the response into tokens
-        _, _, result, _, *args = tokenize_response(raw_response[0])
+        _id, result, _method, *args = response.args
 
         # Parse the response
-        if as_type is None:
-            return self.parse_response(method, result, *args)
-        return self.parse_response(method, result, *args, as_type=as_type)
-
-    @overload
-    @classmethod
-    def parse_response(
-        cls, method: str, result: str, *args: str, as_type: type[T]
-    ) -> T: ...
-
-    @overload
-    @classmethod
-    def parse_response(cls, method: str, result: str, *args: str) -> Any: ...
+        signature = as_type or self.get_method_signature(method)
+        return _parse_object_response(result, *args, as_type=signature)
 
     @classmethod
-    def parse_response(
-        cls, method: str, result: str, *args: str, as_type: type[T] | None = None
-    ) -> T | Any | None:
-        """Parse an object interface "INVOKE" response or status message.
+    def get_method_signature(cls, method: str) -> type[Any] | None:
+        """Get the signature of a method."""
+        for klass in cls.__mro__:
+            if issubclass(klass, Interface) and method in klass.method_signatures:
+                return klass.method_signatures[method]
+
+    @classmethod
+    def parse_object_status(cls, method: str, result: str, *args: str) -> Any:
+        """Handle an object interface status message.
 
         Args:
             method: The method that was invoked.
             result: The result of the command.
             args: The arguments that were sent with the command.
-            as_type: The type to cast the response to.
-
-        Returns:
-            A parsed response, or None if no response was expected.
         """
-        # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
-        # -> EL: <id> <Interface.Method> <result> <arg1> <arg2> ...
-        # -> S:STATUS <id> <Interface.Method> <result> <arg1> <arg2> ...
-
-        # Get the signature of the method we are parsing the response for
-        signature = as_type or cls._get_signature(method)
-
-        # Return early if this method has no return value
-        if signature is None:
-            return None
-
         # Parse the response
-        parsed_response: Any
-        if issubclass(signature, tuple) and hasattr(signature, "__annotations__"):  # type: ignore
-            # If the signature is a NamedTuple, parse each component
-            parsed_values: list[Any] = []
-            for arg, klass in zip(
-                [result, *args], signature.__annotations__.values(), strict=True
-            ):
-                parsed_values.append(parse_param(arg, klass))
+        signature = cls.get_method_signature(method)
+        return _parse_object_response(result, *args, as_type=signature)
 
-            parsed_response = signature(*parsed_values)
-        else:
-            # Otherwise, parse a single return value
-            parsed_response = parse_param(result, signature)  # type: ignore
 
-        # Return the parsed result
-        return parsed_response
+def _parse_object_response(
+    result: str, *args: str, as_type: type[T] | None
+) -> T | None:
+    """Parse an object interface response message.
 
-    @classmethod
-    def _get_signature(cls, method: str) -> type[Any] | None:
-        # Get the signature of a method.
-        for klass in cls.__mro__:
-            if issubclass(klass, Interface) and method in klass.method_signatures:
-                return klass.method_signatures[method]
+    Args:
+        result: The "result" of the command, aka the return value.
+        args: The arguments that were sent with the command, which may have been modified.
+        as_type: The expected return type of the method.
 
+    Returns:
+        A response parsed into the expected type.
+    """
+    # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
+    # -> EL: <id> <Interface.Method> <result> <arg1> <arg2> ...
+    # -> S:STATUS <id> <Interface.Method> <result> <arg1> <arg2> ...
+
+    # Return early if the expected type is NoneType
+    if as_type in (None, type(None)):
         return None
+
+    # Otherwise, parse the result into the expected type
+    if type_hints := get_type_hints(as_type):
+        # Some methods return multiple values, in the "return" field and in the
+        # "params" fields. This adds support for parsing multiple values into
+        # a dataclass or NamedTuple.
+        parsed_values: list[Any] = []
+        for arg, klass in zip([result, *args], type_hints.values(), strict=True):
+            parsed_value = converter.deserialize(klass, arg)
+            parsed_values.append(parsed_value)
+
+        parsed_response = as_type(*parsed_values)
+    else:
+        # Simple string responses contain the string value in the first argument
+        param = args[0] if as_type is str else result
+        parsed_response = converter.deserialize(as_type, param)
+
+    # Return the parsed result
+    return parsed_response
