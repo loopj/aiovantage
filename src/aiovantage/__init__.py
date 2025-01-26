@@ -286,9 +286,6 @@ class Vantage:
             *[controller.initialize(fetch_state) for controller in self._controllers]
         )
 
-        # Start the event stream
-        await self.event_stream.start()
-
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
         """Subscribe to state changes for all objects.
 

@@ -58,9 +58,8 @@ class SystemObject:
         },
     )
 
-    @property
-    def vantage_type(self) -> str:
-        """Return the Vantage type of the object."""
-        cls = type(self)
+    @classmethod
+    def vantage_type(cls) -> str:
+        """Return the Vantage type for this object."""
         cls_meta = getattr(cls, "Meta", None)
         return getattr(cls_meta, "name", cls.__qualname__)

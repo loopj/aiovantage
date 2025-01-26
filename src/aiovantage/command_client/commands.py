@@ -3,11 +3,10 @@
 import asyncio
 import logging
 import re
-from collections.abc import Sequence
 from dataclasses import dataclass
-from decimal import Decimal
 from ssl import SSLContext
 from types import TracebackType
+from typing import Any
 
 from typing_extensions import Self
 
@@ -29,8 +28,8 @@ class CommandResponse:
     """Wrapper for command responses."""
 
     command: str
-    args: Sequence[str]
-    data: Sequence[str]
+    args: list[str]
+    data: list[str]
 
 
 class CommandClient:
@@ -78,7 +77,7 @@ class CommandClient:
     async def command(
         self,
         command: str,
-        *params: str | int | float | Decimal,
+        *params: Any,
         force_quotes: bool = False,
         connection: CommandConnection | None = None,
     ) -> CommandResponse:
@@ -112,7 +111,7 @@ class CommandClient:
 
     async def raw_request(
         self, request: str, connection: CommandConnection | None = None
-    ) -> Sequence[str]:
+    ) -> list[str]:
         """Send a raw command to the Host Command service and return all response lines.
 
         Handles authentication if required, and raises an exception if the response line
