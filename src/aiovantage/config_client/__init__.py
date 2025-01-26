@@ -19,14 +19,16 @@ import asyncio
 import logging
 from ssl import SSLContext
 from types import TracebackType
-from xml.etree import ElementTree
+from xml.etree import ElementTree as ET
 
 from typing_extensions import Self
+from xsdata.formats.dataclass.context import XmlContext
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
 from xsdata.formats.dataclass.parsers.handlers import XmlEventHandler
 from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
+from xsdata.utils.text import pascal_case
 
 from aiovantage.connection import BaseConnection
 from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
@@ -67,18 +69,27 @@ class ConfigClient:
         self._username = username
         self._password = password
         self._read_timeout = read_timeout
+        self._connection_lock = asyncio.Lock()
+        self._request_lock = asyncio.Lock()
+        self._logger = logging.getLogger(__name__)
 
+        # Default to pascal case for element and attribute names
+        xml_context = XmlContext(
+            element_name_generator=pascal_case,
+            attribute_name_generator=pascal_case,
+        )
+
+        # Configure the request serializer
         self._serializer = XmlSerializer(
             config=SerializerConfig(xml_declaration=False),
         )
 
+        # Configure the response parser
         self._parser = XmlParser(
             config=ParserConfig(fail_on_unknown_properties=False),
+            context=xml_context,
             handler=XmlEventHandler,
         )
-        self._connection_lock = asyncio.Lock()
-        self._request_lock = asyncio.Lock()
-        self._logger = logging.getLogger(__name__)
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -161,7 +172,7 @@ class ConfigClient:
         )
 
         # Parse the XML doc
-        root = ElementTree.fromstring(response)
+        root = ET.fromstring(response)
 
         # Response root must match the tag of the request
         if root.tag != method.interface:

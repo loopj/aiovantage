@@ -10,48 +10,15 @@ from .types import Parent
 class Button(SystemObject):
     """Button object."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent
+    down: int
+    up: int
+    hold: int
+    text1: str
+    text2: str
 
-    down: int = field(
-        metadata={
-            "name": "Down",
-        }
-    )
-
-    up: int = field(
-        metadata={
-            "name": "Up",
-        }
-    )
-
-    hold: int = field(
-        metadata={
-            "name": "Hold",
-        }
-    )
-
-    text1: str = field(
-        metadata={
-            "name": "Text1",
-        }
-    )
-
-    text2: str = field(
-        metadata={
-            "name": "Text2",
-        }
-    )
-
-    pressed: bool | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    pressed: bool | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def text(self) -> str:

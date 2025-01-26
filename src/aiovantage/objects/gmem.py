@@ -12,49 +12,20 @@ class GMem(SystemObject):
     @dataclass
     class Tag:
         type: str
-
         object: bool = field(
-            default=False,
-            metadata={
-                "name": "object",
-                "type": "Attribute",
-            },
+            default=False, metadata={"name": "object", "type": "Attribute"}
         )
 
     @dataclass
     class Data:
-        fixed: bool = field(
-            default=False,
-            metadata={
-                "name": "Fixed",
-                "type": "Attribute",
-            },
-        )
+        fixed: bool = field(default=False, metadata={"type": "Attribute"})
 
-    data: Data = field(
-        metadata={
-            "name": "data",
-        }
-    )
+    data: Data = field(metadata={"name": "data"})
+    persistent: bool
+    tag: Tag
 
-    persistent: bool = field(
-        metadata={
-            "name": "Persistent",
-        }
-    )
-
-    tag: Tag = field(
-        metadata={
-            "name": "Tag",
-        }
-    )
-
-    value: int | str | bool | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    value: int | str | bool | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def is_bool(self) -> bool:

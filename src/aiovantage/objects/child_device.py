@@ -1,6 +1,6 @@
 """Base class for child device objects."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from .custom_device import CustomDevice
 from .types import Parent
@@ -10,8 +10,4 @@ from .types import Parent
 class ChildDevice(CustomDevice):
     """Base class for child device objects."""
 
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
+    parent: Parent

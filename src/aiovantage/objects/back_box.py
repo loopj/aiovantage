@@ -1,6 +1,6 @@
 """BackBox object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from .location_object import LocationObject
 
@@ -9,8 +9,4 @@ from .location_object import LocationObject
 class BackBox(LocationObject):
     """BackBox object."""
 
-    keypad_style: int = field(
-        metadata={
-            "name": "KeypadStyle",
-        }
-    )
+    keypad_style: int
