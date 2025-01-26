@@ -16,52 +16,46 @@ class ConversionType(Enum):
 
 
 @dataclass
-class Formula:
-    """OmniSensor conversion formula information."""
-
-    return_type: ConversionType = field(
-        metadata={
-            "name": "ReturnType",
-            "type": "Attribute",
-        }
-    )
-
-    level_type: ConversionType = field(
-        metadata={
-            "name": "LevelType",
-            "type": "Attribute",
-        }
-    )
-
-    value: str
-
-
-@dataclass
-class GetMethodType:
-    """Omnisensor get method information."""
-
-    formula: Formula = field(
-        metadata={
-            "name": "Formula",
-        }
-    )
-
-    method: str = field(
-        metadata={
-            "name": "Method",
-        }
-    )
-
-    method_hw: str = field(
-        metadata={
-            "name": "MethodHW",
-        }
-    )
-
-
-@dataclass
 class OmniSensor(Sensor):
     """OmniSensor object."""
+
+    @dataclass
+    class Get:
+        @dataclass
+        class Formula:
+            return_type: ConversionType = field(
+                metadata={
+                    "name": "ReturnType",
+                    "type": "Attribute",
+                }
+            )
+
+            level_type: ConversionType = field(
+                metadata={
+                    "name": "LevelType",
+                    "type": "Attribute",
+                }
+            )
+
+            formula: str
+
+        formula: Formula = field(
+            metadata={
+                "name": "Formula",
+            }
+        )
+
+        method: str = field(
+            metadata={
+                "name": "Method",
+            }
+        )
+
+        method_hw: str = field(
+            metadata={
+                "name": "MethodHW",
+            }
+        )
 
     parent: Parent = field(
         metadata={
@@ -69,7 +63,7 @@ class OmniSensor(Sensor):
         }
     )
 
-    get: GetMethodType = field(
+    get: Get = field(
         metadata={
             "name": "Get",
         }
