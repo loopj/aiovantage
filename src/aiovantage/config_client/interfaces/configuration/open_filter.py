@@ -16,8 +16,9 @@ class OpenFilter:
         object_types: list[str] | None = field(
             default=None,
             metadata={
-                "name": "ObjectType",
                 "wrapper": "Objects",
+                "name": "ObjectType",
+                "type": "Element",
             },
         )
 
@@ -28,8 +29,14 @@ class OpenFilter:
             },
         )
 
-    call: Params | None = field(default=None)
-    return_value: int | None = field(
+    call: Params | None = field(
+        default=None,
+        metadata={
+            "name": "call",
+        },
+    )
+
+    result: int | None = field(
         default=None,
         metadata={
             "name": "return",

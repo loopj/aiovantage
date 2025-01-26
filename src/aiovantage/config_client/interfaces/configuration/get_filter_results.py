@@ -15,31 +15,22 @@ class GetFilterResults:
     class Params:
         """Method parameters."""
 
-        h_filter: int = field(
-            metadata={
-                "name": "hFilter",
-            }
-        )
+        h_filter: int = field(metadata={"name": "hFilter"})
+        count: int = 50
+        whole_object: bool = True
 
-        count: int = field(
-            default=50,
-            metadata={
-                "name": "Count",
-            },
-        )
-
-        whole_object: bool = field(
-            default=True,
-            metadata={
-                "name": "WholeObject",
-            },
-        )
-
-    call: Params | None = field(default=None)
-    return_value: list[ObjectChoice] | None = field(
+    call: Params | None = field(
         default=None,
         metadata={
-            "name": "Object",
+            "name": "call",
+        },
+    )
+
+    result: list[ObjectChoice] | None = field(
+        default=None,
+        metadata={
             "wrapper": "return",
+            "name": "Object",
+            "type": "Element",
         },
     )

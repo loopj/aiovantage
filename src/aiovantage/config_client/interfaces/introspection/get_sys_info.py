@@ -13,17 +13,18 @@ class GetSysInfo:
     class SysInfo:
         """SysInfo class."""
 
-        master_number: int = field(metadata={"name": "MasterNumber"})
-        serial_number: int = field(metadata={"name": "SerialNumber"})
+        master_number: int
+        serial_number: int
 
     @dataclass
     class Return:
         """Method return value."""
 
-        sys_info: "GetSysInfo.SysInfo" = field(metadata={"name": "SysInfo"})
+        sys_info: "GetSysInfo.SysInfo"
 
     call = None
-    return_value: Return | None = field(
+
+    result: Return | None = field(
         default=None,
         metadata={
             "name": "return",

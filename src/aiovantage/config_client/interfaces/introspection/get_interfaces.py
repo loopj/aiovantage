@@ -13,15 +13,17 @@ class GetInterfaces:
     class Interface:
         """Object interface definition."""
 
-        name: str = field(metadata={"name": "Name"})
-        version: str = field(metadata={"name": "Version"})
-        id: int = field(metadata={"name": "IID"})
+        name: str
+        version: str
+        iid: int = field(metadata={"name": "IID"})
 
     call = None
-    return_value: list[Interface] | None = field(
-        default=None,
+
+    result: list[Interface] | None = field(
+        default_factory=list,
         metadata={
-            "name": "Interface",
             "wrapper": "return",
+            "name": "Interface",
+            "type": "Element",
         },
     )

@@ -9,8 +9,14 @@ class CloseFilter:
 
     interface = "IConfiguration"
 
-    call: int | None = field(default=None)
-    return_value: bool | None = field(
+    call: int | None = field(
+        default=None,
+        metadata={
+            "name": "call",
+        },
+    )
+
+    result: bool | None = field(
         default=None,
         metadata={
             "name": "return",
