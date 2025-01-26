@@ -9,7 +9,7 @@ from .location_object import LocationObject
 class LoadGroup(LocationObject):
     """LoadGroup object."""
 
-    load_ids: list[int] = field(
+    load_table: list[int] = field(
         default_factory=list,
         metadata={
             "name": "Load",

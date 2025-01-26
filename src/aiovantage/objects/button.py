@@ -16,19 +16,19 @@ class Button(SystemObject):
         }
     )
 
-    down_id: int = field(
+    down: int = field(
         metadata={
             "name": "Down",
         }
     )
 
-    up_id: int = field(
+    up: int = field(
         metadata={
             "name": "Up",
         }
     )
 
-    hold_id: int = field(
+    hold: int = field(
         metadata={
             "name": "Hold",
         }

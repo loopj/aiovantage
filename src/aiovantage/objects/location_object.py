@@ -10,7 +10,7 @@ class LocationObject(SystemObject):
     """Base class for system objects in an area."""
 
     # Some objects in firmware 2.x do not have an area_id
-    area_id: int | None = field(
+    area: int | None = field(
         default=None,
         metadata={
             "name": "Area",

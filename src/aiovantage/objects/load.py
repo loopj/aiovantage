@@ -22,7 +22,7 @@ class Load(LocationObject):
         }
     )
 
-    power_profile_id: int = field(
+    power_profile: int = field(
         metadata={
             "name": "PowerProfile",
         }
