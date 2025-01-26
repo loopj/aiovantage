@@ -9,14 +9,14 @@ from xsdata.models.datatype import XmlDateTime
 class SystemObject:
     """Base class for all objects."""
 
-    id: int = field(
+    vid: int = field(
         metadata={
             "name": "VID",
             "type": "Attribute",
         }
     )
 
-    master_id: int = field(
+    master: int = field(
         metadata={
             "name": "Master",
             "type": "Attribute",
@@ -51,12 +51,22 @@ class SystemObject:
     )
 
     # Not available in 2.x firmware
-    display_name: str | None = field(
+    dname: str | None = field(
         default=None,
         metadata={
             "name": "DName",
         },
     )
+
+    @property
+    def id(self) -> int:
+        """Return the ID of the object."""
+        return self.vid
+
+    @property
+    def display_name(self) -> str:
+        """Return the display name of the object."""
+        return self.dname or self.name
 
     @classmethod
     def vantage_type(cls) -> str:

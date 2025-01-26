@@ -23,7 +23,7 @@ class BlindGroupsController(BaseController[BlindGroupBase], BlindInterface):
         if isinstance(blind_group, BlindGroup):
 
             def _filter1(blind: BlindBase) -> bool:
-                return blind.id in blind_group.blind_ids
+                return blind.id in blind_group.blind_table
 
             return self._vantage.blinds.filter(_filter1)
 

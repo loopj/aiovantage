@@ -15,7 +15,7 @@ class StationObject(LocationObject):
         }
     )
 
-    bus_id: int = field(
+    bus: int = field(
         metadata={
             "name": "Bus",
         }
