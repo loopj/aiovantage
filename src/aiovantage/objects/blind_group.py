@@ -6,7 +6,7 @@ from .blind_group_base import BlindGroupBase
 from .location_object import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class BlindGroup(BlindGroupBase, LocationObject):
     """BlindGroup object."""
 

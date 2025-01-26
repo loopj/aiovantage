@@ -7,7 +7,7 @@ from .sensor import Sensor
 from .types import Parent
 
 
-@dataclass
+@dataclass(kw_only=True)
 class LightSensor(Sensor):
     """Light sensor object."""
 

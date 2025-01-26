@@ -7,7 +7,7 @@ from .location_object import LocationObject
 from .types import Parent
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Blind(BlindBase, LocationObject):
     """Blind object."""
 

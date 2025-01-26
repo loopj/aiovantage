@@ -6,7 +6,7 @@ from .blind_group_base import BlindGroupBase
 from .child_device import ChildDevice
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyURTSI2GroupChild(BlindGroupBase, ChildDevice):
     """Somfy URTSI 2 blind group."""
 

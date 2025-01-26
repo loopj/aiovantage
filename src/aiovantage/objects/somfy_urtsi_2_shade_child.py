@@ -6,7 +6,7 @@ from .blind_base import BlindBase
 from .child_device import ChildDevice
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyURTSI2ShadeChild(BlindBase, ChildDevice):
     """Somfy URTSI 2 blind."""
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from .system_object import SystemObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class PowerProfile(SystemObject):
     """Power Profile object."""
 

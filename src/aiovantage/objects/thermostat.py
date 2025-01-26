@@ -6,7 +6,7 @@ from enum import IntEnum
 from .station_object import StationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class Thermostat(StationObject):
     """Thermostat object."""
 

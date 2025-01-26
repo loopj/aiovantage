@@ -6,6 +6,6 @@ from .blind_base import BlindBase
 from .location_object import LocationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class RelayBlind(BlindBase, LocationObject):
     """Relay blind object."""

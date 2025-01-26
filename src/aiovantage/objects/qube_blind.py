@@ -6,6 +6,6 @@ from .blind_base import BlindBase
 from .station_object import StationObject
 
 
-@dataclass
+@dataclass(kw_only=True)
 class QubeBlind(BlindBase, StationObject):
     """Qube blind object."""

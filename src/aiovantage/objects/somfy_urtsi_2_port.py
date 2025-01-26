@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from .port_device import PortDevice
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SomfyURTSI2Port(PortDevice):
     """Somfy URTSI 2 port device."""
 
