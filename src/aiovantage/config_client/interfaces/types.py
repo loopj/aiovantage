@@ -1,36 +1,25 @@
 """ObjectChoice type definition."""
 
-import inspect
 from dataclasses import dataclass, field
 from functools import cache
-from types import ModuleType
-from typing import Any
+from importlib import import_module
+from inspect import getmembers, isclass
 
-from aiovantage import objects
-
-
-def get_all_module_classes(module: ModuleType) -> list[type[Any]]:
-    """Get all classes from a module."""
-    classes: list[type[Any]] = []
-    for _, cls in inspect.getmembers(module, inspect.isclass):
-        classes.append(cls)
-
-    return classes
+from aiovantage.objects import SystemObject
 
 
 @cache
-def get_all_object_choices(module: ModuleType) -> list[dict[str, Any]]:
+def get_all_object_choices() -> list[dict[str, str | type[SystemObject]]]:
     """Get all object choices from a module."""
-    choices: list[dict[str, Any]] = []
-    for cls in get_all_module_classes(module):
-        # Get the name of the XML element
-        meta = getattr(cls, "Meta", None)
-        name = getattr(meta, "name", cls.__qualname__)
+    # Load all SystemObject types into memory
+    module = import_module("aiovantage.objects")
 
-        # Add the xsdata choice
-        choices.append({"name": name, "type": cls})
-
-    return choices
+    # Build and return choices list
+    return [
+        {"name": cls.vantage_type(), "type": cls}
+        for _, cls in getmembers(module, isclass)
+        if issubclass(cls, SystemObject)
+    ]
 
 
 @dataclass
@@ -47,6 +36,6 @@ class ObjectChoice:
     choice: object = field(
         metadata={
             "type": "Wildcard",
-            "choices": get_all_object_choices(objects),  # type: ignore
+            "choices": get_all_object_choices(),
         },
     )
