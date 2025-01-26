@@ -1,6 +1,6 @@
 """Power profile object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from .system_object import SystemObject
 
@@ -9,41 +9,13 @@ from .system_object import SystemObject
 class PowerProfile(SystemObject):
     """Power Profile object."""
 
-    min: float = field(
-        metadata={
-            "name": "Min",
-        }
-    )
-
-    max: float = field(
-        metadata={
-            "name": "Max",
-        }
-    )
+    min: float
+    max: float
 
     # Not available in 2.x firmware
-    adjust: int | None = field(
-        default=None,
-        metadata={
-            "name": "Adjust",
-        },
-    )
-
-    # Not available in 2.x firmware
-    freq: int | None = field(
-        default=None,
-        metadata={
-            "name": "Freq",
-        },
-    )
-
-    # Not available in 2.x firmware
-    inductive: bool | None = field(
-        default=None,
-        metadata={
-            "name": "Inductive",
-        },
-    )
+    adjust: int | None = None
+    freq: int | None = None
+    inductive: bool | None = None
 
     @property
     def is_dimmable(self) -> bool:

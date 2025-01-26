@@ -10,25 +10,8 @@ from .system_object import SystemObject
 class BlindBase(SystemObject):
     """Blind base class."""
 
-    shade_orientation: str | None = field(
-        default=None,
-        metadata={
-            "name": "ShadeOrientation",
-            "type": "Attribute",
-        },
-    )
+    shade_orientation: str | None = field(default=None, metadata={"type": "Attribute"})
+    shade_type: str | None = field(default=None, metadata={"type": "Attribute"})
 
-    shade_type: str | None = field(
-        default=None,
-        metadata={
-            "name": "ShadeType",
-            "type": "Attribute",
-        },
-    )
-
-    position: Decimal | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    position: Decimal | None = field(default=None, metadata={"type": "Ignore"})

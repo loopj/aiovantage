@@ -23,58 +23,19 @@ class OmniSensor(Sensor):
     class Get:
         @dataclass
         class Formula:
-            return_type: ConversionType = field(
-                metadata={
-                    "name": "ReturnType",
-                    "type": "Attribute",
-                }
-            )
-
-            level_type: ConversionType = field(
-                metadata={
-                    "name": "LevelType",
-                    "type": "Attribute",
-                }
-            )
-
+            return_type: ConversionType = field(metadata={"type": "Attribute"})
+            level_type: ConversionType = field(metadata={"type": "Attribute"})
             formula: str
 
-        formula: Formula = field(
-            metadata={
-                "name": "Formula",
-            }
-        )
+        formula: Formula
+        method: str
+        method_hw: str = field(metadata={"name": "MethodHW"})
 
-        method: str = field(
-            metadata={
-                "name": "Method",
-            }
-        )
+    parent: Parent
+    get: Get
 
-        method_hw: str = field(
-            metadata={
-                "name": "MethodHW",
-            }
-        )
-
-    parent: Parent = field(
-        metadata={
-            "name": "Parent",
-        }
-    )
-
-    get: Get = field(
-        metadata={
-            "name": "Get",
-        }
-    )
-
-    level: int | Decimal | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    level: int | Decimal | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def is_current_sensor(self) -> bool:

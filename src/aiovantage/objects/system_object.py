@@ -9,54 +9,17 @@ from xsdata.models.datatype import XmlDateTime
 class SystemObject:
     """Base class for all objects."""
 
-    vid: int = field(
-        metadata={
-            "name": "VID",
-            "type": "Attribute",
-        }
-    )
-
-    master: int = field(
-        metadata={
-            "name": "Master",
-            "type": "Attribute",
-        }
-    )
-
-    name: str = field(
-        metadata={
-            "name": "Name",
-        }
-    )
-
-    model: str = field(
-        metadata={
-            "name": "Model",
-        }
-    )
-
-    note: str = field(
-        metadata={
-            "name": "Note",
-        }
-    )
+    vid: int = field(metadata={"name": "VID", "type": "Attribute"})
+    master: int = field(metadata={"type": "Attribute"})
+    name: str
+    model: str
+    note: str
 
     # Not available in 2.x firmware
     mtime: XmlDateTime | None = field(
-        default=None,
-        metadata={
-            "name": "MTime",
-            "type": "Attribute",
-        },
+        default=None, metadata={"name": "MTime", "type": "Attribute"}
     )
-
-    # Not available in 2.x firmware
-    dname: str | None = field(
-        default=None,
-        metadata={
-            "name": "DName",
-        },
-    )
+    dname: str | None = field(default=None, metadata={"name": "DName"})
 
     @property
     def id(self) -> int:

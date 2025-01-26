@@ -1,6 +1,6 @@
 """Base class for system objects in an area."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from .system_object import SystemObject
 
@@ -9,18 +9,7 @@ from .system_object import SystemObject
 class LocationObject(SystemObject):
     """Base class for system objects in an area."""
 
-    # Some objects in firmware 2.x do not have an area_id
-    area: int | None = field(
-        default=None,
-        metadata={
-            "name": "Area",
-        },
-    )
+    # Some objects in firmware 2.x do not have an area_id or location
 
-    # Some objects in firmware 2.x do not have a location
-    location: str | None = field(
-        default=None,
-        metadata={
-            "name": "Location",
-        },
-    )
+    area: int | None = None
+    location: str | None = None

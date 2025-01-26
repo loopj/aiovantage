@@ -10,19 +10,11 @@ class LoadGroup(LocationObject):
     """LoadGroup object."""
 
     load_table: list[int] = field(
-        default_factory=list,
-        metadata={
-            "name": "Load",
-            "wrapper": "LoadTable",
-        },
+        default_factory=list, metadata={"name": "Load", "wrapper": "LoadTable"}
     )
 
-    level: float | None = field(
-        default=None,
-        metadata={
-            "type": "Ignore",
-        },
-    )
+    # State
+    level: float | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def is_on(self) -> bool:

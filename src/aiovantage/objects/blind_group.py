@@ -11,9 +11,5 @@ class BlindGroup(BlindGroupBase, LocationObject):
     """BlindGroup object."""
 
     blind_table: list[int] = field(
-        default_factory=list,
-        metadata={
-            "name": "Blind",
-            "wrapper": "BlindTable",
-        },
+        default_factory=list, metadata={"name": "Blind", "wrapper": "BlindTable"}
     )
