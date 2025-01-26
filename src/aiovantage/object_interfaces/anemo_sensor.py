@@ -13,28 +13,32 @@ class AnemoSensorInterface(Interface):
         "AnemoSensor.GetSpeedHW": Decimal,
     }
 
-    async def get_speed(self, vid: int) -> Decimal:
-        """Get the speed of an anemo sensor, using cached value if available.
+    async def get_speed(self, vid: int, *, hw: bool = False) -> Decimal:
+        """Get the speed of an anemo sensor.
 
         Args:
-            vid: The Vantage ID of the anemo sensor.
+            vid: The ID of the sensor.
+            hw: Fetch the value from hardware instead of cache.
 
         Returns:
             The speed of the anemo sensor, in mph.
         """
         # INVOKE <id> AnemoSensor.GetSpeed
         # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeed
-        return await self.invoke(vid, "AnemoSensor.GetSpeed", as_type=Decimal)
+        return await self.invoke(
+            vid, "AnemoSensor.GetSpeedHW" if hw else "AnemoSensor.GetSpeed"
+        )
 
-    async def get_speed_hw(self, vid: int) -> Decimal:
-        """Get the speed of an anemo sensor directly from the hardware.
+    async def set_speed(self, vid: int, speed: Decimal, *, sw: bool = False) -> None:
+        """Set the speed of an anemo sensor.
 
         Args:
-            vid: The Vantage ID of the anemo sensor.
-
-        Returns:
-            The speed of the anemo sensor, in mph.
+            vid: The ID of the sensor.
+            speed: The speed to set, in mph.
+            sw: Set the cached value instead of the hardware value.
         """
-        # INVOKE <id> AnemoSensor.GetSpeedHW
-        # -> R:INVOKE <id> <speed> AnemoSensor.GetSpeedHW
-        return await self.invoke(vid, "AnemoSensor.GetSpeedHW", as_type=Decimal)
+        # INVOKE <id> AnemoSensor.SetSpeed <speed>
+        # -> R:INVOKE <id> <rcode> AnemoSensor.SetSpeed <speed>
+        await self.invoke(
+            vid, "AnemoSensor.SetSpeedSW" if sw else "AnemoSensor.SetSpeed", speed
+        )

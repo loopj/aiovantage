@@ -116,20 +116,19 @@ class RGBLoadsController(
             raise ValueError(f"Unsupported color channel method {method}")
 
         # Parse the response
-        response = self.parse_response(
-            method, result, *args, as_type=self.ColorChannelResponse
-        )
+        channel = int(args[0])
+        value = int(result)
 
         # Ignore updates for channels we don't care about
-        if response.channel < 0 or response.channel >= num_channels:
+        if channel < 0 or channel >= num_channels:
             return None
 
         # Store the channel value in the temp color map
         self._temp_color_map.setdefault(vid, num_channels * [0])
-        self._temp_color_map[vid][response.channel] = response.value
+        self._temp_color_map[vid][channel] = value
 
         # If we have all the channels, build and return the color
-        if response.channel == num_channels - 1:
+        if channel == num_channels - 1:
             color = tuple(self._temp_color_map[vid])
             del self._temp_color_map[vid]
             return color
