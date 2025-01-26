@@ -13,12 +13,13 @@ class GetVersion:
     class Return:
         """Method return value."""
 
-        kernel: str | None = field(default=None)
-        rootfs: str | None = field(default=None)
-        app: str | None = field(default=None)
+        kernel: str | None = field(default=None, metadata={"name": "kernel"})
+        rootfs: str | None = field(default=None, metadata={"name": "rootfs"})
+        app: str | None = field(default=None, metadata={"name": "app"})
 
     call = None
-    return_value: Return | None = field(
+
+    result: Return | None = field(
         default=None,
         metadata={
             "name": "return",

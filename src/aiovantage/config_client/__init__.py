@@ -19,6 +19,7 @@ import asyncio
 import logging
 from ssl import SSLContext
 from types import TracebackType
+from typing import Protocol, TypeVar
 from xml.etree import ElementTree as ET
 
 from typing_extensions import Self
@@ -33,9 +34,19 @@ from xsdata.utils.text import pascal_case
 from aiovantage.connection import BaseConnection
 from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
 
-from .interfaces import Call, Method, Return
 from .interfaces.introspection import GetSysInfo
 from .interfaces.login import Login
+
+T = TypeVar("T")
+U = TypeVar("U")
+
+
+class Method(Protocol[T, U]):
+    """Duck typing for config client methods."""
+
+    interface: str
+    call: T | None
+    result: U | None
 
 
 class ConfigConnection(BaseConnection):
@@ -82,6 +93,7 @@ class ConfigClient:
         # Configure the request serializer
         self._serializer = XmlSerializer(
             config=SerializerConfig(xml_declaration=False),
+            context=xml_context,
         )
 
         # Configure the response parser
@@ -146,10 +158,10 @@ class ConfigClient:
 
     async def request(
         self,
-        method_cls: type[Method[Call, Return]],
-        params: Call | None = None,
+        method_cls: type[Method[T, U]],
+        params: T | None = None,
         connection: ConfigConnection | None = None,
-    ) -> Return | None:
+    ) -> U | None:
         """Marshall a request, send it to the ACI service, and return a parsed object.
 
         Args:
@@ -194,10 +206,10 @@ class ConfigClient:
 
         # Parse the method element with xsdata
         method = self._parser.parse(method_el, method_cls)
-        if method.return_value is None:
+        if method.result is None:
             return None
 
-        return method.return_value
+        return method.result
 
     async def get_connection(self) -> ConfigConnection:
         """Get a connection to the ACI service."""

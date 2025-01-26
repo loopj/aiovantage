@@ -80,7 +80,7 @@ async def get_objects_by_id(
         The objects of the specified ids
     """
     # Open the filter
-    response = await client.request(GetObject, GetObject.Params(vids=list(vids)))
+    response = await client.request(GetObject, list(vids))
     if not response:
         return
 

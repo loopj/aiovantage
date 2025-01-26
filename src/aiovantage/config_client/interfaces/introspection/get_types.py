@@ -13,14 +13,16 @@ class GetTypes:
     class Type:
         """Object type definition."""
 
-        name: str = field(metadata={"name": "Name"})
-        version: str = field(metadata={"name": "Version"})
+        name: str
+        version: str
 
     call = None
-    return_value: list[Type] | None = field(
+
+    result: list[Type] | None = field(
         default=None,
         metadata={
-            "name": "Type",
             "wrapper": "return",
+            "name": "Type",
+            "type": "Element",
         },
     )

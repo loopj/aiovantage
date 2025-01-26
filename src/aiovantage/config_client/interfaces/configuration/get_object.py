@@ -11,21 +11,20 @@ class GetObject:
 
     interface = "IConfiguration"
 
-    @dataclass
-    class Params:
-        """Method parameters."""
-
-        vids: list[int] = field(
-            metadata={
-                "name": "VID",
-            }
-        )
-
-    call: Params | None = field(default=None)
-    return_value: list[ObjectChoice] | None = field(
+    call: list[int] | None = field(
         default=None,
         metadata={
-            "name": "Object",
+            "wrapper": "call",
+            "name": "VID",
+            "type": "Element",
+        },
+    )
+
+    result: list[ObjectChoice] | None = field(
+        default=None,
+        metadata={
             "wrapper": "return",
+            "name": "Object",
+            "type": "Element",
         },
     )
