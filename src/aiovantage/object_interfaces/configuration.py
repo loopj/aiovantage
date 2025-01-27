@@ -1,5 +1,6 @@
 """Interface for controller configuration."""
 
+import datetime as dt
 from enum import IntEnum, IntFlag
 
 from .base import Interface
@@ -31,15 +32,15 @@ class ConfigurationInterface(Interface):
     method_signatures = {
         "Configuration.GetControllerVID": int,
         "Configuration.CreateObject": int,
-        "Configuration.GetModificationTime": int,
-        "Configuration.GetLastDeleteTime": int,
-        "Configuration.GetLastClearTime": int,
+        "Configuration.GetModificationTime": dt.datetime,
+        "Configuration.GetLastDeleteTime": dt.datetime,
+        "Configuration.GetLastClearTime": dt.datetime,
         "Configuration.OpenFilter": int,
         "Configuration.GetNextObjectVID": int,
         "Configuration.FindLocalObject": bool,
         "Configuration.GetTimeZone": str,
         "Configuration.GetTimeLocation": str,
-        "Configuration.GetAstronomicalTime": int,
+        "Configuration.GetAstronomicalTime": dt.datetime,
     }
 
     async def get_controller_vid(self, vid: int, controller: int) -> int:
@@ -79,20 +80,20 @@ class ConfigurationInterface(Interface):
         # -> R:INVOKE <id> <rcode> Configuration.CreateObject <type>
         return await self.invoke(vid, "Configuration.CreateObject", type)
 
-    async def get_modification_time(self, vid: int) -> int:
+    async def get_modification_time(self, vid: int) -> dt.datetime:
         """Get the modification time of this object.
 
         Args:
             vid: The VID of the object.
 
         Returns:
-            The modification time of the object, as a timestamp.
+            The modification time of the object, as a datetime object.
         """
         # INVOKE <id> Configuration.GetModificationTime
         # -> R:INVOKE <id> <mtime> Configuration.GetModificationTime
         return await self.invoke(vid, "Configuration.GetModificationTime")
 
-    async def get_last_delete_time(self, vid: int, store: Store) -> int:
+    async def get_last_delete_time(self, vid: int, store: Store) -> dt.datetime:
         """Get the time of the last object deletion.
 
         Args:
@@ -100,13 +101,13 @@ class ConfigurationInterface(Interface):
             store: The store to get the last deletion time of.
 
         Returns:
-            The time of the last object deletion, as a timestamp.
+            The time of the last object deletion, as a datetime object.
         """
         # INVOKE <id> Configuration.GetLastDeleteTime <store>
         # -> R:INVOKE <id> <time> Configuration.GetLastDeleteTime <store>
         return await self.invoke(vid, "Configuration.GetLastDeleteTime", store)
 
-    async def get_last_clear_time(self, vid: int) -> int:
+    async def get_last_clear_time(self, vid: int) -> dt.datetime:
         """Get the time of the last clear.
 
         Args:
@@ -203,7 +204,7 @@ class ConfigurationInterface(Interface):
 
     async def get_astronomical_time(
         self, vid: int, event: SolarEvent, year: int, month: int, day: int
-    ) -> int:
+    ) -> dt.datetime:
         """Get the astronomical time of a solar event.
 
         Args:
