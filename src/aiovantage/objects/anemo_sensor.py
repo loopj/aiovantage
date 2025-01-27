@@ -12,6 +12,11 @@ class AnemoSensor(Sensor):
     """AnemoSensor (wind sensor) object."""
 
     parent: Parent
+    out_of_range: int = 0
+    in_range: int = 0
+    range_high: float = 10.0
+    range_low: float = 0.0
+    hold_on_time: float
 
     # State
     speed: Decimal | None = field(default=None, metadata={"type": "Ignore"})

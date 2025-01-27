@@ -9,7 +9,9 @@ from .system_object import SystemObject
 class LocationObject(SystemObject):
     """Base class for system objects in an area."""
 
-    # Some objects in firmware 2.x do not have an area_id or location
+    # TODO: Remove the "None" defaults when we drop support for firmware 2.x
+    # We have some objects (DryContact, Sensor) inheriting from LocationObject
+    # that actually inherit from SystemObject in 2.x firmware
 
     area: int | None = None
     location: str | None = None

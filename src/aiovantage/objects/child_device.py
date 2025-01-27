@@ -1,4 +1,4 @@
-"""Base class for child device objects."""
+"""Base class for child device (driver-provided) objects."""
 
 from dataclasses import dataclass
 
@@ -8,6 +8,6 @@ from .types import Parent
 
 @dataclass(kw_only=True)
 class ChildDevice(CustomDevice):
-    """Base class for child device objects."""
+    """Base class for child device (driver-provided) objects."""
 
     parent: Parent

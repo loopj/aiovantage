@@ -21,18 +21,43 @@ class OmniSensor(Sensor):
 
     @dataclass
     class Get:
-        @dataclass
+        @dataclass(kw_only=True)
         class Formula:
-            return_type: ConversionType = field(metadata={"type": "Attribute"})
-            level_type: ConversionType = field(metadata={"type": "Attribute"})
+            return_type: ConversionType = field(
+                default=ConversionType.FIXED,
+                metadata={"type": "Attribute"},
+            )
+            level_type: ConversionType = field(
+                default=ConversionType.INT,
+                metadata={"type": "Attribute"},
+            )
             formula: str
 
         formula: Formula
         method: str
         method_hw: str = field(metadata={"name": "MethodHW"})
 
+    @dataclass
+    class Set:
+        @dataclass(kw_only=True)
+        class Formula:
+            return_type: ConversionType = field(
+                default=ConversionType.INT,
+                metadata={"type": "Attribute"},
+            )
+            value_type: ConversionType = field(
+                default=ConversionType.FIXED,
+                metadata={"type": "Attribute"},
+            )
+            formula: str
+
+        formula: Formula
+        method: str
+        method_sw: str = field(metadata={"name": "MethodSW"})
+
     parent: Parent
     get: Get
+    set: Set
 
     # State
     level: int | Decimal | None = field(default=None, metadata={"type": "Ignore"})

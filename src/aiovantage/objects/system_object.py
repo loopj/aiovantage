@@ -16,10 +16,10 @@ class SystemObject:
     note: str
 
     # Not available in 2.x firmware
+    dname: str | None = field(default=None, metadata={"name": "DName"})
     mtime: XmlDateTime | None = field(
         default=None, metadata={"name": "MTime", "type": "Attribute"}
     )
-    dname: str | None = field(default=None, metadata={"name": "DName"})
 
     @property
     def id(self) -> int:

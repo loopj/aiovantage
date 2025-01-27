@@ -3,11 +3,16 @@
 from dataclasses import dataclass, field
 
 from .system_object import SystemObject
+from .types import Array
 
 
 @dataclass(kw_only=True)
 class GMem(SystemObject):
     """GMem (variable) object."""
+
+    @dataclass
+    class Data(Array):
+        fixed: bool = field(default=False, metadata={"type": "Attribute"})
 
     @dataclass
     class Tag:
@@ -16,12 +21,9 @@ class GMem(SystemObject):
             default=False, metadata={"name": "object", "type": "Attribute"}
         )
 
-    @dataclass
-    class Data:
-        fixed: bool = field(default=False, metadata={"type": "Attribute"})
-
+    category: int
     data: Data = field(metadata={"name": "data"})
-    persistent: bool
+    persistent: bool = True
     tag: Tag
 
     # State
