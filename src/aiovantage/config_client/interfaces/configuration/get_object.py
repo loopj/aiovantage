@@ -2,14 +2,19 @@
 
 from dataclasses import dataclass, field
 
-from aiovantage.config_client.interfaces.types import ObjectChoice
-
 
 @dataclass
 class GetObject:
     """IConfiguration.GetObject method definition."""
 
     interface = "IConfiguration"
+
+    @dataclass
+    class Object:
+        """Wildcard type that can be used to represent any object."""
+
+        vid: int = field(metadata={"name": "VID", "type": "Attribute"})
+        obj: object = field(metadata={"type": "Wildcard"})
 
     call: list[int] | None = field(
         default=None,
@@ -20,7 +25,7 @@ class GetObject:
         },
     )
 
-    result: list[ObjectChoice] | None = field(
+    result: list[Object] | None = field(
         default=None,
         metadata={
             "wrapper": "return",

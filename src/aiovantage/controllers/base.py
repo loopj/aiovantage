@@ -135,7 +135,7 @@ class BaseController(QuerySet[T]):
             cur_ids: set[int] = set()
 
             # Fetch all objects managed by this controller
-            async for obj in get_objects(self.config_client, types=self.vantage_types):
+            async for obj in get_objects(self.config_client, *self.vantage_types):
                 if obj.id in prev_ids:
                     # This is an existing object.
                     # Update any attributes that have changed and notify subscribers.
@@ -151,8 +151,8 @@ class BaseController(QuerySet[T]):
                 else:
                     # This is a new object.
                     # Add it to the controller and notify subscribers
-                    self._items[obj.id] = obj
-                    self.emit(VantageEvent.OBJECT_ADDED, obj)
+                    self._items[obj.id] = obj  # type: ignore
+                    self.emit(VantageEvent.OBJECT_ADDED, obj)  # type: ignore
 
                     # Fetch the state of stateful objects
                     if self.stateful and fetch_state:

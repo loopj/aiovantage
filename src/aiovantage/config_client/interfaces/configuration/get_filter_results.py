@@ -2,8 +2,6 @@
 
 from dataclasses import dataclass, field
 
-from aiovantage.config_client.interfaces.types import ObjectChoice
-
 
 @dataclass
 class GetFilterResults:
@@ -19,6 +17,13 @@ class GetFilterResults:
         count: int = 50
         whole_object: bool = True
 
+    @dataclass
+    class Object:
+        """Wildcard type that can be used to represent any object."""
+
+        vid: int = field(metadata={"name": "VID", "type": "Attribute"})
+        obj: object = field(metadata={"type": "Wildcard"})
+
     call: Params | None = field(
         default=None,
         metadata={
@@ -26,7 +31,7 @@ class GetFilterResults:
         },
     )
 
-    result: list[ObjectChoice] | None = field(
+    result: list[Object] | None = field(
         default=None,
         metadata={
             "wrapper": "return",
