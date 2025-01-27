@@ -12,6 +12,15 @@ from .types import Parent
 class Temperature(Sensor):
     """Temperature object."""
 
+    parent: Parent
+    out_of_range: int = 0
+    in_range: int = 0
+    range_high: float
+    range_low: float
+    hold_on_time: float
+    temp: int = 0
+
+    # Not available in 2.x firmware, not strictly in the schema
     class Setpoint(Enum):
         """Setpoint type."""
 
@@ -19,9 +28,6 @@ class Temperature(Sensor):
         COOL = "Cool"
         AUTO = "Auto"
 
-    parent: Parent
-
-    # Not available in 2.x firmware, not strictly in the schema
     setpoint: Setpoint | None = field(default=None, metadata={"type": "Attribute"})
 
     # State

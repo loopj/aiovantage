@@ -1,6 +1,7 @@
 """Load object."""
 
 from dataclasses import dataclass, field
+from decimal import Decimal
 
 from .location_object import LocationObject
 from .types import Parent
@@ -11,8 +12,11 @@ class Load(LocationObject):
     """Load object."""
 
     parent: Parent
-    load_type: str
+    contractor_number: str
+    load_type: str = "Incandescent"
+    power: int = 100
     power_profile: int
+    override_level: Decimal = Decimal("100")
 
     # State
     level: float | None = field(default=None, metadata={"type": "Ignore"})

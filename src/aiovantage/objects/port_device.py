@@ -1,4 +1,4 @@
-"""Base class for Vantage port devices."""
+"""Base class for Vantage port device (driver-provided) objects."""
 
 from dataclasses import dataclass
 
@@ -9,4 +9,4 @@ from .location_object import LocationObject
 
 @dataclass(kw_only=True)
 class PortDevice(LocationObject):
-    """Base class for Vantage port devices."""
+    """Base class for Vantage port device (driver-provided) objects."""

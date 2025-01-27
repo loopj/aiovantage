@@ -11,4 +11,10 @@ from .types import Parent
 class Blind(BlindBase, LocationObject):
     """Blind object."""
 
+    @dataclass
+    class Movement:
+        open: float = 5.0
+        close: float = 5.0
+
     parent: Parent
+    movement: Movement | None = None

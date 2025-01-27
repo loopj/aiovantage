@@ -11,6 +11,10 @@ class DryContact(LocationObject):
     """DryContact object."""
 
     parent: Parent
+    down: int = 0
+    up: int = 0
+    reverse_polarity: bool
+    hold_on_time: float = 0
 
     # State
     triggered: bool | None = field(default=None, metadata={"type": "Ignore"})

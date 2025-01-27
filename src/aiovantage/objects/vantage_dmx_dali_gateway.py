@@ -1,6 +1,6 @@
 """DMX/DALI Gateway station."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .station_object import StationObject
 
@@ -11,3 +11,6 @@ class VantageDmxDaliGateway(StationObject):
 
     class Meta:
         name = "Vantage.DmxDaliGateway"
+
+    ip_address: str = field(metadata={"name": "IPAddress"})
+    mode: str
