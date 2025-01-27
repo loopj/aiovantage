@@ -10,17 +10,10 @@ from typing import Any
 
 from typing_extensions import Self
 
-from aiovantage.connection import BaseConnection
 from aiovantage.errors import CommandError, raise_command_error
 
+from .connection import CommandConnection
 from .types import converter, tokenize_response
-
-
-class CommandConnection(BaseConnection):
-    """Connection to a Vantage Host Command service."""
-
-    default_port = 3001
-    default_ssl_port = 3010
 
 
 @dataclass
