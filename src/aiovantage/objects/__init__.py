@@ -44,12 +44,12 @@ from .rs232_station import RS232Station
 from .rs485_station import RS485Station
 from .scene_point_relay import ScenePointRelay
 from .sensor import Sensor
-from .somfy_rs_485_group_child import SomfyRS485GroupChild
-from .somfy_rs_485_sdn_20_port import SomfyRS485SDN20Port
-from .somfy_rs_485_shade_child import SomfyRS485ShadeChild
-from .somfy_urtsi_2_group_child import SomfyURTSI2GroupChild
-from .somfy_urtsi_2_port import SomfyURTSI2Port
-from .somfy_urtsi_2_shade_child import SomfyURTSI2ShadeChild
+from .somfy_rs_485_sdn_20 import (
+    SomfyRS485GroupChild,
+    SomfyRS485SDN20Port,
+    SomfyRS485ShadeChild,
+)
+from .somfy_urtsi_2 import SomfyURTSI2GroupChild, SomfyURTSI2Port, SomfyURTSI2ShadeChild
 from .station_bus import StationBus
 from .station_object import StationObject
 from .system_object import SystemObject
