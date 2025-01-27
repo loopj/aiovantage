@@ -12,6 +12,7 @@ from typing_extensions import Self
 
 from .command_client import CommandClient, Event, EventStream, EventType
 from .config_client import ConfigClient
+from .connection import BaseConnection
 from .controllers import (
     AnemoSensorsController,
     AreasController,
@@ -317,3 +318,8 @@ class Vantage:
         controller = controller_cls(self)
         self._controllers.add(controller)
         return controller
+
+    @classmethod
+    def set_ssl_context_factory(cls, factory: Callable[[], SSLContext]) -> None:
+        """Set the SSL context factory for all instances."""
+        BaseConnection.ssl_context_factory = factory

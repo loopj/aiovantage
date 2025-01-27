@@ -15,7 +15,7 @@ from typing_extensions import Self
 
 from aiovantage.errors import ClientConnectionError, ClientError
 
-from .commands import CommandConnection
+from .connection import CommandConnection
 from .types import tokenize_response
 
 # The interval between keepalive messages, in seconds.

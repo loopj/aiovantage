@@ -31,9 +31,9 @@ from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.utils.text import pascal_case
 
-from aiovantage.connection import BaseConnection
 from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
 
+from .connection import ConfigConnection
 from .interfaces.introspection import GetSysInfo
 from .interfaces.login import Login
 
@@ -47,14 +47,6 @@ class Method(Protocol[T, U]):
     interface: str
     call: T | None
     result: U | None
-
-
-class ConfigConnection(BaseConnection):
-    """Connection to a Vantage ACI server."""
-
-    default_port = 2001
-    default_ssl_port = 2010
-    buffer_limit = 2**20
 
 
 class ConfigClient:
