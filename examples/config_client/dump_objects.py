@@ -25,19 +25,19 @@ async def main() -> None:
     async with ConfigClient(args.host, args.username, args.password) as client:
         # Dump all Areas using the get_objects helper
         print("# Vantage Areas")
-        async for area in get_objects(client, types="Area"):
+        async for area in get_objects(client, "Area"):
             print(area)
         print()
 
         # Dump all Loads using the get_objects helper
         print("# Vantage Loads")
-        async for load in get_objects(client, types="Load"):
+        async for load in get_objects(client, "Load"):
             print(load)
         print()
 
         # Dump some StationObjects using the get_objects helper
         print("# Vantage Stations")
-        async for station in get_objects(client, types=("Keypad", "EqCtrl")):
+        async for station in get_objects(client, "Keypad", "EqCtrl"):
             print(station)
         print()
 

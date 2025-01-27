@@ -2,9 +2,10 @@
 
 from collections.abc import AsyncIterator, Sequence
 from contextlib import suppress
-from typing import Any
+from typing import Any, TypeVar
 
 from aiovantage.errors import ClientError, ClientResponseError
+from aiovantage.objects import SystemObject
 
 from . import ConfigClient
 from .interfaces.configuration import (
@@ -15,62 +16,67 @@ from .interfaces.configuration import (
 )
 from .interfaces.introspection import GetVersion
 
+T = TypeVar("T", bound=SystemObject)
+
 
 async def get_objects(
-    client: ConfigClient,
-    *,
-    types: Sequence[str] | None = None,
-    xpath: str | None = None,
-) -> AsyncIterator[Any]:
-    """Get all vantage system objects of the specified types.
+    client: ConfigClient, *types: str, xpath: str | None = None
+) -> AsyncIterator[SystemObject]:
+    """Get Vantage objects, optionally filtered by a type and/or an XPath.
+
+    Use when the type of the objects being fetched can be mixed.
 
     Args:
         client: The config client instance
-        types: An optional string, or list of strings of object types to fetch
+        *types: The element names of the objects to fetch
         xpath: An optional xpath to filter the results by, eg. "/Load", "/*[@VID='12']"
 
     Yields:
-        The objects of the specified types
+        A stream of Vantage objects
     """
-    # Support both a single object type and a list of status types
-    if isinstance(types, str):
-        types = [types]
-    elif types is not None:
-        types = list(types)
-
     # Open the filter
-    handle = await client.request(
-        OpenFilter, OpenFilter.Params(object_types=types, xpath=xpath)
-    )
-
+    handle = await client.request(OpenFilter, OpenFilter.Params(list(types), xpath))
     if handle is None:
         raise ClientResponseError("Failed to open filter")
 
     try:
         # Get the results
-        while True:
-            response = await client.request(
-                GetFilterResults, GetFilterResults.Params(h_filter=handle)
-            )
-
-            if not response:
-                break
-
+        while response := await client.request(
+            GetFilterResults, GetFilterResults.Params(handle)
+        ):
             for obj in response:
-                if obj.choice is None:
-                    continue
-
-                yield obj.choice
+                if isinstance(obj.obj, SystemObject):
+                    yield obj.obj
     finally:
         # Close the filter
         with suppress(ClientError):
             await client.request(CloseFilter, handle)
 
 
+async def get_objects_by_type(
+    client: ConfigClient, object_type: type[T], xpath: str | None = None
+) -> AsyncIterator[T]:
+    """Get Vantage objects of the specified type, optionally filtered by an XPath.
+
+    Use when fetching a specific type of object, eg. Area, Load, Keypad, etc.
+
+    Args:
+        client: The config client instance
+        object_type: The type of objects to fetch
+        xpath: An optional xpath to filter the results by, eg. "/Load", "/*[@VID='12']"
+
+    Yields:
+        A stream of Vantage objects of the specified type
+    """
+    async for obj in get_objects(client, object_type.vantage_type(), xpath=xpath):
+        if isinstance(obj, object_type):
+            yield obj
+
+
 async def get_objects_by_id(
     client: ConfigClient, vids: Sequence[int]
-) -> AsyncIterator[Any]:
-    """Get all vantage system objects of the specified ids.
+) -> AsyncIterator[SystemObject]:
+    """Get all Vantage objects of the specified ids.
 
     Args:
         client: The config client instance
@@ -85,10 +91,8 @@ async def get_objects_by_id(
         return
 
     for obj in response:
-        if obj.choice is None:
-            continue
-
-        yield obj.choice
+        if isinstance(obj.obj, SystemObject):
+            yield obj.obj
 
 
 async def get_object_by_id(client: ConfigClient, vid: int) -> Any:

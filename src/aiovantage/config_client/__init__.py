@@ -80,6 +80,7 @@ class ConfigClient:
         xml_context = XmlContext(
             element_name_generator=pascal_case,
             attribute_name_generator=pascal_case,
+            models_package="aiovantage.objects",
         )
 
         # Configure the request serializer
