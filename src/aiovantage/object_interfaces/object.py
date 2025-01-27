@@ -1,5 +1,6 @@
 """Interface for querying and controlling system objects."""
 
+import datetime as dt
 from dataclasses import dataclass
 
 from .base import Interface
@@ -29,7 +30,7 @@ class ObjectInterface(Interface):
         "Object.IsLocked": bool,
         "Object.IsInterfaceSupported": bool,
         "Object.IsMethodSupported": bool,
-        "Object.GetMTime": int,
+        "Object.GetMTime": dt.datetime,
         "Object.GetDName": str,
         "Object.GetArea": int,
     }
@@ -226,14 +227,14 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <rcode> Object.SetPropertyEx <property> <value>
         await self.invoke(vid, "Object.SetPropertyEx", property, value)
 
-    async def get_mtime(self, vid: int) -> int:
+    async def get_mtime(self, vid: int) -> dt.datetime:
         """Get the modification time of an object.
 
         Args:
             vid: The Vantage ID of the object.
 
         Returns:
-            The modification time of the object, as a unix timestamp.
+            The modification time of the object, as a datetime object.
         """
         # INVOKE <id> Object.GetMTime
         # -> R:INVOKE <id> <mtime> Object.GetMTime

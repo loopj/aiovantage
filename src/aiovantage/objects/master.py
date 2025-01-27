@@ -11,7 +11,7 @@ class Master(SystemObject):
 
     @dataclass
     class DINEnclosure:
-        enclosure: int = field(metadata={"type": "Text"})
+        enclosure: int
         position: int = field(metadata={"type": "Attribute"})
         row: int = field(metadata={"type": "Attribute"})
 

@@ -1,8 +1,7 @@
 """Base class for all objects."""
 
+import datetime as dt
 from dataclasses import dataclass, field
-
-from xsdata.models.datatype import XmlDateTime
 
 
 @dataclass(kw_only=True)
@@ -16,9 +15,10 @@ class SystemObject:
     note: str
 
     # Not available in 2.x firmware
-    dname: str | None = field(default=None, metadata={"name": "DName"})
-    mtime: XmlDateTime | None = field(
-        default=None, metadata={"name": "MTime", "type": "Attribute"}
+    d_name: str | None = None
+    m_time: dt.datetime | None = field(
+        default=None,
+        metadata={"type": "Attribute", "format": "%Y-%m-%dT%H:%M:%S.%f"},
     )
 
     @property
@@ -29,7 +29,7 @@ class SystemObject:
     @property
     def display_name(self) -> str:
         """Return the display name of the object."""
-        return self.dname or self.name
+        return self.d_name or self.name
 
     @classmethod
     def vantage_type(cls) -> str:

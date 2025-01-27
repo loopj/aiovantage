@@ -139,14 +139,13 @@ class BaseController(QuerySet[T]):
                 if obj.id in prev_ids:
                     # This is an existing object.
                     # Update any attributes that have changed and notify subscribers.
-                    # Ignore the mtime attribute, and any state attributes.
+                    # Ignore any state attributes.
                     self.update_state(
                         obj.id,
                         {
                             field.name: getattr(obj, field.name)
                             for field in fields(type(obj))  # type: ignore
-                            if field.name != "mtime"
-                            and field.metadata.get("type") != "Ignore"
+                            if field.metadata.get("type") != "Ignore"
                         },
                     )
                 else:
