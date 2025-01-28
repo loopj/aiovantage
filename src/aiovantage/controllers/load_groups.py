@@ -20,15 +20,6 @@ class LoadGroupsController(BaseController[LoadGroup]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, obj: LoadGroup) -> None:
-        """Fetch the state properties of a load."""
-        state = {
-            "level": await obj.get_level(),
-        }
-
-        self.update_state(obj, state)
-
-    @override
     def handle_status(self, obj: LoadGroup, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "LOAD":

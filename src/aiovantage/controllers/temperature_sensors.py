@@ -19,15 +19,6 @@ class TemperatureSensorsController(BaseController[Temperature]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, obj: Temperature) -> None:
-        """Fetch the state properties of a temperature sensor."""
-        state = {
-            "value": await obj.get_value(),
-        }
-
-        self.update_state(obj, state)
-
-    @override
     def handle_status(self, obj: Temperature, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
         if status != "TEMP":

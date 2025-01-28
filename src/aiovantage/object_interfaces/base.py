@@ -1,6 +1,6 @@
 """Base class for command client interfaces."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import (
     Any,
     ClassVar,
@@ -14,6 +14,7 @@ from typing import (
 
 from aiovantage.command_client import CommandClient
 from aiovantage.command_client.types import converter
+from aiovantage.errors import NotImplementedError, NotSupportedError
 
 T = TypeVar("T")
 
@@ -172,6 +173,34 @@ class Interface(metaclass=InterfaceMeta):
         # Parse the response
         signature = as_type or self.method_signatures[method]
         return _parse_object_response(result, *args, as_type=signature)
+
+    async def fetch_state(self, properties: Sequence[str] | None = None) -> list[str]:
+        """Fetch state properties provided by the interface(s) this object implements."""
+        cls = type(self)
+
+        # Determine which properties to fetch
+        props_to_fetch = (
+            [prop for prop in properties if prop in cls.property_getters.keys()]
+            if properties is not None
+            else cls.property_getters.keys()
+        )
+
+        # Fetch each state property
+        props_changed: list[str] = []
+        for prop in props_to_fetch:
+            if getter := cls.property_getters.get(prop):
+                # Call the getter function
+                try:
+                    result = await getter(self)
+                except (NotImplementedError, NotSupportedError):
+                    continue
+
+                # Update the attribute if the result has changed
+                if getattr(self, prop) != result:
+                    setattr(self, prop, result)
+                    props_changed.append(prop)
+
+        return props_changed
 
     @classmethod
     def parse_object_status(cls, method: str, result: str, *args: str) -> Any:

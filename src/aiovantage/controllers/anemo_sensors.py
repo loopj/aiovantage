@@ -19,15 +19,6 @@ class AnemoSensorsController(BaseController[AnemoSensor]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, obj: AnemoSensor) -> None:
-        """Fetch the state properties of an anemo sensor."""
-        state = {
-            "speed": await obj.get_speed(),
-        }
-
-        self.update_state(obj, state)
-
-    @override
     def handle_status(self, obj: AnemoSensor, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
         if status != "WIND":

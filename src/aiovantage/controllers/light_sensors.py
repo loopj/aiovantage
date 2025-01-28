@@ -19,15 +19,6 @@ class LightSensorsController(BaseController[LightSensor]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, obj: LightSensor) -> None:
-        """Fetch the state properties of a light sensor."""
-        state = {
-            "level": await obj.get_level(),
-        }
-
-        self.update_state(obj, state)
-
-    @override
     def handle_status(self, obj: LightSensor, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "LIGHT":

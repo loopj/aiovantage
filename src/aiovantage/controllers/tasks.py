@@ -20,16 +20,6 @@ class TasksController(BaseController[Task]):
     """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, obj: Task) -> None:
-        """Fetch the state properties of a task."""
-        state = {
-            "running": await obj.is_running(),
-            "state": await obj.get_state(),
-        }
-
-        self.update_state(obj, state)
-
-    @override
     def handle_status(self, obj: Task, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "TASK":

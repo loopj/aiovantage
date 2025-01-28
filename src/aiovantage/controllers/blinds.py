@@ -35,15 +35,6 @@ class BlindsController(BaseController[BlindTypes]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, obj: BlindTypes) -> None:
-        """Fetch the state properties of a blind."""
-        state = {
-            "position": await obj.get_position(),
-        }
-
-        self.update_state(obj, state)
-
-    @override
     def handle_status(self, obj: BlindTypes, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "BLIND":

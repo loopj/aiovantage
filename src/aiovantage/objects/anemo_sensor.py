@@ -2,14 +2,14 @@
 
 from dataclasses import dataclass
 
-from aiovantage.object_interfaces import AnemoSensorInterface
+from aiovantage.object_interfaces import AnemoSensorInterface, SensorInterface
 
 from .sensor import Sensor
 from .types import Parent
 
 
 @dataclass(kw_only=True)
-class AnemoSensor(Sensor, AnemoSensorInterface):
+class AnemoSensor(Sensor, SensorInterface, AnemoSensorInterface):
     """AnemoSensor (wind sensor) object."""
 
     parent: Parent

@@ -98,11 +98,12 @@ class BaseController(QuerySet[T]):
         return set(self._items.keys())
 
     async def fetch_object_state(self, obj: T) -> None:
-        """Fetch the full state of an object.
+        """Fetch the full state of an object."""
+        # Fetch the state of the object
+        props_changed = await obj.fetch_state()
 
-        Should be overridden by subclasses that manage stateful objects.
-        """
-        return
+        # Notify subscribers if any attributes changed
+        self.object_updated(obj, props_changed)
 
     def handle_status(self, obj: T, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream.
@@ -286,6 +287,14 @@ class BaseController(QuerySet[T]):
             else:
                 callback(event_type, obj, data)
 
+    def object_updated(self, obj: T, attrs_changed: list[str]) -> None:
+        """Notify subscribers that an object has been updated."""
+        self.emit(
+            VantageEvent.OBJECT_UPDATED,
+            obj,
+            {"attrs_changed": attrs_changed},
+        )
+
     def update_state(self, obj: T, attrs: dict[str, Any]) -> None:
         """Update the attributes of an object and notify subscribers of changes."""
         # Check if any state attributes changed and update them
@@ -300,11 +309,7 @@ class BaseController(QuerySet[T]):
 
         # Notify subscribers if any attributes changed
         if len(attrs_changed) > 0:
-            self.emit(
-                VantageEvent.OBJECT_UPDATED,
-                obj,
-                {"attrs_changed": attrs_changed},
-            )
+            self.object_updated(obj, attrs_changed)
 
     async def _handle_event(self, event: Event) -> None:
         # Handle events from the event stream
