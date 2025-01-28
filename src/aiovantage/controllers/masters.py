@@ -28,15 +28,4 @@ class MastersController(BaseController[Master]):
             "m_time": obj.parse_object_status(method, result, *args),
         }
 
-        self.update_state(obj.vid, state)
-
-    async def get_version(self) -> str:
-        """Get the firmware version of a Vantage controller.
-
-        Returns:
-            The firmware version of the controller.
-        """
-        # VERSION
-        # -> R:VERSION {version}
-        response = await self.command_client.command("VERSION")
-        return response.args[0]
+        self.update_state(obj, state)

@@ -25,13 +25,13 @@ class GMemController(BaseController[GMem]):
     async def fetch_object_state(self, obj: GMem) -> None:
         """Fetch the state properties of a variable."""
         state = {
-            "value": await self.get_value(obj.vid),
+            "value": await obj.get_value(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_status(self, obj: GMem, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "VARIABLE":
             return
@@ -39,45 +39,7 @@ class GMemController(BaseController[GMem]):
         # STATUS VARIABLE
         # -> S:VARIABLE <id> <value>
         state = {
-            "value": self._parse_value(vid, args[0]),
+            "value": obj.parse_value(args[0]),
         }
 
-        self.update_state(vid, state)
-
-    async def get_value(self, vid: int) -> int | str | bool:
-        """Get the value of a variable.
-
-        Args:
-            vid: The Vantage ID of the variable.
-
-        Returns:
-            The value of the variable, either a bool, int, or str.
-        """
-        # GETVARIABLE {id}
-        # -> R:GETVARIABLE {id} {value}
-        response = await self.command_client.command("GETVARIABLE", vid)
-        raw_value = response.args[1]
-
-        return self._parse_value(vid, raw_value)
-
-    async def set_value(self, vid: int, value: int | str | bool) -> None:
-        """Set the value of a variable.
-
-        Args:
-            vid: The Vantage ID of the variable.
-            value: The value to set, either a bool, int, or str.
-        """
-        # VARIABLE {id} {value}
-        # -> R:VARIABLE {id} {value}
-        await self.command_client.command("VARIABLE", vid, value, force_quotes=True)
-
-    def _parse_value(self, vid: int, value: str) -> int | str | bool:
-        # Parse the results of a GMem lookup into the expected type.
-        gmem: GMem = self[vid]
-
-        if gmem.is_bool:
-            return bool(int(value))
-        if gmem.is_str:
-            return value
-
-        return int(value)
+        self.update_state(obj, state)

@@ -28,10 +28,10 @@ class OmniSensorsController(BaseController[OmniSensor]):
     async def fetch_object_state(self, obj: OmniSensor) -> None:
         """Fetch the state properties of an omni sensor."""
         state = {
-            "level": await self.get_level(obj.vid, cached=False),
+            "level": await obj.get_level(hw=True),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     @override
     def handle_interface_status(
@@ -42,31 +42,7 @@ class OmniSensorsController(BaseController[OmniSensor]):
             return
 
         state = {
-            "level": self.parse_result(obj, result),
+            "level": converter.deserialize(Decimal, result),
         }
 
-        self.update_state(obj.vid, state)
-
-    async def get_level(self, vid: int, cached: bool = True) -> int | Decimal:
-        """Get the level of an OmniSensor.
-
-        Args:
-            vid: The ID of the sensor.
-            cached: Whether to use the cached value or fetch a new one.
-
-        Returns:
-            The level of the sensor.
-        """
-        omni_sensor = self[vid]
-
-        # INVOKE <id> <method>
-        # -> R:INVOKE <id> <value> <method>
-        method = omni_sensor.get.method if cached else omni_sensor.get.method_hw
-        response = await self.command_client.command("INVOKE", vid, method)
-
-        return self.parse_result(omni_sensor, response.args[1])
-
-    @classmethod
-    def parse_result(cls, sensor: OmniSensor, result: str) -> int | Decimal:
-        """Parse an OmniSensor response, eg. 'PowerSensor.GetPower'."""
-        return converter.deserialize(Decimal, result)
+        self.update_state(obj, state)

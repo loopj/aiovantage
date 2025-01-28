@@ -26,10 +26,10 @@ class LoadsController(BaseController[Load]):
             "level": await obj.get_level(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_status(self, obj: Load, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "LOAD":
             return
@@ -40,7 +40,7 @@ class LoadsController(BaseController[Load]):
             "level": Decimal(args[0]),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj, state)
 
     @property
     def on(self) -> QuerySet[Load]:

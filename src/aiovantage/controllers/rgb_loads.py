@@ -42,7 +42,7 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
         state["rgbw"] = await obj.get_rgbw_color()
         state["color_temp"] = await obj.get_color_temp()
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     @override
     def handle_interface_status(
@@ -72,7 +72,7 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
         else:
             return
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     @property
     def is_on(self) -> QuerySet[RGBLoadTypes]:

@@ -41,10 +41,10 @@ class BlindsController(BaseController[BlindTypes]):
             "position": await obj.get_position(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_status(self, obj: BlindTypes, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "BLIND":
             return
@@ -55,4 +55,4 @@ class BlindsController(BaseController[BlindTypes]):
             "position": Decimal(args[0]),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj, state)

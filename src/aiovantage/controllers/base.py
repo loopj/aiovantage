@@ -104,7 +104,7 @@ class BaseController(QuerySet[T]):
         """
         return
 
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_status(self, obj: T, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream.
 
         Should be overridden by subclasses that manage stateful objects using
@@ -136,16 +136,17 @@ class BaseController(QuerySet[T]):
 
             # Fetch all objects managed by this controller
             async for obj in get_objects(self.config_client, *self.vantage_types):
+                obj = cast(T, obj)
+
                 if obj.id in prev_ids:
                     # This is an existing object.
                     # Update any attributes that have changed and notify subscribers.
                     # Ignore any state attributes.
                     self.update_state(
-                        obj.id,
+                        obj,
                         {
                             field.name: getattr(obj, field.name)
-                            for field in fields(type(obj))  # type: ignore
-                            if field.metadata.get("type") != "Ignore"
+                            for field in fields(type(obj))
                         },
                     )
                 else:
@@ -154,7 +155,6 @@ class BaseController(QuerySet[T]):
                     obj.command_client = self.command_client
 
                     # Add it to the controller and notify subscribers
-                    obj = cast(T, obj)
                     self._items[obj.id] = obj
                     self.emit(VantageEvent.OBJECT_ADDED, obj)
 
@@ -286,12 +286,8 @@ class BaseController(QuerySet[T]):
             else:
                 callback(event_type, obj, data)
 
-    def update_state(self, vid: int, attrs: dict[str, Any]) -> None:
+    def update_state(self, obj: T, attrs: dict[str, Any]) -> None:
         """Update the attributes of an object and notify subscribers of changes."""
-        # Ignore updates for objects that this controller doesn't manage
-        if (obj := self._items.get(vid)) is None:
-            return
-
         # Check if any state attributes changed and update them
         attrs_changed: list[str] = []
         for key, value in attrs.items():
@@ -327,7 +323,7 @@ class BaseController(QuerySet[T]):
                 self.handle_interface_status(obj, method, result, *args)
             else:
                 # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
-                self.handle_status(event["id"], event["status_type"], *event["args"])
+                self.handle_status(obj, event["status_type"], *event["args"])
 
         elif event["type"] == EventType.ENHANCED_LOG:
             # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.

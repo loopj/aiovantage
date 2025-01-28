@@ -25,10 +25,10 @@ class TemperatureSensorsController(BaseController[Temperature]):
             "value": await obj.get_value(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_status(self, obj: Temperature, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
         if status != "TEMP":
             return
@@ -39,4 +39,4 @@ class TemperatureSensorsController(BaseController[Temperature]):
             "value": Decimal(args[0]),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj, state)

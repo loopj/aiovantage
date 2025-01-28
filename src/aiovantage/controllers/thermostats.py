@@ -43,10 +43,10 @@ class ThermostatsController(BaseController[Thermostat]):
         with suppress(CommandError):
             state["status"] = await obj.get_status()
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_status(self, obj: Thermostat, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
         state: dict[str, Any] = {}
 
@@ -87,7 +87,7 @@ class ThermostatsController(BaseController[Thermostat]):
         else:
             return
 
-        self.update_state(vid, state)
+        self.update_state(obj, state)
 
     @override
     def handle_interface_status(
@@ -100,7 +100,7 @@ class ThermostatsController(BaseController[Thermostat]):
         elif method == "Thermostat.GetStatus":
             state["status"] = obj.parse_object_status(method, result, *args)
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     def sensors(self, vid: int) -> QuerySet[Temperature]:
         """Return all sensors associated with this thermostat."""

@@ -27,10 +27,10 @@ class TasksController(BaseController[Task]):
             "state": await obj.get_state(),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_status(self, obj: Task, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "TASK":
             return
@@ -41,7 +41,7 @@ class TasksController(BaseController[Task]):
             "state": int(args[0]),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj, state)
 
     @override
     def handle_interface_status(
@@ -55,4 +55,4 @@ class TasksController(BaseController[Task]):
             "is_running": obj.parse_object_status(method, result, *args),
         }
 
-        self.update_state(obj.vid, state)
+        self.update_state(obj, state)

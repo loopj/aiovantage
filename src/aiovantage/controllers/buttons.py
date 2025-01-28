@@ -17,7 +17,7 @@ class ButtonsController(BaseController[Button]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    def handle_status(self, vid: int, status: str, *args: str) -> None:
+    def handle_status(self, obj: Button, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "BTN":
             return
@@ -28,4 +28,4 @@ class ButtonsController(BaseController[Button]):
             "state": Button.State.Down if args[0] == "PRESS" else Button.State.Up,
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj, state)

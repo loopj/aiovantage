@@ -61,3 +61,49 @@ class GMem(SystemObject, GMemInterface):
     def is_fixed(self) -> bool:
         """Return True if GMem is a fixed point number."""
         return self.data.fixed
+
+    async def get_value(self) -> int | str | bool:
+        """Get the value of a variable.
+
+        Returns:
+            The value of the variable, either a bool, int, or str.
+        """
+        # GETVARIABLE {id}
+        # -> R:GETVARIABLE {id} {value}
+
+        # Make sure we have a command client to send requests with
+        if self.command_client is None:
+            raise ValueError("The object has no command client to send requests with.")
+
+        # Get the value of the variable
+        response = await self.command_client.command("GETVARIABLE", self.vid)
+        raw_value = response.args[1]
+
+        return self.parse_value(raw_value)
+
+    async def set_value(self, value: int | str | bool) -> None:
+        """Set the value of a variable.
+
+        Args:
+            value: The value to set, either a bool, int, or str.
+        """
+        # VARIABLE {id} {value}
+        # -> R:VARIABLE {id} {value}
+
+        # Make sure we have a command client to send requests with
+        if self.command_client is None:
+            raise ValueError("The object has no command client to send requests with.")
+
+        # Set the value of the variable
+        await self.command_client.command(
+            "VARIABLE", self.vid, value, force_quotes=True
+        )
+
+    def parse_value(self, value: str) -> int | str | bool:
+        """Parse the results of a GMem lookup into the expected type."""
+        if self.is_bool:
+            return bool(int(value))
+        if self.is_str:
+            return value
+
+        return int(value)
