@@ -17,7 +17,7 @@ class DryContactsController(BaseController[DryContact]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    def handle_status(self, obj: DryContact, status: str, *args: str) -> None:
+    def handle_category_status(self, obj: DryContact, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "BTN":
             return

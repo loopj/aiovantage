@@ -20,7 +20,7 @@ class TasksController(BaseController[Task]):
     """Which object interface status messages this controller handles, if any."""
 
     @override
-    def handle_status(self, obj: Task, status: str, *args: str) -> None:
+    def handle_category_status(self, obj: Task, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "TASK":
             return
@@ -34,7 +34,7 @@ class TasksController(BaseController[Task]):
         self.update_state(obj, state)
 
     @override
-    def handle_interface_status(
+    def handle_object_status(
         self, obj: Task, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""

@@ -31,7 +31,7 @@ class GMemController(BaseController[GMem]):
         self.update_state(obj, state)
 
     @override
-    def handle_status(self, obj: GMem, status: str, *args: str) -> None:
+    def handle_category_status(self, obj: GMem, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "VARIABLE":
             return

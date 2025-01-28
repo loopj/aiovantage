@@ -45,7 +45,7 @@ class RGBLoadsController(BaseController[RGBLoadTypes]):
         self.update_state(obj, state)
 
     @override
-    def handle_interface_status(
+    def handle_object_status(
         self, obj: RGBLoadTypes, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""

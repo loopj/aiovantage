@@ -17,7 +17,7 @@ class MastersController(BaseController[Master]):
     """Which object interface status messages this controller handles, if any."""
 
     @override
-    def handle_interface_status(
+    def handle_object_status(
         self, obj: Master, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""

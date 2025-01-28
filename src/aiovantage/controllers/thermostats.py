@@ -25,7 +25,7 @@ class ThermostatsController(BaseController[Thermostat]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    def handle_status(self, obj: Thermostat, status: str, *args: str) -> None:
+    def handle_category_status(self, obj: Thermostat, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
         state: dict[str, Any] = {}
 
@@ -69,7 +69,7 @@ class ThermostatsController(BaseController[Thermostat]):
         self.update_state(obj, state)
 
     @override
-    def handle_interface_status(
+    def handle_object_status(
         self, obj: Thermostat, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""

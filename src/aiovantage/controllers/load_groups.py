@@ -20,7 +20,7 @@ class LoadGroupsController(BaseController[LoadGroup]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    def handle_status(self, obj: LoadGroup, status: str, *args: str) -> None:
+    def handle_category_status(self, obj: LoadGroup, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream."""
         if status != "LOAD":
             return

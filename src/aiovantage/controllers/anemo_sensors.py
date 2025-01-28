@@ -19,7 +19,7 @@ class AnemoSensorsController(BaseController[AnemoSensor]):
     """Which Vantage 'STATUS' types this controller handles, if any."""
 
     @override
-    def handle_status(self, obj: AnemoSensor, status: str, *args: str) -> None:
+    def handle_category_status(self, obj: AnemoSensor, status: str, *args: str) -> None:
         """Handle simple status message from the event stream."""
         if status != "WIND":
             return
