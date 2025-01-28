@@ -2,11 +2,13 @@
 
 from dataclasses import dataclass, field
 
+from aiovantage.object_interfaces import ConfigurationInterface, IntrospectionInterface
+
 from .system_object import SystemObject
 
 
 @dataclass(kw_only=True)
-class Master(SystemObject):
+class Master(SystemObject, IntrospectionInterface, ConfigurationInterface):
     """Master (InFusion Controller) object."""
 
     @dataclass
@@ -30,7 +32,3 @@ class Master(SystemObject):
     module_count: int | None = None
     power_supply: int | None = None
     serial_number: int | None = None
-
-    # State
-    firmware_version: str | None = field(default=None, metadata={"type": "Ignore"})
-    last_updated: int | None = field(default=None, metadata={"type": "Ignore"})

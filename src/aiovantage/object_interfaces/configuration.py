@@ -3,11 +3,13 @@
 import datetime as dt
 from enum import IntEnum, IntFlag
 
-from .base import Interface
+from .base import Interface, method
 
 
 class ConfigurationInterface(Interface):
     """Interface for controller introspection."""
+
+    interface_name = "Configuration"
 
     class Store(IntEnum):
         """Configuration store."""
@@ -29,48 +31,35 @@ class ConfigurationInterface(Interface):
         Sunrise = 0
         Sunset = 1
 
-    method_signatures = {
-        "Configuration.GetControllerVID": int,
-        "Configuration.CreateObject": int,
-        "Configuration.GetModificationTime": dt.datetime,
-        "Configuration.GetLastDeleteTime": dt.datetime,
-        "Configuration.GetLastClearTime": dt.datetime,
-        "Configuration.OpenFilter": int,
-        "Configuration.GetNextObjectVID": int,
-        "Configuration.FindLocalObject": bool,
-        "Configuration.GetTimeZone": str,
-        "Configuration.GetTimeLocation": str,
-        "Configuration.GetAstronomicalTime": dt.datetime,
-    }
-
-    async def get_controller_vid(self, vid: int, controller: int) -> int:
+    # Methods
+    @method("GetControllerVID")
+    async def get_controller_vid(self, controller: int) -> int:
         """Get the VID of a controller, based on the controller number.
 
         Args:
-            vid: The VID of the controller.
             controller: The controller number to get the VID of.
         """
         # INVOKE <id> Configuration.GetControllerVID <controller>
         # -> R:INVOKE <id> <rcode> Configuration.GetControllerVID <vid>
-        return await self.invoke(vid, "Configuration.GetControllerVID", controller)
+        return await self.invoke("Configuration.GetControllerVID", controller)
 
-    async def delete_object(self, vid: int, store: Store, object_vid: int) -> None:
+    @method("DeleteObject")
+    async def delete_object(self, store: Store, vid: int) -> None:
         """Delete an object from the controller.
 
         Args:
-            vid: The VID of the controller
             store: The store to delete the object from.
-            object_vid: The VID of the object to delete.
+            vid: The VID of the object to delete.
         """
         # INVOKE <id> Configuration.DeleteObject <vid>
         # -> R:INVOKE <id> <rcode> Configuration.DeleteObject <vid>
-        await self.invoke(vid, "Configuration.DeleteObject", store, object_vid)
+        await self.invoke("Configuration.DeleteObject", store, vid)
 
-    async def create_object(self, vid: int, type: str) -> int:
+    @method("CreateObject")
+    async def create_object(self, type: str) -> int:
         """Create an object on the controller.
 
         Args:
-            vid: The VID of the controller.
             type: The type of object to create, eg. "Load".
 
         Returns:
@@ -78,26 +67,24 @@ class ConfigurationInterface(Interface):
         """
         # INVOKE <id> Configuration.CreateObject <type>
         # -> R:INVOKE <id> <rcode> Configuration.CreateObject <type>
-        return await self.invoke(vid, "Configuration.CreateObject", type)
+        return await self.invoke("Configuration.CreateObject", type)
 
-    async def get_modification_time(self, vid: int) -> dt.datetime:
+    @method("GetModificationTime")
+    async def get_modification_time(self) -> dt.datetime:
         """Get the modification time of this object.
-
-        Args:
-            vid: The VID of the object.
 
         Returns:
             The modification time of the object, as a datetime object.
         """
         # INVOKE <id> Configuration.GetModificationTime
         # -> R:INVOKE <id> <mtime> Configuration.GetModificationTime
-        return await self.invoke(vid, "Configuration.GetModificationTime")
+        return await self.invoke("Configuration.GetModificationTime")
 
-    async def get_last_delete_time(self, vid: int, store: Store) -> dt.datetime:
+    @method("GetLastDeleteTime")
+    async def get_last_delete_time(self, store: Store) -> dt.datetime:
         """Get the time of the last object deletion.
 
         Args:
-            vid: The VID of the controller.
             store: The store to get the last deletion time of.
 
         Returns:
@@ -105,28 +92,24 @@ class ConfigurationInterface(Interface):
         """
         # INVOKE <id> Configuration.GetLastDeleteTime <store>
         # -> R:INVOKE <id> <time> Configuration.GetLastDeleteTime <store>
-        return await self.invoke(vid, "Configuration.GetLastDeleteTime", store)
+        return await self.invoke("Configuration.GetLastDeleteTime", store)
 
-    async def get_last_clear_time(self, vid: int) -> dt.datetime:
+    @method("GetLastClearTime")
+    async def get_last_clear_time(self) -> dt.datetime:
         """Get the time of the last clear.
-
-        Args:
-            vid: The VID of the controller.
 
         Returns:
             The time of the last store clear, as a datetime object.
         """
         # INVOKE <id> Configuration.GetLastClearTime
         # -> R:INVOKE <id> <time> Configuration.GetLastClearTime
-        return await self.invoke(vid, "Configuration.GetLastClearTime")
+        return await self.invoke("Configuration.GetLastClearTime")
 
-    async def open_filter(
-        self, vid: int, store: Store, types: str = "", xpath: str = ""
-    ) -> int:
+    @method("OpenFilter")
+    async def open_filter(self, store: Store, types: str = "", xpath: str = "") -> int:
         """Open a filter on a store.
 
         Args:
-            vid: The VID of the controller.
             store: The store to open the filter on.
             types: An optional comma-separated list of object types to filter on.
             xpath: An optional xpath expression to filter on, eg. "/Load", "/*[@VID='12']"
@@ -136,13 +119,13 @@ class ConfigurationInterface(Interface):
         """
         # INVOKE <id> Configuration.OpenFilter <store> <types> <xpath>
         # -> R:INVOKE <id> <handle> Configuration.OpenFilter <store> <types> <xpath>
-        return await self.invoke(vid, "Configuration.OpenFilter", store, types, xpath)
+        return await self.invoke("Configuration.OpenFilter", store, types, xpath)
 
-    async def get_next_object_vid(self, vid: int, handle: int) -> int:
+    @method("GetNextObjectVID")
+    async def get_next_object_vid(self, handle: int) -> int:
         """Get the VID of the next object in a filter.
 
         Args:
-            vid: The VID of the controller.
             handle: The filter handle to get the next object of.
 
         Returns:
@@ -150,19 +133,20 @@ class ConfigurationInterface(Interface):
         """
         # INVOKE <id> Configuration.GetNextObjectVID <handle>
         # -> R:INVOKE <id> <vid> Configuration.GetNextObjectVID <handle>
-        return await self.invoke(vid, "Configuration.GetNextObjectVID", handle)
+        return await self.invoke("Configuration.GetNextObjectVID", handle)
 
-    async def close_filter(self, vid: int, handle: int) -> None:
+    @method("CloseFilter")
+    async def close_filter(self, handle: int) -> None:
         """Close a filter.
 
         Args:
-            vid: The VID of the controller.
             handle: The filter handle to close.
         """
         # INVOKE <id> Configuration.CloseFilter <handle>
         # -> R:INVOKE <id> <rcode> Configuration.CloseFilter <handle>
-        await self.invoke(vid, "Configuration.CloseFilter", handle)
+        await self.invoke("Configuration.CloseFilter", handle)
 
+    @method("FindLocalObject")
     async def find_local_object(self, vid: int) -> bool:
         """Find a "local" object by VID, i.e. an object managed by this object.
 
@@ -174,41 +158,37 @@ class ConfigurationInterface(Interface):
         """
         # INVOKE <id> Configuration.FindLocalObject <vid>
         # -> R:INVOKE <id> <found (0/1)> Configuration.FindLocalObject <vid>
-        return await self.invoke(vid, "Configuration.FindLocalObject", vid)
+        return await self.invoke("Configuration.FindLocalObject", vid)
 
-    async def get_time_zone(self, vid: int) -> str:
+    @method("GetTimeZone")
+    async def get_time_zone(self) -> str:
         """Get the time zone.
-
-        Args:
-            vid: The VID of the controller
 
         Returns:
             The vantage time zone string, eg. "UTCPlusEight+8DAY,M3.2.0/02:00,M11.1.0/02:00"
         """
         # INVOKE <id> Configuration.GetTimeZone
         # -> R:INVOKE <id> <rcode> Configuration.GetTimeZone <tz> <size>
-        return await self.invoke(vid, "Configuration.GetTimeZone")
+        return await self.invoke("Configuration.GetTimeZone")
 
-    async def get_time_location(self, vid: int) -> str:
+    @method("GetTimeLocation")
+    async def get_time_location(self) -> str:
         """Get the time location.
-
-        Args:
-            vid: The VID of the controller
 
         Returns:
             A latitude and longitude string, eg. "51.178908N1.826212W"
         """
         # INVOKE <id> Configuration.GetTimeLocation
         # -> R:INVOKE <id> <rcode> Configuration.GetTimeLocation <loc> <size>
-        return await self.invoke(vid, "Configuration.GetTimeLocation")
+        return await self.invoke("Configuration.GetTimeLocation")
 
+    @method("GetAstronomicalTime")
     async def get_astronomical_time(
-        self, vid: int, event: SolarEvent, year: int, month: int, day: int
+        self, event: SolarEvent, year: int, month: int, day: int
     ) -> dt.datetime:
         """Get the astronomical time of a solar event.
 
         Args:
-            vid: The VID of the controller.
             event: The solar event to get the time of.
             year: The year of the event.
             month: The month of the event.
@@ -220,5 +200,5 @@ class ConfigurationInterface(Interface):
         # INVOKE <id> Configuration.GetAstronomicalTime <event>
         # -> R:INVOKE <id> <time> Configuration.GetAstronomicalTime <event> <year> <month> <day>
         return await self.invoke(
-            vid, "Configuration.GetAstronomicalTime", event, year, month, day
+            "Configuration.GetAstronomicalTime", event, year, month, day
         )

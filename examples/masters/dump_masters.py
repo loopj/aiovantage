@@ -25,11 +25,7 @@ async def main() -> None:
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Print out the id and name of each Vantage controller
         async for master in vantage.masters:
-            print(
-                f"[{master.id}] '{master.name}' "
-                f"serial_number={master.serial_number} "
-                f"firmware_version={master.firmware_version}"
-            )
+            print(f"[{master.id}] '{master.name}' serial_number={master.serial_number}")
 
 
 with contextlib.suppress(KeyboardInterrupt):

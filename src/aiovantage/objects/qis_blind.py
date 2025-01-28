@@ -2,12 +2,13 @@
 
 from dataclasses import dataclass
 
-from .blind_base import BlindBase
+from aiovantage.object_interfaces import BlindInterface
+
 from .station_object import StationObject
 
 
 @dataclass(kw_only=True)
-class QISBlind(BlindBase, StationObject):
+class QISBlind(StationObject, BlindInterface):
     """QIS Shade object."""
 
     @dataclass

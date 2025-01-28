@@ -1,14 +1,15 @@
 """AnemoSensor (wind sensor) object."""
 
-from dataclasses import dataclass, field
-from decimal import Decimal
+from dataclasses import dataclass
+
+from aiovantage.object_interfaces import AnemoSensorInterface
 
 from .sensor import Sensor
 from .types import Parent
 
 
 @dataclass(kw_only=True)
-class AnemoSensor(Sensor):
+class AnemoSensor(Sensor, AnemoSensorInterface):
     """AnemoSensor (wind sensor) object."""
 
     parent: Parent
@@ -17,6 +18,3 @@ class AnemoSensor(Sensor):
     range_high: float = 10.0
     range_low: float = 0.0
     hold_on_time: float
-
-    # State
-    speed: Decimal | None = field(default=None, metadata={"type": "Ignore"})

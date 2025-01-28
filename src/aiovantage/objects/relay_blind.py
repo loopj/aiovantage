@@ -2,10 +2,11 @@
 
 from dataclasses import dataclass
 
-from .blind_base import BlindBase
+from aiovantage.object_interfaces import BlindInterface
+
 from .location_object import LocationObject
 
 
 @dataclass(kw_only=True)
-class RelayBlind(BlindBase, LocationObject):
+class RelayBlind(LocationObject, BlindInterface):
     """Relay blind object."""

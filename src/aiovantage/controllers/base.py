@@ -5,7 +5,7 @@ import logging
 from collections.abc import Callable, Iterable
 from dataclasses import fields
 from inspect import iscoroutinefunction
-from typing import TYPE_CHECKING, Any, Literal, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.types import tokenize_response
@@ -97,14 +97,14 @@ class BaseController(QuerySet[T]):
         """Return a set of all known object IDs."""
         return set(self._items.keys())
 
-    async def fetch_object_state(self, _vid: int) -> None:
+    async def fetch_object_state(self, obj: T) -> None:
         """Fetch the full state of an object.
 
         Should be overridden by subclasses that manage stateful objects.
         """
         return
 
-    def handle_status(self, _vid: int, _status: str, *_args: str) -> None:
+    def handle_status(self, vid: int, status: str, *args: str) -> None:
         """Handle simple status messages from the event stream.
 
         Should be overridden by subclasses that manage stateful objects using
@@ -113,7 +113,7 @@ class BaseController(QuerySet[T]):
         return
 
     def handle_interface_status(
-        self, _vid: int, _method: str, _result: str, *_args: str
+        self, obj: T, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream.
 
@@ -150,13 +150,17 @@ class BaseController(QuerySet[T]):
                     )
                 else:
                     # This is a new object.
+                    # Attach the command client to the object
+                    obj.command_client = self.command_client
+
                     # Add it to the controller and notify subscribers
-                    self._items[obj.id] = obj  # type: ignore
-                    self.emit(VantageEvent.OBJECT_ADDED, obj)  # type: ignore
+                    obj = cast(T, obj)
+                    self._items[obj.id] = obj
+                    self.emit(VantageEvent.OBJECT_ADDED, obj)
 
                     # Fetch the state of stateful objects
                     if self.stateful and fetch_state:
-                        await self.fetch_object_state(obj.id)
+                        await self.fetch_object_state(obj)
 
                 # Keep track of which objects we've seen
                 cur_ids.add(obj.id)
@@ -184,7 +188,7 @@ class BaseController(QuerySet[T]):
             return
 
         for obj in self._items.values():
-            await self.fetch_object_state(obj.id)
+            await self.fetch_object_state(obj)
 
         self._logger.info("%s fetched state", type(self).__name__)
 
@@ -313,11 +317,14 @@ class BaseController(QuerySet[T]):
             if event["id"] not in self._items:
                 return
 
+            # Look up the object that this event is for
+            obj = self._items[event["id"]]
+
             if event["status_type"] == "STATUS":
                 # Handle "object interface" status events of the form:
                 # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
                 method, result, *args = event["args"]
-                self.handle_interface_status(event["id"], method, result, *args)
+                self.handle_interface_status(obj, method, result, *args)
             else:
                 # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
                 self.handle_status(event["id"], event["status_type"], *event["args"])
@@ -333,8 +340,11 @@ class BaseController(QuerySet[T]):
             if vid not in self._items:
                 return
 
+            # Look up the object that this event is for
+            obj = self._items[vid]
+
             # Pass the event to the controller
-            self.handle_interface_status(vid, method, result, *args)
+            self.handle_interface_status(obj, method, result, *args)
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized

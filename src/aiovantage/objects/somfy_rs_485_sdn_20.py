@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass
 
-from .blind_base import BlindBase
-from .blind_group_base import BlindGroupBase
+from aiovantage.object_interfaces import BlindInterface
+
 from .child_device import ChildDevice
 from .port_device import PortDevice
 
@@ -17,7 +17,7 @@ class SomfyRS485SDN20Port(PortDevice):
 
 
 @dataclass(kw_only=True)
-class SomfyRS485ShadeChild(BlindBase, ChildDevice):
+class SomfyRS485ShadeChild(ChildDevice, BlindInterface):
     """Somfy RS-485 SDN 2.0 blind."""
 
     class Meta:
@@ -25,7 +25,7 @@ class SomfyRS485ShadeChild(BlindBase, ChildDevice):
 
 
 @dataclass(kw_only=True)
-class SomfyRS485GroupChild(BlindGroupBase, ChildDevice):
+class SomfyRS485GroupChild(ChildDevice, BlindInterface):
     """Somfy RS-485 SDN 2.0 blind group."""
 
     class Meta:

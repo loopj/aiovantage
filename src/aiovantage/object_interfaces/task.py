@@ -2,11 +2,13 @@
 
 from enum import IntEnum
 
-from .base import Interface
+from .base import Interface, method
 
 
 class TaskInterface(Interface):
     """Interface for querying and controlling tasks."""
+
+    interface_name = "Task"
 
     class Status(IntEnum):
         """Task status."""
@@ -17,114 +19,92 @@ class TaskInterface(Interface):
         OutOfSync = 3
         Invalid = 4
 
-    method_signatures = {
-        "Task.IsRunning": bool,
-        "Task.GetState": int,
-        "Task.GetStatus": Status,
-        "Task.GetContextState": int,
-        "Task.HasContextState": bool,
-    }
+    # Properties
+    state: int | None = None
+    running: bool | None = None
+    context_state: bool | None = None
 
-    async def start(self, vid: int) -> None:
-        """Start a task.
-
-        Args:
-            vid: The Vantage ID of the task.
-        """
+    # Methods
+    @method("Start")
+    async def start(self) -> None:
+        """Start a task."""
         # TODO: Add support for Task.Start parameters
         # INVOKE <id> Task.Start <source> <event> <param1> <param2>
         # -> R:INVOKE <id> <rcode (0/1)> Task.Start <source> <event> <param1> <param2>
-        await self.invoke(vid, "Task.Start")
+        await self.invoke("Task.Start")
 
-    async def stop(self, vid: int) -> None:
-        """Stop a running task.
-
-        Args:
-            vid: The Vantage ID of the task.
-        """
+    @method("Stop")
+    async def stop(self) -> None:
+        """Stop a running task."""
         # INVOKE <id> Task.Stop
         # -> R:INVOKE <id> <rcode> Task.Stop
-        await self.invoke(vid, "Task.Stop")
+        await self.invoke("Task.Stop")
 
-    async def cancel(self, vid: int) -> None:
-        """Cancel a scheduled task.
-
-        Args:
-            vid: The Vantage ID of the task.
-        """
+    @method("Cancel")
+    async def cancel(self) -> None:
+        """Cancel a scheduled task."""
         # INVOKE <id> Task.Cancel
         # -> R:INVOKE <id> <rcode> Task.Cancel
-        await self.invoke(vid, "Task.Cancel")
+        await self.invoke("Task.Cancel")
 
-    async def is_running(self, vid: int) -> bool:
-        """Get the running state of a task.
-
-        Args:
-            vid: The Vantage ID of the task.
-        """
+    @method("IsRunning", property="running")
+    async def is_running(self) -> bool:
+        """Get the running state of a task."""
         # INVOKE <id> Task.IsRunning
         # -> R:INVOKE <id> <running (0/1)> Task.IsRunning
-        return await self.invoke(vid, "Task.IsRunning")
+        return await self.invoke("Task.IsRunning")
 
-    async def get_state(self, vid: int) -> int:
+    @method("GetState", property="state")
+    async def get_state(self) -> int:
         """Get the state of a task.
-
-        Args:
-            vid: The Vantage ID of the task.
 
         Returns:
             The LED state of the task.
         """
         # INVOKE <id> Task.GetState
         # -> R:INVOKE <id> <state> Task.GetState
-        return await self.invoke(vid, "Task.GetState")
+        return await self.invoke("Task.GetState")
 
-    async def set_state(self, vid: int, state: int) -> None:
+    @method("SetState")
+    async def set_state(self, state: int) -> None:
         """Set the state of a task.
 
         Args:
-            vid: The Vantage ID of the task.
             state: The state to set the task to.
         """
         # INVOKE <id> Task.SetState <state>
         # -> R:INVOKE <id> <rcode> Task.SetState <state>
-        await self.invoke(vid, "Task.SetState", state)
+        await self.invoke("Task.SetState", state)
 
-    async def get_status(self, vid: int) -> Status:
+    @method("GetStatus")
+    async def get_status(self) -> Status:
         """Get the status of a task.
-
-        Args:
-            vid: The Vantage ID of the task.
 
         Returns:
             The status of the task.
         """
         # INVOKE <id> Task.GetStatus
         # -> R:INVOKE <id> <status> Task.GetStatus
-        return await self.invoke(vid, "Task.GetStatus")
+        return await self.invoke("Task.GetStatus")
 
-    async def get_context_state(self, vid: int) -> int:
+    @method("GetContextState")
+    async def get_context_state(self) -> int:
         """Get the context-aware task state.
-
-        Args:
-            vid: The Vantage ID of the task.
 
         Returns:
             The context aware state of the task.
         """
         # INVOKE <id> Task.GetContextState
         # -> R:INVOKE <id> <context state> Task.GetContextState
-        return await self.invoke(vid, "Task.GetContextState")
+        return await self.invoke("Task.GetContextState")
 
-    async def has_context_state(self, vid: int) -> bool:
+    @method("HasContextState", property="context_state")
+    async def has_context_state(self) -> bool:
         """Check if the task is context-aware.
-
-        Args:
-            vid: The Vantage ID of the task.
 
         Returns:
             True if the task is context-aware, False otherwise.
         """
         # INVOKE <id> Task.HasContextState
         # -> R:INVOKE <id> <has context state (0/1)> Task.HasContextState
-        return await self.invoke(vid, "Task.HasContextState")
+        return await self.invoke("Task.HasContextState")

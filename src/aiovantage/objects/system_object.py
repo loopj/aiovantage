@@ -3,9 +3,11 @@
 import datetime as dt
 from dataclasses import dataclass, field
 
+from aiovantage.object_interfaces import ObjectInterface
+
 
 @dataclass(kw_only=True)
-class SystemObject:
+class SystemObject(ObjectInterface):
     """Base class for all objects."""
 
     vid: int = field(metadata={"name": "VID", "type": "Attribute"})

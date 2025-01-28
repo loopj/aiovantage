@@ -3,11 +3,13 @@
 from decimal import Decimal
 from enum import IntEnum
 
-from .base import Interface
+from .base import Interface, method
 
 
 class LoadInterface(Interface):
     """Interface for querying and controlling loads."""
+
+    interface_name = "Load"
 
     class RampType(IntEnum):
         """Load ramp type."""
@@ -38,34 +40,27 @@ class LoadInterface(Interface):
         Reverse = 2
         Auto = 3
 
-    method_signatures = {
-        "Load.GetLevel": Decimal,
-        "Load.GetLevelHW": Decimal,
-        "Load.GetProfile": int,
-        "Load.GetOverrideLevel": Decimal,
-        "Load.GetAlertState": AlertState,
-        "Load.GetDimmingConfig": DimmingConfig,
-    }
+    # Properties
+    level: Decimal | None = None
 
-    async def set_level(
-        self, vid: int, level: float | Decimal, *, sw: bool = False
-    ) -> None:
+    # Methods
+    @method("SetLevel", "SetLevelSW")
+    async def set_level(self, level: float | Decimal, *, sw: bool = False) -> None:
         """Set the level of a load.
 
         Args:
-            vid: The Vantage ID of the load.
             level: The level to set the load to (0-100).
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Load.SetLevel <level (0-100)>
         # -> R:INVOKE <id> <rcode> Load.SetLevel <level (0-100)>
-        await self.invoke(vid, "Load.SetLevelSW" if sw else "Load.SetLevel", level)
+        await self.invoke("Load.SetLevelSW" if sw else "Load.SetLevel", level)
 
-    async def get_level(self, vid: int, *, hw: bool = False) -> Decimal:
+    @method("GetLevel", "GetLevelHW", property="level")
+    async def get_level(self, *, hw: bool = False) -> Decimal:
         """Get the level of a load.
 
         Args:
-            vid: The Vantage ID of the load.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -73,67 +68,59 @@ class LoadInterface(Interface):
         """
         # INVOKE <id> Load.GetLevel
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetLevel
-        return await self.invoke(vid, "Load.GetLevelHW" if hw else "Load.GetLevel")
+        return await self.invoke("Load.GetLevelHW" if hw else "Load.GetLevel")
 
+    @method("Ramp")
     async def ramp(
-        self,
-        vid: int,
-        cmd: RampType,
-        ramptime: float | Decimal,
-        finallevel: float | Decimal,
+        self, cmd: RampType, ramptime: float | Decimal, finallevel: float | Decimal
     ) -> None:
         """Ramp a load to a level over a number of seconds.
 
         Args:
-            vid: The Vantage ID of the load.
             cmd: The type of ramp to perform.
             ramptime: The number of seconds to ramp the load over.
             finallevel: The level to ramp the load to (0-100).
         """
         # INVOKE <id> Load.Ramp <cmd> <time> <level>
         # -> R:INVOKE <id> <rcode> Load.Ramp <cmd> <time> <level>
-        await self.invoke(vid, "Load.Ramp", cmd, ramptime, finallevel)
+        await self.invoke("Load.Ramp", cmd, ramptime, finallevel)
 
-    async def set_profile(self, vid: int, profile: int) -> None:
+    @method("SetProfile")
+    async def set_profile(self, profile: int) -> None:
         """Set the id of the power profile used by this load.
 
         Args:
-            vid: The Vantage ID of the load.
             profile: The power profile id to set the load to.
         """
         # INVOKE <id> Load.SetProfile <profile>
         # -> R:INVOKE <id> <rcode> Load.SetProfile <profile>
-        await self.invoke(vid, "Load.SetProfile", profile)
+        await self.invoke("Load.SetProfile", profile)
 
-    async def get_profile(self, vid: int) -> int:
+    @method("GetProfile")
+    async def get_profile(self) -> int:
         """Get the id of the power profile used by this load.
-
-        Args:
-            vid: The Vantage ID of the load.
 
         Returns:
             The power profile id used by the load.
         """
         # INVOKE <id> Load.GetProfile
         # -> R:INVOKE <id> <profile> Load.GetProfile
-        return await self.invoke(vid, "Load.GetProfile")
+        return await self.invoke("Load.GetProfile")
 
-    async def get_override_level(self, vid: int) -> Decimal:
+    @method("GetOverrideLevel")
+    async def get_override_level(self) -> Decimal:
         """Get the override level of a load.
-
-        Args:
-            vid: The Vantage ID of the load.
 
         Returns:
             The override level of the load, as a percentage (0-100).
         """
         # INVOKE <id> Load.GetOverrideLevel
         # -> R:INVOKE <id> <level (0.000-100.000)> Load.GetOverrideLevel
-        return await self.invoke(vid, "Load.GetOverrideLevel")
+        return await self.invoke("Load.GetOverrideLevel")
 
+    @method("RampAutoOff")
     async def ramp_auto_off(
         self,
-        vid: int,
         cmd: RampType,
         ramptime: float | Decimal,
         finallevel: float | Decimal,
@@ -144,7 +131,6 @@ class LoadInterface(Interface):
         """Ramp a load to a level over a number of seconds, then ramp off after a timeout.
 
         Args:
-            vid: The Vantage ID of the load.
             cmd: The type of ramp to perform.
             ramptime: The number of seconds to ramp the load over.
             finallevel: The level to ramp the load to (0-100).
@@ -155,7 +141,6 @@ class LoadInterface(Interface):
         # INVOKE <id> Load.RampAutoOff <cmd> <time> <level> <offcmd> <offtime> <offlevel>
         # -> R:INVOKE <id> <rcode> Load.RampAutoOff <cmd> <time> <level> <offcmd> <offtime> <offlevel>
         await self.invoke(
-            vid,
             "Load.RampAutoOff",
             cmd,
             ramptime,
@@ -165,51 +150,46 @@ class LoadInterface(Interface):
             offtimeout,
         )
 
-    async def get_alert_state(self, vid: int) -> AlertState:
+    @method("GetAlertState")
+    async def get_alert_state(self) -> AlertState:
         """Get the alert state of a load.
-
-        Args:
-            vid: The Vantage ID of the load.
 
         Returns:
             The alert state of the load.
         """
         # INVOKE <id> Load.GetAlertState
         # -> R:INVOKE <id> <alert state> Load.GetAlertState
-        return await self.invoke(vid, "Load.GetAlertState")
+        return await self.invoke("Load.GetAlertState")
 
-    async def set_alert_state(self, vid: int, alert_state: AlertState) -> None:
+    @method("SetAlertStateSW")
+    async def set_alert_state(self, alert_state: AlertState) -> None:
         """Set the cached alert state of a load.
 
         Args:
-            vid: The Vantage ID of the load.
             alert_state: The alert state to set the load to.
         """
         # INVOKE <id> Load.SetAlertStateSW <alert state>
         # -> R:INVOKE <id> <rcode> Load.SetAlertStateSW <alert state>
-        await self.invoke(vid, "Load.SetAlertStateSW", alert_state)
+        await self.invoke("Load.SetAlertStateSW", alert_state)
 
-    async def get_dimming_config(self, vid: int) -> DimmingConfig:
+    @method("GetDimmingConfig")
+    async def get_dimming_config(self) -> DimmingConfig:
         """Get the dimming configuration of a load.
-
-        Args:
-            vid: The Vantage ID of the load.
 
         Returns:
             The dimming configuration of the load.
         """
         # INVOKE <id> Load.GetDimmingConfig
         # -> R:INVOKE <id> <dimming config> Load.GetDimmingConfig
-        return await self.invoke(vid, "Load.GetDimmingConfig")
+        return await self.invoke("Load.GetDimmingConfig")
 
     # Convenience functions, not part of the interface
     async def turn_on(
-        self, vid: int, transition: float | None = None, level: float | None = None
+        self, transition: float | None = None, level: float | None = None
     ) -> None:
         """Turn on a load with an optional transition time.
 
         Args:
-            vid: The Vantage ID of the load.
             transition: The time in seconds to transition to the new level, defaults to immediate.
             level: The level to set the load to (0-100), defaults to 100.
         """
@@ -217,11 +197,11 @@ class LoadInterface(Interface):
             level = 100
 
         if transition is None:
-            return await self.set_level(vid, level)
+            return await self.set_level(level)
 
-        await self.ramp(vid, self.RampType.Fixed, transition, level)
+        await self.ramp(self.RampType.Fixed, transition, level)
 
-    async def turn_off(self, vid: int, transition: float | None = None) -> None:
+    async def turn_off(self, transition: float | None = None) -> None:
         """Turn off a load with an optional transition time.
 
         Args:
@@ -229,6 +209,11 @@ class LoadInterface(Interface):
             transition: The time in seconds to ramp the load down, defaults to immediate.
         """
         if transition is None:
-            return await self.set_level(vid, 0)
+            return await self.set_level(0)
 
-        await self.ramp(vid, self.RampType.Fixed, transition, 0)
+        await self.ramp(self.RampType.Fixed, transition, 0)
+
+    @property
+    def is_on(self) -> bool:
+        """Return True if the load is on."""
+        return bool(self.level)

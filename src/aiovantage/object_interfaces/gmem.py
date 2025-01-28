@@ -2,11 +2,13 @@
 
 from dataclasses import dataclass
 
-from .base import Interface
+from .base import Interface, method
 
 
 class GMemInterface(Interface):
     """Interface for querying and controlling variables."""
+
+    interface_name = "GMem"
 
     @dataclass
     class Buffer:
@@ -16,24 +18,22 @@ class GMemInterface(Interface):
         data: bytes
         size: int
 
-    method_signatures = {
-        "GMem.Fetch": Buffer,
-    }
+    buffer: Buffer | None = None
+    value: int | str | bool | None = None  # Not strictly a property
 
-    async def fetch(self, vid: int) -> Buffer:
+    @method("Fetch", property="buffer")
+    async def fetch(self) -> Buffer:
         """Fetch the contents of the variable.
-
-        Args:
-            vid: The Vantage ID of the variable.
 
         Returns:
             The contents of the variable.
         """
         # INVOKE <id> GMem.Fetch
         # -> R:INVOKE <id> <rcode> GMem.Fetch <buffer> <size>
-        return await self.invoke(vid, "GMem.Fetch")
+        return await self.invoke("GMem.Fetch")
 
-    async def commit(self, vid: int, buffer: bytes) -> None:
+    @method("Commit")
+    async def commit(self, buffer: bytes) -> None:
         """Set the contents of the variable.
 
         Args:
@@ -42,4 +42,4 @@ class GMemInterface(Interface):
         """
         # INVOKE <id> GMem.Commit <buffer> <size>
         # -> R:INVOKE <id> <rcode> GMem.Commit <buffer> <size>
-        await self.invoke(vid, "GMem.Commit", buffer)
+        await self.invoke("GMem.Commit", buffer)

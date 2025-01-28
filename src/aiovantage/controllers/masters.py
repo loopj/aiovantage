@@ -1,21 +1,13 @@
 """Controller holding and managing Vantage controllers."""
 
-from typing import Any
-
 from typing_extensions import override
 
-from aiovantage.object_interfaces import (
-    IntrospectionInterface,
-    ObjectInterface,
-)
 from aiovantage.objects import Master
 
 from .base import BaseController
 
 
-class MastersController(
-    BaseController[Master], IntrospectionInterface, ObjectInterface
-):
+class MastersController(BaseController[Master]):
     """Controller holding and managing Vantage controllers."""
 
     vantage_types = ("Master",)
@@ -25,27 +17,18 @@ class MastersController(
     """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
-        """Fetch the state properties of a Vantage controller."""
-        state: dict[str, Any] = {
-            "firmware_version": await self.get_version(),
-        }
-
-        self.update_state(vid, state)
-
-    @override
     def handle_interface_status(
-        self, vid: int, method: str, result: str, *args: str
+        self, obj: Master, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""
         if method != "Object.GetMTime":
             return
 
         state = {
-            "m_time": self.parse_object_status(method, result, *args),
+            "m_time": obj.parse_object_status(method, result, *args),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     async def get_version(self) -> str:
         """Get the firmware version of a Vantage controller.

@@ -25,28 +25,27 @@ class OmniSensorsController(BaseController[OmniSensor]):
     """Which object interface status messages this controller handles, if any."""
 
     @override
-    async def fetch_object_state(self, vid: int) -> None:
+    async def fetch_object_state(self, obj: OmniSensor) -> None:
         """Fetch the state properties of an omni sensor."""
         state = {
-            "level": await self.get_level(vid, cached=False),
+            "level": await self.get_level(obj.vid, cached=False),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     @override
     def handle_interface_status(
-        self, vid: int, method: str, result: str, *_args: str
+        self, obj: OmniSensor, method: str, result: str, *_args: str
     ) -> None:
         """Handle object interface status messages from the event stream."""
-        omni_sensor = self[vid]
-        if method != omni_sensor.get.method:
+        if method != obj.get.method:
             return
 
         state = {
-            "level": self.parse_result(omni_sensor, result),
+            "level": self.parse_result(obj, result),
         }
 
-        self.update_state(vid, state)
+        self.update_state(obj.vid, state)
 
     async def get_level(self, vid: int, cached: bool = True) -> int | Decimal:
         """Get the level of an OmniSensor.

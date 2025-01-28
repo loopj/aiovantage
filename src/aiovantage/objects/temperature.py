@@ -1,15 +1,16 @@
 """Temperature object."""
 
 from dataclasses import dataclass, field
-from decimal import Decimal
 from enum import Enum
+
+from aiovantage.object_interfaces import TemperatureInterface
 
 from .sensor import Sensor
 from .types import Parent
 
 
 @dataclass(kw_only=True)
-class Temperature(Sensor):
+class Temperature(Sensor, TemperatureInterface):
     """Temperature object."""
 
     parent: Parent
@@ -29,6 +30,3 @@ class Temperature(Sensor):
         AUTO = "Auto"
 
     setpoint: Setpoint | None = field(default=None, metadata={"type": "Attribute"})
-
-    # State
-    value: Decimal | None = field(default=None, metadata={"type": "Ignore"})

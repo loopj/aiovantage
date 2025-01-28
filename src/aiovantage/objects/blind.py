@@ -2,13 +2,14 @@
 
 from dataclasses import dataclass
 
-from .blind_base import BlindBase
+from aiovantage.object_interfaces import BlindInterface
+
 from .location_object import LocationObject
 from .types import Parent
 
 
 @dataclass(kw_only=True)
-class Blind(BlindBase, LocationObject):
+class Blind(LocationObject, BlindInterface):
     """Blind object."""
 
     @dataclass

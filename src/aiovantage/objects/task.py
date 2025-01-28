@@ -1,14 +1,12 @@
 """Task object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
+from aiovantage.object_interfaces import TaskInterface
 
 from .system_object import SystemObject
 
 
 @dataclass(kw_only=True)
-class Task(SystemObject):
+class Task(SystemObject, TaskInterface):
     """Task object."""
-
-    # State
-    is_running: bool | None = field(default=None, metadata={"type": "Ignore"})
-    state: int | None = field(default=None, metadata={"type": "Ignore"})
