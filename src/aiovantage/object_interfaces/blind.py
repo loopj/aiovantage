@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
+from typing_extensions import override
+
 from .base import Interface, method
 from .mixins import ShadeOrientation, ShadeType
 
@@ -237,3 +239,10 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         # INVOKE <id> Blind.GetTravelTimes
         # -> R:INVOKE <id> <openTime> <closeTime> Blind.GetTravelTimes
         return await self.invoke("Blind.GetTravelTimes")
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        # STATUS BLIND
+        # -> S:BLIND <id> <position (0.000 - 100.000)>
+        if category == "BLIND":
+            return self.update_property("position", Decimal(args[0]))

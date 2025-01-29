@@ -56,7 +56,7 @@ class StatusEvent(TypedDict):
 
     type: Literal[EventType.STATUS]
     id: int
-    status_type: str
+    category: str
     args: Sequence[str]
 
 
@@ -194,47 +194,42 @@ class EventStream:
         return unsubscribe
 
     def subscribe_status(
-        self, callback: EventCallback, status_types: str | Iterable[str]
+        self, callback: EventCallback, *categories: str
     ) -> Callable[[], None]:
         """Subscribe to "Status" events from the Host Command service.
 
         Args:
             callback: The callback to invoke when an event is received.
-            status_types: The status types to subscribe to status events for.
+            *categories: The status categories to subscribe to events for.
 
         Returns:
             A coroutine that can be used to unsubscribe from status events.
         """
-        # Support both a single status type and a list of status types
-        if isinstance(status_types, str):
-            status_types = (status_types,)
-
         # Enable this status type if it's not already enabled
-        for status_type in status_types:
-            self._status_subscribers[status_type] += 1
-            if self._status_subscribers[status_type] == 1:
-                self._enable_status(status_type)
+        for category in categories:
+            self._status_subscribers[category] += 1
+            if self._status_subscribers[category] == 1:
+                self._enable_status(category)
 
         # Subscribe, and return an unsubscribe callback
         remove_subscription = self.subscribe(
             callback,
             lambda event: (
-                event["type"] == EventType.STATUS
-                and event["status_type"] in status_types
+                event["type"] == EventType.STATUS and event["category"] in categories
             ),
         )
 
         def unsubscribe() -> None:
-            for status_type in status_types:
-                self._status_subscribers[status_type] -= 1
-                if self._status_subscribers[status_type] == 0:
-                    self._disable_status(status_type)
+            for category in categories:
+                self._status_subscribers[category] -= 1
+                if self._status_subscribers[category] == 0:
+                    self._disable_status(category)
             remove_subscription()
 
         return unsubscribe
 
     def subscribe_enhanced_log(
-        self, callback: EventCallback, log_types: str | Iterable[str]
+        self, callback: EventCallback, *log_types: str
     ) -> Callable[[], None]:
         """Subscribe to "Enhanced Log" events from the Host Command service.
 
@@ -245,9 +240,6 @@ class EventStream:
         Returns:
             A coroutine that can be used to unsubscribe from log events.
         """
-        if isinstance(log_types, str):
-            log_types = (log_types,)
-
         # Enable this log type if it's not already enabled
         for log_type in log_types:
             self._enhanced_log_subscribers[log_type] += 1
@@ -363,11 +355,11 @@ class EventStream:
             # Parse a "status" message, of the form "S:<type> <id> <args>"
             # These messages are emitted when the state of an object changes after
             # subscribing to updates via "STATUS <type>" or "ADDSTATUS <vid>".
-            status_type, id_str, *args = tokenize_response(message)
+            category, id_str, *args = tokenize_response(message)
             self.emit(
                 {
                     "type": EventType.STATUS,
-                    "status_type": status_type[2:],
+                    "category": category[2:],
                     "id": int(id_str),
                     "args": args,
                 }
@@ -384,17 +376,17 @@ class EventStream:
         # Queue a command to be sent to the Host Command service.
         self._command_queue.put_nowait(command)
 
-    def _enable_status(self, status_type: str) -> None:
+    def _enable_status(self, category: str) -> None:
         # Enable status updates on the controller for a particular status type.
-        self._queue_command(f"STATUS {status_type}")
+        self._queue_command(f"STATUS {category}")
 
-    def _disable_status(self, _status_type: str) -> None:
+    def _disable_status(self, _category: str) -> None:
         # Disable status updates on the controller for a particular status type.
         # Note: This assumes the count has already been decremented.
         self._queue_command("STATUS NONE")
-        for status_type, count in self._status_subscribers.items():
+        for category, count in self._status_subscribers.items():
             if count > 0:
-                self._queue_command(f"STATUS {status_type}")
+                self._queue_command(f"STATUS {category}")
 
     def _enable_enhanced_log(self, log_type: str) -> None:
         # Enable enhanced logging on the controller for a particular log type.
@@ -408,9 +400,9 @@ class EventStream:
 
     def _resubscribe(self) -> None:
         # Re-subscribe to events after a reconnection.
-        for status_type, count in self._status_subscribers.items():
+        for category, count in self._status_subscribers.items():
             if count > 0:
-                self._enable_status(status_type)
+                self._enable_status(category)
 
         for log_type, count in self._enhanced_log_subscribers.items():
             if count > 0:

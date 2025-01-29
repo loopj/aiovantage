@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 
+from typing_extensions import override
+
 from .base import Interface, method
 
 
@@ -10,8 +12,11 @@ class PowerSensorInterface(Interface):
 
     interface_name = "PowerSensor"
 
+    # Properties
+    power: Decimal | None = None
+
     # Methods
-    @method("GetPower", "GetPowerHW")
+    @method("GetPower", "GetPowerHW", property="power")
     async def get_power(self, *, hw: bool = False) -> Decimal:
         """Get the value of a power sensor.
 
@@ -40,3 +45,10 @@ class PowerSensorInterface(Interface):
         await self.invoke(
             "PowerSensor.SetPowerSW" if sw else "PowerSensor.SetPower", value
         )
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        # STATUS POWER
+        # -> S:POWER <id> <power>
+        if category == "POWER":
+            return self.update_property("power", Decimal(args[0]))

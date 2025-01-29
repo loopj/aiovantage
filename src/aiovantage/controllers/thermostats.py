@@ -1,9 +1,5 @@
 """Controller holding and managing thermostats."""
 
-from typing import Any
-
-from typing_extensions import override
-
 from aiovantage.objects import Temperature, Thermostat
 from aiovantage.query import QuerySet
 
@@ -19,67 +15,7 @@ class ThermostatsController(BaseController[Thermostat]):
     """
 
     vantage_types = ("Thermostat",)
-    """The Vantage object types that this controller will fetch."""
-
-    status_types = ("THERMFAN", "THERMOP", "THERMDAY")
-    """Which Vantage 'STATUS' types this controller handles, if any."""
-
-    @override
-    def handle_category_status(self, obj: Thermostat, status: str, *args: str) -> None:
-        """Handle simple status message from the event stream."""
-        state: dict[str, Any] = {}
-
-        if status == "THERMOP":
-            # STATUS THERMOP
-            # -> S:THERMOP <id> <operation_mode (OFF/COOL/HEAT/AUTO)>
-            match args[0]:
-                case "OFF":
-                    state["operation_mode"] = Thermostat.OperationMode.Off
-                case "COOL":
-                    state["operation_mode"] = Thermostat.OperationMode.Cool
-                case "HEAT":
-                    state["operation_mode"] = Thermostat.OperationMode.Heat
-                case "AUTO":
-                    state["operation_mode"] = Thermostat.OperationMode.Auto
-                case _:
-                    state["operation_mode"] = Thermostat.OperationMode.Unknown
-        elif status == "THERMFAN":
-            # STATUS THERMFAN
-            # -> S:THERMFAN <id> <fan_mode (ON/AUTO)>
-            match args[0]:
-                case "ON":
-                    state["fan_mode"] = Thermostat.FanMode.On
-                case "AUTO":
-                    state["fan_mode"] = Thermostat.FanMode.Off
-                case _:
-                    state["fan_mode"] = Thermostat.FanMode.Unknown
-        elif status == "THERMDAY":
-            # STATUS THERMDAY
-            # -> S:THERMDAY <id> <day_mode (DAY/NIGHT)>
-            match args[0]:
-                case "DAY":
-                    state["day_mode"] = Thermostat.DayMode.Day
-                case "NIGHT":
-                    state["day_mode"] = Thermostat.DayMode.Night
-                case _:
-                    state["day_mode"] = Thermostat.DayMode.Unknown
-        else:
-            return
-
-        self.update_state(obj, state)
-
-    @override
-    def handle_object_status(
-        self, obj: Thermostat, method: str, result: str, *args: str
-    ) -> None:
-        """Handle object interface status messages from the event stream."""
-        state: dict[str, Any] = {}
-        if method == "Thermostat.GetHoldMode":
-            state["hold_mode"] = obj.parse_object_status(method, result, *args)
-        elif method == "Thermostat.GetStatus":
-            state["status"] = obj.parse_object_status(method, result, *args)
-
-        self.update_state(obj, state)
+    status_categories = ("THERMFAN", "THERMOP", "THERMDAY")
 
     def sensors(self, vid: int) -> QuerySet[Temperature]:
         """Return all sensors associated with this thermostat."""

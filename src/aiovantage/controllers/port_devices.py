@@ -18,4 +18,3 @@ class PortDevicesController(BaseController[PortDevice]):
         "Somfy.URTSI_2_PORT",
         "Vantage.DmxGateway",
     )
-    """The Vantage object types that this controller will fetch."""

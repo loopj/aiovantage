@@ -2,6 +2,8 @@
 
 from enum import IntEnum
 
+from typing_extensions import override
+
 from .base import Interface, method
 
 
@@ -108,3 +110,12 @@ class TaskInterface(Interface):
         # INVOKE <id> Task.HasContextState
         # -> R:INVOKE <id> <has context state (0/1)> Task.HasContextState
         return await self.invoke("Task.HasContextState")
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        if category == "TASK":
+            # STATUS TASK
+            # -> S:TASK <id> <state>
+            return self.update_property("state", int(args[0]))
+
+        return None

@@ -3,6 +3,8 @@
 from decimal import Decimal
 from enum import IntEnum
 
+from typing_extensions import override
+
 from .base import Interface, method
 
 
@@ -368,3 +370,39 @@ class ThermostatInterface(Interface):
         await self.invoke(
             "Thermostat.SetAutoSetPointSW" if sw else "Thermostat.SetAutoSetPoint", temp
         )
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        if category == "THERMOP":
+            # STATUS THERMOP
+            # -> S:THERMOP <id> <operation_mode (OFF/COOL/HEAT/AUTO)>
+            thermop_status_map = {
+                "OFF": self.OperationMode.Off,
+                "COOL": self.OperationMode.Cool,
+                "HEAT": self.OperationMode.Heat,
+                "AUTO": self.OperationMode.Auto,
+            }
+
+            return self.update_property("operation_mode", thermop_status_map[args[0]])
+
+        if category == "THERMFAN":
+            # STATUS THERMFAN
+            # -> S:THERMFAN <id> <fan_mode (ON/AUTO)>
+            thermfan_status_map = {
+                "ON": self.FanMode.On,
+                "AUTO": self.FanMode.Off,
+            }
+
+            return self.update_property("fan_mode", thermfan_status_map[args[0]])
+
+        if category == "THERMDAY":
+            # STATUS THERMDAY
+            # -> S:THERMDAY <id> <day_mode (DAY/NIGHT)>
+            thermday_status_map = {
+                "DAY": self.DayMode.Day,
+                "NIGHT": self.DayMode.Night,
+            }
+
+            return self.update_property("day_mode", thermday_status_map[args[0]])
+
+        return None

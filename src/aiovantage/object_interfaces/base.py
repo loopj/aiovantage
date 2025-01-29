@@ -1,6 +1,6 @@
 """Base class for command client interfaces."""
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from typing import (
     Any,
     ClassVar,
@@ -13,7 +13,7 @@ from typing import (
 )
 
 from aiovantage.command_client import CommandClient
-from aiovantage.command_client.types import converter
+from aiovantage.command_client.types import converter, tokenize_response
 from aiovantage.errors import NotImplementedError, NotSupportedError
 
 T = TypeVar("T")
@@ -155,33 +155,58 @@ class Interface(metaclass=InterfaceMeta):
             A parsed response, or None if no response was expected.
         """
         # Make sure we have a command client to send requests with
-        if self.command_client is None:
+        if not self.command_client:
             raise ValueError("The object has no command client to send requests with.")
 
         # Make sure we have a signature for the method
         if as_type is None and method not in self.method_signatures:
             raise NotImplementedError(f"No signature found for method {method}")
 
-        # Send the command
-        response = await self.command_client.command(
-            "INVOKE", self.vid, method, *params, force_quotes=True
-        )
+        # Build the request
+        request = f"INVOKE {self.vid} {method}"
+        if params:
+            request += " " + " ".join(converter.serialize(p) for p in params)
+
+        # Send the request
+        response = await self.command_client.raw_request(request)
 
         # Break the response into tokens
-        _id, result, _method, *args = response.args
+        return_line = response[-1]
+        _command, _vid, result, _method, *args = tokenize_response(return_line)
 
         # Parse the response
         signature = as_type or self.method_signatures[method]
         return _parse_object_response(result, *args, as_type=signature)
 
-    async def fetch_state(self, properties: Sequence[str] | None = None) -> list[str]:
-        """Fetch state properties provided by the interface(s) this object implements."""
+    def update_property(self, property: str, value: Any) -> str | None:
+        """Update an object property if it has changed.
+
+        Args:
+            property: The property to update.
+            value: The new value of the property.
+
+        Returns:
+            The name of the property that was updated, None if no change.
+        """
+        if hasattr(self, property) and getattr(self, property) != value:
+            setattr(self, property, value)
+            return property
+
+    async def fetch_state(self, *properties: str) -> list[str]:
+        """Fetch state properties provided by the interface(s) this object implements.
+
+        Args:
+            *properties: A list of properties to fetch, omit to fetch all properties.
+
+        Returns:
+            A list of properties that have changed.
+        """
         cls = type(self)
 
         # Determine which properties to fetch
         props_to_fetch = (
-            [prop for prop in properties if prop in cls.property_getters.keys()]
-            if properties is not None
+            [p for p in properties if p in cls.property_getters.keys()]
+            if properties
             else cls.property_getters.keys()
         )
 
@@ -196,24 +221,51 @@ class Interface(metaclass=InterfaceMeta):
                     continue
 
                 # Update the attribute if the result has changed
-                if getattr(self, prop) != result:
-                    setattr(self, prop, result)
-                    props_changed.append(prop)
+                if changed := self.update_property(prop, result):
+                    props_changed.append(changed)
 
         return props_changed
 
-    @classmethod
-    def parse_object_status(cls, method: str, result: str, *args: str) -> Any:
+    def handle_object_status(self, method: str, result: str, *args: str) -> str | None:
         """Handle an object interface status message.
 
         Args:
             method: The method that was invoked.
             result: The result of the command.
             args: The arguments that were sent with the command.
+
+        Returns:
+            The property that was updated, or None if no property was updated.
         """
+        # Look up the property associated with this method
+        property = self.method_properties.get(method)
+        if property is None:
+            return None
+
+        # Make sure we have a signature for the method
+        if method not in self.method_signatures:
+            raise NotImplementedError(f"No signature found for method {method}")
+
         # Parse the response
-        signature = cls.method_signatures[method]
-        return _parse_object_response(result, *args, as_type=signature)
+        signature = self.method_signatures[method]
+        value = _parse_object_response(result, *args, as_type=signature)
+
+        # Update the property if it has changed
+        return self.update_property(property, value)
+
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        """Handle category status messages.
+
+        Object interfaces which can handle "legacy" status messages from the
+        Host Command service should override this method.
+
+        Args:
+            category: The category of the status message, eg. "LOAD".
+            args: The arguments that were sent with the command.
+
+        Returns:
+            The property that was updated, or None if no property was updated.
+        """
 
 
 def _parse_object_response(

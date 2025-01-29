@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 
+from typing_extensions import override
+
 from .base import Interface, method
 
 
@@ -40,3 +42,12 @@ class LightSensorInterface(Interface):
         # INVOKE <id> LightSensor.SetLevel <level>
         # -> R:INVOKE <id> <rcode> LightSensor.SetLevel <level>
         await self.invoke("LightSensor.SetLevel", level)
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        if category == "LIGHT":
+            # STATUS LIGHT
+            # -> S:LIGHT <id> <level>
+            return self.update_property("level", Decimal(args[0]))
+
+        return None

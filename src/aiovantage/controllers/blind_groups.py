@@ -15,4 +15,3 @@ class BlindGroupsController(
         "Somfy.RS-485_Group_CHILD",
         "Somfy.URTSI_2_Group_CHILD",
     )
-    """The Vantage object types that this controller will fetch."""

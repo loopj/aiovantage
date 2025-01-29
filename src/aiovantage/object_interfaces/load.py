@@ -3,6 +3,8 @@
 from decimal import Decimal
 from enum import IntEnum
 
+from typing_extensions import override
+
 from .base import Interface, method
 
 
@@ -217,3 +219,12 @@ class LoadInterface(Interface):
     def is_on(self) -> bool:
         """Return True if the load is on."""
         return bool(self.level)
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        if category == "LOAD":
+            # STATUS LOAD
+            # -> S:LOAD <id> <level (0-100)>
+            return self.update_property("level", Decimal(args[0]))
+
+        return None

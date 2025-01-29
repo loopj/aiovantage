@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 
+from typing_extensions import override
+
 from .base import Interface, method
 
 
@@ -43,3 +45,10 @@ class AnemoSensorInterface(Interface):
         await self.invoke(
             "AnemoSensor.SetSpeedSW" if sw else "AnemoSensor.SetSpeed", speed
         )
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        # STATUS WIND
+        # -> S:WIND <id> <wind_speed>
+        if category == "WIND":
+            return self.update_property("speed", Decimal(args[0]))

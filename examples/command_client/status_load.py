@@ -19,7 +19,7 @@ args = parser.parse_args()
 def command_client_callback(event: Event) -> None:
     """Print out the status update for each event."""
     if event["type"] == EventType.STATUS:
-        print(f"[{event['status_type']}] id: {event['id']}, args: {event['args']}")
+        print(f"[{event['category']}] id: {event['id']}, args: {event['args']}")
     elif event["type"] == EventType.CONNECTED:
         print("Connected and monitoring for status updates...")
     elif event["type"] == EventType.DISCONNECTED:

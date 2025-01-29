@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 
+from typing_extensions import override
+
 from .base import Interface, method
 
 
@@ -44,3 +46,10 @@ class CurrentSensorInterface(Interface):
             "CurrentSensor.SetCurrentSW" if sw else "CurrentSensor.SetCurrent",
             value,
         )
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        # STATUS CURRENT
+        # -> S:CURRENT <id> <current>
+        if category == "CURRENT":
+            return self.update_property("current", Decimal(args[0]))

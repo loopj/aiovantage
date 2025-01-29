@@ -3,6 +3,8 @@
 from decimal import Decimal
 from enum import IntEnum
 
+from typing_extensions import override
+
 from .base import Interface, method
 
 
@@ -190,3 +192,15 @@ class ButtonInterface(Interface):
     def is_down(self) -> bool | None:
         """Return True if the button is down."""
         return self.state == self.State.Down
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        # STATUS BTN
+        # -> S:BTN <id> <state (PRESS/RELEASE)>
+        btn_status_map = {
+            "PRESS": self.State.Down,
+            "RELEASE": self.State.Up,
+        }
+
+        if category == "BTN":
+            return self.update_property("state", btn_status_map[args[0]])

@@ -5,7 +5,7 @@ import logging
 from collections.abc import Callable, Iterable
 from dataclasses import fields
 from inspect import iscoroutinefunction
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
 from aiovantage.command_client.types import tokenize_response
@@ -31,11 +31,11 @@ class BaseController(QuerySet[T]):
     vantage_types: tuple[str, ...]
     """The Vantage object types that this controller handles."""
 
-    status_types: tuple[str, ...] | None = None
-    """Which Vantage 'STATUS' types this controller handles, if any."""
+    status_categories: tuple[str, ...] | None = None
+    """Which Vantage 'STATUS' categories this controller handles, if any."""
 
-    interface_status_types: tuple[str, ...] | Literal["*"] | None = None
-    """Which object interface status messages this controller handles, if any."""
+    force_category_status: bool = False
+    """Whether to force the controller to handle 'STATUS' categories."""
 
     def __init__(self, vantage: "Vantage") -> None:
         """Initialize a controller.
@@ -87,45 +87,58 @@ class BaseController(QuerySet[T]):
         """Return True if this controller has been initialized."""
         return self._initialized
 
-    @property
-    def known_ids(self) -> set[int]:
-        """Return a set of all known object IDs."""
-        return set(self._items.keys())
-
     async def fetch_object_state(self, obj: T) -> None:
-        """Fetch the full state of an object."""
-        # Fetch the state of the object
+        """Fetch the full state of an object.
+
+        Args:
+            obj: The object to fetch the state of.
+        """
+        # Fetch all state properties defined by the object's interface(s)
         props_changed = await obj.fetch_state()
 
         # Notify subscribers if any attributes changed
         self.object_updated(obj, props_changed)
 
     def handle_category_status(self, obj: T, status: str, *args: str) -> None:
-        """Handle simple status messages from the event stream.
+        """Handle "category" status messages from the event stream.
 
-        Should be overridden by subclasses that manage stateful objects using
-        "STATUS {type}" messages.
+        Args:
+            obj: The object that the status message is for.
+            status: The status category.
+            args: The arguments to the status message.
         """
-        return
+        updated_properties = obj.handle_category_status(status, *args)
+        if updated_properties:
+            self.object_updated(obj, [updated_properties])
 
     def handle_object_status(
         self, obj: T, method: str, result: str, *args: str
     ) -> None:
         """Handle object interface status messages from the event stream.
 
-        Should be overridden by subclasses that manage stateful objects using object
-        interface status messages from "ADDSTATUS {vid}" or "ELLOG STATUS" events.
+        Args:
+            obj: The object that the status message is for.
+            method: The method that was called.
+            result: The result of the method call.
+            args: The arguments to the method call.
         """
-        return
+        updated_properties = obj.handle_object_status(method, result, *args)
+        if updated_properties:
+            self.object_updated(obj, [updated_properties])
 
     async def initialize(
-        self, *, fetch_state: bool = True, subscribe_state: bool = True
+        self,
+        *,
+        fetch_state: bool = True,
+        subscribe_state: bool = True,
+        enhanced_log: bool = True,
     ) -> None:
         """Populate the controller, and optionally fetch object state.
 
         Args:
             fetch_state: Whether to fetch the state of stateful objects.
             subscribe_state: Whether to keep the state of stateful objects up-to-date.
+            enhanced_log: Whether to use the Enhanced Log for state updates.
         """
         # Prevent concurrent controller initialization from multiple tasks, since we
         # are batch-modifying the _items dict.
@@ -171,7 +184,7 @@ class BaseController(QuerySet[T]):
 
         # Subscribe to state changes for objects managed by this controller
         if subscribe_state:
-            await self.subscribe_to_state_changes()
+            await self.subscribe_to_state_changes(enhanced_log=enhanced_log)
 
         # Mark the controller as initialized
         if not self._initialized:
@@ -188,24 +201,33 @@ class BaseController(QuerySet[T]):
 
         self._logger.info("%s fetched state", type(self).__name__)
 
-    async def subscribe_to_state_changes(self) -> None:
-        """Subscribe to state changes for objects managed by this controller."""
+    async def subscribe_to_state_changes(self, *, enhanced_log: bool = True) -> None:
+        """Subscribe to state changes for objects managed by this controller.
+
+        Args:
+            enhanced_log: Whether to use the Enhanced Log for state updates.
+        """
         if self._subscribed_to_state_changes:
             return
 
         # Ensure that the event stream is running
         await self.event_stream.start()
 
-        # Subscribe to "STATUS {type}" updates, if this controller cares about them.
-        if self.status_types:
-            self.event_stream.subscribe_status(self._handle_event, self.status_types)
+        # Subscribe to "STATUS {category}" updates
+        # We should only do this if "object" status is not supported, or this
+        # controller explicitly requests to handle "category" status messages.
+        if not enhanced_log or self.force_category_status:
+            if self.status_categories:
+                self.event_stream.subscribe_status(
+                    self._handle_event, *self.status_categories
+                )
 
         # Some state changes are only available from "object" status events.
         # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
-        if self.interface_status_types:
+        if enhanced_log:
             # Subscribe to "object status" events from the Enhanced Log.
             self.event_stream.subscribe_enhanced_log(
-                self._handle_event, ("STATUS", "STATUSEX")
+                self._handle_event, "STATUS", "STATUSEX"
             )
 
         self._subscribed_to_state_changes = True
@@ -311,16 +333,14 @@ class BaseController(QuerySet[T]):
         if event["type"] == EventType.STATUS:
             # Look up the object that this event is for
             if obj := self._items.get(event["id"]):
-                if event["status_type"] == "STATUS":
+                if event["category"] == "STATUS":
                     # Handle "object interface" status events of the form:
                     # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
                     method, result, *args = event["args"]
                     self.handle_object_status(obj, method, result, *args)
                 else:
                     # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
-                    self.handle_category_status(
-                        obj, event["status_type"], *event["args"]
-                    )
+                    self.handle_category_status(obj, event["category"], *event["args"])
 
         elif event["type"] == EventType.ENHANCED_LOG:
             # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.

@@ -19,14 +19,9 @@ class OmniSensorsController(BaseController[OmniSensor]):
     """
 
     vantage_types = ("OmniSensor",)
-    """The Vantage object types that this controller will fetch."""
-
-    interface_status_types = "*"
-    """Which object interface status messages this controller handles, if any."""
 
     @override
     async def fetch_object_state(self, obj: OmniSensor) -> None:
-        """Fetch the state properties of an omni sensor."""
         state = {
             "level": await obj.get_level(hw=True),
         }
@@ -37,7 +32,6 @@ class OmniSensorsController(BaseController[OmniSensor]):
     def handle_object_status(
         self, obj: OmniSensor, method: str, result: str, *_args: str
     ) -> None:
-        """Handle object interface status messages from the event stream."""
         if method != obj.get.method:
             return
 

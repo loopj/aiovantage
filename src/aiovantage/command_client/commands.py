@@ -71,7 +71,6 @@ class CommandClient:
         self,
         command: str,
         *params: Any,
-        force_quotes: bool = False,
         connection: CommandConnection | None = None,
     ) -> CommandResponse:
         """Send a command to the Host Command service and wait for a response.
@@ -79,19 +78,15 @@ class CommandClient:
         Args:
             command: The command to send, should be a single word string.
             params: The parameters to send with the command.
-            force_quotes: Whether to force string params to be wrapped in double quotes.
             connection: The connection to use, if not the default.
 
         Returns:
             A CommandResponse instance.
         """
+        # Build the request
         request = command
         if params:
-            serialized_params = " ".join(
-                converter.serialize(params, force_quotes=force_quotes)
-                for params in params
-            )
-            request += f" {serialized_params}"
+            request += " " + " ".join(converter.serialize(p) for p in params)
 
         # Send the request
         *data, return_line = await self.raw_request(request, connection=connection)

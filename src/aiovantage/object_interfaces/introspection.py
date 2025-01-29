@@ -46,7 +46,7 @@ class IntrospectionInterface(Interface):
     # Methods
     @method("GetAppControllers")
     async def get_app_controllers(self) -> str:
-        """Get a list of controllers in application mode, exclidng this controller.
+        """Get a list of controllers in application mode, excluding this controller.
 
         Returns:
             A comma-separated list of controller numbers.

@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 
+from typing_extensions import override
+
 from .base import Interface, method
 
 
@@ -43,3 +45,12 @@ class TemperatureInterface(Interface):
         await self.invoke(
             "Temperature.SetValueSW" if sw else "Temperature.SetValue", value
         )
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        if category == "TEMP":
+            # STATUS TEMP
+            # -> S:TEMP <id> <temp>
+            return self.update_property("value", Decimal(args[0]))
+
+        return None

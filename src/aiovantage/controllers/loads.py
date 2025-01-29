@@ -1,9 +1,5 @@
 """Controller holding and managing Vantage loads."""
 
-from decimal import Decimal
-
-from typing_extensions import override
-
 from aiovantage.objects import Load
 from aiovantage.query import QuerySet
 
@@ -14,24 +10,7 @@ class LoadsController(BaseController[Load]):
     """Controller holding and managing Vantage loads."""
 
     vantage_types = ("Load",)
-    """The Vantage object types that this controller will fetch."""
-
-    status_types = ("LOAD",)
-    """Which Vantage 'STATUS' types this controller handles, if any."""
-
-    @override
-    def handle_category_status(self, obj: Load, status: str, *args: str) -> None:
-        """Handle simple status messages from the event stream."""
-        if status != "LOAD":
-            return
-
-        # STATUS LOAD
-        # -> S:LOAD <id> <level (0-100)>
-        state = {
-            "level": Decimal(args[0]),
-        }
-
-        self.update_state(obj, state)
+    status_categories = ("LOAD",)
 
     @property
     def on(self) -> QuerySet[Load]:
