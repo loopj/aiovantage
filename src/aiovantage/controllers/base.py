@@ -88,11 +88,6 @@ class BaseController(QuerySet[T]):
         return self._initialized
 
     @property
-    def stateful(self) -> bool:
-        """Return True if this controller manages stateful objects."""
-        return bool(self.status_types or self.interface_status_types)
-
-    @property
     def known_ids(self) -> set[int]:
         """Return a set of all known object IDs."""
         return set(self._items.keys())
@@ -123,11 +118,14 @@ class BaseController(QuerySet[T]):
         """
         return
 
-    async def initialize(self, fetch_state: bool = True) -> None:
-        """Populate the controller, and optionally fetch initial state.
+    async def initialize(
+        self, *, fetch_state: bool = True, subscribe_state: bool = True
+    ) -> None:
+        """Populate the controller, and optionally fetch object state.
 
         Args:
-            fetch_state: Whether to also fetch the state of each object.
+            fetch_state: Whether to fetch the state of stateful objects.
+            subscribe_state: Whether to keep the state of stateful objects up-to-date.
         """
         # Prevent concurrent controller initialization from multiple tasks, since we
         # are batch-modifying the _items dict.
@@ -160,7 +158,7 @@ class BaseController(QuerySet[T]):
                     self.emit(VantageEvent.OBJECT_ADDED, obj)
 
                     # Fetch the state of stateful objects
-                    if self.stateful and fetch_state:
+                    if fetch_state:
                         await self.fetch_object_state(obj)
 
                 # Keep track of which objects we've seen
@@ -172,7 +170,7 @@ class BaseController(QuerySet[T]):
                 self.emit(VantageEvent.OBJECT_DELETED, obj)
 
         # Subscribe to state changes for objects managed by this controller
-        if fetch_state and len(self._items) > 0:
+        if subscribe_state:
             await self.subscribe_to_state_changes()
 
         # Mark the controller as initialized
@@ -185,9 +183,6 @@ class BaseController(QuerySet[T]):
 
     async def fetch_full_state(self) -> None:
         """Fetch the full state of all objects managed by this controller."""
-        if not self.stateful:
-            return
-
         for obj in self._items.values():
             await self.fetch_object_state(obj)
 
@@ -195,7 +190,7 @@ class BaseController(QuerySet[T]):
 
     async def subscribe_to_state_changes(self) -> None:
         """Subscribe to state changes for objects managed by this controller."""
-        if self._subscribed_to_state_changes or not self.stateful:
+        if self._subscribed_to_state_changes:
             return
 
         # Ensure that the event stream is running
@@ -314,21 +309,18 @@ class BaseController(QuerySet[T]):
     async def _handle_event(self, event: Event) -> None:
         # Handle events from the event stream
         if event["type"] == EventType.STATUS:
-            # Ignore events for objects that this controller doesn't manage
-            if event["id"] not in self._items:
-                return
-
             # Look up the object that this event is for
-            obj = self._items[event["id"]]
-
-            if event["status_type"] == "STATUS":
-                # Handle "object interface" status events of the form:
-                # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
-                method, result, *args = event["args"]
-                self.handle_object_status(obj, method, result, *args)
-            else:
-                # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
-                self.handle_category_status(obj, event["status_type"], *event["args"])
+            if obj := self._items.get(event["id"]):
+                if event["status_type"] == "STATUS":
+                    # Handle "object interface" status events of the form:
+                    # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
+                    method, result, *args = event["args"]
+                    self.handle_object_status(obj, method, result, *args)
+                else:
+                    # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
+                    self.handle_category_status(
+                        obj, event["status_type"], *event["args"]
+                    )
 
         elif event["type"] == EventType.ENHANCED_LOG:
             # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.
@@ -337,15 +329,9 @@ class BaseController(QuerySet[T]):
             vid_str, method, result, *args = tokenize_response(event["log"])
             vid = int(vid_str)
 
-            # Ignore events for objects that this controller doesn't manage
-            if vid not in self._items:
-                return
-
-            # Look up the object that this event is for
-            obj = self._items[vid]
-
-            # Pass the event to the controller
-            self.handle_object_status(obj, method, result, *args)
+            # Pass the event to the controller, if this object is managed by it
+            if obj := self._items.get(vid):
+                self.handle_object_status(obj, method, result, *args)
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized

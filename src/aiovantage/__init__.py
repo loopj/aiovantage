@@ -276,15 +276,23 @@ class Vantage:
         self.command_client.close()
         self.event_stream.stop()
 
-    async def initialize(self, fetch_state: bool = True) -> None:
+    async def initialize(
+        self, *, fetch_state: bool = True, subscribe_state: bool = True
+    ) -> None:
         """Fetch all objects from the controllers.
 
         Args:
-            fetch_state: Whether to also fetch the state of each object.
+            fetch_state: Whether to fetch the state of stateful objects.
+            subscribe_state: Whether to keep the state of stateful objects up-to-date.
         """
         # Initialize all controllers
         await asyncio.gather(
-            *[controller.initialize(fetch_state) for controller in self._controllers]
+            *[
+                controller.initialize(
+                    fetch_state=fetch_state, subscribe_state=subscribe_state
+                )
+                for controller in self._controllers
+            ]
         )
 
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
