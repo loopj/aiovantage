@@ -206,8 +206,11 @@ class EventStream:
             *categories: The status categories to subscribe to events for.
 
         Returns:
-            A coroutine that can be used to unsubscribe from status events.
+            A function that can be used to unsubscribe from status events.
         """
+        if not categories:
+            categories = ("ALL",)
+
         # Enable this status type if it's not already enabled
         for category in categories:
             self._status_subscribers[category] += 1
@@ -218,7 +221,8 @@ class EventStream:
         remove_subscription = self.subscribe(
             callback,
             lambda event: (
-                event["type"] == EventType.STATUS and event["category"] in categories
+                event["type"] == EventType.STATUS
+                and ("ALL" in categories or event["category"] in categories)
             ),
         )
 
@@ -241,7 +245,7 @@ class EventStream:
             log_types: The event log type or types to subscribe to.
 
         Returns:
-            A coroutine that can be used to unsubscribe from log events.
+            A function that can be used to unsubscribe from log events.
         """
         # Enable this log type if it's not already enabled
         for log_type in log_types:
