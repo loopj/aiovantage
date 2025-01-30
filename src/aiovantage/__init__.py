@@ -277,26 +277,19 @@ class Vantage:
         self.event_stream.stop()
 
     async def initialize(
-        self,
-        *,
-        fetch_state: bool = True,
-        subscribe_state: bool = True,
-        enhanced_log: bool = True,
+        self, *, fetch_state: bool = True, subscribe_state: bool = True
     ) -> None:
         """Fetch all objects from the controllers.
 
         Args:
             fetch_state: Whether to fetch the state of stateful objects.
             subscribe_state: Whether to keep the state of stateful objects up-to-date.
-            enhanced_log: Whether to use the Enhanced Log for state updates.
         """
         # Initialize all controllers
         await asyncio.gather(
             *[
                 controller.initialize(
-                    fetch_state=fetch_state,
-                    subscribe_state=subscribe_state,
-                    enhanced_log=enhanced_log,
+                    fetch_state=fetch_state, subscribe_state=subscribe_state
                 )
                 for controller in self._controllers
             ]

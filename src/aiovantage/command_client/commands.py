@@ -67,18 +67,12 @@ class CommandClient:
         """Close the connection to the Host Command service."""
         self._connection.close()
 
-    async def command(
-        self,
-        command: str,
-        *params: Any,
-        connection: CommandConnection | None = None,
-    ) -> CommandResponse:
+    async def command(self, command: str, *params: Any) -> CommandResponse:
         """Send a command to the Host Command service and wait for a response.
 
         Args:
             command: The command to send, should be a single word string.
             params: The parameters to send with the command.
-            connection: The connection to use, if not the default.
 
         Returns:
             A CommandResponse instance.
@@ -89,7 +83,7 @@ class CommandClient:
             request += " " + " ".join(converter.serialize(p) for p in params)
 
         # Send the request
-        *data, return_line = await self.raw_request(request, connection=connection)
+        *data, return_line = await self.raw_request(request)
 
         # Break the response into tokens
         command, *args = tokenize_response(return_line)
@@ -97,9 +91,7 @@ class CommandClient:
         # Parse the response
         return CommandResponse(command[2:], args, data)
 
-    async def raw_request(
-        self, request: str, connection: CommandConnection | None = None
-    ) -> list[str]:
+    async def raw_request(self, request: str) -> list[str]:
         """Send a raw command to the Host Command service and return all response lines.
 
         Handles authentication if required, and raises an exception if the response line
@@ -107,12 +99,11 @@ class CommandClient:
 
         Args:
             request: The request to send.
-            connection: The connection to use, if not the default.
 
         Returns:
             The response lines received from the server.
         """
-        conn = connection or await self.get_connection()
+        conn = await self.get_connection()
 
         # Send the command
         async with self._command_lock:
@@ -158,12 +149,7 @@ class CommandClient:
 
                 # Authenticate the new connection if we have credentials
                 if self._username and self._password:
-                    await self.command(
-                        "LOGIN",
-                        self._username,
-                        self._password,
-                        connection=self._connection,
-                    )
+                    await self._connection.authenticate(self._username, self._password)
 
                 self._logger.info(
                     "Connected to command client at %s:%d",

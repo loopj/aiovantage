@@ -152,7 +152,10 @@ class EventStream:
 
                 # Authenticate the new connection if we have credentials
                 if self._username and self._password:
-                    await self._send(f"LOGIN {self._username} {self._password}")
+                    await self._connection.authenticate(self._username, self._password)
+
+                # Populate the capabilities of the connection (e.g. enhanced log support)
+                await self._connection.populate_capabilities()
 
                 self._logger.info(
                     "Connected to event stream at %s:%d",
@@ -390,12 +393,15 @@ class EventStream:
 
     def _enable_enhanced_log(self, log_type: str) -> None:
         # Enable enhanced logging on the controller for a particular log type.
-        self._queue_command("ELAGG 1 ON")
-        self._queue_command(f"ELENABLE {log_type} ON")
+        controller_id: int = 1
+        self._queue_command(f"ELAGG {controller_id} ON")
+        self._queue_command(f"ELENABLE {controller_id} {log_type} ON")
         self._queue_command(f"ELLOG {log_type} ON")
 
     def _disable_enhanced_log(self, log_type: str) -> None:
         # Disable enhanced logging on the controller for a particular log type.
+        controller_id: int = 1
+        self._queue_command(f"ELENABLE {controller_id} {log_type} OFF")
         self._queue_command(f"ELLOG {log_type} OFF")
 
     def _resubscribe(self) -> None:
