@@ -472,9 +472,9 @@ class RGBLoadInterface(Interface):
     # all of them, then update the property.
 
     @override
-    async def fetch_state(self, *properties: str) -> list[str]:
+    async def fetch_state(self, *properties: str) -> list[str] | None:
         # Fetch state from other interfaces
-        props_changed = await super().fetch_state(*properties)
+        props_changed = await super().fetch_state(*properties) or []
 
         # Fetch RGB, HSL, and RGBW colors
         for attr, fn in (

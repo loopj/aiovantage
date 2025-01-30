@@ -192,7 +192,7 @@ class Interface(metaclass=InterfaceMeta):
             setattr(self, property, value)
             return property
 
-    async def fetch_state(self, *properties: str) -> list[str]:
+    async def fetch_state(self, *properties: str) -> list[str] | None:
         """Fetch state properties provided by the interface(s) this object implements.
 
         Args:

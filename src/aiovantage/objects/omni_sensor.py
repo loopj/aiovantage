@@ -5,6 +5,9 @@ from decimal import Decimal
 from enum import Enum
 from types import NoneType
 
+from typing_extensions import override
+
+from aiovantage.command_client.types import converter
 from aiovantage.object_interfaces import SensorInterface
 
 from .sensor import Sensor
@@ -100,3 +103,25 @@ class OmniSensor(Sensor, SensorInterface):
         await self.invoke(
             self.set.method_sw if sw else self.set.method, level, as_type=NoneType
         )
+
+    # NOTE: We are explicitly _not_ calling the parent methods in fetch_state and
+    # handle_object_status, as we don't want SensorInterface to handle the state.
+    # OmniSensors do additional conversion behind the scenes.
+
+    @override
+    async def fetch_state(self, *properties: str) -> list[str] | None:
+        level = await self.get_level(hw=True)
+        if changed := self.update_property("level", level):
+            return [changed]
+
+    @override
+    def handle_object_status(self, method: str, result: str, *args: str) -> str | None:
+        # Check if the method is one we're interested in
+        if method != self.get.method:
+            return
+
+        # Parse the response
+        value = converter.deserialize(Decimal, result)
+
+        # Update the property if it has changed
+        return self.update_property("level", value)

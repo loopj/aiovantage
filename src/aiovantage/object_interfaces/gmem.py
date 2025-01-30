@@ -90,9 +90,10 @@ class GMemInterface(Interface):
         await self.command_client.command("VARIABLE", self.vid, value)
 
     @override
-    async def fetch_state(self, *_properties: str) -> list[str]:
-        self.value = await self.get_value()
-        return ["value"]
+    async def fetch_state(self, *_properties: str) -> list[str] | None:
+        value = await self.get_value()
+        if changed := self.update_property("value", value):
+            return [changed]
 
     @override
     def handle_category_status(self, category: str, *args: str) -> str | None:

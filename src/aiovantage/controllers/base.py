@@ -97,7 +97,8 @@ class BaseController(QuerySet[T]):
         props_changed = await obj.fetch_state()
 
         # Notify subscribers if any attributes changed
-        self.object_updated(obj, props_changed)
+        if props_changed:
+            self.object_updated(obj, props_changed)
 
     def handle_category_status(self, obj: T, status: str, *args: str) -> None:
         """Handle "category" status messages from the event stream.
@@ -147,16 +148,23 @@ class BaseController(QuerySet[T]):
 
                 if obj.id in prev_ids:
                     # This is an existing object.
-                    # Update any attributes that have changed and notify subscribers.
-                    self.update_state(
-                        self._items[obj.id],
-                        {
-                            field.name: getattr(obj, field.name)
-                            for field in fields(type(obj))
-                        },
-                    )
+                    existing_obj = self._items[obj.id]
+
+                    # Check if any attributes have changed and update them
+                    changed: list[str] = []
+                    for f in fields(type(obj)):
+                        if hasattr(existing_obj, f.name):
+                            new_value = getattr(obj, f.name)
+                            if getattr(existing_obj, f.name) != new_value:
+                                setattr(existing_obj, f.name, new_value)
+                                changed.append(f.name)
+
+                    # Notify subscribers if any attributes changed
+                    if changed:
+                        self.object_updated(existing_obj, changed)
                 else:
                     # This is a new object.
+
                     # Attach the command client to the object
                     obj.command_client = self.command_client
 
@@ -307,22 +315,6 @@ class BaseController(QuerySet[T]):
             obj,
             {"attrs_changed": attrs_changed},
         )
-
-    def update_state(self, obj: T, attrs: dict[str, Any]) -> None:
-        """Update the attributes of an object and notify subscribers of changes."""
-        # Check if any attributes changed and update them
-        attrs_changed: list[str] = []
-        for key, value in attrs.items():
-            try:
-                if getattr(obj, key) != value:
-                    setattr(obj, key, value)
-                    attrs_changed.append(key)
-            except AttributeError:
-                self._logger.warning("Object '%d' has no attribute '%s'", obj.id, key)
-
-        # Notify subscribers if any attributes changed
-        if len(attrs_changed) > 0:
-            self.object_updated(obj, attrs_changed)
 
     async def _handle_event(self, event: Event) -> None:
         # Handle events from the event stream
