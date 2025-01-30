@@ -119,19 +119,22 @@ class EventStream:
         if exc_val:
             raise exc_val
 
-    async def start(self) -> None:
+    async def start(self) -> CommandConnection:
         """Initialize the event stream."""
         async with self._start_lock:
-            if self._started:
-                return
+            # Get the connection to the Host Command service
+            conn = await self._get_connection()
 
-            await self.get_connection()
-            self._tasks.append(asyncio.create_task(self._message_handler()))
-            self._tasks.append(asyncio.create_task(self._command_handler()))
-            self._tasks.append(asyncio.create_task(self._keepalive()))
+            # Start the event stream tasks
+            if not self._started:
+                self._tasks.append(asyncio.create_task(self._message_handler()))
+                self._tasks.append(asyncio.create_task(self._command_handler()))
+                self._tasks.append(asyncio.create_task(self._keepalive()))
 
-            self._logger.debug("Started the event stream")
-            self._started = True
+                self._logger.debug("Started the event stream")
+                self._started = True
+
+            return conn
 
     def stop(self) -> None:
         """Stop the event stream."""
@@ -143,7 +146,7 @@ class EventStream:
         self._logger.debug("Stopped the event stream")
         self._started = False
 
-    async def get_connection(self) -> CommandConnection:
+    async def _get_connection(self) -> CommandConnection:
         """Get a connection to the Host Command service."""
         async with self._connection_lock:
             if self._connection.closed:
@@ -153,9 +156,6 @@ class EventStream:
                 # Authenticate the new connection if we have credentials
                 if self._username and self._password:
                     await self._connection.authenticate(self._username, self._password)
-
-                # Populate the capabilities of the connection (e.g. enhanced log support)
-                await self._connection.populate_capabilities()
 
                 self._logger.info(
                     "Connected to event stream at %s:%d",
@@ -281,7 +281,7 @@ class EventStream:
             connect_attempts += 1
             try:
                 # Get the connection to the Host Command service
-                conn = await self.get_connection()
+                conn = await self._get_connection()
 
                 # Notify that we're connected
                 if connect_attempts == 1:

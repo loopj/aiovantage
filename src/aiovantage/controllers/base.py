@@ -120,7 +120,7 @@ class BaseController(QuerySet[T]):
         Args:
             obj: The object that the status message is for.
             method: The method that was called.
-            result: The result of the method call.
+            result: The return value of the method call.
             args: The arguments to the method call.
         """
         updated_properties = obj.handle_object_status(method, result, *args)
@@ -208,18 +208,14 @@ class BaseController(QuerySet[T]):
         if self._subscribed_to_state_changes:
             return
 
-        # Ensure that the event stream is running
-        await self.event_stream.start()
-
-        # Determine if we can use the Enhanced Log for state updates
-        event_conn = await self.event_stream.get_connection()
-        supports_enhanced_log = event_conn.supports_enhanced_log
+        # Start the event stream if it isn't already running
+        event_conn = await self.event_stream.start()
 
         # All supported state changes are available using "object" status events.
         # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
         # Older controller firmware versions don't support the Enhanced Log, so we
         # offer the option to subscribe to "category" status messages instead.
-        if supports_enhanced_log:
+        if event_conn.supports_enhanced_log:
             # Subscribe to "object status" events from the Enhanced Log.
             self.event_stream.subscribe_enhanced_log(
                 self._handle_event, "STATUS", "STATUSEX"
@@ -228,7 +224,7 @@ class BaseController(QuerySet[T]):
         # Subscribe to "STATUS {category}" updates
         # We should only do this if "object" status is not supported, or this
         # controller explicitly requests to handle "category" status messages.
-        if not supports_enhanced_log or self.force_category_status:
+        if not event_conn.supports_enhanced_log or self.force_category_status:
             if self.status_categories:
                 self.event_stream.subscribe_status(
                     self._handle_event, *self.status_categories

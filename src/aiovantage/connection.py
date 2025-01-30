@@ -73,6 +73,9 @@ class BaseConnection:
                 ),
                 timeout=self._conn_timeout,
             )
+
+            # Run the post-open hook
+            await self.post_open()
         except asyncio.TimeoutError as exc:
             raise ClientTimeoutError(
                 f"Timeout connecting to {self._host}:{self._port}"
@@ -87,6 +90,10 @@ class BaseConnection:
         if self._writer is not None and not self._writer.is_closing():
             self._writer.close()
             self._writer = None
+
+    async def post_open(self) -> None:
+        """Post-open hook."""
+        pass
 
     @property
     def host(self) -> str:
