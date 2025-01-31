@@ -2,11 +2,13 @@
 
 from dataclasses import dataclass, field
 
+from aiovantage.object_interfaces import SounderInterface
+
 from .station_object import StationObject
 
 
 @dataclass(kw_only=True)
-class EqCtrl(StationObject):
+class EqCtrl(StationObject, SounderInterface):
     """Equinox 40 Station."""
 
     @dataclass

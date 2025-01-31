@@ -1,13 +1,15 @@
 """DryContact object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+
+from aiovantage.object_interfaces import ButtonInterface
 
 from .location_object import LocationObject
 from .types import Parent
 
 
 @dataclass(kw_only=True)
-class DryContact(LocationObject):
+class DryContact(LocationObject, ButtonInterface):
     """DryContact object."""
 
     parent: Parent
@@ -15,6 +17,3 @@ class DryContact(LocationObject):
     up: int = 0
     reverse_polarity: bool
     hold_on_time: float = 0
-
-    # State
-    triggered: bool | None = field(default=None, metadata={"type": "Ignore"})

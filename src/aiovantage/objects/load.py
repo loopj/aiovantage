@@ -1,14 +1,16 @@
 """Load object."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from decimal import Decimal
+
+from aiovantage.object_interfaces import LoadInterface
 
 from .location_object import LocationObject
 from .types import Parent
 
 
 @dataclass(kw_only=True)
-class Load(LocationObject):
+class Load(LocationObject, LoadInterface):
     """Load object."""
 
     parent: Parent
@@ -17,9 +19,6 @@ class Load(LocationObject):
     power: int = 100
     power_profile: int
     override_level: Decimal = Decimal("100")
-
-    # State
-    level: float | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def is_relay(self) -> bool:

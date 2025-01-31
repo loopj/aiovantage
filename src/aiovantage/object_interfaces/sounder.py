@@ -3,11 +3,13 @@
 from decimal import Decimal
 from enum import IntEnum
 
-from .base import Interface
+from .base import Interface, method
 
 
 class SounderInterface(Interface):
     """Interface for keypad speakers."""
+
+    interface_name = "Sounder"
 
     class Status(IntEnum):
         """Sounder status."""
@@ -15,20 +17,12 @@ class SounderInterface(Interface):
         On = 0
         Off = 1
 
-    method_signatures = {
-        "Sounder.GetFrequency": Decimal,
-        "Sounder.GetFrequencyHW": Decimal,
-        "Sounder.GetDuration": Decimal,
-        "Sounder.GetDurationHW": Decimal,
-        "Sounder.GetStatus": Status,
-        "Sounder.GetStatusHW": Status,
-    }
-
-    async def get_frequency(self, vid: int, *, hw: bool = False) -> Decimal:
+    # Methods
+    @method("GetFrequency", "GetFrequencyHW")
+    async def get_frequency(self, *, hw: bool = False) -> Decimal:
         """Get the frequency of the keypad speaker.
 
         Args:
-            vid: The Vantage ID of the sounder.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -37,25 +31,25 @@ class SounderInterface(Interface):
         # INVOKE <id> Sounder.GetFrequency
         # -> R:INVOKE <id> <frequency> Sounder.GetFrequency
         return await self.invoke(
-            vid, "Sounder.GetFrequencyHW" if hw else "Sounder.GetFrequency"
+            "Sounder.GetFrequencyHW" if hw else "Sounder.GetFrequency"
         )
 
-    async def set_frequency(self, vid: int, frequency: float | Decimal) -> None:
+    @method("SetFrequency")
+    async def set_frequency(self, frequency: float | Decimal) -> None:
         """Set the frequency of the keypad speaker.
 
         Args:
-            vid: The Vantage ID of the sounder.
             frequency: The frequency to set the sounder to, in Hz.
         """
         # INVOKE <id> Sounder.SetFrequency <frequency>
         # -> R:INVOKE <id> <rcode> Sounder.SetFrequency
-        await self.invoke(vid, "Sounder.SetFrequency", frequency)
+        await self.invoke("Sounder.SetFrequency", frequency)
 
-    async def get_duration(self, vid: int, *, hw: bool = False) -> Decimal:
+    @method("GetDuration", "GetDurationHW")
+    async def get_duration(self, *, hw: bool = False) -> Decimal:
         """Get the length of time the keypad speaker will sound.
 
         Args:
-            vid: The Vantage ID of the sounder.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -64,25 +58,24 @@ class SounderInterface(Interface):
         # INVOKE <id> Sounder.GetDuration
         # -> R:INVOKE <id> <duration> Sounder.GetDuration
         return await self.invoke(
-            vid, "Sounder.GetDurationHW" if hw else "Sounder.GetDuration"
+            "Sounder.GetDurationHW" if hw else "Sounder.GetDuration"
         )
 
-    async def set_duration(self, vid: int, duration: Decimal) -> None:
+    @method("SetDuration")
+    async def set_duration(self, duration: Decimal) -> None:
         """Set the length of time the keypad speaker will sound.
 
         Args:
-            vid: The Vantage ID of the sounder.
             duration: The duration to set the sounder to, in seconds.
         """
         # INVOKE <id> Sounder.SetDuration <duration>
         # -> R:INVOKE <id> <rcode> Sounder.SetDuration
-        await self.invoke(vid, "Sounder.SetDuration", duration)
+        await self.invoke("Sounder.SetDuration", duration)
 
-    async def get_status(self, vid: int, *, hw: bool = False) -> Status:
+    async def get_status(self, *, hw: bool = False) -> Status:
         """Get the status of the keypad speaker.
 
         Args:
-            vid: The Vantage ID of the sounder.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -90,49 +83,37 @@ class SounderInterface(Interface):
         """
         # INVOKE <id> Sounder.GetStatus
         # -> R:INVOKE <id> <status (0/1)> Sounder.GetStatus
-        return await self.invoke(
-            vid, "Sounder.GetStatusHW" if hw else "Sounder.GetStatus"
-        )
+        return await self.invoke("Sounder.GetStatusHW" if hw else "Sounder.GetStatus")
 
-    async def set_status(self, vid: int, status: Status) -> None:
+    async def set_status(self, status: Status) -> None:
         """Set the status of the keypad speaker.
 
         Args:
-            vid: The Vantage ID of the sounder.
             status: The status to set the keypad speaker to.
         """
         # INVOKE <id> Sounder.SetStatus <status (0/1/On/Off)>
         # -> R:INVOKE <id> <rcode> Sounder.SetStatus
-        await self.invoke(vid, "Sounder.SetStatus", status)
+        await self.invoke("Sounder.SetStatus", status)
 
     async def play_fx(
-        self, vid: int, effect: int, duration: float = 0, volume: float = 0
+        self, effect: int, duration: float = 0, volume: float = 0
     ) -> None:
         """Play a sound effect on the keypad speaker.
 
         Args:
-            vid: The Vantage ID of the sounder.
             effect: The effect to play.
             duration: The duration to play the FX for, in seconds, 0 for default.
             volume: The volume to play the FX at, as a percentage, 0 for default.
         """
         # INVOKE <id> Sounder.PlayFX <fx> <duration> <volume>
         # -> R:INVOKE <id> <rcode> Sounder.PlayFX
-        await self.invoke(vid, "Sounder.PlayFX", effect, duration, volume)
+        await self.invoke("Sounder.PlayFX", effect, duration, volume)
 
     # Convenience functions, not part of the interface
-    async def turn_on(self, vid: int) -> None:
-        """Turn on the keypad speaker.
+    async def turn_on(self) -> None:
+        """Turn on the keypad speaker."""
+        await self.set_status(self.Status.On)
 
-        Args:
-            vid: The Vantage ID of the sounder.
-        """
-        await self.set_status(vid, self.Status.On)
-
-    async def turn_off(self, vid: int) -> None:
-        """Turn off the keypad speaker.
-
-        Args:
-            vid: The Vantage ID of the sounder.
-        """
-        await self.set_status(vid, self.Status.Off)
+    async def turn_off(self) -> None:
+        """Turn off the keypad speaker."""
+        await self.set_status(self.Status.Off)

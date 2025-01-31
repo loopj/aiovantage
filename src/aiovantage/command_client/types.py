@@ -22,17 +22,7 @@ def tokenize_response(string: str) -> list[str]:
     Returns:
         A list of string tokens.
     """
-    tokens: list[str] = []
-    for match in TOKEN_PATTERN.finditer(string):
-        token = match.group(0)
-
-        # Remove quotes from quoted strings, and unescape quotes
-        if token.startswith('"') and token.endswith('"'):
-            token = token[1:-1].replace('""', '"')
-
-        tokens.append(token)
-
-    return tokens
+    return [match.group(0) for match in TOKEN_PATTERN.finditer(string)]
 
 
 class Converter(ABC):
@@ -123,19 +113,18 @@ class StringConverter(Converter):
     def deserialize(self, value: str, **_kwargs: Any) -> str:
         """Deserialize a string value."""
         if value.startswith('"') and value.endswith('"'):
+            # Unwrap and unescape the string, if it's wrapped in double quotes
             return value[1:-1].replace('""', '"')
 
         return value
 
     def serialize(self, value: str, **kwargs: Any) -> str:
         """Serialize a string value."""
-        force_quotes = kwargs.get("force_quotes", False)
+        # Escape any double quotes in the string
+        value = value.replace('"', '""')
 
-        if '"' in value or " " in value or force_quotes:
-            value = value.replace('"', '""')
-            return f'"{value}"'
-
-        return value
+        # Wrap the string in double quotes
+        return f'"{value}"'
 
 
 class BoolConverter(Converter):

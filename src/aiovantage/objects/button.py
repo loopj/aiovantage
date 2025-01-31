@@ -2,12 +2,14 @@
 
 from dataclasses import dataclass, field
 
+from aiovantage.object_interfaces import ButtonInterface
+
 from .system_object import SystemObject
 from .types import Parent
 
 
 @dataclass(kw_only=True)
-class Button(SystemObject):
+class Button(SystemObject, ButtonInterface):
     """Button object."""
 
     parent: Parent
@@ -29,9 +31,6 @@ class Button(SystemObject):
             "name": "LEDStyle",
         },
     )
-
-    # State
-    pressed: bool | None = field(default=None, metadata={"type": "Ignore"})
 
     @property
     def text(self) -> str:

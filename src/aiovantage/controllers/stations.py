@@ -29,4 +29,3 @@ class StationsController(BaseController[StationObject]):
         "ScenePointRelay",
         "Vantage.DmxDaliGateway",
     )
-    """The Vantage object types that this controller will fetch."""

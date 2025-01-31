@@ -54,7 +54,7 @@ async def main() -> None:
 
         # Set the value
         print(f"Setting '{gmem.name}' (id = {gmem.id}) to '{args.value}'")
-        await vantage.gmem.set_value(gmem_id, args.value)
+        await gmem.set_value(args.value)
 
 
 with contextlib.suppress(KeyboardInterrupt):

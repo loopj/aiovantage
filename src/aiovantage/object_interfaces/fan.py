@@ -2,11 +2,13 @@
 
 from enum import IntEnum
 
-from .base import Interface
+from .base import Interface, method
 
 
 class FanInterface(Interface):
     """Interface for querying and controlling fans."""
+
+    interface_name = "Fan"
 
     class FanSpeed(IntEnum):
         """Fan speed."""
@@ -18,16 +20,12 @@ class FanInterface(Interface):
         Max = 4
         Auto = 5
 
-    method_signatures = {
-        "Fan.GetSpeed": FanSpeed,
-        "Fan.GetSpeedHW": FanSpeed,
-    }
-
-    async def get_speed(self, vid: int, *, hw: bool = False) -> FanSpeed:
+    # Methods
+    @method("GetSpeed", "GetSpeedHW")
+    async def get_speed(self, *, hw: bool = False) -> FanSpeed:
         """Get the speed of a fan.
 
         Args:
-            vid: The Vantage ID of the fan.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -35,36 +33,30 @@ class FanInterface(Interface):
         """
         # INVOKE <id> Fan.GetSpeed
         # -> R:INVOKE <id> <speed> Fan.GetSpeed
-        return await self.invoke(vid, "Fan.GetSpeedHW" if hw else "Fan.GetSpeed")
+        return await self.invoke("Fan.GetSpeedHW" if hw else "Fan.GetSpeed")
 
-    async def set_speed(self, vid: int, speed: FanSpeed, *, sw: bool = False) -> None:
+    @method("SetSpeed", "SetSpeedSW")
+    async def set_speed(self, speed: FanSpeed, *, sw: bool = False) -> None:
         """Set the speed of a fan.
 
         Args:
-            vid: The Vantage ID of the fan.
             speed: The speed to set the fan to.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Fan.SetSpeed <speed>
         # -> R:INVOKE <id> <rcode> Fan.SetSpeed <speed>
-        await self.invoke(vid, "Fan.SetSpeedSW" if sw else "Fan.SetSpeed", speed)
+        await self.invoke("Fan.SetSpeedSW" if sw else "Fan.SetSpeed", speed)
 
+    @method("IncreaseSpeed")
     async def increase_speed(self, vid: int) -> None:
-        """Increase the speed of a fan.
-
-        Args:
-            vid: The Vantage ID of the fan.
-        """
+        """Increase the speed of a fan."""
         # INVOKE <id> Fan.IncreaseSpeed
         # -> R:INVOKE <id> <rcode> Fan.IncreaseSpeed
-        await self.invoke(vid, "Fan.IncreaseSpeed")
+        await self.invoke("Fan.IncreaseSpeed")
 
-    async def decrease_speed(self, vid: int) -> None:
-        """Decrease the speed of a fan.
-
-        Args:
-            vid: The Vantage ID of the fan.
-        """
+    @method("DecreaseSpeed")
+    async def decrease_speed(self) -> None:
+        """Decrease the speed of a fan."""
         # INVOKE <id> Fan.DecreaseSpeed
         # -> R:INVOKE <id> <rcode> Fan.DecreaseSpeed
-        await self.invoke(vid, "Fan.DecreaseSpeed")
+        await self.invoke("Fan.DecreaseSpeed")

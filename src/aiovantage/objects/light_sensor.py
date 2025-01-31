@@ -1,17 +1,15 @@
 """Light sensor object."""
 
-from dataclasses import dataclass, field
-from decimal import Decimal
+from dataclasses import dataclass
+
+from aiovantage.object_interfaces import LightSensorInterface, SensorInterface
 
 from .sensor import Sensor
 from .types import Parent
 
 
 @dataclass(kw_only=True)
-class LightSensor(Sensor):
+class LightSensor(Sensor, SensorInterface, LightSensorInterface):
     """Light sensor object."""
 
     parent: Parent
-
-    # State
-    level: Decimal | None = field(default=None, metadata={"type": "Ignore"})

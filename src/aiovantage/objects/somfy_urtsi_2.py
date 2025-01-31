@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass
 
-from .blind_base import BlindBase
-from .blind_group_base import BlindGroupBase
+from aiovantage.object_interfaces import BlindInterface
+
 from .child_device import ChildDevice
 from .port_device import PortDevice
 
@@ -17,7 +17,7 @@ class SomfyURTSI2Port(PortDevice):
 
 
 @dataclass(kw_only=True)
-class SomfyURTSI2ShadeChild(BlindBase, ChildDevice):
+class SomfyURTSI2ShadeChild(ChildDevice, BlindInterface):
     """Somfy URTSI 2 blind."""
 
     class Meta:
@@ -25,7 +25,7 @@ class SomfyURTSI2ShadeChild(BlindBase, ChildDevice):
 
 
 @dataclass(kw_only=True)
-class SomfyURTSI2GroupChild(BlindGroupBase, ChildDevice):
+class SomfyURTSI2GroupChild(ChildDevice, BlindInterface):
     """Somfy URTSI 2 blind group."""
 
     class Meta:

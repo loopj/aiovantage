@@ -10,7 +10,6 @@ from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 
 from aiovantage import Vantage
-from aiovantage.object_interfaces import LoadInterface
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -95,18 +94,16 @@ async def main() -> None:
                     if new_level == level:
                         continue
 
-                    await vantage.loads.ramp(
-                        load.id, LoadInterface.RampType.Fixed, 1, new_level
-                    )
+                    await load.ramp(load.RampType.Fixed, 1, new_level)
                     print(f"Set '{load.name}' brightness to {new_level}%")
 
                 elif key == " ":
                     # Toggle load
                     if load.is_on:
-                        await vantage.loads.turn_off(load.id)
+                        await load.turn_off()
                         print(f"Turned '{load.name}' load off")
                     else:
-                        await vantage.loads.turn_on(load.id)
+                        await load.turn_on()
                         print(f"Turned '{load.name}' load on")
 
                 elif key == "q":

@@ -4,9 +4,7 @@ from .anemo_sensor import AnemoSensor
 from .area import Area
 from .back_box import BackBox
 from .blind import Blind
-from .blind_base import BlindBase
 from .blind_group import BlindGroup
-from .blind_group_base import BlindGroupBase
 from .button import Button
 from .child_device import ChildDevice
 from .contact_input import ContactInput
@@ -39,7 +37,6 @@ from .pwm_power_profile import PWMPowerProfile
 from .qis_blind import QISBlind
 from .qube_blind import QubeBlind
 from .relay_blind import RelayBlind
-from .rgb_load_base import RGBLoadBase
 from .rs232_station import RS232Station
 from .rs485_station import RS485Station
 from .scene_point_relay import ScenePointRelay
@@ -67,9 +64,7 @@ __all__ = [
     "Area",
     "BackBox",
     "Blind",
-    "BlindBase",
     "BlindGroup",
-    "BlindGroupBase",
     "Button",
     "ChildDevice",
     "ContactInput",
@@ -103,7 +98,6 @@ __all__ = [
     "QISBlind",
     "QubeBlind",
     "RelayBlind",
-    "RGBLoadBase",
     "RS232Station",
     "RS485Station",
     "ScenePointRelay",

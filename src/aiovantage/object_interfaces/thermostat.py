@@ -3,11 +3,15 @@
 from decimal import Decimal
 from enum import IntEnum
 
-from .base import Interface
+from typing_extensions import override
+
+from .base import Interface, method
 
 
 class ThermostatInterface(Interface):
     """Interface for querying and controlling thermostats."""
+
+    interface_name = "Thermostat"
 
     class OperationMode(IntEnum):
         """Thermostat operation mode."""
@@ -48,34 +52,24 @@ class ThermostatInterface(Interface):
         Heating = 2
         Offline = 3
 
-    method_signatures = {
-        "Thermostat.GetIndoorTemperature": Decimal,
-        "Thermostat.GetIndoorTemperatureHW": Decimal,
-        "Thermostat.GetOutdoorTemperature": Decimal,
-        "Thermostat.GetOutdoorTemperatureHW": Decimal,
-        "Thermostat.GetHeatSetPoint": Decimal,
-        "Thermostat.GetHeatSetPointHW": Decimal,
-        "Thermostat.GetCoolSetPoint": Decimal,
-        "Thermostat.GetCoolSetPointHW": Decimal,
-        "Thermostat.GetOperationMode": OperationMode,
-        "Thermostat.GetOperationModeHW": OperationMode,
-        "Thermostat.GetFanMode": FanMode,
-        "Thermostat.GetFanModeHW": FanMode,
-        "Thermostat.GetDayMode": DayMode,
-        "Thermostat.GetDayModeHW": DayMode,
-        "Thermostat.GetHoldMode": HoldMode,
-        "Thermostat.GetHoldModeHW": HoldMode,
-        "Thermostat.GetStatus": Status,
-        "Thermostat.GetStatusHW": Status,
-        "Thermostat.GetAutoSetPoint": Decimal,
-        "Thermostat.GetAutoSetPointHW": Decimal,
-    }
+    # Properties
+    indoor_temperature: Decimal | None = None
+    heat_set_point: Decimal | None = None
+    cool_set_point: Decimal | None = None
+    auto_set_point: Decimal | None = None
+    operation_mode: OperationMode | None = OperationMode.Unknown
+    fan_mode: FanMode | None = FanMode.Unknown
+    status: Status | None = Status.Offline
+    outdoor_temperature: Decimal | None = None
 
-    async def get_indoor_temperature(self, vid: int, *, hw: bool = False) -> Decimal:
+    # Methods
+    @method(
+        "GetIndoorTemperature", "GetIndoorTemperatureHW", property="indoor_temperature"
+    )
+    async def get_indoor_temperature(self, *, hw: bool = False) -> Decimal:
         """Get the current indoor temperature.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -84,28 +78,31 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetIndoorTemperature
         # -> R:INVOKE <id> <temp> Thermostat.GetIndoorTemperature
         return await self.invoke(
-            vid,
             "Thermostat.GetIndoorTemperatureHW"
             if hw
-            else "Thermostat.GetIndoorTemperature",
+            else "Thermostat.GetIndoorTemperature"
         )
 
-    async def set_indoor_temperature(self, vid: int, temp: float | Decimal) -> None:
+    @method("SetIndoorTemperatureSW")
+    async def set_indoor_temperature(self, temp: float | Decimal) -> None:
         """Set the cached indoor temperature.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             temp: The indoor temperature to set, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.SetIndoorTemperature <temp>
         # -> R:INVOKE <id> Thermostat.SetIndoorTemperature <temp>
-        await self.invoke(vid, "Thermostat.SetIndoorTemperatureSW", temp)
+        await self.invoke("Thermostat.SetIndoorTemperatureSW", temp)
 
-    async def get_outdoor_temperature(self, vid: int, *, hw: bool = False) -> Decimal:
+    @method(
+        "GetOutdoorTemperature",
+        "GetOutdoorTemperatureHW",
+        property="outdoor_temperature",
+    )
+    async def get_outdoor_temperature(self, *, hw: bool = False) -> Decimal:
         """Get the current outdoor temperature.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -114,28 +111,27 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetOutdoorTemperature
         # -> R:INVOKE <id> <temp> Thermostat.GetOutdoorTemperature
         return await self.invoke(
-            vid,
             "Thermostat.GetOutdoorTemperatureHW"
             if hw
-            else "Thermostat.GetOutdoorTemperature",
+            else "Thermostat.GetOutdoorTemperature"
         )
 
-    async def set_outdoor_temperature(self, vid: int, temp: float | Decimal) -> None:
+    @method("SetOutdoorTemperatureSW")
+    async def set_outdoor_temperature(self, temp: float | Decimal) -> None:
         """Set the cached outdoor temperature.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             temp: The outdoor temperature to set, in degrees Celsius.
         """
         # INVOKE <id> Thermostat.SetOutdoorTemperature <temp>
         # -> R:INVOKE <id> Thermostat.SetOutdoorTemperature <temp>
-        await self.invoke(vid, "Thermostat.SetOutdoorTemperatureSW", temp)
+        await self.invoke("Thermostat.SetOutdoorTemperatureSW", temp)
 
-    async def get_heat_set_point(self, vid: int, *, hw: bool = False) -> Decimal:
+    @method("GetHeatSetPoint", "GetHeatSetPointHW", property="heat_set_point")
+    async def get_heat_set_point(self, *, hw: bool = False) -> Decimal:
         """Get the current heat set point.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -144,32 +140,30 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetHeatSetPoint
         # -> R:INVOKE <id> <temp> Thermostat.GetHeatSetPoint
         return await self.invoke(
-            vid, "Thermostat.GetHeatSetPointHW" if hw else "Thermostat.GetHeatSetPoint"
+            "Thermostat.GetHeatSetPointHW" if hw else "Thermostat.GetHeatSetPoint"
         )
 
+    @method("SetHeatSetPoint", "SetHeatSetPointSW")
     async def set_heat_set_point(
-        self, vid: int, temp: float | Decimal, *, sw: bool = False
+        self, temp: float | Decimal, *, sw: bool = False
     ) -> None:
         """Set the current heat set point.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             temp: The heat set point to set, in degrees Celsius.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Thermostat.SetHeatSetPoint <temp>
         # -> R:INVOKE <id> Thermostat.SetHeatSetPoint <temp>
         await self.invoke(
-            vid,
-            "Thermostat.SetHeatSetPointSW" if sw else "Thermostat.SetHeatSetPoint",
-            temp,
+            "Thermostat.SetHeatSetPointSW" if sw else "Thermostat.SetHeatSetPoint", temp
         )
 
-    async def get_cool_set_point(self, vid: int, *, hw: bool = False) -> Decimal:
+    @method("GetCoolSetPoint", "GetCoolSetPointHW", property="cool_set_point")
+    async def get_cool_set_point(self, *, hw: bool = False) -> Decimal:
         """Get the current cool set point.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -178,32 +172,30 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetCoolSetPoint
         # -> R:INVOKE <id> <temp> Thermostat.GetCoolSetPoint
         return await self.invoke(
-            vid, "Thermostat.GetCoolSetPointHW" if hw else "Thermostat.GetCoolSetPoint"
+            "Thermostat.GetCoolSetPointHW" if hw else "Thermostat.GetCoolSetPoint"
         )
 
+    @method("SetCoolSetPoint", "SetCoolSetPointSW")
     async def set_cool_set_point(
-        self, vid: int, temp: float | Decimal, *, sw: bool = False
+        self, temp: float | Decimal, *, sw: bool = False
     ) -> None:
         """Set the current cool set point.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             temp: The cool set point to set, in degrees Celsius.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Thermostat.SetCoolSetPoint <temp>
         # -> R:INVOKE <id> Thermostat.SetCoolSetPoint <temp>
         await self.invoke(
-            vid,
-            "Thermostat.SetCoolSetPointSW" if sw else "Thermostat.SetCoolSetPoint",
-            temp,
+            "Thermostat.SetCoolSetPointSW" if sw else "Thermostat.SetCoolSetPoint", temp
         )
 
-    async def get_operation_mode(self, vid: int, *, hw: bool = False) -> OperationMode:
+    @method("GetOperationMode", "GetOperationModeHW", property="operation_mode")
+    async def get_operation_mode(self, *, hw: bool = False) -> OperationMode:
         """Get the current operation mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -212,33 +204,29 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetOperationMode
         # -> R:INVOKE <id> <mode (Off|Cool|Heat|Auto|Unknown)> Thermostat.GetOperationMode
         return await self.invoke(
-            vid,
             "Thermostat.GetOperationModeHW" if hw else "Thermostat.GetOperationMode",
         )
 
-    async def set_operation_mode(
-        self, vid: int, mode: int, *, sw: bool = False
-    ) -> None:
+    @method("SetOperationMode", "SetOperationModeSW")
+    async def set_operation_mode(self, mode: int, *, sw: bool = False) -> None:
         """Set the current operation mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             mode: The operation mode to set.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Thermostat.SetOperationMode <mode>
         # -> R:INVOKE <id> Thermostat.SetOperationMode <mode>
         await self.invoke(
-            vid,
             "Thermostat.SetOperationModeSW" if sw else "Thermostat.SetOperationMode",
             mode,
         )
 
-    async def get_fan_mode(self, vid: int, *, hw: bool = False) -> FanMode:
+    @method("GetFanMode", "GetFanModeHW", property="fan_mode")
+    async def get_fan_mode(self, *, hw: bool = False) -> FanMode:
         """Get the current fan mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -247,28 +235,28 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetFanMode
         # -> R:INVOKE <id> <mode (Off|On|Unknown)> Thermostat.GetFanMode
         return await self.invoke(
-            vid, "Thermostat.GetFanModeHW" if hw else "Thermostat.GetFanMode"
+            "Thermostat.GetFanModeHW" if hw else "Thermostat.GetFanMode"
         )
 
-    async def set_fan_mode(self, vid: int, mode: int, *, sw: bool = False) -> None:
+    @method("SetFanMode", "SetFanModeSW")
+    async def set_fan_mode(self, mode: int, *, sw: bool = False) -> None:
         """Set the current fan mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             mode: The fan mode to set.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Thermostat.SetFanMode <mode>
         # -> R:INVOKE <id> Thermostat.SetFanMode <mode>
         await self.invoke(
-            vid, "Thermostat.SetFanModeSW" if sw else "Thermostat.SetFanMode", mode
+            "Thermostat.SetFanModeSW" if sw else "Thermostat.SetFanMode", mode
         )
 
-    async def get_day_mode(self, vid: int, *, hw: bool = False) -> DayMode:
+    @method("GetDayMode", "GetDayModeHW")
+    async def get_day_mode(self, *, hw: bool = False) -> DayMode:
         """Get the current day mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -277,42 +265,42 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetDayMode
         # -> R:INVOKE <id> <mode (Day|Night|Unknown|Standby)> Thermostat.GetDayMode
         return await self.invoke(
-            vid, "Thermostat.GetDayModeHW" if hw else "Thermostat.GetDayMode"
+            "Thermostat.GetDayModeHW" if hw else "Thermostat.GetDayMode"
         )
 
-    async def set_day_mode(self, vid: int, mode: int, *, sw: bool = False) -> None:
+    @method("SetDayMode", "SetDayModeSW")
+    async def set_day_mode(self, mode: int, *, sw: bool = False) -> None:
         """Set the current day mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             mode: The day mode to set.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Thermostat.SetDayMode <mode>
         # -> R:INVOKE <id> Thermostat.SetDayMode <mode>
         await self.invoke(
-            vid, "Thermostat.SetDayModeSW" if sw else "Thermostat.SetDayMode", mode
+            "Thermostat.SetDayModeSW" if sw else "Thermostat.SetDayMode", mode
         )
 
-    async def set_hold_mode(self, vid: int, mode: int, *, sw: bool = False) -> None:
+    @method("SetHoldMode", "SetHoldModeSW")
+    async def set_hold_mode(self, mode: int, *, sw: bool = False) -> None:
         """Set the current hold mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             mode: The hold mode to set.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Thermostat.SetHoldMode <mode>
         # -> R:INVOKE <id> Thermostat.SetHoldMode <mode>
         await self.invoke(
-            vid, "Thermostat.SetHoldModeSW" if sw else "Thermostat.SetHoldMode", mode
+            "Thermostat.SetHoldModeSW" if sw else "Thermostat.SetHoldMode", mode
         )
 
-    async def get_hold_mode(self, vid: int, *, hw: bool = False) -> HoldMode:
+    @method("GetHoldMode", "GetHoldModeHW")
+    async def get_hold_mode(self, *, hw: bool = False) -> HoldMode:
         """Get the current hold mode.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -321,14 +309,14 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetHoldMode
         # -> R:INVOKE <id> <mode (Normal|Hold|Unknown)> Thermostat.GetHoldMode
         return await self.invoke(
-            vid, "Thermostat.GetHoldModeHW" if hw else "Thermostat.GetHoldMode"
+            "Thermostat.GetHoldModeHW" if hw else "Thermostat.GetHoldMode"
         )
 
-    async def get_status(self, vid: int, *, hw: bool = False) -> Status:
+    @method("GetStatus", "GetStatusHW", property="status")
+    async def get_status(self, *, hw: bool = False) -> Status:
         """Get the current status.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -337,25 +325,25 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetStatus
         # -> R:INVOKE <id> <status (Off|Cooling|Heating|Offline)> Thermostat.GetStatus
         return await self.invoke(
-            vid, "Thermostat.GetStatusHW" if hw else "Thermostat.GetStatus"
+            "Thermostat.GetStatusHW" if hw else "Thermostat.GetStatus"
         )
 
-    async def set_status(self, vid: int, status: int) -> None:
+    @method("SetStatusSW")
+    async def set_status(self, status: int) -> None:
         """Set the cached status.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             status: The status to set.
         """
         # INVOKE <id> Thermostat.SetStatusSW <status>
         # -> R:INVOKE <id> Thermostat.SetStatusSW <status>
-        await self.invoke(vid, "Thermostat.SetStatusSW", status)
+        await self.invoke("Thermostat.SetStatusSW", status)
 
-    async def get_auto_set_point(self, vid: int, *, hw: bool = False) -> Decimal:
+    @method("GetAutoSetPoint", "GetAutoSetPointHW", property="auto_set_point")
+    async def get_auto_set_point(self, *, hw: bool = False) -> Decimal:
         """Get the current auto set point.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -364,23 +352,57 @@ class ThermostatInterface(Interface):
         # INVOKE <id> Thermostat.GetAutoSetPoint
         # -> R:INVOKE <id> <temp> Thermostat.GetAutoSetPoint
         return await self.invoke(
-            vid, "Thermostat.GetAutoSetPointHW" if hw else "Thermostat.GetAutoSetPoint"
+            "Thermostat.GetAutoSetPointHW" if hw else "Thermostat.GetAutoSetPoint"
         )
 
+    @method("SetAutoSetPoint", "SetAutoSetPointSW")
     async def set_auto_set_point(
-        self, vid: int, temp: float | Decimal, *, sw: bool = False
+        self, temp: float | Decimal, *, sw: bool = False
     ) -> None:
         """Set the current auto set point.
 
         Args:
-            vid: The Vantage ID of the thermostat.
             temp: The auto set point to set, in degrees Celsius.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Thermostat.SetAutoSetPoint <temp>
         # -> R:INVOKE <id> Thermostat.SetAutoSetPoint <temp>
         await self.invoke(
-            vid,
-            "Thermostat.SetAutoSetPointSW" if sw else "Thermostat.SetAutoSetPoint",
-            temp,
+            "Thermostat.SetAutoSetPointSW" if sw else "Thermostat.SetAutoSetPoint", temp
         )
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        if category == "THERMOP":
+            # STATUS THERMOP
+            # -> S:THERMOP <id> <operation_mode (OFF/COOL/HEAT/AUTO)>
+            thermop_status_map = {
+                "OFF": self.OperationMode.Off,
+                "COOL": self.OperationMode.Cool,
+                "HEAT": self.OperationMode.Heat,
+                "AUTO": self.OperationMode.Auto,
+            }
+
+            return self.update_property("operation_mode", thermop_status_map[args[0]])
+
+        if category == "THERMFAN":
+            # STATUS THERMFAN
+            # -> S:THERMFAN <id> <fan_mode (ON/AUTO)>
+            thermfan_status_map = {
+                "ON": self.FanMode.On,
+                "AUTO": self.FanMode.Off,
+            }
+
+            return self.update_property("fan_mode", thermfan_status_map[args[0]])
+
+        if category == "THERMDAY":
+            # STATUS THERMDAY
+            # -> S:THERMDAY <id> <day_mode (DAY/NIGHT)>
+            thermday_status_map = {
+                "DAY": self.DayMode.Day,
+                "NIGHT": self.DayMode.Night,
+            }
+
+            return self.update_property("day_mode", thermday_status_map[args[0]])
+
+        return super().handle_category_status(category, *args)

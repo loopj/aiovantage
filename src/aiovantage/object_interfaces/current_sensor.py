@@ -2,22 +2,25 @@
 
 from decimal import Decimal
 
-from .base import Interface
+from typing_extensions import override
+
+from .base import Interface, method
 
 
 class CurrentSensorInterface(Interface):
     """Interface for querying and controlling current sensors."""
 
-    method_signatures = {
-        "CurrentSensor.GetCurrent": Decimal,
-        "CurrentSensor.GetCurrentHW": Decimal,
-    }
+    interface_name = "CurrentSensor"
 
-    async def get_current(self, vid: int, *, hw: bool = False) -> Decimal:
+    # Properties
+    current: Decimal | None = None
+
+    # Methods
+    @method("GetCurrent", "GetCurrentHW", property="current")
+    async def get_current(self, *, hw: bool = False) -> Decimal:
         """Get the value of a current sensor.
 
         Args:
-            vid: The Vantage ID of the current sensor.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -26,21 +29,29 @@ class CurrentSensorInterface(Interface):
         # INVOKE <id> CurrentSensor.GetCurrent
         # -> R:INVOKE <id> <level> CurrentSensor.GetCurrent
         return await self.invoke(
-            vid, "CurrentSensor.GetCurrentHW" if hw else "CurrentSensor.GetCurrent"
+            "CurrentSensor.GetCurrentHW" if hw else "CurrentSensor.GetCurrent"
         )
 
-    async def set_current(self, vid: int, value: Decimal, *, sw: bool = False) -> None:
+    @method("SetCurrent", "SetCurrentSW")
+    async def set_current(self, value: Decimal, *, sw: bool = False) -> None:
         """Set the value of a current sensor.
 
         Args:
-            vid: The Vantage ID of the current sensor.
             value: The value to set, in Amps.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> CurrentSensor.SetCurrent <level>
         # -> R:INVOKE <id> <rcode> CurrentSensor.SetCurrent <level>
         await self.invoke(
-            vid,
             "CurrentSensor.SetCurrentSW" if sw else "CurrentSensor.SetCurrent",
             value,
         )
+
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        if category == "CURRENT":
+            # STATUS CURRENT
+            # -> S:CURRENT <id> <current>
+            return self.update_property("current", Decimal(args[0]))
+
+        return super().handle_category_status(category, *args)

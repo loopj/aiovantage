@@ -3,11 +3,15 @@
 from decimal import Decimal
 from enum import IntEnum
 
-from .base import Interface
+from typing_extensions import override
+
+from .base import Interface, method
 
 
 class ButtonInterface(Interface):
     """Interface for querying and controlling buttons."""
+
+    interface_name = "Button"
 
     class State(IntEnum):
         """Button state."""
@@ -28,24 +32,15 @@ class ButtonInterface(Interface):
         NormallyOpen = 0
         NormallyClosed = 1
 
-    method_signatures = {
-        "Button.GetState": State,
-        "Button.GetStateHW": State,
-        "Button.GetHoldOn": Decimal,
-        "Button.GetHoldOnHW": Decimal,
-        "Button.GetPolarity": Polarity,
-        "Button.GetPolarityHW": Polarity,
-        "Button.GetSndType": SndType,
-        "Button.GetSndTypeHW": SndType,
-        "Button.GetPlacement": int,
-        "Button.GetPlacementHW": int,
-    }
+    # Properties
+    state: State | None = State.Up
 
-    async def get_state(self, vid: int, *, hw: bool = False) -> State:
+    # Methods
+    @method("GetState", "GetStateHW", property="state")
+    async def get_state(self, *, hw: bool = False) -> State:
         """Get the state of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -53,25 +48,25 @@ class ButtonInterface(Interface):
         """
         # INVOKE <id> Button.GetState
         # -> R:INVOKE <id> <state (Up/Down)> Button.GetState
-        return await self.invoke(vid, "Button.GetStateHW" if hw else "Button.GetState")
+        return await self.invoke("Button.GetStateHW" if hw else "Button.GetState")
 
-    async def set_state(self, vid: int, state: State, *, sw: bool = False) -> None:
+    @method("SetState", "SetStateSW")
+    async def set_state(self, state: State, *, sw: bool = False) -> None:
         """Set the state of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             state: The state to set the button to, either a State.UP or State.DOWN.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetState <state (0/1/Up/Down)>
         # -> R:INVOKE <id> <rcode> Button.SetState <state (Up/Down)>
-        await self.invoke(vid, "Button.SetStateSW" if sw else "Button.SetState", state)
+        await self.invoke("Button.SetStateSW" if sw else "Button.SetState", state)
 
-    async def get_hold_on(self, vid: int, *, hw: bool = False) -> Decimal:
+    @method("GetHoldOn", "GetHoldOnHW")
+    async def get_hold_on(self, *, hw: bool = False) -> Decimal:
         """Get the hold on time of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -79,31 +74,25 @@ class ButtonInterface(Interface):
         """
         # INVOKE <id> Button.GetHoldOn
         # -> R:INVOKE <id> <seconds> Button.GetHoldOn
-        return await self.invoke(
-            vid, "Button.GetHoldOnHW" if hw else "Button.GetHoldOn"
-        )
+        return await self.invoke("Button.GetHoldOnHW" if hw else "Button.GetHoldOn")
 
-    async def set_hold_on(
-        self, vid: int, seconds: Decimal, *, sw: bool = False
-    ) -> None:
+    @method("SetHoldOn", "SetHoldOnSW")
+    async def set_hold_on(self, seconds: Decimal, *, sw: bool = False) -> None:
         """Set the hold on time of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             seconds: The hold on time to set, in seconds.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetHoldOn <seconds>
         # -> R:INVOKE <id> <rcode> Button.SetHoldOn <seconds>
-        await self.invoke(
-            vid, "Button.SetHoldOnSW" if sw else "Button.SetHoldOn", seconds
-        )
+        await self.invoke("Button.SetHoldOnSW" if sw else "Button.SetHoldOn", seconds)
 
-    async def get_polarity(self, vid: int, *, hw: bool = False) -> Polarity:
+    @method("GetPolarity", "GetPolarityHW")
+    async def get_polarity(self, *, hw: bool = False) -> Polarity:
         """Get the polarity of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -111,31 +100,27 @@ class ButtonInterface(Interface):
         """
         # INVOKE <id> Button.GetPolarity
         # -> R:INVOKE <id> <polarity> Button.GetPolarity
-        return await self.invoke(
-            vid, "Button.GetPolarityHW" if hw else "Button.GetPolarity"
-        )
+        return await self.invoke("Button.GetPolarityHW" if hw else "Button.GetPolarity")
 
-    async def set_polarity(
-        self, vid: int, polarity: Polarity, *, sw: bool = False
-    ) -> None:
+    @method("SetPolarity", "SetPolaritySW")
+    async def set_polarity(self, polarity: Polarity, *, sw: bool = False) -> None:
         """Set the polarity of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             polarity: The polarity to set the button to.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetPolarity <polarity (0/1/NormallyOpen/NormallyClosed)>
         # -> R:INVOKE <id> <rcode> Button.SetPolarity <polarity (NormallyOpen/NormallyClosed)>
         await self.invoke(
-            vid, "Button.SetPolaritySW" if sw else "Button.SetPolarity", polarity
+            "Button.SetPolaritySW" if sw else "Button.SetPolarity", polarity
         )
 
-    async def get_snd_type(self, vid: int, *, hw: bool = False) -> SndType:
+    @method("GetSndType", "GetSndTypeHW")
+    async def get_snd_type(self, *, hw: bool = False) -> SndType:
         """Get the sound type of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -143,31 +128,27 @@ class ButtonInterface(Interface):
         """
         # INVOKE <id> Button.GetSndType
         # -> R:INVOKE <id> <snd_type> Button.GetSndType
-        return await self.invoke(
-            vid, "Button.GetSndTypeHW" if hw else "Button.GetSndType"
-        )
+        return await self.invoke("Button.GetSndTypeHW" if hw else "Button.GetSndType")
 
-    async def set_snd_type(
-        self, vid: int, snd_type: SndType, *, sw: bool = False
-    ) -> None:
+    @method("SetSndType", "SetSndTypeSW")
+    async def set_snd_type(self, snd_type: SndType, *, sw: bool = False) -> None:
         """Set the sound type of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             snd_type: The sound type to set the button to.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetSndType <snd_type (0/1/2/Continuous/Pulsed/Off)>
         # -> R:INVOKE <id> <rcode> Button.SetSndType <snd_type (Continuous/Pulsed/Off)>
         await self.invoke(
-            vid, "Button.SetSndTypeSW" if sw else "Button.SetSndType", snd_type
+            "Button.SetSndTypeSW" if sw else "Button.SetSndType", snd_type
         )
 
-    async def get_placement(self, vid: int, *, hw: bool = False) -> int:
+    @method("GetPlacement", "GetPlacementHW")
+    async def get_placement(self, *, hw: bool = False) -> int:
         """Get the placement of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             hw: Fetch the value from hardware instead of cache.
 
         Returns:
@@ -176,47 +157,52 @@ class ButtonInterface(Interface):
         # INVOKE <id> Button.GetPlacement
         # -> R:INVOKE <id> <placement> Button.GetPlacement
         return await self.invoke(
-            vid, "Button.GetPlacementHW" if hw else "Button.GetPlacement"
+            "Button.GetPlacementHW" if hw else "Button.GetPlacement"
         )
 
-    async def set_placement(
-        self, vid: int, placement: int, *, sw: bool = False
-    ) -> None:
+    @method("SetPlacement", "SetPlacementSW")
+    async def set_placement(self, placement: int, *, sw: bool = False) -> None:
         """Set the placement of a button.
 
         Args:
-            vid: The Vantage ID of the button.
             placement: The placement of the button on the keypad.
             sw: Set the cached value instead of the hardware value.
         """
         # INVOKE <id> Button.SetPlacement <placement>
         # -> R:INVOKE <id> <rcode> Button.SetPlacement <placement>
         await self.invoke(
-            vid, "Button.SetPlacementSW" if sw else "Button.SetPlacement", placement
+            "Button.SetPlacementSW" if sw else "Button.SetPlacement", placement
         )
 
     # Convenience functions, not part of the interface
-    async def press(self, vid: int) -> None:
-        """Press a button.
+    async def press(self) -> None:
+        """Press a button."""
+        await self.set_state(self.State.Down)
 
-        Args:
-            vid: The Vantage ID of the button.
-        """
-        await self.set_state(vid, self.State.Down)
+    async def release(self) -> None:
+        """Release a button."""
+        await self.set_state(self.State.Up)
 
-    async def release(self, vid: int) -> None:
-        """Release a button.
+    async def press_and_release(self) -> None:
+        """Press and release a button."""
+        await self.press()
+        await self.release()
 
-        Args:
-            vid: The Vantage ID of the button.
-        """
-        await self.set_state(vid, self.State.Up)
+    @property
+    def is_down(self) -> bool | None:
+        """Return True if the button is down."""
+        return self.state == self.State.Down
 
-    async def press_and_release(self, vid: int) -> None:
-        """Press and release a button.
+    @override
+    def handle_category_status(self, category: str, *args: str) -> str | None:
+        if category == "BTN":
+            # STATUS BTN
+            # -> S:BTN <id> <state (PRESS/RELEASE)>
+            btn_status_map = {
+                "PRESS": self.State.Down,
+                "RELEASE": self.State.Up,
+            }
 
-        Args:
-            vid: The Vantage ID of the button.
-        """
-        await self.press(vid)
-        await self.release(vid)
+            return self.update_property("state", btn_status_map[args[0]])
+
+        return super().handle_category_status(category, *args)
