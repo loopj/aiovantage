@@ -10,7 +10,6 @@ class LoadGroupsController(BaseController[LoadGroup]):
     """Controller holding and managing Vantage load groups."""
 
     vantage_types = ("LoadGroup",)
-    status_categories = ("LOAD",)
 
     def loads(self, vid: int) -> QuerySet[Load]:
         """Return a queryset of all loads in this load group."""

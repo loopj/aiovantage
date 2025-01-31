@@ -25,4 +25,3 @@ class BlindsController(BaseController[BlindTypes]):
         "Somfy.RS-485_Shade_CHILD",
         "Somfy.URTSI_2_Shade_CHILD",
     )
-    status_categories = ("BLIND",)

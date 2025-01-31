@@ -9,4 +9,3 @@ class TasksController(BaseController[Task]):
     """Controller holding and managing Vantage tasks."""
 
     vantage_types = ("Task",)
-    status_categories = ("TASK",)

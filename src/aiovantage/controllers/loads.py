@@ -10,7 +10,6 @@ class LoadsController(BaseController[Load]):
     """Controller holding and managing Vantage loads."""
 
     vantage_types = ("Load",)
-    status_categories = ("LOAD",)
 
     @property
     def on(self) -> QuerySet[Load]:

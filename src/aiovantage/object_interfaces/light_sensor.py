@@ -50,4 +50,4 @@ class LightSensorInterface(Interface):
             # -> S:LIGHT <id> <level>
             return self.update_property("level", Decimal(args[0]))
 
-        return None
+        return super().handle_category_status(category, *args)

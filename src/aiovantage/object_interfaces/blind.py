@@ -242,7 +242,9 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
 
     @override
     def handle_category_status(self, category: str, *args: str) -> str | None:
-        # STATUS BLIND
-        # -> S:BLIND <id> <position (0.000 - 100.000)>
         if category == "BLIND":
+            # STATUS BLIND
+            # -> S:BLIND <id> <position (0.000 - 100.000)>
             return self.update_property("position", Decimal(args[0]))
+
+        return super().handle_category_status(category, *args)

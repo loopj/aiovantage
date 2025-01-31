@@ -97,10 +97,12 @@ class GMemInterface(Interface):
 
     @override
     def handle_category_status(self, category: str, *args: str) -> str | None:
-        # STATUS VARIABLE
-        # -> S:VARIABLE <id> <value>
         if category == "VARIABLE":
+            # STATUS VARIABLE
+            # -> S:VARIABLE <id> <value>
             return self.update_property("value", self._parse_value(args[0]))
+
+        return super().handle_category_status(category, *args)
 
     def _parse_value(self, value: str) -> int | str | bool:
         # If a "" wrapped string, return as str

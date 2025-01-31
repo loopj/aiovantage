@@ -9,4 +9,3 @@ class AnemoSensorsController(BaseController[AnemoSensor]):
     """Controller holding and managing Vantage anemo (wind) sensors."""
 
     vantage_types = ("AnemoSensor",)
-    status_categories = ("WIND",)

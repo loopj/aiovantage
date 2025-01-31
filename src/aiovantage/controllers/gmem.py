@@ -9,5 +9,4 @@ class GMemController(BaseController[GMem]):
     """Controller holding and managing Vantage variables."""
 
     vantage_types = ("GMem",)
-    status_categories = ("VARIABLE",)
     force_category_status = True

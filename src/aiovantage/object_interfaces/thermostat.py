@@ -405,4 +405,4 @@ class ThermostatInterface(Interface):
 
             return self.update_property("day_mode", thermday_status_map[args[0]])
 
-        return None
+        return super().handle_category_status(category, *args)

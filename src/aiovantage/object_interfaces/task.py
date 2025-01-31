@@ -118,4 +118,4 @@ class TaskInterface(Interface):
             # -> S:TASK <id> <state>
             return self.update_property("state", int(args[0]))
 
-        return None
+        return super().handle_category_status(category, *args)

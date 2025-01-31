@@ -9,4 +9,3 @@ class ButtonsController(BaseController[Button]):
     """Controller holding and managing Vantage buttons."""
 
     vantage_types = ("Button",)
-    status_categories = ("BTN",)

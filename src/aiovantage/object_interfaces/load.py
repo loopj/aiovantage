@@ -227,4 +227,4 @@ class LoadInterface(Interface):
             # -> S:LOAD <id> <level (0-100)>
             return self.update_property("level", Decimal(args[0]))
 
-        return None
+        return super().handle_category_status(category, *args)

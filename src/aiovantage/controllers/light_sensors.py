@@ -9,4 +9,3 @@ class LightSensorsController(BaseController[LightSensor]):
     """Controller holding and managing Vantage light sensors."""
 
     vantage_types = ("LightSensor",)
-    status_categories = ("LIGHT",)

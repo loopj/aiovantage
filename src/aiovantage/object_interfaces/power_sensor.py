@@ -48,7 +48,9 @@ class PowerSensorInterface(Interface):
 
     @override
     def handle_category_status(self, category: str, *args: str) -> str | None:
-        # STATUS POWER
-        # -> S:POWER <id> <power>
         if category == "POWER":
+            # STATUS POWER
+            # -> S:POWER <id> <power>
             return self.update_property("power", Decimal(args[0]))
+
+        return super().handle_category_status(category, *args)

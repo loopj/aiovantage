@@ -49,7 +49,9 @@ class CurrentSensorInterface(Interface):
 
     @override
     def handle_category_status(self, category: str, *args: str) -> str | None:
-        # STATUS CURRENT
-        # -> S:CURRENT <id> <current>
         if category == "CURRENT":
+            # STATUS CURRENT
+            # -> S:CURRENT <id> <current>
             return self.update_property("current", Decimal(args[0]))
+
+        return super().handle_category_status(category, *args)

@@ -195,12 +195,14 @@ class ButtonInterface(Interface):
 
     @override
     def handle_category_status(self, category: str, *args: str) -> str | None:
-        # STATUS BTN
-        # -> S:BTN <id> <state (PRESS/RELEASE)>
-        btn_status_map = {
-            "PRESS": self.State.Down,
-            "RELEASE": self.State.Up,
-        }
-
         if category == "BTN":
+            # STATUS BTN
+            # -> S:BTN <id> <state (PRESS/RELEASE)>
+            btn_status_map = {
+                "PRESS": self.State.Down,
+                "RELEASE": self.State.Up,
+            }
+
             return self.update_property("state", btn_status_map[args[0]])
+
+        return super().handle_category_status(category, *args)

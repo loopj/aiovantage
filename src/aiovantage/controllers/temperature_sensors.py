@@ -9,4 +9,3 @@ class TemperatureSensorsController(BaseController[Temperature]):
     """Controller holding and managing Vantage temperature sensors."""
 
     vantage_types = ("Temperature",)
-    status_categories = ("TEMP",)

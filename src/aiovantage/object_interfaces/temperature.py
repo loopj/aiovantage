@@ -53,4 +53,4 @@ class TemperatureInterface(Interface):
             # -> S:TEMP <id> <temp>
             return self.update_property("value", Decimal(args[0]))
 
-        return None
+        return super().handle_category_status(category, *args)

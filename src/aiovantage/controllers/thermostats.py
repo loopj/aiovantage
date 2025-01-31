@@ -15,7 +15,6 @@ class ThermostatsController(BaseController[Thermostat]):
     """
 
     vantage_types = ("Thermostat",)
-    status_categories = ("THERMFAN", "THERMOP", "THERMDAY")
 
     def sensors(self, vid: int) -> QuerySet[Temperature]:
         """Return all sensors associated with this thermostat."""

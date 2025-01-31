@@ -31,9 +31,6 @@ class BaseController(QuerySet[T]):
     vantage_types: tuple[str, ...]
     """The Vantage object types that this controller handles."""
 
-    status_categories: tuple[str, ...] | None = None
-    """Which Vantage 'STATUS' categories this controller handles, if any."""
-
     force_category_status: bool = False
     """Whether to force the controller to handle 'STATUS' categories."""
 
@@ -225,10 +222,7 @@ class BaseController(QuerySet[T]):
         # We should only do this if "object" status is not supported, or this
         # controller explicitly requests to handle "category" status messages.
         if not event_conn.supports_enhanced_log or self.force_category_status:
-            if self.status_categories:
-                self.event_stream.subscribe_status(
-                    self._handle_event, *self.status_categories
-                )
+            self.event_stream.subscribe_status(self._handle_event)
 
         self._subscribed_to_state_changes = True
         self._logger.info("%s subscribed to state changes", type(self).__name__)
