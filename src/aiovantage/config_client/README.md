@@ -26,7 +26,8 @@ from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects
 
 async with ConfigClient("hostname") as client:
-    loads = get_objects(client, types=["Load", "Button"])
+    async for obj in get_objects(client, "Load", "Button"):
+        print(obj)
 ```
 
 ### Lookup objects by id, using a helper
@@ -36,7 +37,8 @@ from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects_by_id
 
 async with ConfigClient("hostname") as client:
-    objects = get_objects_by_id(client, [118])
+    async for obj in get_objects_by_id(client, 118):
+        print(obj)
 ```
 
 ### Make a request using a method class

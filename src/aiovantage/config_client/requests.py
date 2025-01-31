@@ -1,6 +1,6 @@
 """Helper functions for fetching system objects."""
 
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator
 from contextlib import suppress
 from typing import Any, TypeVar
 
@@ -74,7 +74,7 @@ async def get_objects_by_type(
 
 
 async def get_objects_by_id(
-    client: ConfigClient, vids: Sequence[int]
+    client: ConfigClient, *vids: int
 ) -> AsyncIterator[SystemObject]:
     """Get all Vantage objects of the specified ids.
 
@@ -106,7 +106,7 @@ async def get_object_by_id(client: ConfigClient, vid: int) -> Any:
         The object matching the specified id, or None if not found
     """
     try:
-        return await get_objects_by_id(client, [vid]).__anext__()
+        return await get_objects_by_id(client, vid).__anext__()
     except StopAsyncIteration:
         return None
 
