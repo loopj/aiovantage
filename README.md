@@ -2,8 +2,6 @@
 
 aiovantage is a Python library for interacting with and controlling Vantage InFusion home automation controllers.
 
-Uses a *controller* pattern inspired heavily by the [aiohue](https://github.com/home-assistant-libs/aiohue) library.
-
 This open-source, non-commercial library is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Vantage, and is provided for interoperability purposes only.
 
 ## Table of contents
@@ -171,13 +169,12 @@ async with Vantage("hostname", "username", "password") as vantage:
 
 ### Controlling objects
 
-Most controllers expose a various methods for controlling the state of objects. The first parameter to these methods is always the vantage id of the object to control.
-
-For example, to turn on a load:
+Objects also expose various methods for controlling state. For example, to turn on a load:
 
 ```python
 async with Vantage("hostname", "username", "password") as vantage:
-    await vantage.loads.turn_on(118)
+    load = vantage.loads.aget(name="Study Lights")
+    await load.turn_on()
 ```
 
 ### Subscribing to state changes

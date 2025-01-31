@@ -52,4 +52,5 @@ def callback(event: Event) -> None:
 
 events = EventStream("10.2.0.103")
 events.subscribe_status(callback, "LOAD")
+await events.start()
 ```
