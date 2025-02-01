@@ -26,7 +26,7 @@ EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 
 
 class BaseController(QuerySet[T]):
-    """Base controller for Vantage objects."""
+    """Base controller for managing collections of Vantage objects."""
 
     vantage_types: tuple[str, ...]
     """The Vantage object types that this controller handles."""
@@ -50,11 +50,6 @@ class BaseController(QuerySet[T]):
         self._lock = asyncio.Lock()
 
         super().__init__(self._items, self._lazy_initialize)
-
-        self.__post_init__()
-
-    def __post_init__(self) -> None:
-        """Post initialization hook for subclasses."""
 
     def __getitem__(self, vid: int) -> T:
         """Return the object with the given Vantage ID."""
@@ -84,46 +79,6 @@ class BaseController(QuerySet[T]):
         """Return True if this controller has been initialized."""
         return self._initialized
 
-    async def fetch_object_state(self, obj: T) -> None:
-        """Fetch the full state of an object.
-
-        Args:
-            obj: The object to fetch the state of.
-        """
-        # Fetch all state properties defined by the object's interface(s)
-        props_changed = await obj.fetch_state()
-
-        # Notify subscribers if any attributes changed
-        if props_changed:
-            self.object_updated(obj, props_changed)
-
-    def handle_category_status(self, obj: T, status: str, *args: str) -> None:
-        """Handle "category" status messages from the event stream.
-
-        Args:
-            obj: The object that the status message is for.
-            status: The status category.
-            args: The arguments to the status message.
-        """
-        updated_properties = obj.handle_category_status(status, *args)
-        if updated_properties:
-            self.object_updated(obj, [updated_properties])
-
-    def handle_object_status(
-        self, obj: T, method: str, result: str, *args: str
-    ) -> None:
-        """Handle object interface status messages from the event stream.
-
-        Args:
-            obj: The object that the status message is for.
-            method: The method that was called.
-            result: The return value of the method call.
-            args: The arguments to the method call.
-        """
-        updated_properties = obj.handle_object_status(method, result, *args)
-        if updated_properties:
-            self.object_updated(obj, [updated_properties])
-
     async def initialize(
         self, *, fetch_state: bool = True, subscribe_state: bool = True
     ) -> None:
@@ -143,9 +98,9 @@ class BaseController(QuerySet[T]):
             async for obj in get_objects(self.config_client, *self.vantage_types):
                 obj = cast(T, obj)
 
-                if obj.id in prev_ids:
+                if obj.vid in prev_ids:
                     # This is an existing object.
-                    existing_obj = self._items[obj.id]
+                    existing_obj = self._items[obj.vid]
 
                     # Check if any attributes have changed and update them
                     changed: list[str] = []
@@ -158,7 +113,7 @@ class BaseController(QuerySet[T]):
 
                     # Notify subscribers if any attributes changed
                     if changed:
-                        self.object_updated(existing_obj, changed)
+                        self._object_updated(existing_obj, *changed)
                 else:
                     # This is a new object.
 
@@ -166,37 +121,42 @@ class BaseController(QuerySet[T]):
                     obj.command_client = self.command_client
 
                     # Add it to the controller and notify subscribers
-                    self._items[obj.id] = obj
+                    self._items[obj.vid] = obj
                     self.emit(VantageEvent.OBJECT_ADDED, obj)
 
-                    # Fetch the state of stateful objects
-                    if fetch_state:
-                        await self.fetch_object_state(obj)
-
                 # Keep track of which objects we've seen
-                cur_ids.add(obj.id)
+                cur_ids.add(obj.vid)
 
             # Handle objects that were removed
             for vid in prev_ids - cur_ids:
                 obj = self._items.pop(vid)
                 self.emit(VantageEvent.OBJECT_DELETED, obj)
 
-        # Subscribe to state changes for objects managed by this controller
-        if subscribe_state:
-            await self.subscribe_to_state_changes()
+        self._logger.info(
+            "%s populated (%d objects)", type(self).__name__, len(self._items)
+        )
 
         # Mark the controller as initialized
         if not self._initialized:
             self._initialized = True
 
-        self._logger.info(
-            "%s initialized (%d objects)", type(self).__name__, len(self._items)
-        )
+        # Fetch state and subscribe to state changes if requested
+        if self._items:
+            if fetch_state:
+                await self.fetch_full_state()
+
+            if subscribe_state:
+                await self.subscribe_to_state_changes()
 
     async def fetch_full_state(self) -> None:
         """Fetch the full state of all objects managed by this controller."""
         for obj in self._items.values():
-            await self.fetch_object_state(obj)
+            # Fetch all state properties defined by the object's interface(s)
+            props_changed = await obj.fetch_state()
+
+            # Notify subscribers if any attributes changed
+            if props_changed:
+                self._object_updated(obj, *props_changed)
 
         self._logger.info("%s fetched state", type(self).__name__)
 
@@ -208,21 +168,19 @@ class BaseController(QuerySet[T]):
         # Start the event stream if it isn't already running
         event_conn = await self.event_stream.start()
 
-        # All supported state changes are available using "object" status events.
-        # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
-        # Older controller firmware versions don't support the Enhanced Log, so we
-        # offer the option to subscribe to "category" status messages instead.
-        if event_conn.supports_enhanced_log:
+        # When available, we'll use "object" status events (subscribed via
+        # the Enhanced Log) because they support a richer set of status properties.
+        # If these are not supported—either due to older firmware, or if the
+        # controller explicitly requesting category statuses, we'll fall back to
+        # "category" status events.
+        if event_conn.supports_enhanced_log and not self.force_category_status:
             # Subscribe to "object status" events from the Enhanced Log.
             self.event_stream.subscribe_enhanced_log(
-                self._handle_event, "STATUS", "STATUSEX"
+                self._handle_enhanced_log_event, "STATUS", "STATUSEX"
             )
-
-        # Subscribe to "STATUS {category}" updates
-        # We should only do this if "object" status is not supported, or this
-        # controller explicitly requests to handle "category" status messages.
-        if not event_conn.supports_enhanced_log or self.force_category_status:
-            self.event_stream.subscribe_status(self._handle_event)
+        else:
+            # Subscribe to "STATUS {category}" updates
+            self.event_stream.subscribe_status(self._handle_status_event)
 
         self._subscribed_to_state_changes = True
         self._logger.info("%s subscribed to state changes", type(self).__name__)
@@ -288,7 +246,7 @@ class BaseController(QuerySet[T]):
             data = {}
 
         # Grab a list of subscribers that care about this object
-        subscribers = self._subscriptions + self._id_subscriptions.get(obj.id, [])
+        subscribers = self._subscriptions + self._id_subscriptions.get(obj.vid, [])
         for callback, event_filter in subscribers:
             if event_filter is not None and event_type not in event_filter:
                 continue
@@ -298,38 +256,56 @@ class BaseController(QuerySet[T]):
             else:
                 callback(event_type, obj, data)
 
-    def object_updated(self, obj: T, attrs_changed: list[str]) -> None:
-        """Notify subscribers that an object has been updated."""
-        self.emit(
-            VantageEvent.OBJECT_UPDATED,
-            obj,
-            {"attrs_changed": attrs_changed},
-        )
+    def _object_updated(self, obj: T, *attrs_changed: str) -> None:
+        # Notify subscribers that an object has been updated
+        self.emit(VantageEvent.OBJECT_UPDATED, obj, {"attrs_changed": attrs_changed})
 
-    async def _handle_event(self, event: Event) -> None:
-        # Handle events from the event stream
-        if event["type"] == EventType.STATUS:
-            # Look up the object that this event is for
-            if obj := self._items.get(event["id"]):
-                if event["category"] == "STATUS":
-                    # Handle "object interface" status events of the form:
-                    # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
-                    method, result, *args = event["args"]
-                    self.handle_object_status(obj, method, result, *args)
-                else:
-                    # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
-                    self.handle_category_status(obj, event["category"], *event["args"])
+    async def _handle_status_event(self, event: Event) -> None:
+        if event["type"] != EventType.STATUS:
+            return
 
-        elif event["type"] == EventType.ENHANCED_LOG:
-            # We only ever subscribe to STATUS/STATUSEX logs from the enhanced log.
-            # These are "object interface" status messages, of the form:
-            #   EL: <id> <method> <result> <arg1> <arg2> ...
-            vid_str, method, result, *args = tokenize_response(event["log"])
-            vid = int(vid_str)
+        # Look up the object that this event is for
+        obj = self._items.get(event["vid"])
+        if obj is None:
+            return
 
-            # Pass the event to the controller, if this object is managed by it
-            if obj := self._items.get(vid):
-                self.handle_object_status(obj, method, result, *args)
+        # Handle the event
+        if event["category"] == "STATUS":
+            # Handle "object interface" status events of the form:
+            # -> S:STATUS <vid> <method> <result> <arg1> <arg2> ...
+            method, result, *args = event["args"]
+            updated = obj.handle_object_status(method, result, *args)
+        else:
+            # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
+            # -> S:LOAD <vid> <arg1> <arg2> ...
+            category, *args = event["category"], *event["args"]
+            updated = obj.handle_category_status(category, *args)
+
+        # Notify subscribers if any attributes changed
+        if updated:
+            self._object_updated(obj, updated)
+
+    async def _handle_enhanced_log_event(self, event: Event) -> None:
+        if event["type"] != EventType.ENHANCED_LOG:
+            return
+
+        # Tokenize STATUS/STATUSEX logs from the enhanced log.
+        # These are "object interface" status messages, of the form:
+        # -> EL: <vid> <method> <result> <arg1> <arg2> ...
+        vid_str, method, result, *args = tokenize_response(event["log"])
+        vid = int(vid_str)
+
+        # Pass the event to the controller, if this object is managed by it
+        obj = self._items.get(vid)
+        if obj is None:
+            return
+
+        # Handle the event
+        updated = obj.handle_object_status(method, result, *args)
+
+        # Notify subscribers if any attributes changed
+        if updated:
+            self._object_updated(obj, updated)
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized

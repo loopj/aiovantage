@@ -48,7 +48,7 @@ from aiovantage.command_client import Event, EventStream, EventType
 
 def callback(event: Event) -> None:
     assert event["type"] == EventType.STATUS
-    print(f"Load {event['id']} changed state")
+    print(f"Load {event['vid']} changed state")
 
 events = EventStream("10.2.0.103")
 events.subscribe_status(callback, "LOAD")

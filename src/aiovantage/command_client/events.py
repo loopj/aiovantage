@@ -55,7 +55,7 @@ class StatusEvent(TypedDict):
     """Event emitted when a "S:" status is received."""
 
     type: Literal[EventType.STATUS]
-    id: int
+    vid: int
     category: str
     args: Sequence[str]
 
@@ -359,15 +359,15 @@ class EventStream:
     def _parse_message(self, message: str) -> None:
         # Parse a message from the Host Command service.
         if message.startswith("S:"):
-            # Parse a "status" message, of the form "S:<type> <id> <args>"
+            # Parse a "status" message, of the form "S:<type> <vid> <args>"
             # These messages are emitted when the state of an object changes after
             # subscribing to updates via "STATUS <type>" or "ADDSTATUS <vid>".
-            category, id_str, *args = tokenize_response(message)
+            category, vid_str, *args = tokenize_response(message)
             self.emit(
                 {
                     "type": EventType.STATUS,
                     "category": category[2:],
-                    "id": int(id_str),
+                    "vid": int(vid_str),
                     "args": args,
                 }
             )
