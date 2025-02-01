@@ -11,9 +11,10 @@ This open-source, non-commercial library is not affiliated, associated, authoriz
 
 - [Example](#example)
 - [Features](#features)
-- [Supported objects types](#supported-objects-types)
+- [Supported objects](#supported-objects)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Design overview](#design-overview)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -37,7 +38,7 @@ See the [examples](examples) folder for more examples.
 - Fetch objects lazily (with `async for obj in controller`).
 - Alternatively, eager-fetch objects with `controller.initialize`.
 
-## Supported objects types
+## Supported objects
 
 The following interfaces/controllers are currently supported.
 
@@ -191,3 +192,35 @@ async with Vantage("hostname", "username", "password") as vantage:
 ```
 
 Note that a subscription will only receive state changes for objects that have populated into the controller.
+
+## Design overview
+
+### Fetching controller configuration
+
+Vantage controllers store their configuration as a collection of "objects". For example, a load (lights, motor, etc) is represented by a `Load` object, a button is represented by a `Button` object, etc. Each object has a VID (Vantage ID) that uniquely identifies it, and various other "configuration" properties such as its name, area, etc.
+
+We fetch objects from the *ACI service*, an XML-based RPC service that Design Center uses to communicate with Vantage InFusion Controllers.
+
+The [`aiovantage.objects`](src/aiovantage/objects) module contains a (non-exhaustive) collection of `dataclass` objects which contain the same properties as those stored in the Vantage controller. We use `xsdata` to parse the XML responses from the ACI service into these objects.
+
+The [`aiovantage.config_client`](src/aiovantage/config_client) module provides a client for the ACI service in the `ConfigClient` class.
+
+### Fetching state and controlling objects
+
+Each object type implements one or more *object interfaces*, which define various "state" properties and methods that the object supports. For example, a `Load` object implements the `Load` interface, which defines the `level` property, and methods like `Load.GetLevel`, `Load.SetLevel`, `Load.Ramp`, etc. These interfaces are defined in the [`aiovantage.object_interfaces`](src/aiovantage/object_interfaces) module.
+
+Methods on object interfaces are available to call remotely using the text-based *Host Command service*.
+
+The [`aiovantage.command_client`](src/aiovantage/command_client) module provides a client for the Host Command service in the `CommandClient` class.
+
+### Monitoring for state changes
+
+The Host Command service also allows you to subscribe to state changes for objects.
+
+The simplest approach is to subscribe to "category" status events by calling `STATUS <category>`, which will then emit a status events for every object that implements the specified category, e.g. `S:LOAD 118 100.000`.
+
+A more powerful approach is to use "object" status events, which emit statuses generated from an object interface method. For example, to subscribe to state changes for load 118, we would call `ADDSTATUS 118`, which would then emit a status event for load 118 whenever its state changes, e.g. `S:STATUS 118 Load.GetLevel 100000`.
+
+Alternatively, we can use the *Enhanced Log* to subscribe to status events for *all* objects.
+
+The [`aiovantage.command_client`](src/aiovantage/command_client) module provides an `EventStream` class which can be used to subscribe to status events.
