@@ -26,7 +26,7 @@ EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 
 
 class BaseController(QuerySet[T]):
-    """Base controller for Vantage objects."""
+    """Base controller for managing collections of Vantage objects."""
 
     vantage_types: tuple[str, ...]
     """The Vantage object types that this controller handles."""
@@ -168,20 +168,18 @@ class BaseController(QuerySet[T]):
         # Start the event stream if it isn't already running
         event_conn = await self.event_stream.start()
 
-        # All supported state changes are available using "object" status events.
-        # These can be subscribed to by using "STATUSADD {vid}" or "ELLOG STATUS".
-        # Older controller firmware versions don't support the Enhanced Log, so we
-        # offer the option to subscribe to "category" status messages instead.
-        if event_conn.supports_enhanced_log:
+        # When available, we'll use "object" status events (subscribed via
+        # the Enhanced Log) because they support a richer set of status properties.
+        # If these are not supported—either due to older firmware, or if the
+        # controller explicitly requesting category statuses, we'll fall back to
+        # "category" status events.
+        if event_conn.supports_enhanced_log and not self.force_category_status:
             # Subscribe to "object status" events from the Enhanced Log.
             self.event_stream.subscribe_enhanced_log(
                 self._handle_enhanced_log_event, "STATUS", "STATUSEX"
             )
-
-        # Subscribe to "STATUS {category}" updates
-        # We should only do this if "object" status is not supported, or this
-        # controller explicitly requests to handle "category" status messages.
-        if not event_conn.supports_enhanced_log or self.force_category_status:
+        else:
+            # Subscribe to "STATUS {category}" updates
             self.event_stream.subscribe_status(self._handle_status_event)
 
         self._subscribed_to_state_changes = True
@@ -279,6 +277,7 @@ class BaseController(QuerySet[T]):
             updated = obj.handle_object_status(method, result, *args)
         else:
             # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
+            # -> S:LOAD <id> <arg1> <arg2> ...
             category, *args = event["category"], *event["args"]
             updated = obj.handle_category_status(category, *args)
 
@@ -292,7 +291,7 @@ class BaseController(QuerySet[T]):
 
         # Tokenize STATUS/STATUSEX logs from the enhanced log.
         # These are "object interface" status messages, of the form:
-        #   EL: <id> <method> <result> <arg1> <arg2> ...
+        # -> EL: <id> <method> <result> <arg1> <arg2> ...
         vid_str, method, result, *args = tokenize_response(event["log"])
         vid = int(vid_str)
 
