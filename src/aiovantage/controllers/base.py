@@ -98,9 +98,9 @@ class BaseController(QuerySet[T]):
             async for obj in get_objects(self.config_client, *self.vantage_types):
                 obj = cast(T, obj)
 
-                if obj.id in prev_ids:
+                if obj.vid in prev_ids:
                     # This is an existing object.
-                    existing_obj = self._items[obj.id]
+                    existing_obj = self._items[obj.vid]
 
                     # Check if any attributes have changed and update them
                     changed: list[str] = []
@@ -121,11 +121,11 @@ class BaseController(QuerySet[T]):
                     obj.command_client = self.command_client
 
                     # Add it to the controller and notify subscribers
-                    self._items[obj.id] = obj
+                    self._items[obj.vid] = obj
                     self.emit(VantageEvent.OBJECT_ADDED, obj)
 
                 # Keep track of which objects we've seen
-                cur_ids.add(obj.id)
+                cur_ids.add(obj.vid)
 
             # Handle objects that were removed
             for vid in prev_ids - cur_ids:
@@ -246,7 +246,7 @@ class BaseController(QuerySet[T]):
             data = {}
 
         # Grab a list of subscribers that care about this object
-        subscribers = self._subscriptions + self._id_subscriptions.get(obj.id, [])
+        subscribers = self._subscriptions + self._id_subscriptions.get(obj.vid, [])
         for callback, event_filter in subscribers:
             if event_filter is not None and event_type not in event_filter:
                 continue
@@ -265,19 +265,19 @@ class BaseController(QuerySet[T]):
             return
 
         # Look up the object that this event is for
-        obj = self._items.get(event["id"])
+        obj = self._items.get(event["vid"])
         if obj is None:
             return
 
         # Handle the event
         if event["category"] == "STATUS":
             # Handle "object interface" status events of the form:
-            # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
+            # -> S:STATUS <vid> <method> <result> <arg1> <arg2> ...
             method, result, *args = event["args"]
             updated = obj.handle_object_status(method, result, *args)
         else:
             # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
-            # -> S:LOAD <id> <arg1> <arg2> ...
+            # -> S:LOAD <vid> <arg1> <arg2> ...
             category, *args = event["category"], *event["args"]
             updated = obj.handle_category_status(category, *args)
 
@@ -291,7 +291,7 @@ class BaseController(QuerySet[T]):
 
         # Tokenize STATUS/STATUSEX logs from the enhanced log.
         # These are "object interface" status messages, of the form:
-        # -> EL: <id> <method> <result> <arg1> <arg2> ...
+        # -> EL: <vid> <method> <result> <arg1> <arg2> ...
         vid_str, method, result, *args = tokenize_response(event["log"])
         vid = int(vid_str)
 
