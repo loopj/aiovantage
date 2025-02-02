@@ -1,6 +1,7 @@
 """Common types."""
 
 from dataclasses import dataclass, field
+from decimal import Decimal
 
 
 @dataclass(kw_only=True)
@@ -25,7 +26,7 @@ class Array:
         bytes: str = ""
         size: int = field(metadata={"name": "size", "type": "Attribute"})
 
-    val: int | None = field(default=None, metadata={"name": "val"})
+    val: int | Decimal | None = field(default=None, metadata={"name": "val"})
     string: StringData | None = field(default=None, metadata={"name": "string"})
     bytes: BytesData | None = field(default=None, metadata={"name": "bytes"})
     array: "Array | None" = field(default=None, metadata={"name": "array"})
