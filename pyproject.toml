@@ -26,7 +26,7 @@ Issues = "https://github.com/loopj/aiovantage/issues"
 Source = "https://github.com/loopj/aiovantage"
 
 [project.optional-dependencies]
-dev = ["pyright==1.1.392.post0", "ruff==0.9.3", "bumpver==2024.1130"]
+dev = ["pyright==1.1.392.post0", "ruff==0.9.4", "bumpver==2024.1130"]
 
 [tool.ruff.lint]
 select = [
