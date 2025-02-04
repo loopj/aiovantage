@@ -6,7 +6,6 @@ from typing import (
     ClassVar,
     Protocol,
     TypeVar,
-    cast,
     get_type_hints,
     overload,
     runtime_checkable,
@@ -30,9 +29,7 @@ class _MethodCallable(Protocol):
     async def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
 
 
-def method(
-    *methods: str, property: str | None = None
-) -> Callable[[_AsyncCallable], _AsyncCallable]:
+def method(*methods: str, property: str | None = None) -> Callable[[T], T]:
     """Decorator to annotate a function as a Vantage method.
 
     This is used to automatically keep track of expected return types for
@@ -48,15 +45,14 @@ def method(
         property: Optional property name to associate with the function.
     """
 
-    def decorator(func: _AsyncCallable) -> _AsyncCallable:
+    def decorator(func: T) -> T:
         # Attach metadata to the function
         metadata: list[tuple[str, str | None]] = getattr(func, "method_metadata", [])
 
         for method in methods:
             metadata.append((method, property))
 
-        func = cast(_MethodCallable, func)
-        func.method_metadata = metadata
+        func.method_metadata = metadata  # type: ignore
 
         return func
 
