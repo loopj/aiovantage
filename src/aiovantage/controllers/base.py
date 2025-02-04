@@ -8,7 +8,7 @@ from inspect import iscoroutinefunction
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from aiovantage.command_client import CommandClient, Event, EventStream, EventType
-from aiovantage.command_client.types import tokenize_response
+from aiovantage.command_client.converter import tokenize
 from aiovantage.config_client import ConfigClient
 from aiovantage.config_client.requests import get_objects
 from aiovantage.events import EventCallback, VantageEvent
@@ -292,7 +292,7 @@ class BaseController(QuerySet[T]):
         # Tokenize STATUS/STATUSEX logs from the enhanced log.
         # These are "object interface" status messages, of the form:
         # -> EL: <vid> <method> <result> <arg1> <arg2> ...
-        vid_str, method, result, *args = tokenize_response(event["log"])
+        vid_str, method, result, *args = tokenize(event["log"])
         vid = int(vid_str)
 
         # Pass the event to the controller, if this object is managed by it

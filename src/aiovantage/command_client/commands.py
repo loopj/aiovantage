@@ -13,7 +13,7 @@ from typing_extensions import Self
 from aiovantage.errors import CommandError, raise_command_error
 
 from .connection import CommandConnection
-from .types import converter, tokenize_response
+from .converter import serialize, tokenize
 
 
 @dataclass
@@ -80,13 +80,13 @@ class CommandClient:
         # Build the request
         request = command
         if params:
-            request += " " + " ".join(converter.serialize(p) for p in params)
+            request += " " + " ".join(serialize(p) for p in params)
 
         # Send the request
         *data, return_line = await self.raw_request(request)
 
         # Break the response into tokens
-        command, *args = tokenize_response(return_line)
+        command, *args = tokenize(return_line)
 
         # Parse the response
         return CommandResponse(command[2:], args, data)

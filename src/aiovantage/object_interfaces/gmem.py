@@ -5,7 +5,7 @@ from typing import Any
 
 from typing_extensions import override
 
-from aiovantage.command_client.types import converter
+from aiovantage.command_client.converter import deserialize
 
 from .base import Interface, method
 
@@ -43,7 +43,6 @@ class GMemInterface(Interface):
         """Set the contents of the variable.
 
         Args:
-            vid: The Vantage ID of the variable.
             buffer: The contents to set the variable to.
         """
         # INVOKE <id> GMem.Commit <buffer> <size>
@@ -107,13 +106,13 @@ class GMemInterface(Interface):
     def _parse_value(self, value: str) -> int | str | bool:
         # If a "" wrapped string, return as str
         if value.startswith('"') and value.endswith('"'):
-            return converter.deserialize(str, value)
+            return deserialize(str, value)
 
         # If a {} or [] wrapped string, return as bytes
         if (value.startswith("{") and value.endswith("}")) or (
             value.startswith("[") and value.endswith("]")
         ):
-            return converter.deserialize(bytes, value)
+            return deserialize(bytes, value)
 
         # Otherwise, return as int
-        return converter.deserialize(int, value)
+        return deserialize(int, value)

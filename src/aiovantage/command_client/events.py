@@ -16,7 +16,7 @@ from typing_extensions import Self
 from aiovantage.errors import ClientConnectionError, ClientError
 
 from .connection import CommandConnection
-from .types import tokenize_response
+from .converter import tokenize
 
 # The interval between keepalive messages, in seconds.
 KEEPALIVE_INTERVAL = 60
@@ -362,7 +362,7 @@ class EventStream:
             # Parse a "status" message, of the form "S:<type> <vid> <args>"
             # These messages are emitted when the state of an object changes after
             # subscribing to updates via "STATUS <type>" or "ADDSTATUS <vid>".
-            category, vid_str, *args = tokenize_response(message)
+            category, vid_str, *args = tokenize(message)
             self.emit(
                 {
                     "type": EventType.STATUS,

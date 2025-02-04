@@ -7,7 +7,7 @@ from types import NoneType
 
 from typing_extensions import override
 
-from aiovantage.command_client.types import converter
+from aiovantage.command_client.converter import deserialize
 from aiovantage.object_interfaces import SensorInterface
 
 from .sensor import Sensor
@@ -121,7 +121,7 @@ class OmniSensor(Sensor, SensorInterface):
             return
 
         # Parse the response
-        value = converter.deserialize(Decimal, result)
+        value = deserialize(Decimal, result)
 
         # Update the property if it has changed
         return self.update_property("level", value)

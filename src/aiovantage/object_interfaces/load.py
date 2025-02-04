@@ -207,7 +207,6 @@ class LoadInterface(Interface):
         """Turn off a load with an optional transition time.
 
         Args:
-            vid: The Vantage ID of the load.
             transition: The time in seconds to ramp the load down, defaults to immediate.
         """
         if transition is None:

@@ -13,7 +13,7 @@ from typing import (
 )
 
 from aiovantage.command_client import CommandClient
-from aiovantage.command_client.types import converter, tokenize_response
+from aiovantage.command_client.converter import deserialize, serialize, tokenize
 from aiovantage.errors import NotImplementedError, NotSupportedError
 
 T = TypeVar("T")
@@ -165,14 +165,14 @@ class Interface(metaclass=InterfaceMeta):
         # Build the request
         request = f"INVOKE {self.vid} {method}"
         if params:
-            request += " " + " ".join(converter.serialize(p) for p in params)
+            request += " " + " ".join(serialize(p) for p in params)
 
         # Send the request
         response = await self.command_client.raw_request(request)
 
         # Break the response into tokens
         return_line = response[-1]
-        _command, _vid, result, _method, *args = tokenize_response(return_line)
+        _command, _vid, result, _method, *args = tokenize(return_line)
 
         # Parse the response
         signature = as_type or self.method_signatures[method]
@@ -296,14 +296,14 @@ def _parse_object_response(
         # a dataclass or NamedTuple.
         parsed_values: list[Any] = []
         for arg, klass in zip([result, *args], type_hints.values(), strict=True):
-            parsed_value = converter.deserialize(klass, arg)
+            parsed_value = deserialize(klass, arg)
             parsed_values.append(parsed_value)
 
         parsed_response = as_type(*parsed_values)
     else:
         # Simple string responses contain the string value in the first argument
         param = args[0] if as_type is str else result
-        parsed_response = converter.deserialize(as_type, param)
+        parsed_response = deserialize(as_type, param)
 
     # Return the parsed result
     return parsed_response
