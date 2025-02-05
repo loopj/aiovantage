@@ -33,6 +33,7 @@ theme:
     - toc.follow
 
 plugins:
+  - search
   - api-autonav:
       modules: ["src/aiovantage"]
   - mkdocstrings:
@@ -46,7 +47,6 @@ plugins:
             filters: ["!^_"]
             heading_level: 1
             inherited_members: true
-            members_order: source
             merge_init_into_class: true
             separate_signature: true
             show_root_heading: true
@@ -55,7 +55,7 @@ plugins:
             show_symbol_type_heading: true
             show_symbol_type_toc: true
             signature_crossrefs: true
-            summary: true
+            summary: false
 
 markdown_extensions:
   - pymdownx.highlight
@@ -65,4 +65,3 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  # - Reference: reference/

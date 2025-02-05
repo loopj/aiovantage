@@ -160,7 +160,7 @@ class ConfigurationInterface(Interface):
         # -> R:INVOKE <id> <found (0/1)> Configuration.FindLocalObject <vid>
         return await self.invoke("Configuration.FindLocalObject", vid)
 
-    @method("GetTimeZone")
+    @method("GetTimeZone", out="arg0")
     async def get_time_zone(self) -> str:
         """Get the time zone.
 
@@ -171,7 +171,7 @@ class ConfigurationInterface(Interface):
         # -> R:INVOKE <id> <rcode> Configuration.GetTimeZone <tz> <size>
         return await self.invoke("Configuration.GetTimeZone")
 
-    @method("GetTimeLocation")
+    @method("GetTimeLocation", out="arg0")
     async def get_time_location(self) -> str:
         """Get the time location.
 
