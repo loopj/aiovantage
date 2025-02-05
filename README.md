@@ -52,7 +52,7 @@ The following interfaces/controllers are currently supported.
 | Temperature   | Temperature sensors   | `vantage.temperature_sensors` |
 | Thermostat    | Thermostats           | `vantage.thermostats`         |
 
-If you have an object that you expect to show up in one of these controllers but is missing, please [create an issue](issues) or [submit a pull request](CONTRIBUTING.md#-adding-support-for-new-devices).
+If you have an object that you expect to show up in one of these controllers but is missing, please [create an issue](https://github.com/loopj/aiovantage/issues) or [submit a pull request](https://github.com/loopj/aiovantage/pulls).
 
 ## Installation
 
@@ -187,17 +187,17 @@ Vantage controllers store their configuration as a collection of "objects". For 
 
 We fetch objects from the *ACI service*, an XML-based RPC service that Design Center uses to communicate with Vantage InFusion Controllers.
 
-The [`aiovantage.objects`](src/aiovantage/objects) module contains a (non-exhaustive) collection of `dataclass` objects which contain the same properties as those stored in the Vantage controller. We use `xsdata` to parse the XML responses from the ACI service into these objects.
+The [`aiovantage.objects`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/objects) module contains a (non-exhaustive) collection of `dataclass` objects which contain the same properties as those stored in the Vantage controller. We use `xsdata` to parse the XML responses from the ACI service into these objects.
 
-The [`aiovantage.config_client`](src/aiovantage/config_client) module provides a client for the ACI service in the `ConfigClient` class.
+The [`aiovantage.config_client`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/config_client) module provides a client for the ACI service in the `ConfigClient` class.
 
 ### Fetching state and controlling objects
 
-Each object type implements one or more *object interfaces*, which define various "state" properties and methods that the object supports. For example, a `Load` object implements the `Load` interface, which defines the `level` property, and methods like `Load.GetLevel`, `Load.SetLevel`, `Load.Ramp`, etc. These interfaces are defined in the [`aiovantage.object_interfaces`](src/aiovantage/object_interfaces) module.
+Each object type implements one or more *object interfaces*, which define various "state" properties and methods that the object supports. For example, a `Load` object implements the `Load` interface, which defines the `level` property, and methods like `Load.GetLevel`, `Load.SetLevel`, `Load.Ramp`, etc. These interfaces are defined in the [`aiovantage.object_interfaces`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/object_interfaces) module.
 
 Methods on object interfaces are available to call remotely using the text-based *Host Command service*.
 
-The [`aiovantage.command_client`](src/aiovantage/command_client) module provides a client for the Host Command service in the `CommandClient` class.
+The [`aiovantage.command_client`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/command_client) module provides a client for the Host Command service in the `CommandClient` class.
 
 ### Monitoring for state changes
 
@@ -209,4 +209,4 @@ A more powerful approach is to use "object" status events, which emit statuses g
 
 Alternatively, we can use the *Enhanced Log* to subscribe to status events for *all* objects.
 
-The [`aiovantage.command_client`](src/aiovantage/command_client) module provides an `EventStream` class which can be used to subscribe to status events.
+The [`aiovantage.command_client`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/command_client) module provides an `EventStream` class which can be used to subscribe to status events.
