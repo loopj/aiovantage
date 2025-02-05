@@ -1,7 +1,6 @@
 """Client for sending commands to the Vantage Host Command service."""
 
 import asyncio
-import logging
 import re
 from dataclasses import dataclass
 from ssl import SSLContext
@@ -11,6 +10,7 @@ from typing import Any
 from typing_extensions import Self
 
 from aiovantage.errors import CommandError, raise_command_error
+from aiovantage.logger import logger
 
 from .connection import CommandConnection
 from .converter import serialize, tokenize
@@ -46,7 +46,6 @@ class CommandClient:
         self._read_timeout = read_timeout
         self._connection_lock = asyncio.Lock()
         self._command_lock = asyncio.Lock()
-        self._logger = logging.getLogger(__name__)
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -107,7 +106,7 @@ class CommandClient:
 
         # Send the command
         async with self._command_lock:
-            self._logger.debug("Sending command: %s", request)
+            logger.debug("Sending command: %s", request)
             await conn.write(f"{request}\n")
 
             # Read all lines of the response
@@ -128,7 +127,7 @@ class CommandClient:
 
                 # Ignore potentially interleaved "event" messages
                 if response_line.startswith(("S:", "L:", "EL:")):
-                    self._logger.debug("Ignoring event message: %s", response_line)
+                    logger.debug("Ignoring event message: %s", response_line)
                     continue
 
                 # Return the response once we see the response line
@@ -136,7 +135,7 @@ class CommandClient:
                 if response_line.startswith("R:"):
                     break
 
-        self._logger.debug("Received response: %s", "\n".join(response_lines))
+        logger.debug("Received response: %s", "\n".join(response_lines))
 
         return response_lines
 
@@ -151,7 +150,7 @@ class CommandClient:
                 if self._username and self._password:
                     await self._connection.authenticate(self._username, self._password)
 
-                self._logger.info(
+                logger.info(
                     "Connected to command client at %s:%d",
                     self._connection.host,
                     self._connection.port,
