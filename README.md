@@ -4,20 +4,6 @@
 
 This open-source, non-commercial library is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Vantage, and is provided for interoperability purposes only.
 
-## Table of contents
-
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [Example](#example)
-- [Features](#features)
-- [Supported objects](#supported-objects)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Design overview](#design-overview)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 ## Example
 
 ```python
@@ -28,7 +14,7 @@ async with Vantage("192.168.1.2", "username", "password") as vantage:
         print(f"{load.name} is at {load.level}%")
 ```
 
-See the [examples](examples) folder for more examples.
+See the [examples](https://github.com/loopj/aiovantage/tree/main/examples) folder for more examples.
 
 ## Features
 
@@ -42,29 +28,29 @@ See the [examples](examples) folder for more examples.
 
 The following interfaces/controllers are currently supported.
 
-| Type          | Description           | Controller                    | Examples                                  |
-| ------------- | --------------------- | ----------------------------- | ----------------------------------------- |
-| AnemoSensor   | Wind speed sensors    | `vantage.anemo_sensors`       | [Examples](examples/anemo_sensors)        |
-| Area          | Rooms, etc            | `vantage.areas`               | [Examples](examples/areas)                |
-| BackBox       | Backboxes             | `vantage.backboxes`           |                                           |
-| Blind         | Shades, blinds        | `vantage.blinds`              | [Examples](examples/blinds)               |
-| BlindGroups   | Groups of blinds      | `vantage.blind_groups`        | [Examples](examples/blind_groups)         |
-| Buttons       | Keypad buttons        | `vantage.buttons`             | [Examples](examples/buttons)              |
-| DryContacts   | Motion sensors, etc   | `vantage.dry_contacts`        | [Examples](examples/dry_contacts)         |
-| GMem          | Vantage variables     | `vantage.gmem`                | [Examples](examples/gmem)                 |
-| LightSensor   | Light sensors         | `vantage.light_sensors`       | [Examples](examples/light_sensors)        |
-| Load          | Lights, relays, etc   | `vantage.loads`               | [Examples](examples/loads)                |
-| LoadGroup     | Groups of loads       | `vantage.load_groups`         | [Examples](examples/load_groups)          |
-| Master        | Vantage controllers   | `vantage.masters`             | [Examples](examples/masters)              |
-| Module        | Dimmer modules        | `vantage.modules`             |                                           |
-| OmniSensor    | Power, current, etc   | `vantage.omni_sensors`        | [Examples](examples/omni_sensors)         |
-| PortDevice    | Port devices (hubs)   | `vantage.port_devices`        |                                           |
-| PowerProfile  | Load power profiles   | `vantage.power_profiles`      | [Examples](examples/power_profiles)       |
-| RGBLoad       | RGB lights            | `vantage.rgb_loads`           | [Examples](examples/rgb_loads)            |
-| Stations      | Keypads, etc          | `vantage.stations`            | [Examples](examples/stations)             |
-| Tasks         | Vantage tasks         | `vantage.tasks`               | [Examples](examples/tasks)                |
-| Temperature   | Temperature sensors   | `vantage.temperature_sensors` | [Examples](examples/temperature_sensors)  |
-| Thermostat    | Thermostats           | `vantage.thermostats`         | [Examples](examples/thermostats)          |
+| Type          | Description           | Controller                    |
+| ------------- | --------------------- | ----------------------------- |
+| AnemoSensor   | Wind speed sensors    | `vantage.anemo_sensors`       |
+| Area          | Rooms, etc            | `vantage.areas`               |
+| BackBox       | Backboxes             | `vantage.backboxes`           |
+| Blind         | Shades, blinds        | `vantage.blinds`              |
+| BlindGroups   | Groups of blinds      | `vantage.blind_groups`        |
+| Buttons       | Keypad buttons        | `vantage.buttons`             |
+| DryContacts   | Motion sensors, etc   | `vantage.dry_contacts`        |
+| GMem          | Vantage variables     | `vantage.gmem`                |
+| LightSensor   | Light sensors         | `vantage.light_sensors`       |
+| Load          | Lights, relays, etc   | `vantage.loads`               |
+| LoadGroup     | Groups of loads       | `vantage.load_groups`         |
+| Master        | Vantage controllers   | `vantage.masters`             |
+| Module        | Dimmer modules        | `vantage.modules`             |
+| OmniSensor    | Power, current, etc   | `vantage.omni_sensors`        |
+| PortDevice    | Port devices (hubs)   | `vantage.port_devices`        |
+| PowerProfile  | Load power profiles   | `vantage.power_profiles`      |
+| RGBLoad       | RGB lights            | `vantage.rgb_loads`           |
+| Stations      | Keypads, etc          | `vantage.stations`            |
+| Tasks         | Vantage tasks         | `vantage.tasks`               |
+| Temperature   | Temperature sensors   | `vantage.temperature_sensors` |
+| Thermostat    | Thermostats           | `vantage.thermostats`         |
 
 If you have an object that you expect to show up in one of these controllers but is missing, please [create an issue](issues) or [submit a pull request](CONTRIBUTING.md#-adding-support-for-new-devices).
 

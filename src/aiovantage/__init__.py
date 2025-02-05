@@ -1,7 +1,4 @@
-"""aiovantage package.
-
-Asynchronous Python library for controlling Vantage InFusion controllers.
-"""
+"""Asynchronous Python library for controlling Vantage InFusion controllers."""
 
 __all__ = ["Vantage", "VantageEvent"]
 
@@ -47,7 +44,11 @@ ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
 
 
 class Vantage:
-    """Control a Vantage InFusion controller."""
+    """Main client for interacting with Vantage systems.
+
+    The Vantage class manages the various connections to a Vantage system, as well as
+    exposing "controllers" for fetching and interacting with objects in the system.
+    """
 
     def __init__(
         self,
@@ -274,7 +275,7 @@ class Vantage:
             return None
 
     def close(self) -> None:
-        """Close the clients."""
+        """Close all client connections."""
         self.config_client.close()
         self.command_client.close()
         self.event_stream.stop()

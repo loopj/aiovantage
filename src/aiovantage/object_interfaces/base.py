@@ -1,6 +1,7 @@
 """Base class for object interfaces."""
 
 from collections.abc import Callable
+from dataclasses import fields, is_dataclass
 from typing import (
     Any,
     ClassVar,
@@ -24,12 +25,14 @@ class _AsyncCallable(Protocol):
 
 @runtime_checkable
 class _MethodCallable(Protocol):
-    method_metadata: list[tuple[str, str | None]]
+    method_metadata: list[tuple[str, str | None, str | None]]
 
     async def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
 
 
-def method(*methods: str, property: str | None = None) -> Callable[[T], T]:
+def method(
+    *methods: str, out: str | None = None, property: str | None = None
+) -> Callable[[T], T]:
     """Decorator to annotate a function as a Vantage method.
 
     This is used to automatically keep track of expected return types for
@@ -41,16 +44,19 @@ def method(*methods: str, property: str | None = None) -> Callable[[T], T]:
     or to fetch the initial state of the object.
 
     Args:
-        methods: The vantage method names to associate with the function.
+        methods: The vantage method name(s) to associate with the function.
+        out: Optional source of the return value, either "return" or "argN".
         property: Optional property name to associate with the function.
     """
 
     def decorator(func: T) -> T:
         # Attach metadata to the function
-        metadata: list[tuple[str, str | None]] = getattr(func, "method_metadata", [])
+        metadata: list[tuple[str, str | None, str | None]] = getattr(
+            func, "method_metadata", []
+        )
 
         for method in methods:
-            metadata.append((method, property))
+            metadata.append((method, out, property))
 
         func.method_metadata = metadata  # type: ignore
 
@@ -70,6 +76,7 @@ class _InterfaceMeta(type):
     ):
         """Create a new object interface class."""
         method_signatures: dict[str, type[Any]] = {}
+        method_output: dict[str, str] = {}
         method_properties: dict[str, str] = {}
         property_getters: dict[str, _AsyncCallable] = {}
 
@@ -77,6 +84,7 @@ class _InterfaceMeta(type):
         for base in bases:
             if issubclass(base, Interface):
                 method_signatures.update(base._method_signatures)  # type: ignore
+                method_output.update(base._method_output)  # type: ignore
                 method_properties.update(base._method_properties)  # type: ignore
                 property_getters.update(base._property_getters)  # type: ignore
 
@@ -85,7 +93,7 @@ class _InterfaceMeta(type):
             if not isinstance(attr, _MethodCallable):
                 continue
 
-            for method, property in attr.method_metadata:
+            for method, output, property in attr.method_metadata:
                 # Get the return type of the method
                 type_hints = get_type_hints(attr)
                 if "return" not in type_hints:
@@ -97,6 +105,10 @@ class _InterfaceMeta(type):
                 # Attach the method signature to the class
                 method_signatures[fq_method] = type_hints["return"]
 
+                # Attach output argument index to the class
+                if output:
+                    method_output[fq_method] = output
+
                 # Attach the property information to the class
                 if property:
                     method_properties[fq_method] = property
@@ -104,6 +116,7 @@ class _InterfaceMeta(type):
 
         # Attach the method metadata to the class
         dct["_method_signatures"] = method_signatures
+        dct["_method_output"] = method_output
         dct["_method_properties"] = method_properties
         dct["_property_getters"] = property_getters
 
@@ -124,6 +137,7 @@ class Interface(metaclass=_InterfaceMeta):
 
     # Method metadata
     _method_signatures: dict[str, type[Any]]
+    _method_output: dict[str, str]
     _method_properties: dict[str, str]
     _property_getters: dict[str, _AsyncCallable]
 
@@ -150,10 +164,6 @@ class Interface(metaclass=_InterfaceMeta):
         if not self.command_client:
             raise ValueError("The object has no command client to send requests with.")
 
-        # Make sure we have a signature for the method
-        if as_type is None and method not in self._method_signatures:
-            raise NotImplementedError(f"No signature found for method {method}")
-
         # Build the request
         request = f"INVOKE {self.vid} {method}"
         if params:
@@ -167,8 +177,7 @@ class Interface(metaclass=_InterfaceMeta):
         _command, _vid, result, _method, *args = tokenize(return_line)
 
         # Parse the response
-        signature = as_type or self._method_signatures[method]
-        return _parse_object_response(result, *args, as_type=signature)
+        return self._parse_object_response(method, result, *args, as_type=as_type)
 
     def update_property(self, property: str, value: Any) -> str | None:
         """Update an object property.
@@ -234,13 +243,8 @@ class Interface(metaclass=_InterfaceMeta):
         if property is None:
             return None
 
-        # Make sure we have a signature for the method
-        if method not in self._method_signatures:
-            raise NotImplementedError(f"No signature found for method {method}")
-
         # Parse the response
-        signature = self._method_signatures[method]
-        value = _parse_object_response(result, *args, as_type=signature)
+        value = self._parse_object_response(method, result, *args)
 
         # Update the property if it has changed
         return self.update_property(property, value)
@@ -259,43 +263,66 @@ class Interface(metaclass=_InterfaceMeta):
             The property that was updated, or None if no property was updated.
         """
 
+    @classmethod
+    def _parse_object_response(
+        cls, method: str, result: str, *args: str, as_type: type[T] | None = None
+    ) -> T | Any:
+        """Parse an object interface response message.
 
-def _parse_object_response(
-    result: str, *args: str, as_type: type[T] | None
-) -> T | None:
-    """Parse an object interface response message.
+        Args:
+            method: The method that was invoked.
+            result: The "result" of the command, aka the return value.
+            args: The arguments that were sent with the command, which may have been modified.
+            as_type: The expected return type of the method.
 
-    Args:
-        result: The "result" of the command, aka the return value.
-        args: The arguments that were sent with the command, which may have been modified.
-        as_type: The expected return type of the method.
+        Returns:
+            A response parsed into the expected type.
+        """
+        # -> R:INVOKE <id> <result> <method> <arg1> <arg2> ...
+        # -> EL: <id> <method> <result> <arg1> <arg2> ...
+        # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...
 
-    Returns:
-        A response parsed into the expected type.
-    """
-    # -> R:INVOKE <id> <result> <Interface.Method> <arg1> <arg2> ...
-    # -> EL: <id> <Interface.Method> <result> <arg1> <arg2> ...
-    # -> S:STATUS <id> <Interface.Method> <result> <arg1> <arg2> ...
+        # Make sure we have a signature for the method
+        if as_type is None and method not in cls._method_signatures:
+            raise NotImplementedError(f"No signature found for method {method}")
 
-    # Return early if the expected type is NoneType
-    if as_type in (None, type(None)):
-        return None
+        # Get the expected return type of the method, return early if None
+        signature = as_type or cls._method_signatures[method]
+        if signature in (None, type(None)):
+            return None
 
-    # Otherwise, parse the result into the expected type
-    if type_hints := get_type_hints(as_type):
-        # Some methods return multiple values, in the "return" field and in the
-        # "params" fields. This adds support for parsing multiple values into
-        # a dataclass or NamedTuple.
-        parsed_values: list[Any] = []
-        for arg, klass in zip([result, *args], type_hints.values(), strict=True):
-            parsed_value = deserialize(klass, arg)
-            parsed_values.append(parsed_value)
+        # Grab either the result or an argument based on "out" metadata field
+        def get_output_value(out: str) -> Any:
+            if out == "return":
+                return result
 
-        parsed_response = as_type(*parsed_values)
-    else:
-        # Simple string responses contain the string value in the first argument
-        param = args[0] if as_type is str else result
-        parsed_response = deserialize(as_type, param)
+            if out.startswith("arg") and out[3:].isdigit():
+                index = int(out[3:])
+                if 0 <= index < len(args):
+                    return args[index]
 
-    # Return the parsed result
-    return parsed_response
+            raise ValueError(f"Invalid 'out' metadata when parsing {method}")
+
+        # Parse the response based on the expected return type
+        if is_dataclass(signature):
+            # If the method returns a dataclass, parse the result and/or arguments
+            # into the expected fields of the dataclass, based on the field metadata.
+            type_hints = get_type_hints(signature)
+            props: dict[str, Any] = {}
+
+            for field in fields(signature):
+                out = field.metadata.get("out")
+                if out is None:
+                    raise ValueError(f"Field {field.name} missing 'out' metadata")
+
+                field_signature = type_hints.get(field.name)
+                if field_signature is None:
+                    raise ValueError(f"Field {field.name} missing type hint")
+
+                props[field.name] = deserialize(field_signature, get_output_value(out))
+
+            return signature(**props)
+        else:
+            # Otherwise, parse the result into the expected type
+            out = cls._method_output.get(method, "return")
+            return deserialize(signature, get_output_value(out))
