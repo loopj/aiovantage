@@ -1,7 +1,6 @@
 """Client to subscribe to events from the Vantage Host Command service."""
 
 import asyncio
-import logging
 from collections import defaultdict
 from collections.abc import Awaitable, Callable, Iterable, Sequence
 from contextlib import suppress
@@ -14,6 +13,7 @@ from typing import Literal, TypedDict
 from typing_extensions import Self
 
 from aiovantage.errors import ClientConnectionError, ClientError
+from aiovantage.logger import logger
 
 from .connection import CommandConnection
 from .converter import tokenize
@@ -109,7 +109,6 @@ class EventStream:
         self._started = False
         self._connection_lock = asyncio.Lock()
         self._command_queue: asyncio.Queue[str] = asyncio.Queue()
-        self._logger = logging.getLogger(__name__)
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -139,7 +138,7 @@ class EventStream:
                 self._tasks.append(asyncio.create_task(self._command_handler()))
                 self._tasks.append(asyncio.create_task(self._keepalive()))
 
-                self._logger.debug("Started the event stream")
+                logger.debug("Started the event stream")
                 self._started = True
 
             return conn
@@ -151,7 +150,7 @@ class EventStream:
         self._tasks.clear()
         self._connection.close()
 
-        self._logger.debug("Stopped the event stream")
+        logger.debug("Stopped the event stream")
         self._started = False
 
     async def _get_connection(self) -> CommandConnection:
@@ -165,7 +164,7 @@ class EventStream:
                 if self._username and self._password:
                     await self._connection.authenticate(self._username, self._password)
 
-                self._logger.info(
+                logger.info(
                     "Connected to event stream at %s:%d",
                     self._connection.host,
                     self._connection.port,
@@ -303,7 +302,7 @@ class EventStream:
                 while True:
                     message = await conn.readuntil(b"\r\n")
                     message = message.rstrip()
-                    self._logger.debug("Received message: %s", message)
+                    logger.debug("Received message: %s", message)
                     self._parse_message(message)
 
             except ClientConnectionError:
@@ -320,14 +319,14 @@ class EventStream:
 
             # Attempt to reconnect, with backoff
             reconnect_wait = min(2 * connect_attempts, 600)
-            self._logger.debug(
+            logger.debug(
                 "Disconnected from EventStream - retrying in %d seconds",
                 reconnect_wait,
             )
 
             # Log a warning every 10 attempts
             if connect_attempts % 10 == 0:
-                self._logger.warning(
+                logger.warning(
                     "%d attempts to (re)connect to controller failed"
                     " - This might be an indication of connection issues.",
                     connect_attempts,
@@ -343,7 +342,7 @@ class EventStream:
                 await self._send(command)
                 self._command_queue.task_done()
             except ClientError as err:
-                self._logger.warning("Error while sending command: %s", str(err))
+                logger.warning("Error while sending command: %s", str(err))
 
     async def _keepalive(self) -> None:
         # Send a periodic "ECHO" keepalive command.
@@ -353,11 +352,11 @@ class EventStream:
             try:
                 await self._send("ECHO")
             except ClientError as err:
-                self._logger.debug("Error while sending keepalive: %s", str(err))
+                logger.debug("Error while sending keepalive: %s", str(err))
 
     async def _send(self, message: str) -> None:
         # Send a plaintext message to the Host Command service."""
-        self._logger.debug("Sending message: %s", message)
+        logger.debug("Sending message: %s", message)
         await self._connection.write(f"{message}\n")
 
     def _parse_message(self, message: str) -> None:
@@ -381,7 +380,7 @@ class EventStream:
             # subscribing to updates via "ELLOG <type>".
             self._emit({"type": EventType.ENHANCED_LOG, "log": message[4:]})
         elif message.startswith("R:ERROR"):
-            self._logger.error("Error message from EventStream: %s", message)
+            logger.error("Error message from EventStream: %s", message)
 
     def _queue_command(self, command: str) -> None:
         # Queue a command to be sent to the Host Command service.

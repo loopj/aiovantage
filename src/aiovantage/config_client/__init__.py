@@ -16,7 +16,6 @@ The service is discoverable via mDNS as `_aci._tcp.local` and/or
 """
 
 import asyncio
-import logging
 from ssl import SSLContext
 from types import TracebackType
 from typing import Protocol, TypeVar
@@ -32,6 +31,7 @@ from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.utils.text import pascal_case
 
 from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
+from aiovantage.logger import logger
 
 from .connection import ConfigConnection
 from .interfaces.introspection import GetSysInfo
@@ -81,7 +81,6 @@ class ConfigClient:
         self._read_timeout = read_timeout
         self._connection_lock = asyncio.Lock()
         self._request_lock = asyncio.Lock()
-        self._logger = logging.getLogger(__name__)
 
         # Default to pascal case for element and attribute names
         xml_context = XmlContext(
@@ -143,7 +142,7 @@ class ConfigClient:
 
         # Render the method object to XML with xsdata
         request = f"<{interface}>{raw_method}</{interface}>"
-        self._logger.debug("Sending request: %s", request)
+        logger.debug("Sending request: %s", request)
 
         # Send the request and read the response
         async with self._request_lock:
@@ -152,7 +151,7 @@ class ConfigClient:
                 f"</{interface}>\n".encode(), timeout=self._read_timeout
             )
 
-        self._logger.debug("Received response: %s", response)
+        logger.debug("Received response: %s", response)
 
         return response
 
@@ -240,7 +239,7 @@ class ConfigClient:
                             "Login required, but no credentials were provided"
                         )
 
-                self._logger.info(
+                logger.info(
                     "Connected to config client at %s:%d",
                     self._connection.host,
                     self._connection.port,

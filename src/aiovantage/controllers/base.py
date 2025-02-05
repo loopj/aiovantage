@@ -1,7 +1,6 @@
 """Base controller for Vantage objects."""
 
 import asyncio
-import logging
 from collections.abc import Callable, Iterable
 from dataclasses import fields
 from inspect import iscoroutinefunction
@@ -11,6 +10,7 @@ from aiovantage.command_client import Event, EventType
 from aiovantage.command_client.converter import tokenize
 from aiovantage.config_client.requests import get_objects
 from aiovantage.events import EventCallback, VantageEvent
+from aiovantage.logger import logger
 from aiovantage.objects import SystemObject
 from aiovantage.query import QuerySet
 
@@ -41,7 +41,6 @@ class BaseController(QuerySet[T]):
         """
         self._vantage = vantage
         self._items: dict[int, T] = {}
-        self._logger = logging.getLogger(__package__)
         self._subscribed_to_state_changes = False
         self._subscriptions: list[EventSubscription[T]] = []
         self._id_subscriptions: dict[int, list[EventSubscription[T]]] = {}
@@ -118,9 +117,7 @@ class BaseController(QuerySet[T]):
                 obj = self._items.pop(vid)
                 self._emit(VantageEvent.OBJECT_DELETED, obj)
 
-        self._logger.info(
-            "%s populated (%d objects)", type(self).__name__, len(self._items)
-        )
+        logger.info("%s populated (%d objects)", type(self).__name__, len(self._items))
 
         # Mark the controller as initialized
         if not self._initialized:
@@ -144,7 +141,7 @@ class BaseController(QuerySet[T]):
             if props_changed:
                 self._object_updated(obj, *props_changed)
 
-        self._logger.info("%s fetched state", type(self).__name__)
+        logger.info("%s fetched state", type(self).__name__)
 
     async def monitor_state(self) -> None:
         """Monitor for state changes for objects managed by this controller."""
@@ -169,7 +166,7 @@ class BaseController(QuerySet[T]):
             self._vantage.event_stream.subscribe_status(self._handle_status_event)
 
         self._subscribed_to_state_changes = True
-        self._logger.info("%s subscribed to state changes", type(self).__name__)
+        logger.info("%s subscribed to state changes", type(self).__name__)
 
     def subscribe(
         self,
