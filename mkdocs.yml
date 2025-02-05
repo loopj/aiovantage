@@ -1,11 +1,14 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+
 site_name: aiovantage
 site_url: https://aiovantage.readthedocs.io
 repo_url: https://github.com/loopj/aiovantage
 repo_name: "loopj/aiovantage"
+watch: [mkdocs.yml, README.md, CONTRIBUTING.md, src/aiovantage]
 
 nav:
   - Overview: index.md
-  - API Reference
+  - API Reference: reference
   - Contributing: contributing.md
   - License: license.md
 
@@ -57,7 +60,7 @@ plugins:
       handlers:
         python:
           paths: [src]
-          import:
+          inventories:
             - https://docs.python.org/3/objects.inv
 
           options:
