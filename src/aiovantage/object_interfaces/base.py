@@ -1,4 +1,4 @@
-"""Base class for command client interfaces."""
+"""Base class for object interfaces."""
 
 from collections.abc import Callable
 from typing import (
@@ -59,11 +59,11 @@ def method(*methods: str, property: str | None = None) -> Callable[[T], T]:
     return decorator
 
 
-class InterfaceMeta(type):
+class _InterfaceMeta(type):
     """Metaclass to collect method metadata from member functions and base classes."""
 
     def __new__(
-        cls: type["InterfaceMeta"],
+        cls: type["_InterfaceMeta"],
         name: str,
         bases: tuple[type, ...],
         dct: dict[str, Any],
@@ -76,9 +76,9 @@ class InterfaceMeta(type):
         # Include method metadata from base classes
         for base in bases:
             if issubclass(base, Interface):
-                method_signatures.update(base.method_signatures)
-                method_properties.update(base.method_properties)
-                property_getters.update(base.property_getters)
+                method_signatures.update(base._method_signatures)  # type: ignore
+                method_properties.update(base._method_properties)  # type: ignore
+                property_getters.update(base._property_getters)  # type: ignore
 
         # Collect method metadata from member functions
         for attr in dct.values():
@@ -103,33 +103,29 @@ class InterfaceMeta(type):
                     property_getters[property] = attr
 
         # Attach the method metadata to the class
-        dct["method_signatures"] = method_signatures
-        dct["method_properties"] = method_properties
-        dct["property_getters"] = property_getters
+        dct["_method_signatures"] = method_signatures
+        dct["_method_properties"] = method_properties
+        dct["_property_getters"] = property_getters
 
         return super().__new__(cls, name, bases, dct)
 
 
-class Interface(metaclass=InterfaceMeta):
+class Interface(metaclass=_InterfaceMeta):
     """Base class for command client object interfaces."""
 
     interface_name: ClassVar[str]
     """The name of the interface."""
 
-    method_signatures: ClassVar[dict[str, type[Any]]]
-    """A mapping of method names to return types, for parsing statuses and responses."""
-
-    method_properties: ClassVar[dict[str, str]]
-    """A mapping of method names to property names, for updating object state."""
-
-    property_getters: ClassVar[dict[str, _AsyncCallable]]
-    """A mapping of property names to getter functions, for fetching object state."""
+    vid: int
+    """The VID of the object to send requests to."""
 
     command_client: CommandClient | None = None
     """The command client to use for sending requests."""
 
-    vid: int
-    """The VID of the object to send requests to."""
+    # Method metadata
+    _method_signatures: dict[str, type[Any]]
+    _method_properties: dict[str, str]
+    _property_getters: dict[str, _AsyncCallable]
 
     @overload
     async def invoke(self, method: str, *params: Any) -> Any: ...
@@ -155,7 +151,7 @@ class Interface(metaclass=InterfaceMeta):
             raise ValueError("The object has no command client to send requests with.")
 
         # Make sure we have a signature for the method
-        if as_type is None and method not in self.method_signatures:
+        if as_type is None and method not in self._method_signatures:
             raise NotImplementedError(f"No signature found for method {method}")
 
         # Build the request
@@ -171,11 +167,11 @@ class Interface(metaclass=InterfaceMeta):
         _command, _vid, result, _method, *args = tokenize(return_line)
 
         # Parse the response
-        signature = as_type or self.method_signatures[method]
+        signature = as_type or self._method_signatures[method]
         return _parse_object_response(result, *args, as_type=signature)
 
     def update_property(self, property: str, value: Any) -> str | None:
-        """Update an object property if it has changed.
+        """Update an object property.
 
         Args:
             property: The property to update.
@@ -201,15 +197,15 @@ class Interface(metaclass=InterfaceMeta):
 
         # Determine which properties to fetch
         props_to_fetch = (
-            [p for p in properties if p in cls.property_getters.keys()]
+            [p for p in properties if p in cls._property_getters.keys()]
             if properties
-            else cls.property_getters.keys()
+            else cls._property_getters.keys()
         )
 
         # Fetch each state property
         props_changed: list[str] = []
         for prop in props_to_fetch:
-            if getter := cls.property_getters.get(prop):
+            if getter := cls._property_getters.get(prop):
                 # Call the getter function
                 try:
                     result = await getter(self)
@@ -234,16 +230,16 @@ class Interface(metaclass=InterfaceMeta):
             The property that was updated, or None if no property was updated.
         """
         # Look up the property associated with this method
-        property = self.method_properties.get(method)
+        property = self._method_properties.get(method)
         if property is None:
             return None
 
         # Make sure we have a signature for the method
-        if method not in self.method_signatures:
+        if method not in self._method_signatures:
             raise NotImplementedError(f"No signature found for method {method}")
 
         # Parse the response
-        signature = self.method_signatures[method]
+        signature = self._method_signatures[method]
         value = _parse_object_response(result, *args, as_type=signature)
 
         # Update the property if it has changed

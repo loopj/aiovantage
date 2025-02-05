@@ -1,4 +1,4 @@
-"""Interface for querying and controlling buttons."""
+"""Button object interface."""
 
 from decimal import Decimal
 from enum import IntEnum
@@ -9,7 +9,7 @@ from .base import Interface, method
 
 
 class ButtonInterface(Interface):
-    """Interface for querying and controlling buttons."""
+    """Button object interface."""
 
     interface_name = "Button"
 

@@ -1,4 +1,4 @@
-"""Interface for querying and controlling variables."""
+"""GMem object interface."""
 
 from dataclasses import dataclass
 from typing import Any
@@ -11,7 +11,7 @@ from .base import Interface, method
 
 
 class GMemInterface(Interface):
-    """Interface for querying and controlling variables."""
+    """GMem object interface."""
 
     interface_name = "GMem"
 

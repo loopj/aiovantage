@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage modules."""
+"""Modules controller."""
 
 from aiovantage.objects import SystemObject
 
@@ -6,6 +6,9 @@ from .base import BaseController
 
 
 class ModulesController(BaseController[SystemObject]):
-    """Controller holding and managing Vantage power modules."""
+    """Modules controller.
+
+    Modules are relay or dimming modules connected to the Vantage system.
+    """
 
     vantage_types = ("Module", "ModuleGen2")

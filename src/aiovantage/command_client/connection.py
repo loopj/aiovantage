@@ -25,17 +25,17 @@ class CommandConnection(BaseConnection):
         return self._requires_authentication
 
     @property
-    def supports_enhanced_log(self) -> bool | None:
+    def supports_enhanced_log(self) -> bool:
         """Check if the connection supports enhanced log commands."""
-        return self._ellag_state is not None
-
-    @property
-    def initial_elagg_state(self) -> bool | None:
-        """The initial state of the ELAGG command on the connection."""
-        return self._ellag_state
+        return self._supports_enhanced_log
 
     async def authenticate(self, username: str, password: str) -> None:
-        """Authenticate the connection."""
+        """Authenticate the connection.
+
+        Args:
+            username: The username to use for authentication.
+            password: The password to use for authentication.
+        """
         # Send the login command
         await self.write(f"LOGIN {username} {password}\n")
 
@@ -45,7 +45,7 @@ class CommandConnection(BaseConnection):
             raise LoginFailedError(response)
 
         self._authenticated = True
-        self._ellag_state = await self._get_elagg_state()
+        self._supports_enhanced_log = await self._get_supports_enhanced_log()
 
     @override
     async def _post_open(self) -> None:
@@ -53,10 +53,9 @@ class CommandConnection(BaseConnection):
         self._requires_authentication = await self._get_requires_authentication()
 
         if not self._requires_authentication:
-            self._ellag_state = await self._get_elagg_state()
+            self._supports_enhanced_log = await self._get_supports_enhanced_log()
 
     async def _get_requires_authentication(self) -> bool:
-        """Check if the connection requires authentication."""
         if self.authenticated:
             return False
 
@@ -70,8 +69,7 @@ class CommandConnection(BaseConnection):
 
         return False
 
-    async def _get_elagg_state(self) -> bool | None:
-        """Check if the connection supports enhanced log commands."""
+    async def _get_supports_enhanced_log(self) -> bool:
         # Send the ELAGG command
         await self.write("ELAGG 1\n")
 
@@ -81,4 +79,4 @@ class CommandConnection(BaseConnection):
         if match:
             return match.group(1) == "ON"
 
-        return None
+        return False

@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage RGB loads."""
+"""RGB loads controller."""
 
 from aiovantage.objects import VantageDDGColorLoad, VantageDGColorLoad
 from aiovantage.query import QuerySet
@@ -9,7 +9,7 @@ RGBLoadTypes = VantageDDGColorLoad | VantageDGColorLoad
 
 
 class RGBLoadsController(BaseController[RGBLoadTypes]):
-    """Controller holding and managing Vantage RGB loads."""
+    """RGB loads controller."""
 
     vantage_types = ("Vantage.DGColorLoad", "Vantage.DDGColorLoad")
 

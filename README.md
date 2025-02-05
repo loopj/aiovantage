@@ -1,6 +1,6 @@
-# aiovantage
+# Python Library for Vantage InFusion Controllers
 
-aiovantage is a Python library for interacting with and controlling Vantage InFusion home automation controllers.
+`aiovantage` is a Python library for interacting with and controlling Vantage InFusion home automation controllers.
 
 This open-source, non-commercial library is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Vantage, and is provided for interoperability purposes only.
 

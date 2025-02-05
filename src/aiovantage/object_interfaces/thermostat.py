@@ -1,4 +1,4 @@
-"""Interface for querying and controlling thermostats."""
+"""Thermostat interface."""
 
 from decimal import Decimal
 from enum import IntEnum
@@ -9,7 +9,7 @@ from .base import Interface, method
 
 
 class ThermostatInterface(Interface):
-    """Interface for querying and controlling thermostats."""
+    """Thermostat interface."""
 
     interface_name = "Thermostat"
 

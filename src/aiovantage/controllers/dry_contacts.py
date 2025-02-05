@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage dry contacts."""
+"""Dry contacts controller."""
 
 from aiovantage.objects import DryContact
 
@@ -6,6 +6,6 @@ from .base import BaseController
 
 
 class DryContactsController(BaseController[DryContact]):
-    """Controller holding and managing Vantage dry contacts."""
+    """Dry contacts controller."""
 
     vantage_types = ("DryContact",)

@@ -1,4 +1,4 @@
-"""Interface for querying and controlling loads."""
+"""Load object interface."""
 
 from decimal import Decimal
 from enum import IntEnum
@@ -9,7 +9,7 @@ from .base import Interface, method
 
 
 class LoadInterface(Interface):
-    """Interface for querying and controlling loads."""
+    """Load object interface."""
 
     interface_name = "Load"
 

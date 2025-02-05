@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage controllers."""
+"""Masters (InFusion Controllers) controller."""
 
 from aiovantage.objects import Master
 
@@ -6,6 +6,6 @@ from .base import BaseController
 
 
 class MastersController(BaseController[Master]):
-    """Controller holding and managing Vantage controllers."""
+    """Masters (InFusion Controllers) controller."""
 
     vantage_types = ("Master",)

@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage port devices."""
+"""Port devices controller."""
 
 from aiovantage.objects import PortDevice
 
@@ -6,7 +6,7 @@ from .base import BaseController
 
 
 class PortDevicesController(BaseController[PortDevice]):
-    """Controller holding and managing Vantage port devices.
+    """Port devices controller.
 
     Port devices are typically "hubs" that communicate with other devices such
     as blinds or lighting systems. It is mostly useful to know about these

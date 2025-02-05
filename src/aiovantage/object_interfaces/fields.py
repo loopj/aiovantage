@@ -1,4 +1,4 @@
-"""Field definitions for various mixins, aka 'Interface Classes'."""
+"""Field definitions for various "interface provided" object fields."""
 
 from dataclasses import dataclass, field
 

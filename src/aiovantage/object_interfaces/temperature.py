@@ -1,4 +1,4 @@
-"""Interface for querying and controlling sensors."""
+"""Temperature interface."""
 
 from decimal import Decimal
 
@@ -8,7 +8,7 @@ from .base import Interface, method
 
 
 class TemperatureInterface(Interface):
-    """Interface for querying and controlling sensors."""
+    """Temperature interface."""
 
     interface_name = "Temperature"
 

@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage buttons."""
+"""Buttons controller."""
 
 from aiovantage.objects import Button
 
@@ -6,6 +6,6 @@ from .base import BaseController
 
 
 class ButtonsController(BaseController[Button]):
-    """Controller holding and managing Vantage buttons."""
+    """Buttons controller."""
 
     vantage_types = ("Button",)

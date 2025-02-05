@@ -1,7 +1,6 @@
 """Temperature object."""
 
-from dataclasses import dataclass, field
-from enum import Enum
+from dataclasses import dataclass
 
 from aiovantage.object_interfaces import TemperatureInterface
 
@@ -20,13 +19,3 @@ class Temperature(Sensor, TemperatureInterface):
     range_low: float
     hold_on_time: float
     temp: int = 0
-
-    # Not available in 2.x firmware, not strictly in the schema
-    class Setpoint(Enum):
-        """Setpoint type."""
-
-        HEAT = "Heat"
-        COOL = "Cool"
-        AUTO = "Auto"
-
-    setpoint: Setpoint | None = field(default=None, metadata={"type": "Attribute"})

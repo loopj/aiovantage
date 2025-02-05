@@ -41,17 +41,16 @@ T = TypeVar("T")
 U = TypeVar("U")
 
 
-def pascal_case_preserve(name: str) -> str:
-    """Convert a field/class name to PascalCase, preserving existing PascalCase names."""
+def _pascal_case_preserve(name: str) -> str:
+    # Convert a field/class name to PascalCase, preserving existing PascalCase names.
     if "_" in name or name.islower():
         return pascal_case(name)
     else:
         return name
 
 
-class Method(Protocol[T, U]):
-    """Duck typing for config client methods."""
-
+class _Method(Protocol[T, U]):
+    # Duck typing for config client methods.
     interface: str
     call: T | None
     result: U | None
@@ -86,8 +85,8 @@ class ConfigClient:
 
         # Default to pascal case for element and attribute names
         xml_context = XmlContext(
-            element_name_generator=pascal_case_preserve,
-            attribute_name_generator=pascal_case_preserve,
+            element_name_generator=_pascal_case_preserve,
+            attribute_name_generator=_pascal_case_preserve,
             models_package="aiovantage.objects",
         )
 
@@ -159,7 +158,7 @@ class ConfigClient:
 
     async def request(
         self,
-        method_cls: type[Method[T, U]],
+        method_cls: type[_Method[T, U]],
         params: T | None = None,
         connection: ConfigConnection | None = None,
     ) -> U | None:

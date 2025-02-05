@@ -1,4 +1,4 @@
-"""Subscribe to events from the Vantage Host Command service."""
+"""Client to subscribe to events from the Vantage Host Command service."""
 
 import asyncio
 import logging
@@ -23,14 +23,22 @@ KEEPALIVE_INTERVAL = 60
 
 
 class EventType(Enum):
-    """Enumeration of event types."""
+    """Event types emitted by the event stream."""
 
     CONNECTED = "connect"
+    """The connection to the Host Command service was established."""
+
     DISCONNECTED = "disconnect"
+    """The connection to the Host Command service was lost."""
+
     RECONNECTED = "reconnect"
+    """The connection to the Host Command service was re-established."""
+
     STATUS = "status"
-    LOG = "log"
+    """An "S:" status message was received."""
+
     ENHANCED_LOG = "enhanced_log"
+    """An "EL:" enhanced log message was received."""
 
 
 class ConnectEvent(TypedDict):
@@ -265,12 +273,8 @@ class EventStream:
 
         return unsubscribe
 
-    def emit(self, event: Event) -> None:
-        """Emit an event to subscribers.
-
-        Args:
-            event: The event to emit.
-        """
+    def _emit(self, event: Event) -> None:
+        # Emit an event to subscribers.
         for callback, event_filter in self._subscriptions:
             if event_filter is None or event_filter(event):
                 if iscoroutinefunction(callback):
@@ -289,9 +293,9 @@ class EventStream:
 
                 # Notify that we're connected
                 if connect_attempts == 1:
-                    self.emit({"type": EventType.CONNECTED})
+                    self._emit({"type": EventType.CONNECTED})
                 else:
-                    self.emit({"type": EventType.RECONNECTED})
+                    self._emit({"type": EventType.RECONNECTED})
                     self._resubscribe()
                 connect_attempts = 1
 
@@ -306,7 +310,7 @@ class EventStream:
                 pass  # Pass through to retry logic below
 
             # If we get here, the connection was lost
-            self.emit({"type": EventType.DISCONNECTED})
+            self._emit({"type": EventType.DISCONNECTED})
 
             # Clear the command queue
             with suppress(asyncio.QueueEmpty):
@@ -363,7 +367,7 @@ class EventStream:
             # These messages are emitted when the state of an object changes after
             # subscribing to updates via "STATUS <type>" or "ADDSTATUS <vid>".
             category, vid_str, *args = tokenize(message)
-            self.emit(
+            self._emit(
                 {
                     "type": EventType.STATUS,
                     "category": category[2:],
@@ -375,7 +379,7 @@ class EventStream:
             # Parse an "enhanced log" message, of the form "EL: <log>"
             # These messages are emitted when an enhanced log is received after
             # subscribing to updates via "ELLOG <type>".
-            self.emit({"type": EventType.ENHANCED_LOG, "log": message[4:]})
+            self._emit({"type": EventType.ENHANCED_LOG, "log": message[4:]})
         elif message.startswith("R:ERROR"):
             self._logger.error("Error message from EventStream: %s", message)
 

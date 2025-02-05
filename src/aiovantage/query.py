@@ -32,9 +32,9 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
                       dataset before using "async for" loops.
             filters: A list of filters to apply to the queryset.
         """
-        self.__data = data
-        self.__populate = populate
-        self.__iterator: Iterator[T] | None = None
+        self._data = data
+        self._populate = populate
+        self._iterator: Iterator[T] | None = None
 
         if filters is None:
             self.__filters: list[Callable[[T], Any]] = []
@@ -43,7 +43,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
 
     def __iter__(self) -> Iterator[T]:
         """Return an iterator over the queryset."""
-        for obj in self.__data.values():
+        for obj in self._data.values():
             if all(filter_fn(obj) for filter_fn in self.__filters):
                 yield obj
 
@@ -59,7 +59,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
     async def __anext__(self) -> T:
         """Return the next object in the queryset."""
         if self.__iterator is None:
-            await self.__populate()
+            await self._populate()
 
             self.__iterator = iter(self)
 
@@ -68,10 +68,6 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         except StopIteration as exc:
             raise StopAsyncIteration from exc
 
-    def add_filter(self, filter_fn: Callable[[T], Any]) -> None:
-        """Add a filter to the queryset."""
-        self.__filters.append(filter_fn)
-
     @overload
     def filter(self, match: Callable[[T], Any]) -> "QuerySet[T]": ...
 
@@ -79,13 +75,13 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
     def filter(self, **kwargs: Any) -> "QuerySet[T]": ...
 
     def filter(self, *args: Any, **kwargs: Any) -> "QuerySet[T]":
-        """Return a queryset of items that match the given filter."""
-        queryset = QuerySet(self.__data, self.__populate, self.__filters.copy())
+        """Return a queryset of objects that match the given filter."""
+        queryset = QuerySet(self._data, self._populate, self.__filters.copy())
 
         if len(args) == 1:
-            queryset.add_filter(args[0])
+            queryset.__filters.append(args[0])
         elif len(args) == 0 and len(kwargs) > 0:
-            queryset.add_filter(
+            queryset.__filters.append(
                 lambda obj: all(
                     getattr(obj, key) == value for key, value in kwargs.items()
                 )
@@ -115,7 +111,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         """Get the first object that matches the given filter."""
         # Handle the case where we're getting an object by key
         if len(args) == 1 and isinstance(args[0], int):
-            return self.__data.get(args[0], None)
+            return self._data.get(args[0], None)
 
         # Otherwise, pass through to filter and return the first object
         return next(iter(self.filter(*args, **kwargs)), None)
@@ -131,7 +127,7 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
 
     async def aget(self, *args: Any, **kwargs: Any) -> T | None:
         """Asynchronously get the first object that matches the given filter."""
-        await self.__populate()
+        await self._populate()
         return self.get(*args, **kwargs)
 
     def first(self) -> T | None:
@@ -140,5 +136,5 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
 
     async def afirst(self) -> T | None:
         """Asynchronously return the first object in the queryset."""
-        await self.__populate()
+        await self._populate()
         return self.first()

@@ -1,4 +1,4 @@
-"""Interface for querying and controlling tasks."""
+"""Task interface."""
 
 from enum import IntEnum
 
@@ -8,7 +8,7 @@ from .base import Interface, method
 
 
 class TaskInterface(Interface):
-    """Interface for querying and controlling tasks."""
+    """Task interface."""
 
     interface_name = "Task"
 

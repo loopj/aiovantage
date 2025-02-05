@@ -1,4 +1,4 @@
-"""Interface for querying and controlling RGB loads."""
+"""RGB load interface."""
 
 from decimal import Decimal
 from enum import IntEnum
@@ -12,7 +12,7 @@ from .base import Interface, method
 
 
 class RGBLoadInterface(Interface):
-    """Interface for querying and controlling RGB loads."""
+    """RGB load interface."""
 
     interface_name = "RGBLoad"
 

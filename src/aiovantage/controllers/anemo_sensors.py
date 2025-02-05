@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage anemo (wind) sensors."""
+"""Anemo sensors (wind speed sensors) controller."""
 
 from aiovantage.objects import AnemoSensor
 
@@ -6,6 +6,6 @@ from .base import BaseController
 
 
 class AnemoSensorsController(BaseController[AnemoSensor]):
-    """Controller holding and managing Vantage anemo (wind) sensors."""
+    """Anemo sensors (wind speed sensors) controller."""
 
     vantage_types = ("AnemoSensor",)

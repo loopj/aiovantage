@@ -1,4 +1,4 @@
-"""Controller holding and managing thermostats."""
+"""Thermostats controller."""
 
 from aiovantage.objects import Temperature, Thermostat
 from aiovantage.query import QuerySet
@@ -7,7 +7,7 @@ from .base import BaseController
 
 
 class ThermostatsController(BaseController[Thermostat]):
-    """Controller holding and managing thermostats.
+    """Thermostats controller.
 
     Thermostats have a number of temperature sensors associated with them which
     represent the current indoor temperature, outdoor temperature, and the

@@ -1,4 +1,4 @@
-"""Interface for querying and controlling power sensors."""
+"""Power sensor interface."""
 
 from decimal import Decimal
 
@@ -8,7 +8,7 @@ from .base import Interface, method
 
 
 class PowerSensorInterface(Interface):
-    """Interface for querying and controlling power sensors."""
+    """Power sensor interface."""
 
     interface_name = "PowerSensor"
 

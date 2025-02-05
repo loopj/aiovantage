@@ -1,4 +1,4 @@
-"""Interface for controller configuration."""
+"""Configuration object interface."""
 
 import datetime as dt
 from enum import IntEnum, IntFlag
@@ -7,7 +7,7 @@ from .base import Interface, method
 
 
 class ConfigurationInterface(Interface):
-    """Interface for controller introspection."""
+    """Configuration object interface."""
 
     interface_name = "Configuration"
 

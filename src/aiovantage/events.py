@@ -8,11 +8,16 @@ from .objects import SystemObject
 
 
 class VantageEvent(Enum):
-    """Enum with possible Events."""
+    """Event types that can be emitted Vantage controllers or the main client."""
 
     OBJECT_ADDED = "add"
+    """An object was added to the controller."""
+
     OBJECT_UPDATED = "update"
+    """One or more object attributes were updated."""
+
     OBJECT_DELETED = "delete"
+    """An object was removed from the controller."""
 
 
 T = TypeVar("T", bound=SystemObject)

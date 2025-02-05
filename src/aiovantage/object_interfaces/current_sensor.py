@@ -1,4 +1,4 @@
-"""Interface for querying and controlling current sensors."""
+"""Current sensor object interface."""
 
 from decimal import Decimal
 
@@ -8,7 +8,7 @@ from .base import Interface, method
 
 
 class CurrentSensorInterface(Interface):
-    """Interface for querying and controlling current sensors."""
+    """Current sensor object interface."""
 
     interface_name = "CurrentSensor"
 

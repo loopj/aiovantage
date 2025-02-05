@@ -1,4 +1,4 @@
-"""Interface for querying and controlling fans."""
+"""Fan object interface."""
 
 from enum import IntEnum
 
@@ -6,7 +6,7 @@ from .base import Interface, method
 
 
 class FanInterface(Interface):
-    """Interface for querying and controlling fans."""
+    """Fan object interface."""
 
     interface_name = "Fan"
 

@@ -1,4 +1,4 @@
-"""Interface for querying and controlling anemo (wind) sensors."""
+"""Anemo sensor object interface."""
 
 from decimal import Decimal
 
@@ -8,7 +8,7 @@ from .base import Interface, method
 
 
 class AnemoSensorInterface(Interface):
-    """Interface for querying and controlling anemo (wind) sensors."""
+    """Anemo sensor object interface."""
 
     interface_name = "AnemoSensor"
 

@@ -1,4 +1,4 @@
-"""Send commands to the Vantage Host Command service."""
+"""Client for sending commands to the Vantage Host Command service."""
 
 import asyncio
 import logging
@@ -103,7 +103,7 @@ class CommandClient:
         Returns:
             The response lines received from the server.
         """
-        conn = await self.get_connection()
+        conn = await self._get_connection()
 
         # Send the command
         async with self._command_lock:
@@ -140,7 +140,7 @@ class CommandClient:
 
         return response_lines
 
-    async def get_connection(self) -> CommandConnection:
+    async def _get_connection(self) -> CommandConnection:
         """Get a connection to the Host Command service."""
         async with self._connection_lock:
             if self._connection.closed:

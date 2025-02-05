@@ -1,4 +1,7 @@
-"""Interact with and control Vantage InFusion home automation controllers."""
+"""aiovantage package.
+
+Asynchronous Python library for controlling Vantage InFusion controllers.
+"""
 
 __all__ = ["Vantage", "VantageEvent"]
 
@@ -277,19 +280,20 @@ class Vantage:
         self.event_stream.stop()
 
     async def initialize(
-        self, *, fetch_state: bool = True, subscribe_state: bool = True
+        self, *, fetch_state: bool = True, monitor_state: bool = True
     ) -> None:
         """Fetch all objects from the controllers.
 
         Args:
             fetch_state: Whether to fetch the state of stateful objects.
-            subscribe_state: Whether to keep the state of stateful objects up-to-date.
+            monitor_state: Whether to keep the state of stateful objects up-to-date.
         """
         # Initialize all controllers
         await asyncio.gather(
             *[
                 controller.initialize(
-                    fetch_state=fetch_state, subscribe_state=subscribe_state
+                    fetch_state=fetch_state,
+                    monitor_state=monitor_state,
                 )
                 for controller in self._controllers
             ]
@@ -319,7 +323,7 @@ class Vantage:
         if event["type"] == EventType.RECONNECTED:
             for controller in self._controllers:
                 if controller.initialized:
-                    await controller.fetch_full_state()
+                    await controller.fetch_state()
 
     def _add_controller(self, controller_cls: type[ControllerT]) -> ControllerT:
         # Add a controller to the known controllers.

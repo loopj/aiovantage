@@ -28,6 +28,13 @@ Source = "https://github.com/loopj/aiovantage"
 [project.optional-dependencies]
 dev = ["pyright==1.1.393", "ruff==0.9.4", "bumpver==2024.1130"]
 
+docs = [
+    "mkdocstrings[python]",
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-api-autonav",
+]
+
 [tool.ruff.lint]
 select = [
     "F",   # pyflakes

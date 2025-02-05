@@ -1,4 +1,8 @@
-"""Helper functions for fetching system objects."""
+"""Helper functions for making common requests to the ACI service.
+
+The module provides various "pythonic" interfaces for making common requests to the
+ACI service, without having to know the details of the underlying API.
+"""
 
 from collections.abc import AsyncIterator
 from contextlib import suppress
@@ -27,8 +31,8 @@ async def get_objects(
     Use when the type of the objects being fetched can be mixed.
 
     Args:
-        client: The config client instance
-        *types: The element names of the objects to fetch
+        client: A config client instance
+        *types: The type names of the objects to fetch, eg. "Area", "Load", "Keypad"
         xpath: An optional xpath to filter the results by, eg. "/Load", "/*[@VID='12']"
 
     Yields:
@@ -61,7 +65,7 @@ async def get_objects_by_type(
     Use when fetching a specific type of object, eg. Area, Load, Keypad, etc.
 
     Args:
-        client: The config client instance
+        client: A config client instance
         object_type: The type of objects to fetch
         xpath: An optional xpath to filter the results by, eg. "/Load", "/*[@VID='12']"
 
@@ -76,14 +80,14 @@ async def get_objects_by_type(
 async def get_objects_by_id(
     client: ConfigClient, *vids: int
 ) -> AsyncIterator[SystemObject]:
-    """Get all Vantage objects of the specified ids.
+    """Get Vantage objects by id.
 
     Args:
-        client: The config client instance
-        vids: A list of Vantage IDs for object to fetch
+        client: A config client instance
+        vids: A list of Vantage IDs for objects to fetch
 
     Yields:
-        The objects of the specified ids
+        The objects matching the specified ids
     """
     # Open the filter
     response = await client.request(GetObject, list(vids))

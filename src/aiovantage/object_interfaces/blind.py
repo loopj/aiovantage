@@ -1,4 +1,4 @@
-"""Interface for querying and controlling blinds."""
+"""Blind object interface."""
 
 from dataclasses import dataclass
 from decimal import Decimal
@@ -6,11 +6,11 @@ from decimal import Decimal
 from typing_extensions import override
 
 from .base import Interface, method
-from .mixins import ShadeOrientation, ShadeType
+from .fields import ShadeOrientation, ShadeType
 
 
 class BlindInterface(Interface, ShadeOrientation, ShadeType):
-    """Interface for querying and controlling blinds."""
+    """Blind object interface."""
 
     interface_name = "Blind"
 

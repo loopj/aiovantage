@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage power profiles."""
+"""Power profiles controller."""
 
 from aiovantage.objects import PowerProfile
 
@@ -6,6 +6,6 @@ from .base import BaseController
 
 
 class PowerProfilesController(BaseController[PowerProfile]):
-    """Controller holding and managing Vantage power profiles."""
+    """Power profiles controller."""
 
     vantage_types = ("PowerProfile", "DCPowerProfile", "PWMPowerProfile")

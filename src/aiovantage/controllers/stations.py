@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage stations."""
+"""Stations controller."""
 
 from aiovantage.objects import StationObject
 
@@ -6,7 +6,7 @@ from .base import BaseController
 
 
 class StationsController(BaseController[StationObject]):
-    """Controller holding and managing Vantage stations.
+    """Stations controller.
 
     Stations typically represent keypads or remote relays. It is mostly useful
     to know about these devices so we can set up a proper device hierarchy.

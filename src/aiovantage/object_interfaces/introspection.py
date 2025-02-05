@@ -1,4 +1,4 @@
-"""Interface for controller introspection."""
+"""Introspection object interface."""
 
 from dataclasses import dataclass
 from enum import IntEnum
@@ -7,7 +7,7 @@ from .base import Interface, method
 
 
 class IntrospectionInterface(Interface):
-    """Interface for controller introspection."""
+    """Introspection object interface."""
 
     interface_name = "Introspection"
 

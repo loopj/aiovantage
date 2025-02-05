@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage blinds."""
+"""Blinds controller."""
 
 from aiovantage.objects import (
     QISBlind,
@@ -16,7 +16,7 @@ BlindTypes = (
 
 
 class BlindsController(BaseController[BlindTypes]):
-    """Controller holding and managing Vantage blinds."""
+    """Blinds controller."""
 
     vantage_types = (
         "QISBlind",

@@ -1,4 +1,4 @@
-"""Interface for keypad speakers."""
+"""Sounder interface."""
 
 from decimal import Decimal
 from enum import IntEnum
@@ -7,7 +7,7 @@ from .base import Interface, method
 
 
 class SounderInterface(Interface):
-    """Interface for keypad speakers."""
+    """Sounder interface."""
 
     interface_name = "Sounder"
 

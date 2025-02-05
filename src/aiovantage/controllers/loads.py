@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage loads."""
+"""Loads controller."""
 
 from aiovantage.objects import Load
 from aiovantage.query import QuerySet
@@ -7,7 +7,7 @@ from .base import BaseController
 
 
 class LoadsController(BaseController[Load]):
-    """Controller holding and managing Vantage loads."""
+    """Loads controller."""
 
     vantage_types = ("Load",)
 

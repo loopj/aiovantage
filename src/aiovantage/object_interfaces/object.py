@@ -1,4 +1,4 @@
-"""Interface for querying and controlling system objects."""
+"""'Object' object interface."""
 
 import datetime as dt
 from dataclasses import dataclass
@@ -7,7 +7,7 @@ from .base import Interface, method
 
 
 class ObjectInterface(Interface):
-    """Interface for querying and controlling system objects."""
+    """'Object' object interface."""
 
     interface_name = "Object"
 

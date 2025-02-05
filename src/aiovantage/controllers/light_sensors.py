@@ -1,4 +1,4 @@
-"""Controller holding and managing Vantage light sensors."""
+"""Light sensors controller."""
 
 from aiovantage.objects import LightSensor
 
@@ -6,6 +6,6 @@ from .base import BaseController
 
 
 class LightSensorsController(BaseController[LightSensor]):
-    """Controller holding and managing Vantage light sensors."""
+    """Light sensors controller."""
 
     vantage_types = ("LightSensor",)
