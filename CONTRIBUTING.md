@@ -2,21 +2,7 @@
 
 First off, thanks for taking the time to contribute!
 
-## Table of contents
-
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
-- [🔨 Set up development environment](#-set-up-development-environment)
-- [💡 Adding support for new devices](#-adding-support-for-new-devices)
-- [✨ Submit your work](#-submit-your-work)
-- [🎨 Style guidelines](#-style-guidelines)
-- [📦️ Build a package](#%EF%B8%8F-build-a-package)
-- [🚀 Publish a release](#-publish-a-release)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-## 🔨 Set up development environment
+## Set up development environment
 
 ### Using `uv`
 
@@ -53,7 +39,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-## 💡 Adding support for new devices
+## Adding support for new devices
 
 ### Adding a new object type to an existing controller
 
@@ -70,13 +56,13 @@ To add a new object type to an existing controller, follow these steps:
 
 If you want to add support for a new class of device, you'll need to add a new controller. Create an issue to discuss the new controller before you start working on it.
 
-## ✨ Submit your work
+## Submit your work
 
 Submit your improvements, fixes, and new features to one at a time, using GitHub [Pull Requests](https://docs.github.com/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests).
 
 Good pull requests remain focused in scope and avoid containing unrelated commits. If your contribution involves a significant amount of work or substantial changes to any part of the project, please open an issue to discuss it first to avoid any wasted or duplicate effort.
 
-## 🎨 Style guidelines
+## Style guidelines
 
 Before submitting a pull request, make sure your code follows the style guidelines. This project uses [pyright](https://microsoft.github.io/pyright/) for type checking, and [ruff](https://docs.astral.sh/ruff/) for linting and formatting.
 
@@ -103,7 +89,7 @@ uv run ruff check
 uv run ruff format
 ```
 
-## 📦️ Build a package
+## Build a package
 
 To build the package, first update the version number:
 
@@ -117,7 +103,7 @@ Then build the package:
 uv build
 ```
 
-## 🚀 Publish a release
+## Publish a release
 
 To publish the package to PyPi:
 

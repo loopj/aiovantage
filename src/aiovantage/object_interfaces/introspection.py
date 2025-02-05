@@ -1,6 +1,6 @@
 """Introspection object interface."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
 
 from .base import Interface, method
@@ -26,25 +26,14 @@ class IntrospectionInterface(Interface):
         All = -1
 
     @dataclass
-    class FirmwareVersion:
-        """A firmware version response."""
-
-        rcode: int
-        image: "IntrospectionInterface.Firmware"
-        version: str
-        size: int
-
-    @dataclass
     class LicenseInfo:
         """A license info response."""
 
-        rcode: int
-        type: "IntrospectionInterface.LicenseType"
-        used: int
-        total: int
+        used: int = field(metadata={"out": "arg1"})
+        total: int = field(metadata={"out": "arg2"})
 
     # Methods
-    @method("GetAppControllers")
+    @method("GetAppControllers", out="arg0")
     async def get_app_controllers(self) -> str:
         """Get a list of controllers in application mode, excluding this controller.
 
@@ -55,8 +44,8 @@ class IntrospectionInterface(Interface):
         # -> R:INVOKE <id> <rcode> Introspection.GetAppControllers <controllers>
         return await self.invoke("Introspection.GetAppControllers")
 
-    @method("GetFirmwareVersion")
-    async def get_firmware_version(self, image: Firmware) -> FirmwareVersion:
+    @method("GetFirmwareVersion", out="arg1")
+    async def get_firmware_version(self, image: Firmware) -> str:
         """Get the firmware version.
 
         Args:
@@ -80,6 +69,4 @@ class IntrospectionInterface(Interface):
     # Convenience functions, not part of the interface
     async def get_application_version(self) -> str:
         """Get the application firmware version."""
-        response = await self.get_firmware_version(self.Firmware.Application)
-
-        return response.version
+        return await self.get_firmware_version(self.Firmware.Application)

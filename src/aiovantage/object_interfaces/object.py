@@ -1,7 +1,6 @@
 """'Object' object interface."""
 
 import datetime as dt
-from dataclasses import dataclass
 
 from .base import Interface, method
 
@@ -10,15 +9,6 @@ class ObjectInterface(Interface):
     """'Object' object interface."""
 
     interface_name = "Object"
-
-    @dataclass
-    class PropertyEx:
-        """Extended property information."""
-
-        rcode: int
-        property: str
-        value: str
-        size: int
 
     # Methods
     @method("GetVID")
@@ -43,7 +33,7 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <controller> Object.GetController
         return await self.invoke("Object.GetController")
 
-    @method("GetType")
+    @method("GetType", out="arg0")
     async def get_type(self) -> str:
         """Get the type of an object.
 
@@ -54,7 +44,7 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <type> Object.GetType
         return await self.invoke("Object.GetType")
 
-    @method("GetName")
+    @method("GetName", out="arg0")
     async def get_name(self) -> str:
         """Get the name field of an object.
 
@@ -65,7 +55,7 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <name> Object.GetName
         return await self.invoke("Object.GetName")
 
-    @method("GetModel")
+    @method("GetModel", out="arg0")
     async def get_model(self) -> str:
         """Get the model field of an object.
 
@@ -76,7 +66,7 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <model> Object.GetModel
         return await self.invoke("Object.GetModel")
 
-    @method("GetNote")
+    @method("GetNote", out="arg0")
     async def get_note(self) -> str:
         """Get the note field of an object.
 
@@ -101,8 +91,8 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <value> Object.GetProperty <xpath>
         return await self.invoke("Object.GetProperty", xpath)
 
-    @method("GetPropertyEx")
-    async def get_property_ex(self, xpath: str) -> PropertyEx:
+    @method("GetPropertyEx", out="arg1")
+    async def get_property_ex(self, xpath: str) -> str:
         """Get a string property of an object.
 
         Args:
@@ -204,7 +194,7 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <mtime> Object.GetMTime
         return await self.invoke("Object.GetMTime")
 
-    @method("GetDName")
+    @method("GetDName", out="arg0")
     async def get_d_name(self) -> str:
         """Get the display name of an object.
 

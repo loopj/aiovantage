@@ -17,7 +17,7 @@ class SystemObject(ObjectInterface):
     note: str
 
     # Not available in 2.x firmware
-    d_name: str | None = None
+    d_name: str = ""
     m_time: dt.datetime | None = field(
         default=None,
         metadata={"type": "Attribute", "format": "%Y-%m-%dT%H:%M:%S.%f"},
@@ -27,11 +27,6 @@ class SystemObject(ObjectInterface):
     def id(self) -> int:
         """Return the ID of the object."""
         return self.vid
-
-    @property
-    def display_name(self) -> str:
-        """Return the display name of the object."""
-        return self.d_name or self.name
 
     @classmethod
     def vantage_type(cls) -> str:

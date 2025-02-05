@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ShadeOrientation:
     """Shade orientation field support."""
 
@@ -14,7 +14,7 @@ class ShadeOrientation:
     )
 
 
-@dataclass
+@dataclass(kw_only=True)
 class ShadeType:
     """Shade type field support."""
 

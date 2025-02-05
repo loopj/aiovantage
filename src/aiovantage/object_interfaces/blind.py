@@ -1,6 +1,6 @@
 """Blind object interface."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 
 from typing_extensions import override
@@ -18,19 +18,18 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
     class BlindState:
         """The state of a blind."""
 
-        is_moving: bool
-        start_pos: Decimal
-        end_pos: Decimal
-        transition_time: Decimal
-        start_time: int
+        is_moving: bool = field(metadata={"out": "return"})
+        start_pos: Decimal = field(metadata={"out": "arg0"})
+        end_pos: Decimal = field(metadata={"out": "arg1"})
+        transition_time: Decimal = field(metadata={"out": "arg2"})
+        start_time: int = field(metadata={"out": "arg3"})
 
     @dataclass
     class TravelTimes:
         """The travel times of a blind."""
 
-        rcode: int
-        open_time: Decimal
-        close_time: Decimal
+        open_time: Decimal = field(metadata={"out": "arg0"})
+        close_time: Decimal = field(metadata={"out": "arg1"})
 
     # Properties
     position: Decimal | None = None

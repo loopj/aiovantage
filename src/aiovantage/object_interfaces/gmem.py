@@ -1,6 +1,6 @@
 """GMem object interface."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from typing_extensions import override
@@ -19,9 +19,8 @@ class GMemInterface(Interface):
     class Buffer:
         """Response from a GMem fetch operation."""
 
-        rcode: int
-        data: bytes
-        size: int
+        type: int = field(metadata={"out": "return"})
+        data: bytes = field(metadata={"out": "arg0"})
 
     # Properties
     value: int | str | bytes | None = None
@@ -35,7 +34,7 @@ class GMemInterface(Interface):
             The contents of the variable.
         """
         # INVOKE <id> GMem.Fetch
-        # -> R:INVOKE <id> <rcode> GMem.Fetch <buffer> <size>
+        # -> R:INVOKE <id> <type> GMem.Fetch <buffer> <size>
         return await self.invoke("GMem.Fetch")
 
     @method("Commit")
