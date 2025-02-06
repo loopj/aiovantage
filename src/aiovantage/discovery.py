@@ -4,10 +4,10 @@ import re
 from dataclasses import dataclass
 from ssl import SSLContext
 
-from .command_client import CommandClient
-from .config_client import ConfigClient
-from .config_client.interfaces.introspection.get_sys_info import GetSysInfo
-from .errors import (
+from aiovantage.command_client import CommandClient
+from aiovantage.config_client import ConfigClient
+from aiovantage.config_client.interfaces.introspection import GetSysInfo
+from aiovantage.errors import (
     ClientConnectionError,
     ClientError,
     LoginFailedError,
