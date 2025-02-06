@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from ssl import SSLContext
 
-from .command_client.commands import CommandClient
+from .command_client import CommandClient
 from .config_client import ConfigClient
 from .config_client.interfaces.introspection.get_sys_info import GetSysInfo
 from .errors import (

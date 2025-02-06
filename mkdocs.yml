@@ -61,7 +61,8 @@ plugins:
         python:
           paths: [src]
           inventories:
-            - https://docs.python.org/3/objects.inv
+            - url: https://docs.python.org/3/objects.inv
+              domains: [py, std]
 
           options:
             # General

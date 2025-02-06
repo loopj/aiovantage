@@ -138,7 +138,7 @@ class ConfigClient:
             The raw XML response.
         """
         # Open the connection if it's closed
-        conn = connection or await self.get_connection()
+        conn = connection or await self._get_connection()
 
         # Render the method object to XML with xsdata
         request = f"<{interface}>{raw_method}</{interface}>"
@@ -210,7 +210,7 @@ class ConfigClient:
 
         return method.result
 
-    async def get_connection(self) -> ConfigConnection:
+    async def _get_connection(self) -> ConfigConnection:
         """Get a connection to the ACI service."""
         async with self._connection_lock:
             if self._connection.closed:
