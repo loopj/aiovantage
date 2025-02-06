@@ -4,24 +4,31 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class CloseFilter:
-    """IConfiguration.CloseFilter method definition."""
+class Object:
+    """Wildcard type that can be used to represent any object."""
+
+    vid: int = field(metadata={"name": "VID", "type": "Attribute"})
+    obj: object = field(metadata={"type": "Wildcard"})
+
+
+@dataclass
+class OpenFilter:
+    """IConfiguration.OpenFilter method definition."""
 
     interface = "IConfiguration"
 
-    call: int | None = field(
-        default=None,
-        metadata={
-            "name": "call",
-        },
-    )
+    @dataclass
+    class Params:
+        """Method parameters."""
 
-    result: bool | None = field(
-        default=None,
-        metadata={
-            "name": "return",
-        },
-    )
+        object_types: list[str] | None = field(
+            default=None,
+            metadata={"wrapper": "Objects", "name": "ObjectType", "type": "Element"},
+        )
+        xpath: str | None = field(default=None, metadata={"name": "XPath"})
+
+    call: Params | None = field(default=None, metadata={"name": "call"})
+    result: int | None = field(default=None, metadata={"name": "return"})
 
 
 @dataclass
@@ -45,21 +52,21 @@ class GetFilterResults:
         vid: int = field(metadata={"name": "VID", "type": "Attribute"})
         obj: object = field(metadata={"type": "Wildcard"})
 
-    call: Params | None = field(
-        default=None,
-        metadata={
-            "name": "call",
-        },
-    )
-
+    call: Params | None = field(default=None, metadata={"name": "call"})
     result: list[Object] | None = field(
         default=None,
-        metadata={
-            "wrapper": "return",
-            "name": "Object",
-            "type": "Element",
-        },
+        metadata={"wrapper": "return", "name": "Object", "type": "Element"},
     )
+
+
+@dataclass
+class CloseFilter:
+    """IConfiguration.CloseFilter method definition."""
+
+    interface = "IConfiguration"
+
+    call: int | None = field(default=None, metadata={"name": "call"})
+    result: bool | None = field(default=None, metadata={"name": "return"})
 
 
 @dataclass
@@ -68,68 +75,21 @@ class GetObject:
 
     interface = "IConfiguration"
 
-    @dataclass
-    class Object:
-        """Wildcard type that can be used to represent any object."""
-
-        vid: int = field(metadata={"name": "VID", "type": "Attribute"})
-        obj: object = field(metadata={"type": "Wildcard"})
-
     call: list[int] | None = field(
-        default=None,
-        metadata={
-            "wrapper": "call",
-            "name": "VID",
-            "type": "Element",
-        },
+        default=None, metadata={"wrapper": "call", "name": "VID", "type": "Element"}
     )
 
     result: list[Object] | None = field(
         default=None,
-        metadata={
-            "wrapper": "return",
-            "name": "Object",
-            "type": "Element",
-        },
+        metadata={"wrapper": "return", "name": "Object", "type": "Element"},
     )
 
 
 @dataclass
-class OpenFilter:
-    """IConfiguration.OpenFilter method definition."""
+class IConfiguration:
+    """IConfiguration interface."""
 
-    interface = "IConfiguration"
-
-    @dataclass
-    class Params:
-        """Method parameters."""
-
-        object_types: list[str] | None = field(
-            default=None,
-            metadata={
-                "wrapper": "Objects",
-                "name": "ObjectType",
-                "type": "Element",
-            },
-        )
-
-        xpath: str | None = field(
-            default=None,
-            metadata={
-                "name": "XPath",
-            },
-        )
-
-    call: Params | None = field(
-        default=None,
-        metadata={
-            "name": "call",
-        },
-    )
-
-    result: int | None = field(
-        default=None,
-        metadata={
-            "name": "return",
-        },
-    )
+    open_filter: OpenFilter | None = None
+    get_filter_results: GetFilterResults | None = None
+    close_filter: CloseFilter | None = None
+    get_object: GetObject | None = None

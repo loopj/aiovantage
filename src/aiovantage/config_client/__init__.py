@@ -30,12 +30,10 @@ from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.utils.text import pascal_case
 
-from aiovantage.errors import ClientResponseError, LoginFailedError, LoginRequiredError
+from aiovantage.errors import ClientResponseError, LoginRequiredError
 from aiovantage.logger import logger
 
 from .connection import ConfigConnection
-from .interfaces.introspection import GetSysInfo
-from .interfaces.login import Login
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -121,45 +119,32 @@ class ConfigClient:
         """Close the connection to the ACI service."""
         self._connection.close()
 
-    async def raw_request(
-        self,
-        interface: str,
-        raw_method: str,
-        connection: ConfigConnection | None = None,
-    ) -> str:
+    async def raw_request(self, request: str, delimiter: str) -> str:
         """Send a raw request to the ACI service and return the raw response.
 
         Args:
-            interface: The interface to send the request to.
-            raw_method: The raw XML request to send.
+            request: The raw XML request to send.
+            delimiter: The delimiter to use when reading the response.
             connection: The connection to use, if not the default.
 
         Returns:
             The raw XML response.
         """
         # Open the connection if it's closed
-        conn = connection or await self._get_connection()
-
-        # Render the method object to XML with xsdata
-        request = f"<{interface}>{raw_method}</{interface}>"
-        logger.debug("Sending request: %s", request)
+        conn = await self._get_connection()
 
         # Send the request and read the response
+        logger.debug("Sending request: %s", request)
         async with self._request_lock:
             await conn.write(request)
-            response = await conn.readuntil(
-                f"</{interface}>\n".encode(), timeout=self._read_timeout
-            )
+            response = await conn.readuntil(delimiter.encode(), self._read_timeout)
 
         logger.debug("Received response: %s", response)
 
         return response
 
     async def request(
-        self,
-        method_cls: type[_Method[T, U]],
-        params: T | None = None,
-        connection: ConfigConnection | None = None,
+        self, method_cls: type[_Method[T, U]], params: T | None = None
     ) -> U | None:
         """Marshall a request, send it to the ACI service, and return a parsed object.
 
@@ -176,10 +161,10 @@ class ConfigClient:
         method.call = params
 
         # Render the method object to XML with xsdata and send the request
+        method_str = self._serializer.render(method)  # type: ignore
         response = await self.raw_request(
-            method.interface,
-            self._serializer.render(method),  # type: ignore
-            connection,
+            f"<{method.interface}>{method_str}</{method.interface}>",
+            f"</{method.interface}>\n",
         )
 
         # Parse the XML doc
@@ -214,30 +199,16 @@ class ConfigClient:
         """Get a connection to the ACI service."""
         async with self._connection_lock:
             if self._connection.closed:
+                # Open a new connection
                 await self._connection.open()
 
-                # Ensure the connection is authenticated, if required
+                # Authenticate the new connection if we have credentials
                 if self._username and self._password:
-                    # Log in if we have credentials
-                    success = await self.request(
-                        Login,
-                        Login.Params(self._username, self._password),
-                        self._connection,
+                    await self._connection.authenticate(self._username, self._password)
+                elif self._connection.requires_authentication:
+                    raise LoginRequiredError(
+                        "Login required, but no credentials were provided"
                     )
-
-                    if not success:
-                        raise LoginFailedError("Login failed, bad username or password")
-                else:
-                    # Check if login is required if we don't have credentials
-                    sys_info_response = await self.request(
-                        GetSysInfo,
-                        connection=self._connection,
-                    )
-
-                    if sys_info_response is None:
-                        raise LoginRequiredError(
-                            "Login required, but no credentials were provided"
-                        )
 
                 logger.info(
                     "Connected to config client at %s:%d",

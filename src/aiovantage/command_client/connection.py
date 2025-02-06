@@ -48,7 +48,9 @@ class CommandConnection(BaseConnection):
         self._supports_enhanced_log = await self._get_supports_enhanced_log()
 
     @override
-    async def _post_open(self) -> None:
+    async def open(self) -> None:
+        await super().open()
+
         self._authenticated = False
         self._requires_authentication = await self._get_requires_authentication()
 

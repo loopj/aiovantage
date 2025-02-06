@@ -18,14 +18,9 @@ class GetInterfaces:
         iid: int = field(metadata={"name": "IID"})
 
     call = None
-
     result: list[Interface] | None = field(
         default_factory=list,
-        metadata={
-            "wrapper": "return",
-            "name": "Interface",
-            "type": "Element",
-        },
+        metadata={"wrapper": "return", "name": "Interface", "type": "Element"},
     )
 
 
@@ -49,13 +44,7 @@ class GetSysInfo:
         sys_info: "GetSysInfo.SysInfo"
 
     call = None
-
-    result: Return | None = field(
-        default=None,
-        metadata={
-            "name": "return",
-        },
-    )
+    result: Return | None = field(default=None, metadata={"name": "return"})
 
 
 @dataclass
@@ -72,14 +61,8 @@ class GetTypes:
         version: str
 
     call = None
-
     result: list[Type] | None = field(
-        default=None,
-        metadata={
-            "wrapper": "return",
-            "name": "Type",
-            "type": "Element",
-        },
+        default=None, metadata={"wrapper": "return", "name": "Type", "type": "Element"}
     )
 
 
@@ -98,10 +81,14 @@ class GetVersion:
         app: str | None = field(default=None, metadata={"name": "app"})
 
     call = None
+    result: Return | None = field(default=None, metadata={"name": "return"})
 
-    result: Return | None = field(
-        default=None,
-        metadata={
-            "name": "return",
-        },
-    )
+
+@dataclass
+class IIIntrospection:
+    """IIntrospection interface."""
+
+    get_interfaces: GetInterfaces | None = None
+    get_sys_info: GetSysInfo | None = None
+    get_types: GetTypes | None = None
+    get_version: GetVersion | None = None

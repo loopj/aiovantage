@@ -16,16 +16,12 @@ class Login:
         user: str
         password: str
 
-    call: Params | None = field(
-        default=None,
-        metadata={
-            "name": "call",
-        },
-    )
+    call: Params | None = field(default=None, metadata={"name": "call"})
+    result: bool | None = field(default=None, metadata={"name": "return"})
 
-    result: bool | None = field(
-        default=None,
-        metadata={
-            "name": "return",
-        },
-    )
+
+@dataclass
+class ILogin:
+    """ILogin interface."""
+
+    login: Login | None = None
