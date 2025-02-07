@@ -100,3 +100,6 @@ markdown_extensions:
       dedent_subsections: true
   - toc:
       permalink: true
+
+extra_css:
+  - stylesheets/mkdocstrings.css
