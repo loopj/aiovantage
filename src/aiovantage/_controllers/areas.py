@@ -1,8 +1,5 @@
-"""Areas controller."""
-
+from aiovantage.controllers import BaseController
 from aiovantage.objects import Area
-
-from .base import BaseController
 
 
 class AreasController(BaseController[Area]):

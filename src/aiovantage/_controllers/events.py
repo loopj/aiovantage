@@ -1,13 +1,11 @@
-"""Vantage events."""
-
 from collections.abc import Awaitable, Callable
 from enum import Enum
 from typing import Any, TypeAlias, TypeVar
 
-from .objects import SystemObject
+from aiovantage.objects import SystemObject
 
 
-class VantageEvent(Enum):
+class ControllerEvent(Enum):
     """Event types that can be emitted Vantage controllers or the main client."""
 
     OBJECT_ADDED = "add"
@@ -23,6 +21,6 @@ class VantageEvent(Enum):
 T = TypeVar("T", bound=SystemObject)
 
 EventCallback: TypeAlias = Callable[
-    [VantageEvent, T, dict[str, Any]], None | Awaitable[None]
+    [ControllerEvent, T, dict[str, Any]], None | Awaitable[None]
 ]
 """Type alias for a Vantage event callback function."""

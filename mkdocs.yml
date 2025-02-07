@@ -77,7 +77,7 @@ plugins:
             # Members
             inherited_members: true
             filters: ["!^_"]
-            summary: false
+            summary: true
 
             # Docstrings
             docstring_options:

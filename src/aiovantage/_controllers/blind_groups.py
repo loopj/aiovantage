@@ -1,8 +1,5 @@
-"""Blind groups controller."""
-
+from aiovantage.controllers import BaseController
 from aiovantage.objects import BlindGroup, SomfyRS485GroupChild, SomfyURTSI2GroupChild
-
-from .base import BaseController
 
 
 class BlindGroupsController(

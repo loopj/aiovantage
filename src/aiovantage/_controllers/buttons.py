@@ -1,8 +1,5 @@
-"""Buttons controller."""
-
+from aiovantage.controllers import BaseController
 from aiovantage.objects import Button
-
-from .base import BaseController
 
 
 class ButtonsController(BaseController[Button]):

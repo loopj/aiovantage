@@ -1,8 +1,5 @@
-"""Anemo sensors (wind speed sensors) controller."""
-
+from aiovantage.controllers import BaseController
 from aiovantage.objects import AnemoSensor
-
-from .base import BaseController
 
 
 class AnemoSensorsController(BaseController[AnemoSensor]):

@@ -1,9 +1,5 @@
-"""Thermostats controller."""
-
+from aiovantage.controllers import BaseController, QuerySet
 from aiovantage.objects import Temperature, Thermostat
-from aiovantage.query import QuerySet
-
-from .base import BaseController
 
 
 class ThermostatsController(BaseController[Thermostat]):

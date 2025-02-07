@@ -1,8 +1,5 @@
-"""Temperature device controller."""
-
+from aiovantage.controllers import BaseController
 from aiovantage.objects import Temperature
-
-from .base import BaseController
 
 
 class TemperatureSensorsController(BaseController[Temperature]):

@@ -1,8 +1,5 @@
-"""Masters (InFusion Controllers) controller."""
-
+from aiovantage.controllers import BaseController
 from aiovantage.objects import Master
-
-from .base import BaseController
 
 
 class MastersController(BaseController[Master]):

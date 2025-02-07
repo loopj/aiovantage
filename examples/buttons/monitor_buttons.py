@@ -6,7 +6,8 @@ import contextlib
 import logging
 from typing import Any
 
-from aiovantage import Vantage, VantageEvent
+from aiovantage import Vantage
+from aiovantage.controllers import ControllerEvent
 from aiovantage.objects import SystemObject
 
 # Grab connection info from command line arguments
@@ -18,12 +19,12 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent, obj: SystemObject, data: dict[str, Any]) -> None:
+def callback(event: ControllerEvent, obj: SystemObject, data: dict[str, Any]) -> None:
     """Print out any state changes."""
-    if event == VantageEvent.OBJECT_ADDED:
+    if event == ControllerEvent.OBJECT_ADDED:
         print(f"[Button added] '{obj.name}' ({obj.id})")
 
-    elif event == VantageEvent.OBJECT_UPDATED:
+    elif event == ControllerEvent.OBJECT_UPDATED:
         print(f"[Button updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):
             print(f"    {attr} = {getattr(obj, attr)}")
