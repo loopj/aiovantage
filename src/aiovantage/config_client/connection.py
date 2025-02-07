@@ -1,7 +1,8 @@
 """Connection to a Vantage ACI server."""
 
 import re
-from typing import override
+
+from typing_extensions import override
 
 from aiovantage.connection import BaseConnection
 from aiovantage.errors import ClientConnectionError, LoginFailedError
