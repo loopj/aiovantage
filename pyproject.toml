@@ -29,10 +29,11 @@ Source = "https://github.com/loopj/aiovantage"
 dev = ["pyright==1.1.393", "ruff==0.9.4", "bumpver==2024.1130"]
 
 docs = [
-    "mkdocstrings[python]",
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocs-api-autonav",
+    "mkdocstrings==0.28.0",
+    "mkdocstrings-python==1.14.5",
+    "mkdocs==1.6.1",
+    "mkdocs-material==9.6.3",
+    "mkdocs-api-autonav==0.1.0",
 ]
 
 [tool.ruff.lint]
