@@ -10,55 +10,51 @@ with one or more "methods".
 The `ConfigClient` class handles connecting to the ACI service, authenticating, and the
 serialization/deserialization of XML requests and responses.
 
-Various pre-defined classes are available in [`interfaces`](interfaces) to help with
-creating XML serialized requests, but it is also possible to make raw XML requests to
-a particular interface.
+A (non-exhaustive) set of RPC methods are exposed in the following interface
+namespace classes:
 
-Additionally, a few helper functions for fetching objects are provided by
-[`requests.py`](requests.py).
+- `ConfigurationInterface`
+- `IntrospectionInterface`
+- `LoginInterface`
 
 ## Examples
 
-### Lookup objects by type, using a helper
+### Lookup objects by type
 
 ```python
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.requests import get_objects
+from aiovantage.config_client import ConfigClient, ConfigurationInterface
 
 async with ConfigClient("hostname") as client:
-    async for obj in get_objects(client, "Load", "Button"):
+    async for obj in ConfigurationInterface.get_objects(client, "Load", "Button"):
         print(obj)
 ```
 
 ### Lookup objects by id, using a helper
 
 ```python
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.requests import get_objects_by_id
+from aiovantage.config_client import ConfigClient, ConfigurationInterface
 
 async with ConfigClient("hostname") as client:
-    async for obj in get_objects_by_id(client, 118):
+    for obj in await ConfigurationInterface.get_object(client, 118):
         print(obj)
 ```
 
-### Make a request using a method class
+### Fetch controller version information
 
 ```python
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.interfaces.introspection import GetVersion
+from aiovantage.config_client import ConfigClient, IntrospectionInterface
 
 async with ConfigClient("hostname") as client:
-    version = await client.request(GetVersion)
+    version = await IntrospectionInterface.get_version(client)
 ```
 
-### Make a request using a method class, with params
+### Authenticate an ACI client session
 
 ```python
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.interfaces.login import Login
+from aiovantage.config_client import ConfigClient, LoginInterface
 
 async with ConfigClient("hostname") as client:
-    await client.request(Login, Login.Params("username", "password"))
+    await LoginInterface.login(client, "username", "password")
 ```
 
 ### Make a raw request
@@ -67,6 +63,6 @@ async with ConfigClient("hostname") as client:
 from aiovantage.config_client import ConfigClient
 
 async with ConfigClient("hostname") as client:
-    response = await client.raw_request("IIntrospection", "<GetVersion></GetVersion>")
+    response = await client.raw_request("<IIntrospection><GetVersion></GetVersion></IIntrospection>", "</IIntrospection>")
 
 ```

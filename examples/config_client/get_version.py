@@ -5,8 +5,7 @@ import asyncio
 import contextlib
 import logging
 
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.interfaces.introspection import GetVersion
+from aiovantage.config_client import ConfigClient, IntrospectionInterface
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -24,7 +23,7 @@ async def main() -> None:
 
     async with ConfigClient(args.host, args.username, args.password) as client:
         # Simple RPC request without any params (IIntrospection.GetVersion)
-        version = await client.request(GetVersion)
+        version = await IntrospectionInterface.get_version(client)
         print(version)
 
 

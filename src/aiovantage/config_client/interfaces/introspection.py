@@ -2,12 +2,12 @@
 
 from dataclasses import dataclass, field
 
+from aiovantage.config_client.client import ConfigClient
+
 
 @dataclass
 class GetInterfaces:
     """IIntrospection.GetInterfaces method definition."""
-
-    interface = "IIntrospection"
 
     @dataclass
     class Interface:
@@ -28,8 +28,6 @@ class GetInterfaces:
 class GetSysInfo:
     """IIntrospection.GetSysInfo method definition."""
 
-    interface = "IIntrospection"
-
     @dataclass
     class SysInfo:
         """SysInfo class."""
@@ -37,21 +35,15 @@ class GetSysInfo:
         master_number: int
         serial_number: int
 
-    @dataclass
-    class Return:
-        """Method return value."""
-
-        sys_info: "GetSysInfo.SysInfo"
-
     call = None
-    result: Return | None = field(default=None, metadata={"name": "return"})
+    result: SysInfo | None = field(
+        default=None, metadata={"wrapper": "return", "name": "SysInfo"}
+    )
 
 
 @dataclass
 class GetTypes:
     """IIntrospection.GetTypes method definition."""
-
-    interface = "IIntrospection"
 
     @dataclass
     class Type:
@@ -70,10 +62,8 @@ class GetTypes:
 class GetVersion:
     """IIntrospection.GetVersion method definition."""
 
-    interface = "IIntrospection"
-
     @dataclass
-    class Return:
+    class Version:
         """Method return value."""
 
         kernel: str | None = field(default=None, metadata={"name": "kernel"})
@@ -81,14 +71,66 @@ class GetVersion:
         app: str | None = field(default=None, metadata={"name": "app"})
 
     call = None
-    result: Return | None = field(default=None, metadata={"name": "return"})
+    result: Version | None = field(default=None, metadata={"name": "return"})
 
 
-@dataclass
-class IIIntrospection:
+@dataclass(kw_only=True)
+class IIntrospection:
     """IIntrospection interface."""
 
     get_interfaces: GetInterfaces | None = None
     get_sys_info: GetSysInfo | None = None
     get_types: GetTypes | None = None
     get_version: GetVersion | None = None
+
+
+class IntrospectionInterface:
+    """Introspection interface."""
+
+    @staticmethod
+    async def get_interfaces(client: ConfigClient) -> list[GetInterfaces.Interface]:
+        """Get a list of all interfaces on the device.
+
+        Args:
+            client: A config client instance
+
+        Returns:
+            A list of interfaces.
+        """
+        return await client.rpc_call(IIntrospection, GetInterfaces)
+
+    @staticmethod
+    async def get_sys_info(client: ConfigClient) -> GetSysInfo.SysInfo:
+        """Get system information.
+
+        Args:
+            client: A config client instance
+
+        Returns:
+            A system information object.
+        """
+        return await client.rpc_call(IIntrospection, GetSysInfo)
+
+    @staticmethod
+    async def get_types(client: ConfigClient) -> list[GetTypes.Type]:
+        """Get a list of all object types on the device.
+
+        Args:
+            client: A config client instance
+
+        Returns:
+            A list of object types.
+        """
+        return await client.rpc_call(IIntrospection, GetTypes)
+
+    @staticmethod
+    async def get_version(client: ConfigClient) -> GetVersion.Version:
+        """Get the version of the device.
+
+        Args:
+            client: A config client instance
+
+        Returns:
+            A version information object.
+        """
+        return await client.rpc_call(IIntrospection, GetVersion)

@@ -69,8 +69,10 @@ class ConfigConnection(BaseConnection):
         self._authenticated = False
         self._requires_authentication = await self._get_requires_authentication()
 
-        # Making unauthorized requests closes the connection, so we need to reopen it
-        if self.closed:
+        # Making unauthorized requests can close the connection, so let's explicitly
+        # reopen it if we know we made an unauthorized request
+        if self._requires_authentication:
+            self.close()
             await super().open()
 
     async def _get_requires_authentication(self) -> bool:

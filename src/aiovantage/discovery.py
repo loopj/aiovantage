@@ -5,8 +5,7 @@ from dataclasses import dataclass
 from ssl import SSLContext
 
 from aiovantage.command_client import CommandClient
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.interfaces.introspection import GetSysInfo
+from aiovantage.config_client import ConfigClient, IntrospectionInterface
 from aiovantage.errors import (
     ClientConnectionError,
     ClientError,
@@ -118,11 +117,8 @@ async def get_serial_from_controller(
     """
     try:
         async with ConfigClient(host, username, password, ssl=ssl) as client:
-            sys_info_response = await client.request(GetSysInfo)
-            if sys_info_response is None:
-                return None
-
-            return sys_info_response.sys_info.serial_number
+            sys_info = await IntrospectionInterface.get_sys_info(client)
+            return sys_info.serial_number
 
     except ClientError:
         return None
