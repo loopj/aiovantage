@@ -4,7 +4,7 @@ import re
 
 from typing_extensions import override
 
-from aiovantage.connection import BaseConnection
+from aiovantage._connection import BaseConnection
 from aiovantage.errors import ClientConnectionError, LoginFailedError
 
 

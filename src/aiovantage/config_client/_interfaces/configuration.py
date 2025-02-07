@@ -5,7 +5,7 @@ from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import Any, TypeVar, overload
 
-from aiovantage.config_client.client import ConfigClient
+from aiovantage.config_client._client import ConfigClient
 from aiovantage.errors import ClientError
 
 T = TypeVar("T")

@@ -14,10 +14,10 @@ from xsdata.formats.dataclass.serializers import XmlSerializer
 from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.utils.text import pascal_case, snake_case
 
+from aiovantage._logger import logger
 from aiovantage.errors import ClientResponseError, LoginRequiredError
-from aiovantage.logger import logger
 
-from .connection import ConfigConnection
+from ._connection import ConfigConnection
 
 T = TypeVar("T")
 U = TypeVar("U")

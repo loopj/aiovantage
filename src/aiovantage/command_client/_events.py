@@ -12,11 +12,11 @@ from typing import Literal, TypedDict
 
 from typing_extensions import Self
 
+from aiovantage._logger import logger
 from aiovantage.errors import ClientConnectionError, ClientError
-from aiovantage.logger import logger
 
-from .connection import CommandConnection
-from .converter import tokenize
+from ._connection import CommandConnection
+from ._converter import Converter
 
 # The interval between keepalive messages, in seconds.
 KEEPALIVE_INTERVAL = 60
@@ -365,7 +365,7 @@ class EventStream:
             # Parse a "status" message, of the form "S:<type> <vid> <args>"
             # These messages are emitted when the state of an object changes after
             # subscribing to updates via "STATUS <type>" or "ADDSTATUS <vid>".
-            category, vid_str, *args = tokenize(message)
+            category, vid_str, *args = Converter.tokenize(message)
             self._emit(
                 {
                     "type": EventType.STATUS,

@@ -12,8 +12,7 @@ from typing import (
     runtime_checkable,
 )
 
-from aiovantage.command_client import CommandClient
-from aiovantage.command_client.converter import deserialize, serialize, tokenize
+from aiovantage.command_client import CommandClient, Converter
 from aiovantage.errors import NotImplementedError, NotSupportedError
 
 T = TypeVar("T")
@@ -167,14 +166,14 @@ class Interface(metaclass=_InterfaceMeta):
         # Build the request
         request = f"INVOKE {self.vid} {method}"
         if params:
-            request += " " + " ".join(serialize(p) for p in params)
+            request += " " + " ".join(Converter.serialize(p) for p in params)
 
         # Send the request
         response = await self.command_client.raw_request(request)
 
         # Break the response into tokens
         return_line = response[-1]
-        _command, _vid, result, _method, *args = tokenize(return_line)
+        _command, _vid, result, _method, *args = Converter.tokenize(return_line)
 
         # Parse the response
         return self._parse_object_response(method, result, *args, as_type=as_type)
@@ -319,10 +318,12 @@ class Interface(metaclass=_InterfaceMeta):
                 if field_signature is None:
                     raise ValueError(f"Field {field.name} missing type hint")
 
-                props[field.name] = deserialize(field_signature, get_output_value(out))
+                props[field.name] = Converter.deserialize(
+                    field_signature, get_output_value(out)
+                )
 
             return signature(**props)
         else:
             # Otherwise, parse the result into the expected type
             out = cls._method_output.get(method, "return")
-            return deserialize(signature, get_output_value(out))
+            return Converter.deserialize(signature, get_output_value(out))

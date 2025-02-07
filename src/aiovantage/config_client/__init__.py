@@ -15,10 +15,10 @@ The service is discoverable via mDNS as `_aci._tcp.local` and/or
 `_secure_aci._tcp.local`.
 """
 
-from .client import ConfigClient
-from .interfaces.configuration import ConfigurationInterface
-from .interfaces.introspection import IntrospectionInterface
-from .interfaces.login import LoginInterface
+from ._client import ConfigClient
+from ._interfaces.configuration import ConfigurationInterface
+from ._interfaces.introspection import IntrospectionInterface
+from ._interfaces.login import LoginInterface
 
 __all__ = [
     "ConfigClient",

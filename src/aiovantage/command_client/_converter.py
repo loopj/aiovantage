@@ -11,7 +11,7 @@ from typing import Any
 from typing_extensions import override
 
 
-class Converter(ABC):
+class BaseConverter(ABC):
     """Abstract base class for Host Command service data converters."""
 
     @staticmethod
@@ -25,7 +25,7 @@ class Converter(ABC):
         """Deserialize a string representation to a value."""
 
 
-class StringConverter(Converter):
+class StringConverter(BaseConverter):
     """String parameter converter.
 
     Vantage "string" parameters are either single words or quoted strings.
@@ -53,7 +53,7 @@ class StringConverter(Converter):
         return f'"{value}"'
 
 
-class BoolConverter(Converter):
+class BoolConverter(BaseConverter):
     """Bool parameter converter.
 
     Vantage "bool" parameters are encoded as either "0" or "1".
@@ -70,7 +70,7 @@ class BoolConverter(Converter):
         return "1" if value else "0"
 
 
-class IntConverter(Converter):
+class IntConverter(BaseConverter):
     """An int converter."""
 
     @override
@@ -86,7 +86,7 @@ class IntConverter(Converter):
         return str(value)
 
 
-class FloatConverter(Converter):
+class FloatConverter(BaseConverter):
     """A float converter.
 
     If these types are tagged as "fixed", they should be handled as Decimal values.
@@ -104,7 +104,7 @@ class FloatConverter(Converter):
         return f"{value:.{precision}f}"
 
 
-class DecimalConverter(Converter):
+class DecimalConverter(BaseConverter):
     """A Decimal converter.
 
     Vantage "fixed" parameters are encoded as a string representation of a
@@ -126,7 +126,7 @@ class DecimalConverter(Converter):
         return f"{value:.{precision}f}"
 
 
-class BytesConverter(Converter):
+class BytesConverter(BaseConverter):
     """A bytes converter.
 
     Vantage "bytes" parameters are encoded as a string of signed 32-bit integers,
@@ -158,7 +158,7 @@ class BytesConverter(Converter):
         return "{" + ",".join(tokens) + "}"
 
 
-class DateTimeConverter(Converter):
+class DateTimeConverter(BaseConverter):
     """A datetime converter.
 
     Vantage "Time" parameters are encoded as a Unix timestamp.
@@ -175,7 +175,7 @@ class DateTimeConverter(Converter):
         return str(int(value.timestamp()))
 
 
-class IntEnumConverter(Converter):
+class IntEnumConverter(BaseConverter):
     """An IntEnum converter.
 
     Vantage "Enum" values are encoded as either their integer or string
@@ -207,7 +207,7 @@ class IntEnumConverter(Converter):
 
 
 # Map of data types to their respective converters
-CONVERTER_MAP: dict[type, type[Converter]] = {
+CONVERTER_MAP: dict[type, type[BaseConverter]] = {
     str: StringConverter,
     int: IntConverter,
     bool: BoolConverter,
@@ -219,7 +219,7 @@ CONVERTER_MAP: dict[type, type[Converter]] = {
 }
 
 
-def _get_converter(data_type: type) -> type[Converter]:
+def _get_converter(data_type: type) -> type[BaseConverter]:
     # Check if the data type is directly registered
     if data_type in CONVERTER_MAP:
         return CONVERTER_MAP[data_type]
@@ -232,48 +232,52 @@ def _get_converter(data_type: type) -> type[Converter]:
     raise ValueError(f"No converter found for {data_type}")
 
 
-def deserialize(data_type: type, value: str, **kwargs: Any) -> Any:
-    """Deserialize a string representation to an object.
-
-    Args:
-        data_type: The type of data to convert.
-        value: The string data to deserialize.
-        **kwargs: Additional deserialization arguments.
-
-    Returns:
-        The deserialized object.
-    """
-    converter = _get_converter(data_type)
-    return converter.deserialize(value, data_type=data_type, **kwargs)
-
-
-def serialize(value: Any, **kwargs: Any) -> str:
-    """Serialize an object to a string representation.
-
-    Args:
-        value: The value to serialize to a string.
-        **kwargs: Additional serialization arguments.
-
-    Returns:
-        A string representation of the object.
-    """
-    converter = _get_converter(value.__class__)
-    return converter.serialize(value, **kwargs)
-
-
 # Token splitting regular expression
 TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\[.*?\])|(\S+)')
 
 
-def tokenize(string: str) -> list[str]:
-    """Tokenize a response from the Host Command service.
+class Converter:
+    """Command Client data conversion functions."""
 
-    Handles quoted strings and byte arrays as single tokens.
+    @staticmethod
+    def deserialize(data_type: type, value: str, **kwargs: Any) -> Any:
+        """Deserialize a string representation to an object.
 
-    Args:
-        string: The response string to tokenize.
+        Args:
+            data_type: The type of data to convert.
+            value: The string data to deserialize.
+            **kwargs: Additional deserialization arguments.
 
-    Returns:
-        A list of string tokens.
-    """
-    return [match.group(0) for match in TOKEN_PATTERN.finditer(string)]
+        Returns:
+            The deserialized object.
+        """
+        converter = _get_converter(data_type)
+        return converter.deserialize(value, data_type=data_type, **kwargs)
+
+    @staticmethod
+    def serialize(value: Any, **kwargs: Any) -> str:
+        """Serialize an object to a string representation.
+
+        Args:
+            value: The value to serialize to a string.
+            **kwargs: Additional serialization arguments.
+
+        Returns:
+            A string representation of the object.
+        """
+        converter = _get_converter(value.__class__)
+        return converter.serialize(value, **kwargs)
+
+    @staticmethod
+    def tokenize(string: str) -> list[str]:
+        """Tokenize a response from the Host Command service.
+
+        Handles quoted strings and byte arrays as single tokens.
+
+        Args:
+            string: The response string to tokenize.
+
+        Returns:
+            A list of string tokens.
+        """
+        return [match.group(0) for match in TOKEN_PATTERN.finditer(string)]

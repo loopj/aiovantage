@@ -5,7 +5,7 @@ from typing import Any
 
 from typing_extensions import override
 
-from aiovantage.command_client.converter import deserialize
+from aiovantage.command_client import Converter
 
 from .base import Interface, method
 
@@ -105,13 +105,13 @@ class GMemInterface(Interface):
     def _parse_value(self, value: str) -> int | str | bool:
         # If a "" wrapped string, return as str
         if value.startswith('"') and value.endswith('"'):
-            return deserialize(str, value)
+            return Converter.deserialize(str, value)
 
         # If a {} or [] wrapped string, return as bytes
         if (value.startswith("{") and value.endswith("}")) or (
             value.startswith("[") and value.endswith("]")
         ):
-            return deserialize(bytes, value)
+            return Converter.deserialize(bytes, value)
 
         # Otherwise, return as int
-        return deserialize(int, value)
+        return Converter.deserialize(int, value)

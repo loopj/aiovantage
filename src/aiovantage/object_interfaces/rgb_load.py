@@ -6,7 +6,7 @@ from itertools import islice
 
 from typing_extensions import override
 
-from aiovantage.command_client.converter import deserialize
+from aiovantage.command_client import Converter
 
 from .base import Interface, method
 
@@ -504,13 +504,13 @@ class RGBLoadInterface(Interface):
         attr, num_channels = methods[method]
 
         # Ignore channels that are out of range
-        channel = deserialize(int, args[0])
+        channel = Converter.deserialize(int, args[0])
         if channel not in range(num_channels):
             return
 
         # Cache the value
         self._cache = getattr(self, "_cache", [0, 0, 0, 0])
-        self._cache[channel] = deserialize(int, result)
+        self._cache[channel] = Converter.deserialize(int, result)
 
         # Update the property if all channels have been received
         if channel == num_channels - 1:
