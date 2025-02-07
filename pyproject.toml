@@ -33,7 +33,7 @@ docs = [
     "mkdocstrings-python==1.14.5",
     "mkdocs==1.6.1",
     "mkdocs-material==9.6.3",
-    "mkdocs-api-autonav==0.1.0",
+    "mkdocs-api-autonav==0.1.2",
 ]
 
 [tool.ruff.lint]
