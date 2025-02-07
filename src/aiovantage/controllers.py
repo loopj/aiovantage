@@ -26,7 +26,6 @@ from aiovantage._controllers.blind_groups import BlindGroupsController
 from aiovantage._controllers.blinds import BlindsController, BlindTypes
 from aiovantage._controllers.buttons import ButtonsController
 from aiovantage._controllers.dry_contacts import DryContactsController
-from aiovantage._controllers.events import ControllerEvent
 from aiovantage._controllers.gmem import GMemController
 from aiovantage._controllers.light_sensors import LightSensorsController
 from aiovantage._controllers.load_groups import LoadGroupsController
@@ -52,7 +51,6 @@ __all__ = [
     "BlindsController",
     "BlindTypes",
     "ButtonsController",
-    "ControllerEvent",
     "DryContactsController",
     "GMemController",
     "LightSensorsController",

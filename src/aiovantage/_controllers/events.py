@@ -5,7 +5,7 @@ from typing import Any, TypeAlias, TypeVar
 from aiovantage.objects import SystemObject
 
 
-class ControllerEvent(Enum):
+class VantageEvent(Enum):
     """Event types that can be emitted Vantage controllers or the main client."""
 
     OBJECT_ADDED = "add"
@@ -21,6 +21,6 @@ class ControllerEvent(Enum):
 T = TypeVar("T", bound=SystemObject)
 
 EventCallback: TypeAlias = Callable[
-    [ControllerEvent, T, dict[str, Any]], None | Awaitable[None]
+    [VantageEvent, T, dict[str, Any]], None | Awaitable[None]
 ]
 """Type alias for a Vantage event callback function."""

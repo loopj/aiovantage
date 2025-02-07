@@ -1,5 +1,7 @@
-from aiovantage.controllers import BaseController, QuerySet
+from aiovantage._controllers.query import QuerySet
 from aiovantage.objects import VantageDDGColorLoad, VantageDGColorLoad
+
+from .base import BaseController
 
 RGBLoadTypes = VantageDDGColorLoad | VantageDGColorLoad
 """Types managed by the RGB loads controller."""

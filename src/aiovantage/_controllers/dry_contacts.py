@@ -1,5 +1,6 @@
-from aiovantage.controllers import BaseController
 from aiovantage.objects import DryContact
+
+from .base import BaseController
 
 
 class DryContactsController(BaseController[DryContact]):

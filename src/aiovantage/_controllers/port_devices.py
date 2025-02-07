@@ -1,5 +1,6 @@
-from aiovantage.controllers import BaseController
 from aiovantage.objects import PortDevice
+
+from .base import BaseController
 
 
 class PortDevicesController(BaseController[PortDevice]):

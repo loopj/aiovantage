@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, cast
 from aiovantage._logger import logger
 from aiovantage.command_client import Converter, Event, EventType
 from aiovantage.config_client import ConfigurationInterface
-from aiovantage.controllers import QuerySet
 from aiovantage.objects import SystemObject
 
-from .events import ControllerEvent, EventCallback
+from .events import EventCallback, VantageEvent
+from .query import QuerySet
 
 if TYPE_CHECKING:
     from aiovantage import Vantage
@@ -19,7 +19,7 @@ T = TypeVar("T", bound=SystemObject)
 
 
 # Types for state and subscriptions
-EventSubscription = tuple[EventCallback[T], Iterable[ControllerEvent] | None]
+EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 
 
 class BaseController(QuerySet[T]):
@@ -107,7 +107,7 @@ class BaseController(QuerySet[T]):
 
                     # Add it to the controller and notify subscribers
                     self._items[obj.vid] = obj
-                    self._emit(ControllerEvent.OBJECT_ADDED, obj)
+                    self._emit(VantageEvent.OBJECT_ADDED, obj)
 
                 # Keep track of which objects we've seen
                 cur_ids.add(obj.vid)
@@ -115,7 +115,7 @@ class BaseController(QuerySet[T]):
             # Handle objects that were removed
             for vid in prev_ids - cur_ids:
                 obj = self._items.pop(vid)
-                self._emit(ControllerEvent.OBJECT_DELETED, obj)
+                self._emit(VantageEvent.OBJECT_DELETED, obj)
 
         logger.info("%s populated (%d objects)", type(self).__name__, len(self._items))
 
@@ -177,7 +177,7 @@ class BaseController(QuerySet[T]):
         self,
         callback: EventCallback[T],
         id_filter: int | Iterable[int] | None = None,
-        event_filter: ControllerEvent | Iterable[ControllerEvent] | None = None,
+        event_filter: VantageEvent | Iterable[VantageEvent] | None = None,
     ) -> Callable[[], None]:
         """Subscribe to status changes for objects managed by this controller.
 
@@ -193,7 +193,7 @@ class BaseController(QuerySet[T]):
         if isinstance(id_filter, int):
             id_filter = (id_filter,)
 
-        if isinstance(event_filter, ControllerEvent):
+        if isinstance(event_filter, VantageEvent):
             event_filter = (event_filter,)
 
         # Create the subscription
@@ -221,7 +221,7 @@ class BaseController(QuerySet[T]):
         return unsubscribe
 
     def _emit(
-        self, event_type: ControllerEvent, obj: T, data: dict[str, Any] | None = None
+        self, event_type: VantageEvent, obj: T, data: dict[str, Any] | None = None
     ) -> None:
         # Emit an event to subscribers of this controller.
         if data is None:
@@ -240,9 +240,7 @@ class BaseController(QuerySet[T]):
 
     def _object_updated(self, obj: T, *attrs_changed: str) -> None:
         # Notify subscribers that an object has been updated
-        self._emit(
-            ControllerEvent.OBJECT_UPDATED, obj, {"attrs_changed": attrs_changed}
-        )
+        self._emit(VantageEvent.OBJECT_UPDATED, obj, {"attrs_changed": attrs_changed})
 
     async def _handle_status_event(self, event: Event) -> None:
         if event["type"] != EventType.STATUS:

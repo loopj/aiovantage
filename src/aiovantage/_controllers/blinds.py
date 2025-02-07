@@ -1,4 +1,3 @@
-from aiovantage.controllers import BaseController
 from aiovantage.objects import (
     QISBlind,
     QubeBlind,
@@ -6,6 +5,8 @@ from aiovantage.objects import (
     SomfyRS485ShadeChild,
     SomfyURTSI2ShadeChild,
 )
+
+from .base import BaseController
 
 BlindTypes = (
     QISBlind | QubeBlind | RelayBlind | SomfyRS485ShadeChild | SomfyURTSI2ShadeChild

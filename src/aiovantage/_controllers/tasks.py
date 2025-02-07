@@ -1,5 +1,6 @@
-from aiovantage.controllers import BaseController
 from aiovantage.objects import Task
+
+from .base import BaseController
 
 
 class TasksController(BaseController[Task]):

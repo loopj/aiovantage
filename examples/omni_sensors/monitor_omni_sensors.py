@@ -6,8 +6,7 @@ import contextlib
 import logging
 from typing import Any
 
-from aiovantage import Vantage
-from aiovantage.controllers import ControllerEvent
+from aiovantage import Vantage, VantageEvent
 from aiovantage.objects import OmniSensor
 
 # Grab connection info from command line arguments
@@ -19,12 +18,12 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: ControllerEvent, obj: OmniSensor, data: dict[str, Any]) -> None:
+def callback(event: VantageEvent, obj: OmniSensor, data: dict[str, Any]) -> None:
     """Print out any state changes."""
-    if event == ControllerEvent.OBJECT_ADDED:
+    if event == VantageEvent.OBJECT_ADDED:
         print(f"[Sensor added] '{obj.name}' ({obj.id})")
 
-    elif event == ControllerEvent.OBJECT_UPDATED:
+    elif event == VantageEvent.OBJECT_UPDATED:
         print(f"[Sensor updated] '{obj.name}' ({obj.id})")
         for attr in data.get("attrs_changed", []):
             print(f"    {attr} = {getattr(obj, attr)}")

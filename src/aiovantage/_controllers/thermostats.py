@@ -1,5 +1,7 @@
-from aiovantage.controllers import BaseController, QuerySet
+from aiovantage._controllers.query import QuerySet
 from aiovantage.objects import Temperature, Thermostat
+
+from .base import BaseController
 
 
 class ThermostatsController(BaseController[Thermostat]):

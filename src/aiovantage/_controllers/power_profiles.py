@@ -1,5 +1,6 @@
-from aiovantage.controllers import BaseController
 from aiovantage.objects import PowerProfile
+
+from .base import BaseController
 
 
 class PowerProfilesController(BaseController[PowerProfile]):

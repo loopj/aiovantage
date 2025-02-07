@@ -1,5 +1,7 @@
-from aiovantage.controllers import BaseController, QuerySet
+from aiovantage._controllers.query import QuerySet
 from aiovantage.objects import Load
+
+from .base import BaseController
 
 
 class LoadsController(BaseController[Load]):

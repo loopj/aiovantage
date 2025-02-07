@@ -1,5 +1,6 @@
-from aiovantage.controllers import BaseController
 from aiovantage.objects import StationObject
+
+from .base import BaseController
 
 
 class StationsController(BaseController[StationObject]):

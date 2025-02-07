@@ -9,7 +9,8 @@ from typing import Any, TypeVar, cast
 from typing_extensions import Self
 
 from ._connection import BaseConnection
-from ._controllers.events import EventCallback
+from ._controllers.events import EventCallback, VantageEvent
+from ._logger import logger
 from .command_client import CommandClient, EventStream
 from .config_client import ConfigClient
 from .controllers import (
@@ -38,7 +39,7 @@ from .controllers import (
 )
 from .objects import SystemObject
 
-__all__ = ["Vantage"]
+__all__ = ["Vantage", "VantageEvent", "logger"]
 
 ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
 

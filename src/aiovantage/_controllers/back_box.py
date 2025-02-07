@@ -1,5 +1,6 @@
-from aiovantage.controllers import BaseController
 from aiovantage.objects import BackBox
+
+from .base import BaseController
 
 
 class BackBoxesController(BaseController[BackBox]):

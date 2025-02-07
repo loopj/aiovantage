@@ -1,5 +1,6 @@
-from aiovantage.controllers import BaseController
 from aiovantage.objects import LightSensor
+
+from .base import BaseController
 
 
 class LightSensorsController(BaseController[LightSensor]):

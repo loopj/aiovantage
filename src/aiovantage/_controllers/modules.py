@@ -1,5 +1,6 @@
-from aiovantage.controllers import BaseController
 from aiovantage.objects import SystemObject
+
+from .base import BaseController
 
 
 class ModulesController(BaseController[SystemObject]):
