@@ -10,9 +10,9 @@ from typing import Any, TypeVar, cast
 
 from typing_extensions import Self
 
+from ._connection import BaseConnection
 from .command_client import CommandClient, Event, EventStream, EventType
 from .config_client import ConfigClient
-from .connection import BaseConnection
 from .controllers import (
     AnemoSensorsController,
     AreasController,

@@ -9,11 +9,11 @@ from typing import Any
 
 from typing_extensions import Self
 
+from aiovantage._logger import logger
 from aiovantage.errors import CommandError, raise_command_error
-from aiovantage.logger import logger
 
-from .connection import CommandConnection
-from .converter import serialize, tokenize
+from ._connection import CommandConnection
+from ._converter import Converter
 
 
 @dataclass
@@ -79,13 +79,13 @@ class CommandClient:
         # Build the request
         request = command
         if params:
-            request += " " + " ".join(serialize(p) for p in params)
+            request += " " + " ".join(Converter.serialize(p) for p in params)
 
         # Send the request
         *data, return_line = await self.raw_request(request)
 
         # Break the response into tokens
-        command, *args = tokenize(return_line)
+        command, *args = Converter.tokenize(return_line)
 
         # Parse the response
         return CommandResponse(command[2:], args, data)

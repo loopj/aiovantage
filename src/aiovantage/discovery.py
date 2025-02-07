@@ -1,4 +1,4 @@
-"""Helper utilities for discovering details about Vantage controllers."""
+"""Helper functions for discovering details about Vantage controllers."""
 
 import re
 from dataclasses import dataclass
