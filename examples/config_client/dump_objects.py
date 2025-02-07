@@ -5,8 +5,7 @@ import asyncio
 import contextlib
 import logging
 
-from aiovantage.config_client import ConfigClient
-from aiovantage.config_client.requests import get_objects
+from aiovantage.config_client import ConfigClient, ConfigurationInterface
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -25,19 +24,21 @@ async def main() -> None:
     async with ConfigClient(args.host, args.username, args.password) as client:
         # Dump all Areas using the get_objects helper
         print("# Vantage Areas")
-        async for area in get_objects(client, "Area"):
+        async for area in ConfigurationInterface.get_objects(client, "Area"):
             print(area)
         print()
 
         # Dump all Loads using the get_objects helper
         print("# Vantage Loads")
-        async for load in get_objects(client, "Load"):
+        async for load in ConfigurationInterface.get_objects(client, "Load"):
             print(load)
         print()
 
         # Dump some StationObjects using the get_objects helper
         print("# Vantage Stations")
-        async for station in get_objects(client, "Keypad", "EqCtrl"):
+        async for station in ConfigurationInterface.get_objects(
+            client, "Keypad", "EqCtrl"
+        ):
             print(station)
         print()
 

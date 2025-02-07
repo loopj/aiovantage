@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from aiovantage.command_client import Event, EventType
 from aiovantage.command_client.converter import tokenize
-from aiovantage.config_client.requests import get_objects
+from aiovantage.config_client import ConfigurationInterface
 from aiovantage.events import EventCallback, VantageEvent
 from aiovantage.logger import logger
 from aiovantage.objects import SystemObject
@@ -78,8 +78,8 @@ class BaseController(QuerySet[T]):
             cur_ids: set[int] = set()
 
             # Fetch all objects managed by this controller
-            async for obj in get_objects(
-                self._vantage.config_client, *self.vantage_types
+            async for obj in ConfigurationInterface.get_objects(
+                self._vantage.config_client, *self.vantage_types, as_type=SystemObject
             ):
                 obj = cast(T, obj)
 
