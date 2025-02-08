@@ -14,8 +14,8 @@ from typing_extensions import Self
 from aiovantage._logger import logger
 from aiovantage.errors import ClientConnectionError, ClientError
 
-from ._connection import CommandConnection
-from ._converter import Converter
+from .connection import CommandConnection
+from .converter import Converter
 
 T = TypeVar("T")
 

@@ -12,9 +12,9 @@ port has been opened by the firewall on the controller.
 The service is discoverable via mDNS as `_hc._tcp.local` and/or `_secure_hc._tcp.local`.
 """
 
-from ._client import CommandClient, CommandResponse
-from ._converter import Converter
-from ._events import (
+from ._command_client.client import CommandClient, CommandResponse
+from ._command_client.converter import Converter
+from ._command_client.events import (
     ConnectEvent,
     DisconnectEvent,
     EnhancedLogEvent,

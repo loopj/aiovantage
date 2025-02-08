@@ -17,7 +17,7 @@ from xsdata.utils.text import pascal_case, snake_case
 from aiovantage._logger import logger
 from aiovantage.errors import ClientResponseError, LoginRequiredError
 
-from ._connection import ConfigConnection
+from .connection import ConfigConnection
 
 T = TypeVar("T")
 U = TypeVar("U")

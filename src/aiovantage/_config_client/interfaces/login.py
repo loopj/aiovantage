@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 
-from aiovantage.config_client._client import ConfigClient
+from ..client import ConfigClient
 
 
 @dataclass
