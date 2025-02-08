@@ -8,7 +8,6 @@ from typing import Any, TypeVar, cast
 
 from typing_extensions import Self
 
-from ._connection import BaseConnection
 from ._controllers.events import EventCallback, VantageEvent
 from ._logger import logger
 from .command_client import CommandClient, EventStream
@@ -58,6 +57,7 @@ class Vantage:
         password: str | None = None,
         *,
         ssl: SSLContext | bool = True,
+        ssl_context_factory: Callable[[], SSLContext] | None = None,
         config_port: int | None = None,
         command_port: int | None = None,
     ) -> None:
@@ -68,21 +68,37 @@ class Vantage:
             username: The username to use for authentication.
             password: The password to use for authentication.
             ssl: The SSL context to use. True will use the default context, False will disable SSL.
+            ssl_context_factory: A factory function to create an SSL context.
             config_port: The port to use for the config client.
             command_port: The port to use for the command client.
         """
         # Set up clients
         self._host = host
         self._config_client = ConfigClient(
-            host, username, password, ssl=ssl, port=config_port
+            host,
+            username,
+            password,
+            ssl=ssl,
+            ssl_context_factory=ssl_context_factory,
+            port=config_port,
         )
 
         self._command_client = CommandClient(
-            host, username, password, ssl=ssl, port=command_port
+            host,
+            username,
+            password,
+            ssl=ssl,
+            ssl_context_factory=ssl_context_factory,
+            port=command_port,
         )
 
         self._event_stream = EventStream(
-            host, username, password, ssl=ssl, port=command_port
+            host,
+            username,
+            password,
+            ssl=ssl,
+            ssl_context_factory=ssl_context_factory,
+            port=command_port,
         )
 
         # Set up controllers
@@ -271,7 +287,14 @@ class Vantage:
         return self._thermostats
 
     def get(self, vid: int) -> SystemObject | None:
-        """Return the object with the given Vantage ID, or None if not found."""
+        """Return the item with the given Vantage ID.
+
+        Args:
+            vid: The Vantage ID of the object.
+
+        Returns:
+            The object if it exists and has been fetched by a controller, or None.
+        """
         try:
             return self[vid]
         except KeyError:
@@ -321,8 +344,3 @@ class Vantage:
                 unsub()
 
         return unsubscribe
-
-    @classmethod
-    def set_ssl_context_factory(cls, factory: Callable[[], SSLContext]) -> None:
-        """Set the SSL context factory for all instances."""
-        BaseConnection.ssl_context_factory = factory

@@ -1,6 +1,7 @@
 """Client for the Vantage Application Communication Interface (ACI) service."""
 
 import asyncio
+from collections.abc import Callable
 from ssl import SSLContext
 from types import TracebackType
 from typing import Any, Protocol, TypeVar
@@ -30,14 +31,6 @@ class Method(Protocol[T, U]):
     result: U | None
 
 
-def _pascal_case_preserve(name: str) -> str:
-    # Convert a field/class name to PascalCase, preserving existing PascalCase names.
-    if "_" in name or name.islower():
-        return pascal_case(name)
-    else:
-        return name
-
-
 class ConfigClient:
     """Client for the Vantage Application Communication Interface (ACI) service.
 
@@ -52,12 +45,20 @@ class ConfigClient:
         password: str | None = None,
         *,
         ssl: SSLContext | bool = True,
+        ssl_context_factory: Callable[[], SSLContext] | None = None,
         port: int | None = None,
         conn_timeout: float = 30,
         read_timeout: float = 60,
     ) -> None:
         """Initialize the client."""
-        self._connection = ConfigConnection(host, port, ssl, conn_timeout)
+        self._connection = ConfigConnection(
+            host,
+            port=port,
+            ssl=ssl,
+            ssl_context_factory=ssl_context_factory,
+            conn_timeout=conn_timeout,
+        )
+
         self._username = username
         self._password = password
         self._read_timeout = read_timeout
@@ -199,3 +200,11 @@ class ConfigClient:
                 )
 
             return self._connection
+
+
+def _pascal_case_preserve(name: str) -> str:
+    # Convert a field/class name to PascalCase, preserving existing PascalCase names.
+    if "_" in name or name.islower():
+        return pascal_case(name)
+    else:
+        return name
