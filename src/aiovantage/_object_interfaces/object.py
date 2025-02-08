@@ -1,5 +1,3 @@
-"""'Object' object interface."""
-
 import datetime as dt
 
 from .base import Interface, method

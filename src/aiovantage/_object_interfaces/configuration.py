@@ -1,5 +1,3 @@
-"""Configuration object interface."""
-
 import datetime as dt
 from enum import IntEnum, IntFlag
 

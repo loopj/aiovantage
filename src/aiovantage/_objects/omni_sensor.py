@@ -109,19 +109,14 @@ class OmniSensor(Sensor, SensorInterface):
     # OmniSensors do additional conversion behind the scenes.
 
     @override
-    async def fetch_state(self, *properties: str) -> list[str] | None:
-        level = await self.get_level(hw=True)
-        if changed := self.update_property("level", level):
-            return [changed]
+    async def fetch_state(self, *properties: str) -> list[str]:
+        return self.update_properties({"level": await self.get_level(hw=True)})
 
     @override
-    def handle_object_status(self, method: str, result: str, *args: str) -> str | None:
+    def handle_object_status(self, method: str, result: str, *args: str) -> list[str]:
         # Check if the method is one we're interested in
         if method != self.get.method:
-            return
-
-        # Parse the response
-        value = Converter.deserialize(Decimal, result)
+            return []
 
         # Update the property if it has changed
-        return self.update_property("level", value)
+        return self.update_properties({"level": Converter.deserialize(Decimal, result)})

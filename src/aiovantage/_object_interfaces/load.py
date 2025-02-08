@@ -1,5 +1,3 @@
-"""Load object interface."""
-
 from decimal import Decimal
 from enum import IntEnum
 
@@ -220,10 +218,10 @@ class LoadInterface(Interface):
         return bool(self.level)
 
     @override
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         if category == "LOAD":
             # STATUS LOAD
             # -> S:LOAD <id> <level (0-100)>
-            return self.update_property("level", Decimal(args[0]))
+            return self.update_properties({"level": Decimal(args[0])})
 
         return super().handle_category_status(category, *args)

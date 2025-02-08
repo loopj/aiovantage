@@ -1,5 +1,3 @@
-"""Fan object interface."""
-
 from enum import IntEnum
 
 from .base import Interface, method

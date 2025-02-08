@@ -1,5 +1,3 @@
-"""Light sensor object interface."""
-
 from decimal import Decimal
 
 from typing_extensions import override
@@ -44,10 +42,10 @@ class LightSensorInterface(Interface):
         await self.invoke("LightSensor.SetLevel", level)
 
     @override
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         if category == "LIGHT":
             # STATUS LIGHT
             # -> S:LIGHT <id> <level>
-            return self.update_property("level", Decimal(args[0]))
+            return self.update_properties({"level": Decimal(args[0])})
 
         return super().handle_category_status(category, *args)

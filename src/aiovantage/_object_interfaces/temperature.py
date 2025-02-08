@@ -1,5 +1,3 @@
-"""Temperature interface."""
-
 from decimal import Decimal
 
 from typing_extensions import override
@@ -47,10 +45,10 @@ class TemperatureInterface(Interface):
         )
 
     @override
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         if category == "TEMP":
             # STATUS TEMP
             # -> S:TEMP <id> <temp>
-            return self.update_property("value", Decimal(args[0]))
+            return self.update_properties({"value": Decimal(args[0])})
 
         return super().handle_category_status(category, *args)

@@ -1,6 +1,28 @@
-"""Object interfaces classes."""
+"""Object interfaces classes.
+
+Object interface classes define how an object's state is accessed and modified. Each
+object implements one or more interfaces, with all objects automatically supporting
+[`ObjectInterface`][aiovantage.object_interfaces.ObjectInterface] through inheritance
+from [`SystemObject`][aiovantage.objects.SystemObject].
+
+Object interfaces expose *state* properties, which represent dynamic attributes that
+change during the operation of the system, such as the level a light or the current
+temperature of a thermostat. These properties are distinct from *configuration*
+properties, which are set when the system is programmed from Design Center and remain
+fixed during normal operation.
+
+State properties can be retrieved using [`fetch_state`][aiovantage.object_interfaces.Interface.fetch_state]
+and are kept up to date by calling [`handle_object_status`][aiovantage.object_interfaces.Interface.handle_object_status]
+or [`handle_category_status`][aiovantage.object_interfaces.Interface.handle_category_status] when messages are received from the
+command client event stream.
+
+In practice, controllers are responsible for managing state properties. They handle the
+initial retrieval of state, process updates from the event stream, and ensure that the
+latest state is reflected in the system.
+"""
 
 from ._object_interfaces.anemo_sensor import AnemoSensorInterface
+from ._object_interfaces.base import Interface
 from ._object_interfaces.blind import BlindInterface
 from ._object_interfaces.button import ButtonInterface
 from ._object_interfaces.color_temperature import ColorTemperatureInterface
@@ -29,6 +51,7 @@ __all__ = [
     "CurrentSensorInterface",
     "FanInterface",
     "GMemInterface",
+    "Interface",
     "IntrospectionInterface",
     "LightSensorInterface",
     "LoadInterface",

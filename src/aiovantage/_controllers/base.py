@@ -262,7 +262,7 @@ class BaseController(QuerySet[T]):
 
         # Notify subscribers if any attributes changed
         if updated:
-            self._object_updated(obj, updated)
+            self._object_updated(obj, *updated)
 
     def _handle_enhanced_log_event(self, event: Event) -> None:
         if event["type"] != EventType.ENHANCED_LOG:
@@ -283,7 +283,7 @@ class BaseController(QuerySet[T]):
 
         # Notify subscribers if any attributes changed
         if updated:
-            self._object_updated(obj, updated)
+            self._object_updated(obj, *updated)
 
     def _handle_reconnect_event(self, event: Event) -> None:
         # Fetch latest state if we've been disconnected

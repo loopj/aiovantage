@@ -1,5 +1,3 @@
-"""Anemo sensor object interface."""
-
 from decimal import Decimal
 
 from typing_extensions import override
@@ -47,10 +45,10 @@ class AnemoSensorInterface(Interface):
         )
 
     @override
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         if category == "WIND":
             # STATUS WIND
             # -> S:WIND <id> <wind_speed>
-            return self.update_property("speed", Decimal(args[0]))
+            return self.update_properties({"speed": Decimal(args[0])})
 
         return super().handle_category_status(category, *args)

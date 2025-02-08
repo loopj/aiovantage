@@ -1,5 +1,3 @@
-"""Sounder interface."""
-
 from decimal import Decimal
 from enum import IntEnum
 

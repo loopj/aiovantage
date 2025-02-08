@@ -1,5 +1,3 @@
-"""RGB load interface."""
-
 from decimal import Decimal
 from enum import IntEnum
 from itertools import islice
@@ -468,27 +466,29 @@ class RGBLoadInterface(Interface):
         return tuple([await self.get_hsl(attr) for attr in self.HSLAttribute])
 
     # Status updates for GetRGB, GetRGBW, and GetHSL arrive on multiple lines,
-    # one line per channel/attribute. We want to cache the values until we have
-    # all of them, then update the property.
+    # one line per channel/attribute. We always want to fetch a complete set of
+    # color channels/attributes before updating the properties.
 
     @override
-    async def fetch_state(self, *properties: str) -> list[str] | None:
+    async def fetch_state(self, *properties: str) -> list[str]:
         # Fetch state from other interfaces
-        props_changed = await super().fetch_state(*properties) or []
+        props_changed = await super().fetch_state(*properties)
 
         # Fetch RGB, HSL, and RGBW colors
-        for attr, fn in (
-            ("rgb", self.get_rgb_color),
-            ("hsl", self.get_hsl_color),
-            ("rgbw", self.get_rgbw_color),
-        ):
-            if changed := self.update_property(attr, await fn()):
-                props_changed.append(changed)
+        props_changed.extend(
+            self.update_properties(
+                {
+                    "rgb": await self.get_rgb_color(),
+                    "hsl": await self.get_hsl_color(),
+                    "rgbw": await self.get_rgbw_color(),
+                }
+            )
+        )
 
         return props_changed
 
     @override
-    def handle_object_status(self, method: str, result: str, *args: str) -> str | None:
+    def handle_object_status(self, method: str, result: str, *args: str) -> list[str]:
         # Define the methods and the number of channels/attributes they return
         methods = {
             "RGBLoad.GetRGB": ("rgb", 3),
@@ -506,13 +506,15 @@ class RGBLoadInterface(Interface):
         # Ignore channels that are out of range
         channel = Converter.deserialize(int, args[0])
         if channel not in range(num_channels):
-            return
+            return []
 
         # Cache the value
         self._cache = getattr(self, "_cache", [0, 0, 0, 0])
         self._cache[channel] = Converter.deserialize(int, result)
 
-        # Update the property if all channels have been received
+        # Update the property only if all channels have been received
         if channel == num_channels - 1:
             new_value = tuple(self._cache[:num_channels])
-            return self.update_property(attr, new_value)
+            return self.update_properties({attr: new_value})
+
+        return []

@@ -1,5 +1,3 @@
-"""Button object interface."""
-
 from decimal import Decimal
 from enum import IntEnum
 
@@ -194,15 +192,15 @@ class ButtonInterface(Interface):
         return self.state == self.State.Down
 
     @override
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         if category == "BTN":
             # STATUS BTN
             # -> S:BTN <id> <state (PRESS/RELEASE)>
-            btn_status_map = {
-                "PRESS": self.State.Down,
-                "RELEASE": self.State.Up,
+            btn_map = {
+                "PRESS": ButtonInterface.State.Down,
+                "RELEASE": ButtonInterface.State.Up,
             }
 
-            return self.update_property("state", btn_status_map[args[0]])
+            return self.update_properties({"state": btn_map[args[0]]})
 
         return super().handle_category_status(category, *args)

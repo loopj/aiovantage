@@ -1,5 +1,3 @@
-"""Blind object interface."""
-
 from dataclasses import dataclass, field
 from decimal import Decimal
 
@@ -240,10 +238,10 @@ class BlindInterface(Interface, ShadeOrientation, ShadeType):
         return await self.invoke("Blind.GetTravelTimes")
 
     @override
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         if category == "BLIND":
             # STATUS BLIND
             # -> S:BLIND <id> <position (0.000 - 100.000)>
-            return self.update_property("position", Decimal(args[0]))
+            return self.update_properties({"position": Decimal(args[0])})
 
         return super().handle_category_status(category, *args)

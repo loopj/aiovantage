@@ -1,5 +1,3 @@
-"""GMem object interface."""
-
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -69,7 +67,7 @@ class GMemInterface(Interface):
         response = await self.command_client.command("GETVARIABLE", self.vid)
 
         # Parse and return the value
-        return self._parse_value(response.args[1])
+        return _parse_gmem_value(response.args[1])
 
     async def set_value(self, value: Any) -> None:
         """Set the value of a variable.
@@ -88,30 +86,29 @@ class GMemInterface(Interface):
         await self.command_client.command("VARIABLE", self.vid, value)
 
     @override
-    async def fetch_state(self, *_properties: str) -> list[str] | None:
-        value = await self.get_value()
-        if changed := self.update_property("value", value):
-            return [changed]
+    async def fetch_state(self, *_properties: str) -> list[str]:
+        return self.update_properties({"value": await self.get_value()})
 
     @override
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         if category == "VARIABLE":
             # STATUS VARIABLE
             # -> S:VARIABLE <id> <value>
-            return self.update_property("value", self._parse_value(args[0]))
+            return self.update_properties({"value": _parse_gmem_value(args[0])})
 
         return super().handle_category_status(category, *args)
 
-    def _parse_value(self, value: str) -> int | str | bool:
-        # If a "" wrapped string, return as str
-        if value.startswith('"') and value.endswith('"'):
-            return Converter.deserialize(str, value)
 
-        # If a {} or [] wrapped string, return as bytes
-        if (value.startswith("{") and value.endswith("}")) or (
-            value.startswith("[") and value.endswith("]")
-        ):
-            return Converter.deserialize(bytes, value)
+def _parse_gmem_value(value: str) -> int | str | bool:
+    # If a "" wrapped string, return as str
+    if value.startswith('"') and value.endswith('"'):
+        return Converter.deserialize(str, value)
 
-        # Otherwise, return as int
-        return Converter.deserialize(int, value)
+    # If a {} or [] wrapped string, return as bytes
+    if (value.startswith("{") and value.endswith("}")) or (
+        value.startswith("[") and value.endswith("]")
+    ):
+        return Converter.deserialize(bytes, value)
+
+    # Otherwise, return as int
+    return Converter.deserialize(int, value)

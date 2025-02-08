@@ -1,5 +1,3 @@
-"""Current sensor object interface."""
-
 from decimal import Decimal
 
 from typing_extensions import override
@@ -48,10 +46,10 @@ class CurrentSensorInterface(Interface):
         )
 
     @override
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         if category == "CURRENT":
             # STATUS CURRENT
             # -> S:CURRENT <id> <current>
-            return self.update_property("current", Decimal(args[0]))
+            return self.update_properties({"current": Decimal(args[0])})
 
         return super().handle_category_status(category, *args)

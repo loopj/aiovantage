@@ -1,5 +1,3 @@
-"""Color temperature object interface."""
-
 from decimal import Decimal
 from enum import IntEnum
 

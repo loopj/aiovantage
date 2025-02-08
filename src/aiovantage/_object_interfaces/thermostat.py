@@ -1,5 +1,3 @@
-"""Thermostat interface."""
-
 from decimal import Decimal
 from enum import IntEnum
 
@@ -372,37 +370,37 @@ class ThermostatInterface(Interface):
         )
 
     @override
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         if category == "THERMOP":
             # STATUS THERMOP
             # -> S:THERMOP <id> <operation_mode (OFF/COOL/HEAT/AUTO)>
-            thermop_status_map = {
-                "OFF": self.OperationMode.Off,
-                "COOL": self.OperationMode.Cool,
-                "HEAT": self.OperationMode.Heat,
-                "AUTO": self.OperationMode.Auto,
+            thermop_map = {
+                "OFF": ThermostatInterface.OperationMode.Off,
+                "COOL": ThermostatInterface.OperationMode.Cool,
+                "HEAT": ThermostatInterface.OperationMode.Heat,
+                "AUTO": ThermostatInterface.OperationMode.Auto,
             }
 
-            return self.update_property("operation_mode", thermop_status_map[args[0]])
+            return self.update_properties({"operation_mode": thermop_map[args[0]]})
 
         if category == "THERMFAN":
             # STATUS THERMFAN
             # -> S:THERMFAN <id> <fan_mode (ON/AUTO)>
-            thermfan_status_map = {
-                "ON": self.FanMode.On,
-                "AUTO": self.FanMode.Off,
+            thermfan_map = {
+                "ON": ThermostatInterface.FanMode.On,
+                "AUTO": ThermostatInterface.FanMode.Off,
             }
 
-            return self.update_property("fan_mode", thermfan_status_map[args[0]])
+            return self.update_properties({"fan_mode": thermfan_map[args[0]]})
 
         if category == "THERMDAY":
             # STATUS THERMDAY
             # -> S:THERMDAY <id> <day_mode (DAY/NIGHT)>
-            thermday_status_map = {
-                "DAY": self.DayMode.Day,
-                "NIGHT": self.DayMode.Night,
+            thermday_map = {
+                "DAY": ThermostatInterface.DayMode.Day,
+                "NIGHT": ThermostatInterface.DayMode.Night,
             }
 
-            return self.update_property("day_mode", thermday_status_map[args[0]])
+            return self.update_properties({"day_mode": thermday_map[args[0]]})
 
         return super().handle_category_status(category, *args)

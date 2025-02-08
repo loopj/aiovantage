@@ -1,5 +1,3 @@
-"""Base class for object interfaces."""
-
 from collections.abc import Callable
 from dataclasses import fields, is_dataclass
 from typing import (
@@ -123,16 +121,16 @@ class _InterfaceMeta(type):
 
 
 class Interface(metaclass=_InterfaceMeta):
-    """Base class for command client object interfaces."""
+    """Base class for object interfaces."""
 
     interface_name: ClassVar[str]
     """The name of the interface."""
 
-    vid: int
-    """The VID of the object to send requests to."""
-
     command_client: CommandClient | None = None
-    """The command client to use for sending requests."""
+    """The command client instance to use for making requests."""
+
+    vid: int
+    """The Vantage ID of the object to send requests to, typically set in a subclass."""
 
     # Method metadata
     _method_signatures: dict[str, type[Any]]
@@ -178,28 +176,31 @@ class Interface(metaclass=_InterfaceMeta):
         # Parse the response
         return self._parse_object_response(method, result, *args, as_type=as_type)
 
-    def update_property(self, property: str, value: Any) -> str | None:
-        """Update an object property.
+    def update_properties(self, properties: dict[str, Any]) -> list[str]:
+        """Update object properties.
 
         Args:
-            property: The property to update.
-            value: The new value of the property.
+            properties: A dictionary of property names and their new values.
 
         Returns:
-            The name of the property that was updated, None if no change.
+            A list of property names that were updated.
         """
-        if hasattr(self, property) and getattr(self, property) != value:
-            setattr(self, property, value)
-            return property
+        changed: list[str] = []
+        for prop, value in properties.items():
+            if hasattr(self, prop) and getattr(self, prop) != value:
+                setattr(self, prop, value)
+                changed.append(prop)
 
-    async def fetch_state(self, *properties: str) -> list[str] | None:
+        return changed
+
+    async def fetch_state(self, *properties: str) -> list[str]:
         """Fetch state properties provided by the interface(s) this object implements.
 
         Args:
             *properties: A list of properties to fetch, omit to fetch all properties.
 
         Returns:
-            A list of properties that have changed.
+            A list of property names that were updated.
         """
         cls = type(self)
 
@@ -211,22 +212,18 @@ class Interface(metaclass=_InterfaceMeta):
         )
 
         # Fetch each state property
-        props_changed: list[str] = []
+        fetched_properties: dict[str, Any] = {}
         for prop in props_to_fetch:
             if getter := cls._property_getters.get(prop):
                 # Call the getter function
                 try:
-                    result = await getter(self)
+                    fetched_properties[prop] = await getter(self)
                 except (NotImplementedError, NotSupportedError):
                     continue
 
-                # Update the attribute if the result has changed
-                if changed := self.update_property(prop, result):
-                    props_changed.append(changed)
+        return self.update_properties(fetched_properties)
 
-        return props_changed
-
-    def handle_object_status(self, method: str, result: str, *args: str) -> str | None:
+    def handle_object_status(self, method: str, result: str, *args: str) -> list[str]:
         """Handle an object interface status message.
 
         Args:
@@ -235,20 +232,19 @@ class Interface(metaclass=_InterfaceMeta):
             args: The arguments that were sent with the command.
 
         Returns:
-            The property that was updated, or None if no property was updated.
+            A list of property names that were updated.
         """
         # Look up the property associated with this method
         property = self._method_properties.get(method)
         if property is None:
-            return None
+            return []
 
-        # Parse the response
-        value = self._parse_object_response(method, result, *args)
+        # Parse the response and update the property
+        return self.update_properties(
+            {property: self._parse_object_response(method, result, *args)}
+        )
 
-        # Update the property if it has changed
-        return self.update_property(property, value)
-
-    def handle_category_status(self, category: str, *args: str) -> str | None:
+    def handle_category_status(self, category: str, *args: str) -> list[str]:
         """Handle category status messages.
 
         Object interfaces which can handle "legacy" status messages from the
@@ -259,24 +255,17 @@ class Interface(metaclass=_InterfaceMeta):
             args: The arguments that were sent with the command.
 
         Returns:
-            The property that was updated, or None if no property was updated.
+            A list of property names that were updated.
         """
+        return []
 
     @classmethod
     def _parse_object_response(
         cls, method: str, result: str, *args: str, as_type: type[T] | None = None
     ) -> T | Any:
-        """Parse an object interface response message.
+        # Parse an object interface response message, either from the response
+        # to an INVOKE command, or from a status message.
 
-        Args:
-            method: The method that was invoked.
-            result: The "result" of the command, aka the return value.
-            args: The arguments that were sent with the command, which may have been modified.
-            as_type: The expected return type of the method.
-
-        Returns:
-            A response parsed into the expected type.
-        """
         # -> R:INVOKE <id> <result> <method> <arg1> <arg2> ...
         # -> EL: <id> <method> <result> <arg1> <arg2> ...
         # -> S:STATUS <id> <method> <result> <arg1> <arg2> ...

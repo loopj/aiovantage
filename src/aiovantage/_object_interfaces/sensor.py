@@ -1,5 +1,3 @@
-"""Sensor interface."""
-
 from decimal import Decimal
 
 from .base import Interface, method

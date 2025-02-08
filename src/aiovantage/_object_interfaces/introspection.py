@@ -1,5 +1,3 @@
-"""Introspection object interface."""
-
 from dataclasses import dataclass, field
 from enum import IntEnum
 
