@@ -3,12 +3,11 @@
 import asyncio
 from collections.abc import Callable
 from ssl import CERT_NONE, SSLContext, create_default_context
-from typing import ClassVar
 
 from .errors import ClientConnectionError, ClientTimeoutError
 
 
-def _get_default_context() -> SSLContext:
+def get_default_context() -> SSLContext:
     """Create a default SSL context."""
     # We don't have a local issuer certificate to check against, and we'll be
     # connecting to an IP address so we can't check the hostname
@@ -21,8 +20,6 @@ def _get_default_context() -> SSLContext:
 class BaseConnection:
     """Wrapper for an asyncio connection to a Vantage controller."""
 
-    ssl_context_factory: ClassVar[Callable[[], SSLContext]] = _get_default_context
-
     default_port: int
     default_ssl_port: int
     buffer_limit: int = 2**16
@@ -30,8 +27,10 @@ class BaseConnection:
     def __init__(
         self,
         host: str,
+        *,
         port: int | None = None,
         ssl: SSLContext | bool = True,
+        ssl_context_factory: Callable[[], SSLContext] | None = None,
         conn_timeout: float | None = None,
     ) -> None:
         """Initialize the connection."""
@@ -41,13 +40,12 @@ class BaseConnection:
         self._writer: asyncio.StreamWriter | None = None
 
         # Set up the SSL context
-        self._ssl: SSLContext | None
-        if ssl is True:
-            self._ssl = BaseConnection.ssl_context_factory()
-        elif isinstance(ssl, SSLContext):
-            self._ssl = ssl
+        if isinstance(ssl, SSLContext):
+            self._ssl_context = ssl
+        elif ssl:
+            self._ssl_context = (ssl_context_factory or get_default_context)()
         else:
-            self._ssl = None
+            self._ssl_context = None
 
         # Set up the port
         self._port: int
@@ -68,7 +66,7 @@ class BaseConnection:
                 asyncio.open_connection(
                     self._host,
                     self._port,
-                    ssl=self._ssl,
+                    ssl=self._ssl_context,
                     limit=self.buffer_limit,
                 ),
                 timeout=self._conn_timeout,
