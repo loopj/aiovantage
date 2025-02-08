@@ -1,5 +1,3 @@
-"""Tasks controller."""
-
 from aiovantage.objects import Task
 
 from .base import BaseController

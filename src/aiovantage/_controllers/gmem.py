@@ -1,5 +1,3 @@
-"""GMem (variables) controller."""
-
 from aiovantage.objects import GMem
 
 from .base import BaseController

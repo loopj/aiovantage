@@ -1,5 +1,3 @@
-"""Light sensors controller."""
-
 from aiovantage.objects import LightSensor
 
 from .base import BaseController

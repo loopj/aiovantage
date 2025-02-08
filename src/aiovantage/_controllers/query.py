@@ -1,7 +1,3 @@
-"""Provides a basic "Django-ish" queryset for querying objects."""
-
-# from __future__ import annotations
-
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator
 from typing import Any, TypeVar, cast, overload
 

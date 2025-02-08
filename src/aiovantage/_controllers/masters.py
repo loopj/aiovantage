@@ -1,5 +1,3 @@
-"""Masters (InFusion Controllers) controller."""
-
 from aiovantage.objects import Master
 
 from .base import BaseController

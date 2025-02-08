@@ -1,5 +1,3 @@
-"""Temperature device controller."""
-
 from aiovantage.objects import Temperature
 
 from .base import BaseController

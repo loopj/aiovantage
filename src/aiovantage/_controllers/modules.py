@@ -1,5 +1,3 @@
-"""Modules controller."""
-
 from aiovantage.objects import SystemObject
 
 from .base import BaseController

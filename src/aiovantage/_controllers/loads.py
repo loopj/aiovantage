@@ -1,7 +1,5 @@
-"""Loads controller."""
-
+from aiovantage._controllers.query import QuerySet
 from aiovantage.objects import Load
-from aiovantage.query import QuerySet
 
 from .base import BaseController
 

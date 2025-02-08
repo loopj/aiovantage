@@ -1,17 +1,16 @@
-"""Base controller for Vantage objects."""
-
 import asyncio
 from collections.abc import Callable, Iterable
 from dataclasses import fields
 from inspect import iscoroutinefunction
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, cast
 
 from aiovantage._logger import logger
 from aiovantage.command_client import Converter, Event, EventType
 from aiovantage.config_client import ConfigurationInterface
-from aiovantage.events import EventCallback, VantageEvent
 from aiovantage.objects import SystemObject
-from aiovantage.query import QuerySet
+
+from .events import EventCallback, VantageEvent
+from .query import QuerySet
 
 if TYPE_CHECKING:
     from aiovantage import Vantage
@@ -25,6 +24,8 @@ EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 
 class BaseController(QuerySet[T]):
     """Base controller for managing collections of Vantage objects."""
+
+    item_types: TypeAlias
 
     vantage_types: tuple[str, ...]
     """The Vantage object types that this controller will fetch."""
@@ -164,6 +165,11 @@ class BaseController(QuerySet[T]):
             # Subscribe to "STATUS {category}" updates
             self._vantage.event_stream.subscribe_status(self._handle_status_event)
 
+        # Subscribe to reconnect events from the event stream
+        self._vantage.event_stream.subscribe(
+            self._handle_reconnect_event, EventType.RECONNECTED
+        )
+
         self._subscribed_to_state_changes = True
         logger.info("%s subscribed to state changes", type(self).__name__)
 
@@ -282,6 +288,11 @@ class BaseController(QuerySet[T]):
         # Notify subscribers if any attributes changed
         if updated:
             self._object_updated(obj, updated)
+
+    async def _handle_reconnect_event(self, event: Event) -> None:
+        # Handle events from the event stream.
+        if event["type"] == EventType.RECONNECTED:
+            await self.fetch_state()
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized

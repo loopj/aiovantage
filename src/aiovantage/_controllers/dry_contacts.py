@@ -1,5 +1,3 @@
-"""Dry contacts controller."""
-
 from aiovantage.objects import DryContact
 
 from .base import BaseController

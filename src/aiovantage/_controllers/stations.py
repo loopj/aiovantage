@@ -1,5 +1,3 @@
-"""Stations controller."""
-
 from aiovantage.objects import StationObject
 
 from .base import BaseController

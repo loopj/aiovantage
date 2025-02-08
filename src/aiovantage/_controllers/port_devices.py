@@ -1,5 +1,3 @@
-"""Port devices controller."""
-
 from aiovantage.objects import PortDevice
 
 from .base import BaseController

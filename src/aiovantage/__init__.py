@@ -1,7 +1,5 @@
 """Asynchronous Python library for controlling Vantage InFusion controllers."""
 
-__all__ = ["Vantage", "VantageEvent"]
-
 import asyncio
 from collections.abc import Callable, Iterator
 from ssl import SSLContext
@@ -11,7 +9,9 @@ from typing import Any, TypeVar, cast
 from typing_extensions import Self
 
 from ._connection import BaseConnection
-from .command_client import CommandClient, Event, EventStream, EventType
+from ._controllers.events import EventCallback, VantageEvent
+from ._logger import logger
+from .command_client import CommandClient, EventStream
 from .config_client import ConfigClient
 from .controllers import (
     AnemoSensorsController,
@@ -37,8 +37,9 @@ from .controllers import (
     TemperatureSensorsController,
     ThermostatsController,
 )
-from .events import EventCallback, VantageEvent
 from .objects import SystemObject
+
+__all__ = ["Vantage", "VantageEvent", "logger"]
 
 ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
 
@@ -85,31 +86,33 @@ class Vantage:
         )
 
         # Set up controllers
-        self._controllers: set[BaseController[Any]] = set()
-        self._anemo_sensors = self._add_controller(AnemoSensorsController)
-        self._areas = self._add_controller(AreasController)
-        self._back_boxes = self._add_controller(BackBoxesController)
-        self._blind_groups = self._add_controller(BlindGroupsController)
-        self._blinds = self._add_controller(BlindsController)
-        self._buttons = self._add_controller(ButtonsController)
-        self._dry_contacts = self._add_controller(DryContactsController)
-        self._gmem = self._add_controller(GMemController)
-        self._light_sensors = self._add_controller(LightSensorsController)
-        self._load_groups = self._add_controller(LoadGroupsController)
-        self._loads = self._add_controller(LoadsController)
-        self._masters = self._add_controller(MastersController)
-        self._modules = self._add_controller(ModulesController)
-        self._rgb_loads = self._add_controller(RGBLoadsController)
-        self._omni_sensors = self._add_controller(OmniSensorsController)
-        self._port_devices = self._add_controller(PortDevicesController)
-        self._power_profiles = self._add_controller(PowerProfilesController)
-        self._stations = self._add_controller(StationsController)
-        self._tasks = self._add_controller(TasksController)
-        self._temperature_sensors = self._add_controller(TemperatureSensorsController)
-        self._thermostats = self._add_controller(ThermostatsController)
+        def add_controller(controller_cls: type[ControllerT]) -> ControllerT:
+            controller = controller_cls(self)
+            self._controllers.add(controller)
+            return controller
 
-        # Subscribe to reconnect events from the event stream
-        self._event_stream.subscribe(self._handle_event, EventType.RECONNECTED)
+        self._controllers: set[BaseController[Any]] = set()
+        self._anemo_sensors = add_controller(AnemoSensorsController)
+        self._areas = add_controller(AreasController)
+        self._back_boxes = add_controller(BackBoxesController)
+        self._blind_groups = add_controller(BlindGroupsController)
+        self._blinds = add_controller(BlindsController)
+        self._buttons = add_controller(ButtonsController)
+        self._dry_contacts = add_controller(DryContactsController)
+        self._gmem = add_controller(GMemController)
+        self._light_sensors = add_controller(LightSensorsController)
+        self._load_groups = add_controller(LoadGroupsController)
+        self._loads = add_controller(LoadsController)
+        self._masters = add_controller(MastersController)
+        self._modules = add_controller(ModulesController)
+        self._rgb_loads = add_controller(RGBLoadsController)
+        self._omni_sensors = add_controller(OmniSensorsController)
+        self._port_devices = add_controller(PortDevicesController)
+        self._power_profiles = add_controller(PowerProfilesController)
+        self._stations = add_controller(StationsController)
+        self._tasks = add_controller(TasksController)
+        self._temperature_sensors = add_controller(TemperatureSensorsController)
+        self._thermostats = add_controller(ThermostatsController)
 
     def __getitem__(self, vid: int) -> SystemObject:
         """Return the object with the given Vantage ID."""
@@ -283,7 +286,7 @@ class Vantage:
     async def initialize(
         self, *, fetch_state: bool = True, monitor_state: bool = True
     ) -> None:
-        """Fetch all objects from the controllers.
+        """Initialize all controllers.
 
         Args:
             fetch_state: Whether to fetch the state of stateful objects.
@@ -301,7 +304,7 @@ class Vantage:
         )
 
     def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
-        """Subscribe to state changes for all objects.
+        """Subscribe to state changes for every controller.
 
         Args:
             callback: The callback to call when an object changes.
@@ -318,19 +321,6 @@ class Vantage:
                 unsub()
 
         return unsubscribe
-
-    async def _handle_event(self, event: Event) -> None:
-        # Handle events from the event stream.
-        if event["type"] == EventType.RECONNECTED:
-            for controller in self._controllers:
-                if controller.initialized:
-                    await controller.fetch_state()
-
-    def _add_controller(self, controller_cls: type[ControllerT]) -> ControllerT:
-        # Add a controller to the known controllers.
-        controller = controller_cls(self)
-        self._controllers.add(controller)
-        return controller
 
     @classmethod
     def set_ssl_context_factory(cls, factory: Callable[[], SSLContext]) -> None:

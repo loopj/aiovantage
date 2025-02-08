@@ -1,5 +1,3 @@
-"""Anemo sensors (wind speed sensors) controller."""
-
 from aiovantage.objects import AnemoSensor
 
 from .base import BaseController

@@ -1,10 +1,8 @@
-"""Vantage events."""
-
 from collections.abc import Awaitable, Callable
 from enum import Enum
 from typing import Any, TypeAlias, TypeVar
 
-from .objects import SystemObject
+from aiovantage.objects import SystemObject
 
 
 class VantageEvent(Enum):

@@ -1,5 +1,3 @@
-"""Power profiles controller."""
-
 from aiovantage.objects import PowerProfile
 
 from .base import BaseController

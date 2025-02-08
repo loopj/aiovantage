@@ -1,7 +1,6 @@
-"""Back boxes controller."""
-
-from aiovantage.controllers.base import BaseController
 from aiovantage.objects import BackBox
+
+from .base import BaseController
 
 
 class BackBoxesController(BaseController[BackBox]):

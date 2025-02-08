@@ -1,5 +1,3 @@
-"""Areas controller."""
-
 from aiovantage.objects import Area
 
 from .base import BaseController

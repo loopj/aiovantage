@@ -1,5 +1,3 @@
-"""Buttons controller."""
-
 from aiovantage.objects import Button
 
 from .base import BaseController

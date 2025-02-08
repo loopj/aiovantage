@@ -1,7 +1,5 @@
-"""Load groups controller."""
-
+from aiovantage._controllers.query import QuerySet
 from aiovantage.objects import Load, LoadGroup
-from aiovantage.query import QuerySet
 
 from .base import BaseController
 

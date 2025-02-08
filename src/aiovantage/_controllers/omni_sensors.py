@@ -1,5 +1,3 @@
-"""Omni sensors controller."""
-
 from aiovantage.objects import OmniSensor
 
 from .base import BaseController

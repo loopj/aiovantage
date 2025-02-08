@@ -1,5 +1,3 @@
-"""Blinds controller."""
-
 from aiovantage.objects import (
     QISBlind,
     QubeBlind,
@@ -13,6 +11,7 @@ from .base import BaseController
 BlindTypes = (
     QISBlind | QubeBlind | RelayBlind | SomfyRS485ShadeChild | SomfyURTSI2ShadeChild
 )
+"""Types managed by the blinds controller."""
 
 
 class BlindsController(BaseController[BlindTypes]):
