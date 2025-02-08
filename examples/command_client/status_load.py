@@ -20,11 +20,11 @@ def command_client_callback(event: Event) -> None:
     """Print out the status update for each event."""
     if event["type"] == EventType.STATUS:
         print(f"[{event['category']}] id: {event['vid']}, args: {event['args']}")
-    elif event["type"] == EventType.CONNECTED:
+    elif event["type"] == EventType.CONNECT:
         print("Connected and monitoring for status updates...")
-    elif event["type"] == EventType.DISCONNECTED:
+    elif event["type"] == EventType.DISCONNECT:
         print("Disconnected")
-    elif event["type"] == EventType.RECONNECTED:
+    elif event["type"] == EventType.RECONNECT:
         print("Reconnected")
 
 
@@ -38,7 +38,9 @@ async def main() -> None:
         # Subscribe to connection events
         events.subscribe(
             command_client_callback,
-            (EventType.CONNECTED, EventType.DISCONNECTED, EventType.RECONNECTED),
+            EventType.CONNECT,
+            EventType.DISCONNECT,
+            EventType.RECONNECT,
         )
 
         # Subscribe to status updates for LOAD objects (STATUS LOAD)

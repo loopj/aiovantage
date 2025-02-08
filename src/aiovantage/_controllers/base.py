@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound=SystemObject)
 
 
-# Types for state and subscriptions
 EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
 
 
@@ -167,7 +166,7 @@ class BaseController(QuerySet[T]):
 
         # Subscribe to reconnect events from the event stream
         self._vantage.event_stream.subscribe(
-            self._handle_reconnect_event, EventType.RECONNECTED
+            self._handle_reconnect_event, EventType.RECONNECT
         )
 
         self._subscribed_to_state_changes = True
@@ -242,7 +241,7 @@ class BaseController(QuerySet[T]):
         # Notify subscribers that an object has been updated
         self._emit(VantageEvent.OBJECT_UPDATED, obj, {"attrs_changed": attrs_changed})
 
-    async def _handle_status_event(self, event: Event) -> None:
+    def _handle_status_event(self, event: Event) -> None:
         if event["type"] != EventType.STATUS:
             return
 
@@ -255,19 +254,17 @@ class BaseController(QuerySet[T]):
         if event["category"] == "STATUS":
             # Handle "object interface" status events of the form:
             # -> S:STATUS <vid> <method> <result> <arg1> <arg2> ...
-            method, result, *args = event["args"]
-            updated = obj.handle_object_status(method, result, *args)
+            updated = obj.handle_object_status(*event["args"])
         else:
             # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
             # -> S:LOAD <vid> <arg1> <arg2> ...
-            category, *args = event["category"], *event["args"]
-            updated = obj.handle_category_status(category, *args)
+            updated = obj.handle_category_status(event["category"], *event["args"])
 
         # Notify subscribers if any attributes changed
         if updated:
             self._object_updated(obj, updated)
 
-    async def _handle_enhanced_log_event(self, event: Event) -> None:
+    def _handle_enhanced_log_event(self, event: Event) -> None:
         if event["type"] != EventType.ENHANCED_LOG:
             return
 
@@ -275,10 +272,9 @@ class BaseController(QuerySet[T]):
         # These are "object interface" status messages, of the form:
         # -> EL: <vid> <method> <result> <arg1> <arg2> ...
         vid_str, method, result, *args = Converter.tokenize(event["log"])
-        vid = int(vid_str)
 
         # Pass the event to the controller, if this object is managed by it
-        obj = self._items.get(vid)
+        obj = self._items.get(int(vid_str))
         if obj is None:
             return
 
@@ -289,10 +285,9 @@ class BaseController(QuerySet[T]):
         if updated:
             self._object_updated(obj, updated)
 
-    async def _handle_reconnect_event(self, event: Event) -> None:
-        # Handle events from the event stream.
-        if event["type"] == EventType.RECONNECTED:
-            await self.fetch_state()
+    def _handle_reconnect_event(self, event: Event) -> None:
+        # Fetch latest state if we've been disconnected
+        asyncio.create_task(self.fetch_state())
 
     async def _lazy_initialize(self) -> None:
         # Initialize the controller if it isn't already initialized
