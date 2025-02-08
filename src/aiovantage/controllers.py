@@ -18,29 +18,29 @@ An instance of every controller type is made available through the main [Vantage
 object.
 """
 
-from aiovantage._controllers.anemo_sensors import AnemoSensorsController
-from aiovantage._controllers.areas import AreasController
-from aiovantage._controllers.back_box import BackBoxesController
-from aiovantage._controllers.base import BaseController
-from aiovantage._controllers.blind_groups import BlindGroupsController
-from aiovantage._controllers.blinds import BlindsController, BlindTypes
-from aiovantage._controllers.buttons import ButtonsController
-from aiovantage._controllers.dry_contacts import DryContactsController
-from aiovantage._controllers.gmem import GMemController
-from aiovantage._controllers.light_sensors import LightSensorsController
-from aiovantage._controllers.load_groups import LoadGroupsController
-from aiovantage._controllers.loads import LoadsController
-from aiovantage._controllers.masters import MastersController
-from aiovantage._controllers.modules import ModulesController
-from aiovantage._controllers.omni_sensors import OmniSensorsController
-from aiovantage._controllers.port_devices import PortDevicesController
-from aiovantage._controllers.power_profiles import PowerProfilesController
-from aiovantage._controllers.query import QuerySet
-from aiovantage._controllers.rgb_loads import RGBLoadsController, RGBLoadTypes
-from aiovantage._controllers.stations import StationsController
-from aiovantage._controllers.tasks import TasksController
-from aiovantage._controllers.temperature_sensors import TemperatureSensorsController
-from aiovantage._controllers.thermostats import ThermostatsController
+from ._controllers.anemo_sensors import AnemoSensorsController
+from ._controllers.areas import AreasController
+from ._controllers.back_box import BackBoxesController
+from ._controllers.base import BaseController
+from ._controllers.blind_groups import BlindGroupsController
+from ._controllers.blinds import BlindsController, BlindTypes
+from ._controllers.buttons import ButtonsController
+from ._controllers.dry_contacts import DryContactsController
+from ._controllers.gmem import GMemController
+from ._controllers.light_sensors import LightSensorsController
+from ._controllers.load_groups import LoadGroupsController
+from ._controllers.loads import LoadsController
+from ._controllers.masters import MastersController
+from ._controllers.modules import ModulesController
+from ._controllers.omni_sensors import OmniSensorsController
+from ._controllers.port_devices import PortDevicesController
+from ._controllers.power_profiles import PowerProfilesController
+from ._controllers.query import QuerySet
+from ._controllers.rgb_loads import RGBLoadsController, RGBLoadTypes
+from ._controllers.stations import StationsController
+from ._controllers.tasks import TasksController
+from ._controllers.temperature_sensors import TemperatureSensorsController
+from ._controllers.thermostats import ThermostatsController
 
 __all__ = [
     "AnemoSensorsController",
