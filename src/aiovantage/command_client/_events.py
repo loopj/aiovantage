@@ -1,14 +1,13 @@
 """Client to subscribe to events from the Vantage Host Command service."""
 
 import asyncio
-from collections import defaultdict
-from collections.abc import Awaitable, Callable, Iterable, Sequence
+from collections import Counter, defaultdict
+from collections.abc import Callable
 from contextlib import suppress
 from enum import Enum
-from inspect import iscoroutinefunction
 from ssl import SSLContext
 from types import TracebackType
-from typing import Literal, TypedDict
+from typing import Literal, TypedDict, TypeVar
 
 from typing_extensions import Self
 
@@ -18,6 +17,8 @@ from aiovantage.errors import ClientConnectionError, ClientError
 from ._connection import CommandConnection
 from ._converter import Converter
 
+T = TypeVar("T")
+
 # The interval between keepalive messages, in seconds.
 KEEPALIVE_INTERVAL = 60
 
@@ -25,13 +26,13 @@ KEEPALIVE_INTERVAL = 60
 class EventType(Enum):
     """Event types emitted by the event stream."""
 
-    CONNECTED = "connect"
-    """The connection to the Host Command service was established."""
+    CONNECT = "connect"
+    """A connection to the Host Command service was established."""
 
-    DISCONNECTED = "disconnect"
+    DISCONNECT = "disconnect"
     """The connection to the Host Command service was lost."""
 
-    RECONNECTED = "reconnect"
+    RECONNECT = "reconnect"
     """The connection to the Host Command service was re-established."""
 
     STATUS = "status"
@@ -44,44 +45,52 @@ class EventType(Enum):
 class ConnectEvent(TypedDict):
     """Event emitted when the connection is established."""
 
-    type: Literal[EventType.CONNECTED]
+    type: Literal[EventType.CONNECT]
+    """The event type."""
 
 
 class DisconnectEvent(TypedDict):
     """Event emitted when the connection is lost."""
 
-    type: Literal[EventType.DISCONNECTED]
+    type: Literal[EventType.DISCONNECT]
+    """The event type."""
 
 
 class ReconnectEvent(TypedDict):
     """Event emitted when the connection is re-established."""
 
-    type: Literal[EventType.RECONNECTED]
+    type: Literal[EventType.RECONNECT]
+    """The event type."""
 
 
 class StatusEvent(TypedDict):
     """Event emitted when a "S:" status is received."""
 
     type: Literal[EventType.STATUS]
-    vid: int
+    """The event type."""
+
     category: str
-    args: Sequence[str]
+    """The status category, eg. "LOAD", "BLIND", etc."""
+
+    vid: int
+    """The unique Vantage ID of the object the status applies to."""
+
+    args: list[str]
+    """The arguments of the status message."""
 
 
 class EnhancedLogEvent(TypedDict):
     """Event emitted when an "EL:" enhanced log is received."""
 
     type: Literal[EventType.ENHANCED_LOG]
+    """The event type."""
+
     log: str
+    """The enhanced log message."""
 
 
-# Type alias for any event type
 Event = ConnectEvent | DisconnectEvent | ReconnectEvent | StatusEvent | EnhancedLogEvent
-
-# Type aliases for callbacks for event subscriptions
-EventCallback = Callable[[Event], Awaitable[None] | None]
-EventFilter = Callable[[Event], bool]
-EventSubscription = tuple[EventCallback, EventFilter | None]
+"""Union of events emitted by the event stream."""
 
 
 class EventStream:
@@ -102,13 +111,24 @@ class EventStream:
         self._username = username
         self._password = password
         self._tasks: list[asyncio.Task[None]] = []
-        self._subscriptions: list[EventSubscription] = []
-        self._status_subscribers: dict[str, int] = defaultdict(int)
-        self._enhanced_log_subscribers: dict[str, int] = defaultdict(int)
         self._start_lock = asyncio.Lock()
         self._started = False
         self._connection_lock = asyncio.Lock()
         self._command_queue: asyncio.Queue[str] = asyncio.Queue()
+
+        self._subscriptions: dict[EventType, set[Callable[[Event], None]]] = (
+            defaultdict(set)
+        )
+
+        self._status_counts: StatusCounter[str] = StatusCounter(
+            on_first_add=self._enable_status,
+            on_last_remove=self._disable_status,
+        )
+
+        self._enhanced_log_counts: StatusCounter[str] = StatusCounter(
+            on_first_add=self._enable_enhanced_log,
+            on_last_remove=self._disable_enhanced_log,
+        )
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -173,38 +193,30 @@ class EventStream:
             return self._connection
 
     def subscribe(
-        self,
-        callback: EventCallback,
-        event_filter: EventType | Iterable[EventType] | EventFilter | None = None,
+        self, callback: Callable[[Event], None], *event_types: EventType
     ) -> Callable[[], None]:
         """Subscribe to events from the Host Command service.
 
         Args:
             callback: The callback to invoke when an event is received.
-            event_filter: A filter to apply to events before invoking the callback.
+            event_types: The event types to subscribe to.
 
         Returns:
             A function that can be used to unsubscribe from events.
         """
-        # Support filtering by event type, a list of event types, or a predicate
-        subscription: EventSubscription
-        if isinstance(event_filter, EventType):
-            subscription = (callback, lambda event: event["type"] == event_filter)
-        elif isinstance(event_filter, Iterable):
-            subscription = (callback, lambda event: event["type"] in event_filter)
-        else:
-            subscription = (callback, event_filter)
-
-        self._subscriptions.append(subscription)
+        # Support filtering by event types
+        for event_type in event_types:
+            self._subscriptions[event_type].add(callback)
 
         # Return an unsubscribe callback to remove the subscription
         def unsubscribe() -> None:
-            self._subscriptions.remove(subscription)
+            for event_type in event_types:
+                self._subscriptions[event_type].remove(callback)
 
         return unsubscribe
 
     def subscribe_status(
-        self, callback: EventCallback, *categories: str
+        self, callback: Callable[[Event], None], *categories: str
     ) -> Callable[[], None]:
         """Subscribe to "Status" events from the Host Command service.
 
@@ -219,31 +231,27 @@ class EventStream:
             categories = ("ALL",)
 
         # Enable this status type if it's not already enabled
-        for category in categories:
-            self._status_subscribers[category] += 1
-            if self._status_subscribers[category] == 1:
-                self._enable_status(category)
+        self._status_counts.update(categories)
+
+        # Filter events by category
+        def _callback(event: Event) -> None:
+            if event["type"] != EventType.STATUS:
+                return
+
+            if "ALL" in categories or event["category"] in categories:
+                callback(event)
 
         # Subscribe, and return an unsubscribe callback
-        remove_subscription = self.subscribe(
-            callback,
-            lambda event: (
-                event["type"] == EventType.STATUS
-                and ("ALL" in categories or event["category"] in categories)
-            ),
-        )
+        remove_subscription = self.subscribe(_callback, EventType.STATUS)
 
         def unsubscribe() -> None:
-            for category in categories:
-                self._status_subscribers[category] -= 1
-                if self._status_subscribers[category] == 0:
-                    self._disable_status(category)
+            self._status_counts.subtract(categories)
             remove_subscription()
 
         return unsubscribe
 
     def subscribe_enhanced_log(
-        self, callback: EventCallback, *log_types: str
+        self, callback: Callable[[Event], None], *log_types: str
     ) -> Callable[[], None]:
         """Subscribe to "Enhanced Log" events from the Host Command service.
 
@@ -255,31 +263,21 @@ class EventStream:
             A function that can be used to unsubscribe from log events.
         """
         # Enable this log type if it's not already enabled
-        for log_type in log_types:
-            self._enhanced_log_subscribers[log_type] += 1
-            if self._enhanced_log_subscribers[log_type] == 1:
-                self._enable_enhanced_log(log_type)
+        self._enhanced_log_counts.update(log_types)
 
         # Subscribe, and return an unsubscribe callback
         remove_subscription = self.subscribe(callback, EventType.ENHANCED_LOG)
 
         def unsubscribe() -> None:
-            for log_type in log_types:
-                self._enhanced_log_subscribers[log_type] -= 1
-                if self._enhanced_log_subscribers[log_type] == 0:
-                    self._disable_enhanced_log(log_type)
+            self._enhanced_log_counts.subtract(log_types)
             remove_subscription()
 
         return unsubscribe
 
     def _emit(self, event: Event) -> None:
         # Emit an event to subscribers.
-        for callback, event_filter in self._subscriptions:
-            if event_filter is None or event_filter(event):
-                if iscoroutinefunction(callback):
-                    asyncio.create_task(callback(event))
-                else:
-                    callback(event)
+        for callback in self._subscriptions[event["type"]]:
+            callback(event)
 
     async def _message_handler(self) -> None:
         # Handle incoming messages from the Host Command service.
@@ -292,9 +290,9 @@ class EventStream:
 
                 # Notify that we're connected
                 if connect_attempts == 1:
-                    self._emit({"type": EventType.CONNECTED})
+                    self._emit({"type": EventType.CONNECT})
                 else:
-                    self._emit({"type": EventType.RECONNECTED})
+                    self._emit({"type": EventType.RECONNECT})
                     self._resubscribe()
                 connect_attempts = 1
 
@@ -309,7 +307,8 @@ class EventStream:
                 pass  # Pass through to retry logic below
 
             # If we get here, the connection was lost
-            self._emit({"type": EventType.DISCONNECTED})
+            if connect_attempts == 1:
+                self._emit({"type": EventType.DISCONNECT})
 
             # Clear the command queue
             with suppress(asyncio.QueueEmpty):
@@ -374,7 +373,7 @@ class EventStream:
                     "args": args,
                 }
             )
-        elif message.startswith("EL:"):
+        elif message.startswith("EL: "):
             # Parse an "enhanced log" message, of the form "EL: <log>"
             # These messages are emitted when an enhanced log is received after
             # subscribing to updates via "ELLOG <type>".
@@ -394,29 +393,48 @@ class EventStream:
         # Disable status updates on the controller for a particular status type.
         # Note: This assumes the count has already been decremented.
         self._queue_command("STATUS NONE")
-        for category, count in self._status_subscribers.items():
+        for category, count in self._status_counts.items():
             if count > 0:
-                self._queue_command(f"STATUS {category}")
+                self._enable_status(category)
 
     def _enable_enhanced_log(self, log_type: str) -> None:
         # Enable enhanced logging on the controller for a particular log type.
-        controller_id: int = 1
-        self._queue_command(f"ELAGG {controller_id} ON")
-        self._queue_command(f"ELENABLE {controller_id} {log_type} ON")
+        self._queue_command("ELAGG 1 ON")
+        self._queue_command(f"ELENABLE 1 {log_type} ON")
         self._queue_command(f"ELLOG {log_type} ON")
 
     def _disable_enhanced_log(self, log_type: str) -> None:
         # Disable enhanced logging on the controller for a particular log type.
-        controller_id: int = 1
-        self._queue_command(f"ELENABLE {controller_id} {log_type} OFF")
+        self._queue_command(f"ELENABLE 1 {log_type} OFF")
         self._queue_command(f"ELLOG {log_type} OFF")
 
     def _resubscribe(self) -> None:
         # Re-subscribe to events after a reconnection.
-        for category, count in self._status_subscribers.items():
+        for category, count in self._status_counts.items():
             if count > 0:
                 self._enable_status(category)
 
-        for log_type, count in self._enhanced_log_subscribers.items():
+        for log_type, count in self._enhanced_log_counts.items():
             if count > 0:
                 self._enable_enhanced_log(log_type)
+
+
+class StatusCounter(Counter[T]):
+    """Reference-counter for status types."""
+
+    def __init__(
+        self, on_first_add: Callable[[T], None], on_last_remove: Callable[[T], None]
+    ) -> None:
+        super().__init__()
+        self._on_first_add = on_first_add
+        self._on_last_remove = on_last_remove
+
+    def __setitem__(self, key: T, value: int) -> None:
+        previous = self.get(key, 0)
+        super().__setitem__(key, value)
+
+        if previous == 0 and value > 0:
+            self._on_first_add(key)
+        elif previous > 0 and value <= 0:
+            self._on_last_remove(key)
+            del self[key]

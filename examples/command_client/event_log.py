@@ -20,7 +20,7 @@ def command_client_callback(event: Event) -> None:
     """Print out the log message for each event."""
     if event["type"] == EventType.ENHANCED_LOG:
         print(event["log"])
-    elif event["type"] == EventType.CONNECTED:
+    elif event["type"] == EventType.CONNECT:
         print("Connected and monitoring for log events...")
 
 
@@ -32,7 +32,7 @@ async def main() -> None:
     # Create an EventStream client
     async with EventStream(args.host, args.username, args.password) as events:
         # Subscribe to connection events
-        events.subscribe(command_client_callback, EventType.CONNECTED)
+        events.subscribe(command_client_callback, EventType.CONNECT)
 
         # Subscribe to system log events
         events.subscribe_enhanced_log(command_client_callback, "SYSTEM")

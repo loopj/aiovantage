@@ -14,13 +14,27 @@ The service is discoverable via mDNS as `_hc._tcp.local` and/or `_secure_hc._tcp
 
 from ._client import CommandClient, CommandResponse
 from ._converter import Converter
-from ._events import Event, EventStream, EventType
+from ._events import (
+    ConnectEvent,
+    DisconnectEvent,
+    EnhancedLogEvent,
+    Event,
+    EventStream,
+    EventType,
+    ReconnectEvent,
+    StatusEvent,
+)
 
 __all__ = [
+    "ConnectEvent",
+    "DisconnectEvent",
+    "EnhancedLogEvent",
     "CommandClient",
     "CommandResponse",
     "Converter",
     "Event",
     "EventStream",
     "EventType",
+    "ReconnectEvent",
+    "StatusEvent",
 ]
