@@ -75,7 +75,6 @@ plugins:
             show_symbol_type_toc: true
 
             # Members
-            inherited_members: true
             filters: ["!^_"]
             summary: true
 
