@@ -8,6 +8,7 @@ from typing import Any, TypeVar, cast
 
 from typing_extensions import Self
 
+from ._controllers.base import VantageEvent
 from ._logger import logger
 from .command_client import CommandClient, EventStream
 from .config_client import ConfigClient
@@ -34,7 +35,6 @@ from .controllers import (
     TasksController,
     TemperatureSensorsController,
     ThermostatsController,
-    VantageEvent,
 )
 from .objects import SystemObject
 

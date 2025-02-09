@@ -5,7 +5,14 @@ import asyncio
 import contextlib
 import logging
 
-from aiovantage.command_client import Event, EventStream, EventType
+from aiovantage.command_client import (
+    ConnectEvent,
+    DisconnectEvent,
+    Event,
+    EventStream,
+    ReconnectEvent,
+    StatusEvent,
+)
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -18,13 +25,13 @@ args = parser.parse_args()
 
 def command_client_callback(event: Event) -> None:
     """Print out the status update for each event."""
-    if event["type"] == EventType.STATUS:
-        print(f"[{event['category']}] id: {event['vid']}, args: {event['args']}")
-    elif event["type"] == EventType.CONNECT:
+    if isinstance(event, StatusEvent):
+        print(f"[{event.category}] id: {event.vid}, args: {event.args}")
+    elif isinstance(event, ConnectEvent):
         print("Connected and monitoring for status updates...")
-    elif event["type"] == EventType.DISCONNECT:
+    elif isinstance(event, DisconnectEvent):
         print("Disconnected")
-    elif event["type"] == EventType.RECONNECT:
+    elif isinstance(event, ReconnectEvent):
         print("Reconnected")
 
 
@@ -38,9 +45,9 @@ async def main() -> None:
         # Subscribe to connection events
         events.subscribe(
             command_client_callback,
-            EventType.CONNECT,
-            EventType.DISCONNECT,
-            EventType.RECONNECT,
+            ConnectEvent,
+            DisconnectEvent,
+            ReconnectEvent,
         )
 
         # Subscribe to status updates for LOAD objects (STATUS LOAD)

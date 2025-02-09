@@ -6,7 +6,13 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, cast
 
 from aiovantage._logger import logger
-from aiovantage.command_client import Converter, Event, EventType
+from aiovantage.command_client import (
+    Converter,
+    EnhancedLogEvent,
+    Event,
+    ReconnectEvent,
+    StatusEvent,
+)
 from aiovantage.config_client import ConfigurationInterface
 from aiovantage.objects import SystemObject
 
@@ -177,7 +183,7 @@ class BaseController(QuerySet[T]):
 
         # Subscribe to reconnect events from the event stream
         self._vantage.event_stream.subscribe(
-            self._handle_reconnect_event, EventType.RECONNECT
+            self._handle_reconnect_event, ReconnectEvent
         )
 
         self._subscribed_to_state_changes = True
@@ -224,36 +230,36 @@ class BaseController(QuerySet[T]):
         self._emit(VantageEvent.OBJECT_UPDATED, obj, {"attrs_changed": attrs_changed})
 
     def _handle_status_event(self, event: Event) -> None:
-        if event["type"] != EventType.STATUS:
+        if not isinstance(event, StatusEvent):
             return
 
         # Look up the object that this event is for
-        obj = self._items.get(event["vid"])
+        obj = self._items.get(event.vid)
         if obj is None:
             return
 
         # Handle the event
-        if event["category"] == "STATUS":
+        if event.category == "STATUS":
             # Handle "object interface" status events of the form:
             # -> S:STATUS <vid> <method> <result> <arg1> <arg2> ...
-            updated = obj.handle_object_status(*event["args"])
+            updated = obj.handle_object_status(*event.args)
         else:
             # Handle "category" status events, eg: S:LOAD, S:BLIND, etc
             # -> S:LOAD <vid> <arg1> <arg2> ...
-            updated = obj.handle_category_status(event["category"], *event["args"])
+            updated = obj.handle_category_status(event.category, *event.args)
 
         # Notify subscribers if any attributes changed
         if updated:
             self._object_updated(obj, *updated)
 
     def _handle_enhanced_log_event(self, event: Event) -> None:
-        if event["type"] != EventType.ENHANCED_LOG:
+        if not isinstance(event, EnhancedLogEvent):
             return
 
         # Tokenize STATUS/STATUSEX logs from the enhanced log.
         # These are "object interface" status messages, of the form:
         # -> EL: <vid> <method> <result> <arg1> <arg2> ...
-        vid_str, method, result, *args = Converter.tokenize(event["log"])
+        vid_str, method, result, *args = Converter.tokenize(event.log)
 
         # Pass the event to the controller, if this object is managed by it
         obj = self._items.get(int(vid_str))

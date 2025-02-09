@@ -2,10 +2,10 @@ import asyncio
 from collections import Counter, defaultdict
 from collections.abc import Callable
 from contextlib import suppress
-from enum import Enum
+from dataclasses import dataclass
 from ssl import SSLContext
 from types import TracebackType
-from typing import Literal, TypedDict, TypeVar
+from typing import TypeVar
 
 from typing_extensions import Self
 
@@ -21,51 +21,29 @@ T = TypeVar("T")
 KEEPALIVE_INTERVAL = 60
 
 
-class EventType(Enum):
-    """Event types emitted by the event stream."""
-
-    CONNECT = "connect"
-    """A connection to the Host Command service was established."""
-
-    DISCONNECT = "disconnect"
-    """The connection to the Host Command service was lost."""
-
-    RECONNECT = "reconnect"
-    """The connection to the Host Command service was re-established."""
-
-    STATUS = "status"
-    """An "S:" status message was received."""
-
-    ENHANCED_LOG = "enhanced_log"
-    """An "EL:" enhanced log message was received."""
+@dataclass
+class Event:
+    """Base class for events emitted by the EventStream."""
 
 
-class ConnectEvent(TypedDict):
+@dataclass
+class ConnectEvent(Event):
     """Event emitted when the connection is established."""
 
-    type: Literal[EventType.CONNECT]
-    """The event type."""
 
-
-class DisconnectEvent(TypedDict):
+@dataclass
+class DisconnectEvent(Event):
     """Event emitted when the connection is lost."""
 
-    type: Literal[EventType.DISCONNECT]
-    """The event type."""
 
-
-class ReconnectEvent(TypedDict):
+@dataclass
+class ReconnectEvent(Event):
     """Event emitted when the connection is re-established."""
 
-    type: Literal[EventType.RECONNECT]
-    """The event type."""
 
-
-class StatusEvent(TypedDict):
+@dataclass
+class StatusEvent(Event):
     """Event emitted when a "S:" status is received."""
-
-    type: Literal[EventType.STATUS]
-    """The event type."""
 
     category: str
     """The status category, eg. "LOAD", "BLIND", etc."""
@@ -77,18 +55,12 @@ class StatusEvent(TypedDict):
     """The arguments of the status message."""
 
 
-class EnhancedLogEvent(TypedDict):
+@dataclass
+class EnhancedLogEvent(Event):
     """Event emitted when an "EL:" enhanced log is received."""
-
-    type: Literal[EventType.ENHANCED_LOG]
-    """The event type."""
 
     log: str
     """The enhanced log message."""
-
-
-Event = ConnectEvent | DisconnectEvent | ReconnectEvent | StatusEvent | EnhancedLogEvent
-"""Union of events emitted by the event stream."""
 
 
 class EventStream:
@@ -132,7 +104,7 @@ class EventStream:
         self._connection_lock = asyncio.Lock()
         self._command_queue: asyncio.Queue[str] = asyncio.Queue()
 
-        self._subscriptions: dict[EventType, set[Callable[[Event], None]]] = (
+        self._subscriptions: dict[type[Event], set[Callable[[Event], None]]] = (
             defaultdict(set)
         )
 
@@ -209,7 +181,7 @@ class EventStream:
             return self._connection
 
     def subscribe(
-        self, callback: Callable[[Event], None], *event_types: EventType
+        self, callback: Callable[[Event], None], *event_types: type[Event]
     ) -> Callable[[], None]:
         """Subscribe to events from the Host Command service.
 
@@ -251,14 +223,14 @@ class EventStream:
 
         # Filter events by category
         def _callback(event: Event) -> None:
-            if event["type"] != EventType.STATUS:
+            if not isinstance(event, StatusEvent):
                 return
 
-            if "ALL" in categories or event["category"] in categories:
+            if "ALL" in categories or event.category in categories:
                 callback(event)
 
         # Subscribe, and return an unsubscribe callback
-        remove_subscription = self.subscribe(_callback, EventType.STATUS)
+        remove_subscription = self.subscribe(_callback, StatusEvent)
 
         def unsubscribe() -> None:
             self._status_counts.subtract(categories)
@@ -282,7 +254,7 @@ class EventStream:
         self._enhanced_log_counts.update(log_types)
 
         # Subscribe, and return an unsubscribe callback
-        remove_subscription = self.subscribe(callback, EventType.ENHANCED_LOG)
+        remove_subscription = self.subscribe(callback, EnhancedLogEvent)
 
         def unsubscribe() -> None:
             self._enhanced_log_counts.subtract(log_types)
@@ -292,7 +264,7 @@ class EventStream:
 
     def _emit(self, event: Event) -> None:
         # Emit an event to subscribers.
-        for callback in self._subscriptions[event["type"]]:
+        for callback in self._subscriptions[type(event)]:
             callback(event)
 
     async def _message_handler(self) -> None:
@@ -306,9 +278,9 @@ class EventStream:
 
                 # Notify that we're connected
                 if connect_attempts == 1:
-                    self._emit({"type": EventType.CONNECT})
+                    self._emit(ConnectEvent())
                 else:
-                    self._emit({"type": EventType.RECONNECT})
+                    self._emit(ReconnectEvent())
                     self._resubscribe()
                 connect_attempts = 1
 
@@ -324,7 +296,7 @@ class EventStream:
 
             # If we get here, the connection was lost
             if connect_attempts == 1:
-                self._emit({"type": EventType.DISCONNECT})
+                self._emit(DisconnectEvent())
 
             # Clear the command queue
             with suppress(asyncio.QueueEmpty):
@@ -381,19 +353,14 @@ class EventStream:
             # These messages are emitted when the state of an object changes after
             # subscribing to updates via "STATUS <type>" or "ADDSTATUS <vid>".
             category, vid_str, *args = Converter.tokenize(message)
-            self._emit(
-                {
-                    "type": EventType.STATUS,
-                    "category": category[2:],
-                    "vid": int(vid_str),
-                    "args": args,
-                }
-            )
+            self._emit(StatusEvent(category[2:], int(vid_str), args))
+
         elif message.startswith("EL: "):
             # Parse an "enhanced log" message, of the form "EL: <log>"
             # These messages are emitted when an enhanced log is received after
             # subscribing to updates via "ELLOG <type>".
-            self._emit({"type": EventType.ENHANCED_LOG, "log": message[4:]})
+            self._emit(EnhancedLogEvent(message[4:]))
+
         elif message.startswith("R:ERROR"):
             logger.error("Error message from EventStream: %s", message)
 

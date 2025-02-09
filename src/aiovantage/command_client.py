@@ -20,7 +20,6 @@ from ._command_client.events import (
     EnhancedLogEvent,
     Event,
     EventStream,
-    EventType,
     ReconnectEvent,
     StatusEvent,
 )
@@ -34,7 +33,6 @@ __all__ = [
     "Converter",
     "Event",
     "EventStream",
-    "EventType",
     "ReconnectEvent",
     "StatusEvent",
 ]

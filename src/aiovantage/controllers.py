@@ -21,7 +21,7 @@ object.
 from ._controllers.anemo_sensors import AnemoSensorsController
 from ._controllers.areas import AreasController
 from ._controllers.back_box import BackBoxesController
-from ._controllers.base import BaseController, VantageEvent
+from ._controllers.base import BaseController
 from ._controllers.blind_groups import BlindGroupsController
 from ._controllers.blinds import BlindsController, BlindTypes
 from ._controllers.buttons import ButtonsController
@@ -68,5 +68,4 @@ __all__ = [
     "TasksController",
     "TemperatureSensorsController",
     "ThermostatsController",
-    "VantageEvent",
 ]
