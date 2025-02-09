@@ -97,7 +97,7 @@ class IConfiguration:
 
 
 class ConfigurationInterface:
-    """Configuration interface."""
+    """Wrapper for the `IConfiguration` RPC interface."""
 
     @staticmethod
     async def open_filter(

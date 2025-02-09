@@ -67,8 +67,8 @@ class Vantage:
             host: The hostname or IP address of the Vantage controller.
             username: The username to use for authentication.
             password: The password to use for authentication.
-            ssl: The SSL context to use. True will use the default context, False will disable SSL.
-            ssl_context_factory: A factory function to create an SSL context.
+            ssl: The SSL context to use. True will use a default context, False will disable SSL.
+            ssl_context_factory: A factory function to use when creating default SSL contexts.
             config_port: The port to use for the config client.
             command_port: The port to use for the command client.
         """

@@ -28,7 +28,7 @@ class ILogin:
 
 
 class LoginInterface:
-    """Login interface."""
+    """Wrapper for the `ILogin` RPC interface."""
 
     @staticmethod
     async def login(client: ConfigClient, user: str, password: str) -> bool:

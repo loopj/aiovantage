@@ -1,5 +1,3 @@
-"""Client for sending commands to the Vantage Host Command service."""
-
 import asyncio
 import re
 from collections.abc import Callable
@@ -19,15 +17,41 @@ from .converter import Converter
 
 @dataclass
 class CommandResponse:
-    """Wrapper for command responses."""
+    """Wrapper for command responses.
+
+    Almost all commands will respond with a single "response" line, which contains the
+    command name and any arguments that were returned.
+
+    Some command, such as the "HELP" command, return multiple lines of text before the
+    response line.
+    """
 
     command: str
+    """The command that was executed."""
+
     args: list[str]
+    """The arguments that were returned on the response line."""
+
     data: list[str]
+    """Any additional lines of text returned before the response line."""
 
 
 class CommandClient:
-    """Client to send commands to the Vantage Host Command service."""
+    """Client for sending commands to the Vantage Host Command (HC) service.
+
+    Connections are created lazily when needed, and closed when the client is closed,
+    and will automatically reconnect if the connection is lost.
+
+    Args:
+        host: The hostname or IP address of the Vantage controller.
+        username: The username to use for authentication.
+        password: The password to use for authentication.
+        ssl: The SSL context to use. True will use a default context, False will disable SSL.
+        ssl_context_factory: A factory function to use when creating default SSL contexts.
+        port: The port to connect to.
+        conn_timeout: The connection timeout in seconds.
+        read_timeout: The read timeout in seconds.
+    """
 
     def __init__(
         self,

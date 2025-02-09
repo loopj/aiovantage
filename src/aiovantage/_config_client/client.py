@@ -1,10 +1,8 @@
-"""Client for the Vantage Application Communication Interface (ACI) service."""
-
 import asyncio
 from collections.abc import Callable
 from ssl import SSLContext
 from types import TracebackType
-from typing import Any, Protocol, TypeVar
+from typing import Protocol, TypeVar
 
 from typing_extensions import Self
 from xsdata.formats.dataclass.context import XmlContext
@@ -20,22 +18,32 @@ from aiovantage.errors import ClientResponseError, LoginRequiredError
 
 from .connection import ConfigConnection
 
-T = TypeVar("T")
-U = TypeVar("U")
+Interface = TypeVar("Interface")
+Call = TypeVar("Call")
+Return = TypeVar("Return")
 
 
-class Method(Protocol[T, U]):
+class Method(Protocol[Call, Return]):
     """Method protocol."""
 
-    call: T | None
-    result: U | None
+    call: Call | None
+    result: Return | None
 
 
 class ConfigClient:
     """Client for the Vantage Application Communication Interface (ACI) service.
 
-    This client handles connecting to the ACI service, authenticating, and the
-    serialization/deserialization of XML requests and responses.
+    Connections are created lazily when needed, and closed when the client is closed.
+
+    Args:
+        host: The hostname or IP address of the Vantage controller.
+        username: The username to use for authentication.
+        password: The password to use for authentication.
+        ssl: The SSL context to use. True will use a default context, False will disable SSL.
+        ssl_context_factory: A factory function to use when creating default SSL contexts.
+        port: The port to connect to.
+        conn_timeout: The connection timeout in seconds.
+        read_timeout: The read timeout in seconds.
     """
 
     def __init__(
@@ -100,16 +108,12 @@ class ConfigClient:
         if exc_val:
             raise exc_val
 
-    def close(self) -> None:
-        """Close the connection to the ACI service."""
-        self._connection.close()
-
-    async def raw_request(self, request: str, delimiter: str) -> str:
-        """Send a raw request to the ACI service and return the raw response.
+    async def raw_request(self, request: str, separator: str) -> str:
+        """Send a raw XML request to the ACI service and return the raw XML response.
 
         Args:
             request: The raw XML request to send.
-            delimiter: The delimiter to use when reading the response.
+            separator: Read data from the stream until `separator` is found.
 
         Returns:
             The raw XML response.
@@ -121,29 +125,18 @@ class ConfigClient:
         logger.debug("Sending request: %s", request)
         async with self._request_lock:
             await conn.write(request)
-            response = await conn.readuntil(delimiter.encode(), self._read_timeout)
+            response = await conn.readuntil(separator.encode(), self._read_timeout)
 
         logger.debug("Received response: %s", response)
 
         return response
 
-    async def request(self, request: T) -> T:
-        """Send a request to the ACI service and return the response."""
-        # Build and send the request
-        request_str = self._serializer.render(request)  # type: ignore
-        response_str = await self.raw_request(
-            request_str, f"</{type(request).__name__}>\n"
-        )
-
-        # Parse the response
-        return self._parser.from_string(response_str, type(request))
-
     async def rpc_call(
         self,
-        interface_cls: type[Any],
-        method_cls: type[Method[T, U]],
-        params: T | None = None,
-    ) -> U:
+        interface_cls: type[Interface],
+        method_cls: type[Method[Call, Return]],
+        params: Call | None = None,
+    ) -> Return:
         """Call a remote procedure on the ACI service.
 
         Args:
@@ -161,11 +154,17 @@ class ConfigClient:
         # Build an interface instance with the method
         request = interface_cls(**{snake_case(method_cls.__name__): method})
 
-        # Send the request
-        response = await self.request(request)
+        # Build the request
+        request_str = self._serializer.render(request)  # type: ignore
+        response_str = await self.raw_request(
+            request_str, f"</{type(request).__name__}>\n"
+        )
+
+        # Parse the response
+        response = self._parser.from_string(response_str, type(request))
 
         # Extract the method response
-        method_response: Method[T, U] | None = getattr(
+        method_response: Method[Call, Return] | None = getattr(
             response, snake_case(method_cls.__name__), None
         )
 
@@ -177,6 +176,10 @@ class ConfigClient:
             raise ClientResponseError("Failed to parse response")
 
         return method_response.result
+
+    def close(self) -> None:
+        """Close the connection to the ACI service."""
+        self._connection.close()
 
     async def _get_connection(self) -> ConfigConnection:
         """Get a connection to the ACI service."""
@@ -204,6 +207,8 @@ class ConfigClient:
 
 def _pascal_case_preserve(name: str) -> str:
     # Convert a field/class name to PascalCase, preserving existing PascalCase names.
+    # This is helpful for class names like IConfiguration, etc. which get clobbered by
+    # the default pascal_case function.
     if "_" in name or name.islower():
         return pascal_case(name)
     else:

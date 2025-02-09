@@ -1,5 +1,3 @@
-"""Client to subscribe to events from the Vantage Host Command service."""
-
 import asyncio
 from collections import Counter, defaultdict
 from collections.abc import Callable
@@ -94,7 +92,17 @@ Event = ConnectEvent | DisconnectEvent | ReconnectEvent | StatusEvent | Enhanced
 
 
 class EventStream:
-    """Client to subscribe to events from the Vantage Host Command service."""
+    """Client to subscribe to events from the Vantage Host Command (HC) service.
+
+    Args:
+        host: The hostname or IP address of the Vantage controller.
+        username: The username to use for authentication.
+        password: The password to use for authentication.
+        ssl: The SSL context to use. True will use a default context, False will disable SSL.
+        ssl_context_factory: A factory function to use when creating default SSL contexts.
+        port: The port to connect to.
+        conn_timeout: The connection timeout in seconds.
+    """
 
     def __init__(
         self,

@@ -1,5 +1,3 @@
-"""Connection to a Vantage ACI server."""
-
 import re
 
 from typing_extensions import override
