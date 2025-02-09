@@ -2,8 +2,7 @@ import asyncio
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import fields
-from enum import Enum
-from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, cast
+from typing import TYPE_CHECKING, TypeVar, cast
 
 from aiovantage._logger import logger
 from aiovantage.command_client import (
@@ -14,6 +13,12 @@ from aiovantage.command_client import (
     StatusEvent,
 )
 from aiovantage.config_client import ConfigurationInterface
+from aiovantage.events import (
+    ObjectAddedEvent,
+    ObjectDeletedEvent,
+    ObjectUpdatedEvent,
+    VantageEvent,
+)
 from aiovantage.objects import SystemObject
 
 from .query import QuerySet
@@ -24,23 +29,8 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound=SystemObject)
 
 
-class VantageEvent(Enum):
-    """Event types that can be emitted Vantage controllers or the main client."""
-
-    OBJECT_ADDED = "add"
-    """An object was added to the controller."""
-
-    OBJECT_UPDATED = "update"
-    """One or more object attributes were updated."""
-
-    OBJECT_DELETED = "delete"
-    """An object was removed from the controller."""
-
-
 class BaseController(QuerySet[T]):
     """Base controller for managing collections of Vantage objects."""
-
-    item_types: TypeAlias
 
     vantage_types: tuple[str, ...]
     """The Vantage object types that this controller will fetch."""
@@ -58,7 +48,7 @@ class BaseController(QuerySet[T]):
         self._items: dict[int, T] = {}
         self._subscribed_to_state_changes = False
         self._subscriptions: dict[
-            VantageEvent, set[Callable[[VantageEvent, T, dict[str, Any]], None]]
+            type[VantageEvent[T]], set[Callable[[VantageEvent[T]], None]]
         ] = defaultdict(set)
         self._initialized = False
         self._lock = asyncio.Lock()
@@ -123,7 +113,7 @@ class BaseController(QuerySet[T]):
 
                     # Add it to the controller and notify subscribers
                     self._items[obj.vid] = obj
-                    self._emit(VantageEvent.OBJECT_ADDED, obj)
+                    self._emit(ObjectAddedEvent(obj))
 
                 # Keep track of which objects we've seen
                 cur_ids.add(obj.vid)
@@ -131,7 +121,7 @@ class BaseController(QuerySet[T]):
             # Handle objects that were removed
             for vid in prev_ids - cur_ids:
                 obj = self._items.pop(vid)
-                self._emit(VantageEvent.OBJECT_DELETED, obj)
+                self._emit(ObjectDeletedEvent(obj))
 
         logger.info("%s populated (%d objects)", type(self).__name__, len(self._items))
 
@@ -191,18 +181,22 @@ class BaseController(QuerySet[T]):
 
     def subscribe(
         self,
-        callback: Callable[[VantageEvent, T, dict[str, Any]], None],
-        *event_types: VantageEvent,
+        callback: Callable[[VantageEvent[T]], None],
+        *event_types: type[VantageEvent[T]],
     ) -> Callable[[], None]:
         """Subscribe to status changes for objects managed by this controller.
 
         Args:
             callback: The callback to call when an object changes.
-            event_types: The types of events to subscribe to.
+            *event_types: The types of events to subscribe to.
 
         Returns:
             A function to unsubscribe from the callback.
         """
+        # Default to subscribing to all event types
+        if not event_types:
+            event_types = (ObjectAddedEvent, ObjectUpdatedEvent, ObjectDeletedEvent)
+
         # Add the subscription to the list of subscriptions
         for event_type in event_types:
             self._subscriptions[event_type].add(callback)
@@ -214,20 +208,14 @@ class BaseController(QuerySet[T]):
 
         return unsubscribe
 
-    def _emit(
-        self, event_type: VantageEvent, obj: T, data: dict[str, Any] | None = None
-    ) -> None:
-        # Emit an event to subscribers of this controller.
-        if data is None:
-            data = {}
-
+    def _emit(self, event: VantageEvent[T]) -> None:
         # Grab a list of subscribers that care about this objectsubscriptions
-        for callback in self._subscriptions[event_type]:
-            callback(event_type, obj, data)
+        for callback in self._subscriptions[type(event)]:
+            callback(event)
 
     def _object_updated(self, obj: T, *attrs_changed: str) -> None:
         # Notify subscribers that an object has been updated
-        self._emit(VantageEvent.OBJECT_UPDATED, obj, {"attrs_changed": attrs_changed})
+        self._emit(ObjectUpdatedEvent(obj, list(attrs_changed)))
 
     def _handle_status_event(self, event: Event) -> None:
         if not isinstance(event, StatusEvent):

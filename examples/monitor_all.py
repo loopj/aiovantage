@@ -4,9 +4,9 @@ import argparse
 import asyncio
 import contextlib
 import logging
-from typing import Any
 
-from aiovantage import Vantage, VantageEvent
+from aiovantage import Vantage
+from aiovantage.events import ObjectAddedEvent, ObjectUpdatedEvent, VantageEvent
 from aiovantage.objects import SystemObject
 
 # Grab connection info from command line arguments
@@ -18,16 +18,16 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent, obj: SystemObject, data: dict[str, Any]) -> None:
+def callback(event: VantageEvent[SystemObject]) -> None:
     """Print out any state changes."""
-    object_type = type(obj).__name__
+    object_type = type(event.obj).__name__
+    if isinstance(event, ObjectAddedEvent):
+        print(f"[{object_type} added] '{event.obj.name}' ({event.obj.id})")
 
-    if event == VantageEvent.OBJECT_ADDED:
-        print(f"[{object_type} added] '{obj.name}' ({obj.id})")
-    elif event == VantageEvent.OBJECT_UPDATED:
-        print(f"[{object_type} updated] '{obj.name}' ({obj.id})")
-        for attr in data.get("attrs_changed", []):
-            print(f"    {attr} = {getattr(obj, attr)}")
+    elif isinstance(event, ObjectUpdatedEvent):
+        print(f"[{object_type} updated] '{event.obj.name}' ({event.obj.id})")
+        for attr in event.attrs_changed:
+            print(f"    {attr} = {getattr(event.obj, attr)}")
 
 
 async def main() -> None:

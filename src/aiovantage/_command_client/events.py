@@ -187,11 +187,21 @@ class EventStream:
 
         Args:
             callback: The callback to invoke when an event is received.
-            event_types: The event types to subscribe to.
+            *event_types: The event types to subscribe to.
 
         Returns:
             A function that can be used to unsubscribe from events.
         """
+        # Default to subscribing to all event types
+        if not event_types:
+            event_types = (
+                ConnectEvent,
+                DisconnectEvent,
+                EnhancedLogEvent,
+                ReconnectEvent,
+                StatusEvent,
+            )
+
         # Support filtering by event types
         for event_type in event_types:
             self._subscriptions[event_type].add(callback)

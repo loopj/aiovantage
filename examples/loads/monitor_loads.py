@@ -4,10 +4,10 @@ import argparse
 import asyncio
 import contextlib
 import logging
-from typing import Any
 
-from aiovantage import Vantage, VantageEvent
-from aiovantage.objects import SystemObject
+from aiovantage import Vantage
+from aiovantage.events import ObjectAddedEvent, ObjectUpdatedEvent, VantageEvent
+from aiovantage.objects import Load
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -18,15 +18,15 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent, obj: SystemObject, data: dict[str, Any]) -> None:
+def callback(event: VantageEvent[Load]) -> None:
     """Print out any state changes."""
-    if event == VantageEvent.OBJECT_ADDED:
-        print(f"[Load added] '{obj.name}' ({obj.id})")
+    if isinstance(event, ObjectAddedEvent):
+        print(f"[Load added] '{event.obj.name}' ({event.obj.id})")
 
-    elif event == VantageEvent.OBJECT_UPDATED:
-        print(f"[Load updated] '{obj.name}' ({obj.id})")
-        for attr in data.get("attrs_changed", []):
-            print(f"    {attr} = {getattr(obj, attr)}")
+    elif isinstance(event, ObjectUpdatedEvent):
+        print(f"[Load updated] '{event.obj.name}' ({event.obj.id})")
+        for attr in event.attrs_changed:
+            print(f"    {attr} = {getattr(event.obj, attr)}")
 
 
 async def main() -> None:
@@ -37,7 +37,7 @@ async def main() -> None:
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
         # Subscribe to updates for all loads
-        vantage.loads.subscribe(callback)
+        vantage.loads.subscribe(callback, ObjectAddedEvent, ObjectUpdatedEvent)
 
         # Fetch all known loads from the controller
         await vantage.loads.initialize()

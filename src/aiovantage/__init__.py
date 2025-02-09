@@ -8,7 +8,6 @@ from typing import Any, TypeVar, cast
 
 from typing_extensions import Self
 
-from ._controllers.base import VantageEvent
 from ._logger import logger
 from .command_client import CommandClient, EventStream
 from .config_client import ConfigClient
@@ -36,9 +35,13 @@ from .controllers import (
     TemperatureSensorsController,
     ThermostatsController,
 )
+from .events import VantageEvent
 from .objects import SystemObject
 
-__all__ = ["Vantage", "VantageEvent", "logger"]
+__all__ = [
+    "Vantage",
+    "logger",
+]
 
 ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
 
@@ -327,7 +330,7 @@ class Vantage:
         )
 
     def subscribe(
-        self, callback: Callable[[VantageEvent, SystemObject, dict[str, Any]], None]
+        self, callback: Callable[[VantageEvent[SystemObject]], None]
     ) -> Callable[[], None]:
         """Subscribe to state changes for every controller.
 
