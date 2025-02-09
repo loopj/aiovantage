@@ -8,7 +8,6 @@ from typing import Any, TypeVar, cast
 
 from typing_extensions import Self
 
-from ._controllers.events import EventCallback, VantageEvent
 from ._logger import logger
 from .command_client import CommandClient, EventStream
 from .config_client import ConfigClient
@@ -35,6 +34,7 @@ from .controllers import (
     TasksController,
     TemperatureSensorsController,
     ThermostatsController,
+    VantageEvent,
 )
 from .objects import SystemObject
 
@@ -67,8 +67,8 @@ class Vantage:
             host: The hostname or IP address of the Vantage controller.
             username: The username to use for authentication.
             password: The password to use for authentication.
-            ssl: The SSL context to use. True will use a default context, False will disable SSL.
-            ssl_context_factory: A factory function to use when creating default SSL contexts.
+            ssl: The SSL context to use. True will use the default context, False will disable SSL.
+            ssl_context_factory: A factory function to create an SSL context.
             config_port: The port to use for the config client.
             command_port: The port to use for the command client.
         """
@@ -326,7 +326,9 @@ class Vantage:
             ]
         )
 
-    def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
+    def subscribe(
+        self, callback: Callable[[VantageEvent, SystemObject, dict[str, Any]], None]
+    ) -> Callable[[], None]:
         """Subscribe to state changes for every controller.
 
         Args:

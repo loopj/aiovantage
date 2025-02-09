@@ -1,7 +1,8 @@
 import asyncio
-from collections.abc import Callable, Iterable
+from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import fields
-from inspect import iscoroutinefunction
+from enum import Enum
 from typing import TYPE_CHECKING, Any, TypeAlias, TypeVar, cast
 
 from aiovantage._logger import logger
@@ -9,7 +10,6 @@ from aiovantage.command_client import Converter, Event, EventType
 from aiovantage.config_client import ConfigurationInterface
 from aiovantage.objects import SystemObject
 
-from .events import EventCallback, VantageEvent
 from .query import QuerySet
 
 if TYPE_CHECKING:
@@ -18,7 +18,17 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound=SystemObject)
 
 
-EventSubscription = tuple[EventCallback[T], Iterable[VantageEvent] | None]
+class VantageEvent(Enum):
+    """Event types that can be emitted Vantage controllers or the main client."""
+
+    OBJECT_ADDED = "add"
+    """An object was added to the controller."""
+
+    OBJECT_UPDATED = "update"
+    """One or more object attributes were updated."""
+
+    OBJECT_DELETED = "delete"
+    """An object was removed from the controller."""
 
 
 class BaseController(QuerySet[T]):
@@ -41,8 +51,9 @@ class BaseController(QuerySet[T]):
         self._vantage = vantage
         self._items: dict[int, T] = {}
         self._subscribed_to_state_changes = False
-        self._subscriptions: list[EventSubscription[T]] = []
-        self._id_subscriptions: dict[int, list[EventSubscription[T]]] = {}
+        self._subscriptions: dict[
+            VantageEvent, set[Callable[[VantageEvent, T, dict[str, Any]], None]]
+        ] = defaultdict(set)
         self._initialized = False
         self._lock = asyncio.Lock()
 
@@ -174,48 +185,26 @@ class BaseController(QuerySet[T]):
 
     def subscribe(
         self,
-        callback: EventCallback[T],
-        id_filter: int | Iterable[int] | None = None,
-        event_filter: VantageEvent | Iterable[VantageEvent] | None = None,
+        callback: Callable[[VantageEvent, T, dict[str, Any]], None],
+        *event_types: VantageEvent,
     ) -> Callable[[], None]:
         """Subscribe to status changes for objects managed by this controller.
 
         Args:
             callback: The callback to call when an object changes.
-            id_filter: The Vantage IDs to subscribe to, all objects if None.
-            event_filter: The event types to subscribe to, all events if None.
+            event_types: The types of events to subscribe to.
 
         Returns:
             A function to unsubscribe from the callback.
         """
-        # Handle single ID filter or single event filter
-        if isinstance(id_filter, int):
-            id_filter = (id_filter,)
-
-        if isinstance(event_filter, VantageEvent):
-            event_filter = (event_filter,)
-
-        # Create the subscription
-        subscription = (callback, event_filter)
-
         # Add the subscription to the list of subscriptions
-        if id_filter is None:
-            self._subscriptions.append(subscription)
-        else:
-            for vid in id_filter:
-                if vid not in self._id_subscriptions:
-                    self._id_subscriptions[vid] = []
-                self._id_subscriptions[vid].append(subscription)
+        for event_type in event_types:
+            self._subscriptions[event_type].add(callback)
 
         # Return a function to unsubscribe
         def unsubscribe() -> None:
-            if id_filter is None:
-                self._subscriptions.remove(subscription)
-            else:
-                for vid in id_filter:
-                    if vid not in self._id_subscriptions:
-                        continue
-                    self._id_subscriptions[vid].remove(subscription)
+            for event_type in event_types:
+                self._subscriptions[event_type].remove(callback)
 
         return unsubscribe
 
@@ -226,16 +215,9 @@ class BaseController(QuerySet[T]):
         if data is None:
             data = {}
 
-        # Grab a list of subscribers that care about this object
-        subscribers = self._subscriptions + self._id_subscriptions.get(obj.vid, [])
-        for callback, event_filter in subscribers:
-            if event_filter is not None and event_type not in event_filter:
-                continue
-
-            if iscoroutinefunction(callback):
-                asyncio.create_task(callback(event_type, obj, data))  # noqa: RUF006
-            else:
-                callback(event_type, obj, data)
+        # Grab a list of subscribers that care about this objectsubscriptions
+        for callback in self._subscriptions[event_type]:
+            callback(event_type, obj, data)
 
     def _object_updated(self, obj: T, *attrs_changed: str) -> None:
         # Notify subscribers that an object has been updated
