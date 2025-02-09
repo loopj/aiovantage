@@ -75,6 +75,7 @@ plugins:
             show_symbol_type_toc: true
 
             # Members
+            members_order: source
             filters: ["!^_"]
             summary: true
 

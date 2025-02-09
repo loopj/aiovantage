@@ -1,5 +1,3 @@
-"""Connection to a Vantage Host Command service."""
-
 import re
 
 from typing_extensions import override

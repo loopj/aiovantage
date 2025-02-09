@@ -1,4 +1,4 @@
-"""Clients for communicating with the Vantage Host Command service.
+"""Clients for the Vantage Host Command (HC) service.
 
 The Host Command service is a text-based service that allows interaction with devices
 controlled by a Vantage InFusion Controller.

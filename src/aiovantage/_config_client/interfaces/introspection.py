@@ -85,7 +85,7 @@ class IIntrospection:
 
 
 class IntrospectionInterface:
-    """Introspection interface."""
+    """Wrapper for the `IIntrospection` RPC interface."""
 
     @staticmethod
     async def get_interfaces(client: ConfigClient) -> list[GetInterfaces.Interface]:

@@ -1,5 +1,3 @@
-"""Utilities for parsing and serializing messages from the Host Command service."""
-
 import datetime as dt
 import re
 import struct
@@ -237,14 +235,14 @@ TOKEN_PATTERN = re.compile(r'"([^""]*(?:""[^""]*)*)"|(\{.*?\})|(\[.*?\])|(\S+)')
 
 
 class Converter:
-    """Command Client data conversion functions."""
+    """Host Command service data conversion functions."""
 
     @staticmethod
     def deserialize(data_type: type, value: str, **kwargs: Any) -> Any:
-        """Deserialize a string representation to an object.
+        """Deserialize a token from the Host Command service.
 
         Args:
-            data_type: The type of data to convert.
+            data_type: The data type to deserialize the value to.
             value: The string data to deserialize.
             **kwargs: Additional deserialization arguments.
 
@@ -256,7 +254,7 @@ class Converter:
 
     @staticmethod
     def serialize(value: Any, **kwargs: Any) -> str:
-        """Serialize an object to a string representation.
+        """Serialize an object to a string token for the Host Command service.
 
         Args:
             value: The value to serialize to a string.
