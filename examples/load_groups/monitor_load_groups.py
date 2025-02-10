@@ -6,7 +6,7 @@ import contextlib
 import logging
 
 from aiovantage import Vantage
-from aiovantage.events import ObjectAddedEvent, ObjectUpdatedEvent, VantageEvent
+from aiovantage.events import ObjectUpdated
 from aiovantage.objects import LoadGroup
 
 # Grab connection info from command line arguments
@@ -18,15 +18,11 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent[LoadGroup]) -> None:
+def on_object_updated(event: ObjectUpdated[LoadGroup]) -> None:
     """Print out any state changes."""
-    if isinstance(event, ObjectAddedEvent):
-        print(f"[LoadGroup added] '{event.obj.name}' ({event.obj.id})")
-
-    elif isinstance(event, ObjectUpdatedEvent):
-        print(f"[LoadGroup updated] '{event.obj.name}' ({event.obj.id})")
-        for attr in event.attrs_changed:
-            print(f"    {attr} = {getattr(event.obj, attr)}")
+    print(f"[LoadGroup updated] '{event.obj.name}' ({event.obj.id})")
+    for attr in event.attrs_changed:
+        print(f"    {attr} = {getattr(event.obj, attr)}")
 
 
 async def main() -> None:
@@ -36,11 +32,11 @@ async def main() -> None:
 
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Subscribe to updates for all load groups
-        vantage.load_groups.subscribe(callback)
-
-        # Fetch all known loads from the controller
+        # Fetch all known load groups from the controller
         await vantage.load_groups.initialize()
+
+        # Subscribe to updates for all load groups
+        vantage.load_groups.subscribe(ObjectUpdated, on_object_updated)
 
         # Keep running for a while
         await asyncio.sleep(3600)

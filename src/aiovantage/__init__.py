@@ -35,7 +35,6 @@ from .controllers import (
     TemperatureSensorsController,
     ThermostatsController,
 )
-from .events import VantageEvent
 from .objects import SystemObject
 
 __all__ = [
@@ -43,6 +42,7 @@ __all__ = [
     "logger",
 ]
 
+T = TypeVar("T")
 ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
 
 
@@ -330,18 +330,20 @@ class Vantage:
         )
 
     def subscribe(
-        self, callback: Callable[[VantageEvent[SystemObject]], None]
+        self, event_type: type[T], callback: Callable[[T], None]
     ) -> Callable[[], None]:
         """Subscribe to state changes for every controller.
 
         Args:
-            callback: The callback to call when an object changes.
+            event_type: The type of event to subscribe to.
+            callback: The callback to call when the event is emitted.
 
         Returns:
             A function to unsubscribe.
         """
         unsubscribes = [
-            controller.subscribe(callback) for controller in self._controllers
+            controller.subscribe(event_type, callback)
+            for controller in self._controllers
         ]
 
         def unsubscribe() -> None:

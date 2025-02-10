@@ -6,7 +6,7 @@ import contextlib
 import logging
 
 from aiovantage import Vantage
-from aiovantage.events import ObjectAddedEvent, ObjectUpdatedEvent, VantageEvent
+from aiovantage.events import ObjectUpdated
 from aiovantage.objects import SystemObject
 
 # Grab connection info from command line arguments
@@ -18,16 +18,11 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent[SystemObject]) -> None:
+def callback(event: ObjectUpdated[SystemObject]) -> None:
     """Print out any state changes."""
-    object_type = type(event.obj).__name__
-    if isinstance(event, ObjectAddedEvent):
-        print(f"[{object_type} added] '{event.obj.name}' ({event.obj.id})")
-
-    elif isinstance(event, ObjectUpdatedEvent):
-        print(f"[{object_type} updated] '{event.obj.name}' ({event.obj.id})")
-        for attr in event.attrs_changed:
-            print(f"    {attr} = {getattr(event.obj, attr)}")
+    print(f"[{type(event.obj).__name__} updated] '{event.obj.name}' ({event.obj.id})")
+    for attr in event.attrs_changed:
+        print(f"    {attr} = {getattr(event.obj, attr)}")
 
 
 async def main() -> None:
@@ -37,11 +32,11 @@ async def main() -> None:
 
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Subscribe to updates for all objects
-        vantage.subscribe(callback)
-
         # Fetch all known objects from the controller
         await vantage.initialize()
+
+        # Subscribe to updates for all objects
+        vantage.subscribe(ObjectUpdated, callback)
 
         # Keep running for a while
         await asyncio.sleep(3600)

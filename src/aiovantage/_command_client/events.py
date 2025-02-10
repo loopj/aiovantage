@@ -1,8 +1,7 @@
 import asyncio
-from collections import Counter, defaultdict
+from collections import Counter
 from collections.abc import Callable
 from contextlib import suppress
-from dataclasses import dataclass
 from ssl import SSLContext
 from types import TracebackType
 from typing import TypeVar
@@ -11,6 +10,14 @@ from typing_extensions import Self
 
 from aiovantage._logger import logger
 from aiovantage.errors import ClientConnectionError, ClientError
+from aiovantage.events import (
+    Connected,
+    Disconnected,
+    EnhancedLogReceived,
+    EventDispatcher,
+    Reconnected,
+    StatusReceived,
+)
 
 from .connection import CommandConnection
 from .converter import Converter
@@ -21,49 +28,7 @@ T = TypeVar("T")
 KEEPALIVE_INTERVAL = 60
 
 
-@dataclass
-class Event:
-    """Base class for events emitted by the EventStream."""
-
-
-@dataclass
-class ConnectEvent(Event):
-    """Event emitted when the connection is established."""
-
-
-@dataclass
-class DisconnectEvent(Event):
-    """Event emitted when the connection is lost."""
-
-
-@dataclass
-class ReconnectEvent(Event):
-    """Event emitted when the connection is re-established."""
-
-
-@dataclass
-class StatusEvent(Event):
-    """Event emitted when a "S:" status is received."""
-
-    category: str
-    """The status category, eg. "LOAD", "BLIND", etc."""
-
-    vid: int
-    """The unique Vantage ID of the object the status applies to."""
-
-    args: list[str]
-    """The arguments of the status message."""
-
-
-@dataclass
-class EnhancedLogEvent(Event):
-    """Event emitted when an "EL:" enhanced log is received."""
-
-    log: str
-    """The enhanced log message."""
-
-
-class EventStream:
+class EventStream(EventDispatcher):
     """Client to subscribe to events from the Vantage Host Command (HC) service.
 
     Args:
@@ -104,10 +69,6 @@ class EventStream:
         self._connection_lock = asyncio.Lock()
         self._command_queue: asyncio.Queue[str] = asyncio.Queue()
 
-        self._subscriptions: dict[type[Event], set[Callable[[Event], None]]] = (
-            defaultdict(set)
-        )
-
         self._status_counts: StatusCounter[str] = StatusCounter(
             on_first_add=self._enable_status,
             on_last_remove=self._disable_status,
@@ -117,6 +78,8 @@ class EventStream:
             on_first_add=self._enable_enhanced_log,
             on_last_remove=self._disable_enhanced_log,
         )
+
+        EventDispatcher.__init__(self)
 
     async def __aenter__(self) -> Self:
         """Return context manager."""
@@ -180,41 +143,8 @@ class EventStream:
 
             return self._connection
 
-    def subscribe(
-        self, callback: Callable[[Event], None], *event_types: type[Event]
-    ) -> Callable[[], None]:
-        """Subscribe to events from the Host Command service.
-
-        Args:
-            callback: The callback to invoke when an event is received.
-            *event_types: The event types to subscribe to.
-
-        Returns:
-            A function that can be used to unsubscribe from events.
-        """
-        # Default to subscribing to all event types
-        if not event_types:
-            event_types = (
-                ConnectEvent,
-                DisconnectEvent,
-                EnhancedLogEvent,
-                ReconnectEvent,
-                StatusEvent,
-            )
-
-        # Support filtering by event types
-        for event_type in event_types:
-            self._subscriptions[event_type].add(callback)
-
-        # Return an unsubscribe callback to remove the subscription
-        def unsubscribe() -> None:
-            for event_type in event_types:
-                self._subscriptions[event_type].remove(callback)
-
-        return unsubscribe
-
     def subscribe_status(
-        self, callback: Callable[[Event], None], *categories: str
+        self, callback: Callable[[StatusReceived], None], *categories: str
     ) -> Callable[[], None]:
         """Subscribe to "Status" events from the Host Command service.
 
@@ -232,24 +162,21 @@ class EventStream:
         self._status_counts.update(categories)
 
         # Filter events by category
-        def _callback(event: Event) -> None:
-            if not isinstance(event, StatusEvent):
-                return
-
+        def filtered_callback(event: StatusReceived) -> None:
             if "ALL" in categories or event.category in categories:
                 callback(event)
 
-        # Subscribe, and return an unsubscribe callback
-        remove_subscription = self.subscribe(_callback, StatusEvent)
+        # Subscribe, and return an wrapped unsubscribe callback
+        off = self.subscribe(StatusReceived, filtered_callback)
 
-        def unsubscribe() -> None:
+        def unsubscribe_status() -> None:
             self._status_counts.subtract(categories)
-            remove_subscription()
+            off()
 
-        return unsubscribe
+        return unsubscribe_status
 
     def subscribe_enhanced_log(
-        self, callback: Callable[[Event], None], *log_types: str
+        self, callback: Callable[[EnhancedLogReceived], None], *log_types: str
     ) -> Callable[[], None]:
         """Subscribe to "Enhanced Log" events from the Host Command service.
 
@@ -263,19 +190,14 @@ class EventStream:
         # Enable this log type if it's not already enabled
         self._enhanced_log_counts.update(log_types)
 
-        # Subscribe, and return an unsubscribe callback
-        remove_subscription = self.subscribe(callback, EnhancedLogEvent)
+        # Subscribe, and return a wrapped unsubscribe callback
+        off = self.subscribe(EnhancedLogReceived, callback)
 
-        def unsubscribe() -> None:
+        def unsubscribe_enhanced_log() -> None:
             self._enhanced_log_counts.subtract(log_types)
-            remove_subscription()
+            off()
 
-        return unsubscribe
-
-    def _emit(self, event: Event) -> None:
-        # Emit an event to subscribers.
-        for callback in self._subscriptions[type(event)]:
-            callback(event)
+        return unsubscribe_enhanced_log
 
     async def _message_handler(self) -> None:
         # Handle incoming messages from the Host Command service.
@@ -288,9 +210,9 @@ class EventStream:
 
                 # Notify that we're connected
                 if connect_attempts == 1:
-                    self._emit(ConnectEvent())
+                    self.emit(Connected())
                 else:
-                    self._emit(ReconnectEvent())
+                    self.emit(Reconnected())
                     self._resubscribe()
                 connect_attempts = 1
 
@@ -306,7 +228,7 @@ class EventStream:
 
             # If we get here, the connection was lost
             if connect_attempts == 1:
-                self._emit(DisconnectEvent())
+                self.emit(Disconnected())
 
             # Clear the command queue
             with suppress(asyncio.QueueEmpty):
@@ -363,13 +285,13 @@ class EventStream:
             # These messages are emitted when the state of an object changes after
             # subscribing to updates via "STATUS <type>" or "ADDSTATUS <vid>".
             category, vid_str, *args = Converter.tokenize(message)
-            self._emit(StatusEvent(category[2:], int(vid_str), args))
+            self.emit(StatusReceived(category[2:], int(vid_str), args))
 
         elif message.startswith("EL: "):
             # Parse an "enhanced log" message, of the form "EL: <log>"
             # These messages are emitted when an enhanced log is received after
             # subscribing to updates via "ELLOG <type>".
-            self._emit(EnhancedLogEvent(message[4:]))
+            self.emit(EnhancedLogReceived(message[4:]))
 
         elif message.startswith("R:ERROR"):
             logger.error("Error message from EventStream: %s", message)

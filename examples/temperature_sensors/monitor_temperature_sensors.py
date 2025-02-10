@@ -6,7 +6,7 @@ import contextlib
 import logging
 
 from aiovantage import Vantage
-from aiovantage.events import ObjectAddedEvent, ObjectUpdatedEvent, VantageEvent
+from aiovantage.events import ObjectUpdated
 from aiovantage.objects import Temperature
 
 # Grab connection info from command line arguments
@@ -18,15 +18,11 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent[Temperature]) -> None:
+def on_object_updated(event: ObjectUpdated[Temperature]) -> None:
     """Print out any state changes."""
-    if isinstance(event, ObjectAddedEvent):
-        print(f"[Temperature added] '{event.obj.name}' ({event.obj.id})")
-
-    elif isinstance(event, ObjectUpdatedEvent):
-        print(f"[Temperature updated] '{event.obj.name}' ({event.obj.id})")
-        for attr in event.attrs_changed:
-            print(f"    {attr} = {getattr(event.obj, attr)}")
+    print(f"[Temperature updated] '{event.obj.name}' ({event.obj.id})")
+    for attr in event.attrs_changed:
+        print(f"    {attr} = {getattr(event.obj, attr)}")
 
 
 async def main() -> None:
@@ -35,11 +31,11 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Subscribe to updates for all sensors
-        vantage.temperature_sensors.subscribe(callback)
-
         # Fetch all known sensors from the controller
         await vantage.temperature_sensors.initialize()
+
+        # Subscribe to updates for all sensors
+        vantage.temperature_sensors.subscribe(ObjectUpdated, on_object_updated)
 
         # Keep running for a while
         await asyncio.sleep(3600)

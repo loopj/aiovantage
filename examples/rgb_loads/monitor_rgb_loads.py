@@ -7,7 +7,7 @@ import logging
 
 from aiovantage import Vantage
 from aiovantage.controllers import RGBLoadTypes
-from aiovantage.events import ObjectAddedEvent, ObjectUpdatedEvent, VantageEvent
+from aiovantage.events import ObjectUpdated
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -18,15 +18,11 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent[RGBLoadTypes]) -> None:
+def on_object_updated(event: ObjectUpdated[RGBLoadTypes]) -> None:
     """Print out any state changes."""
-    if isinstance(event, ObjectAddedEvent):
-        print(f"[RGBLoad added] '{event.obj.name}' ({event.obj.id})")
-
-    elif isinstance(event, ObjectUpdatedEvent):
-        print(f"[RGBLoad updated] '{event.obj.name}' ({event.obj.id})")
-        for attr in event.attrs_changed:
-            print(f"    {attr} = {getattr(event.obj, attr)}")
+    print(f"[RGBLoad updated] '{event.obj.name}' ({event.obj.id})")
+    for attr in event.attrs_changed:
+        print(f"    {attr} = {getattr(event.obj, attr)}")
 
 
 async def main() -> None:
@@ -36,11 +32,11 @@ async def main() -> None:
 
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Subscribe to RGB load updates
-        vantage.rgb_loads.subscribe(callback)
-
         # Fetch all known RGB loads from the controller
         await vantage.rgb_loads.initialize()
+
+        # Subscribe to RGB load updates
+        vantage.rgb_loads.subscribe(ObjectUpdated, on_object_updated)
 
         # Keep running for a while
         await asyncio.sleep(3600)
