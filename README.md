@@ -1,5 +1,9 @@
 # aiovantage
 
+[![Documentation](https://img.shields.io/badge/Read%20the%20Docs-8CA1AF?style=for-the-badge&logo=readthedocs&logoColor=fff)](https://aiovantage.readthedocs.io)
+[![GitHub release](https://img.shields.io/github/v/release/loopj/aiovantage?style=for-the-badge)](http://github.com/loopj/aiovantage/releases/latest)
+[![Discord](https://img.shields.io/discord/1120862286576353370?style=for-the-badge)](https://discord.gg/psU7PxDyNQ)
+
 Python library for interacting with and controlling Vantage InFusion home automation controllers.
 
 This open-source, non-commercial library is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Vantage, and is provided for interoperability purposes only.
@@ -18,11 +22,20 @@ See the [examples](https://github.com/loopj/aiovantage/tree/main/examples) folde
 
 ## Features
 
-- Uses Python asyncio for non-blocking I/O.
-- Exposes "controllers" to make fetching and controlling various objects easy.
+- Fetch object *configuration* from your Vantage system.
+- Fetch object *state* and subscribe to state changes (e.g. load levels, sensor readings).
+- Control devices (turn on lights, set thermostats, etc).
+- Uses `asyncio` for non-blocking I/O.
 - Uses SSL connections by default, with automatic reconnection.
-- Fetch objects lazily (with `async for obj in controller`).
-- Alternatively, eager-fetch objects with `controller.initialize`.
+- Supports both lazy and eager object fetching.
+
+## Installation
+
+Add `aiovantage` as a dependency to your project, or install it directly:
+
+```shell
+pip install aiovantage
+```
 
 ## Supported objects
 
@@ -53,14 +66,6 @@ The following interfaces/controllers are currently supported.
 | Thermostat    | Thermostats           | `vantage.thermostats`         |
 
 If you have an object that you expect to show up in one of these controllers but is missing, please [create an issue](https://github.com/loopj/aiovantage/issues) or [submit a pull request](https://github.com/loopj/aiovantage/pulls).
-
-## Installation
-
-Add `aiovantage` as a dependency to your project, or install it directly:
-
-```shell
-pip install aiovantage
-```
 
 ## Usage
 
@@ -178,35 +183,3 @@ async with Vantage("hostname", "username", "password") as vantage:
 ```
 
 Note that a subscription will only receive state changes for objects that have populated into the controller.
-
-## Design overview
-
-### Fetching controller configuration
-
-Vantage controllers store their configuration as a collection of "objects". For example, a load (lights, motor, etc) is represented by a `Load` object, a button is represented by a `Button` object, etc. Each object has a VID (Vantage ID) that uniquely identifies it, and various other "configuration" properties such as its name, area, etc.
-
-We fetch objects from the *ACI service*, an XML-based RPC service that Design Center uses to communicate with Vantage InFusion Controllers.
-
-The [`aiovantage.objects`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/objects) module contains a (non-exhaustive) collection of `dataclass` objects which contain the same properties as those stored in the Vantage controller. We use `xsdata` to parse the XML responses from the ACI service into these objects.
-
-The [`aiovantage.config_client`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/config_client) module provides a client for the ACI service in the `ConfigClient` class.
-
-### Fetching state and controlling objects
-
-Each object type implements one or more *object interfaces*, which define various "state" properties and methods that the object supports. For example, a `Load` object implements the `Load` interface, which defines the `level` property, and methods like `Load.GetLevel`, `Load.SetLevel`, `Load.Ramp`, etc. These interfaces are defined in the [`aiovantage.object_interfaces`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/object_interfaces) module.
-
-Methods on object interfaces are available to call remotely using the text-based *Host Command service*.
-
-The [`aiovantage.command_client`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/command_client) module provides a client for the Host Command service in the `CommandClient` class.
-
-### Monitoring for state changes
-
-The Host Command service also allows you to subscribe to state changes for objects.
-
-The simplest approach is to subscribe to "category" status events by calling `STATUS <category>`, which will then emit a status events for every object that implements the specified category, e.g. `S:LOAD 118 100.000`.
-
-A more powerful approach is to use "object" status events, which emit statuses generated from an object interface method. For example, to subscribe to state changes for load 118, we would call `ADDSTATUS 118`, which would then emit a status event for load 118 whenever its state changes, e.g. `S:STATUS 118 Load.GetLevel 100000`.
-
-Alternatively, we can use the *Enhanced Log* to subscribe to status events for *all* objects.
-
-The [`aiovantage.command_client`](https://github.com/loopj/aiovantage/tree/main/src/aiovantage/command_client) module provides an `EventStream` class which can be used to subscribe to status events.
