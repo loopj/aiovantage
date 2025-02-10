@@ -60,15 +60,15 @@ class EventDispatcher:
 
 
 class Connected:
-    """Event emitted when a connection is established."""
+    """Event emitted when a client connection is established."""
 
 
 class Disconnected:
-    """Event emitted when the connection is lost."""
+    """Event emitted when the client connection is lost."""
 
 
 class Reconnected:
-    """Event emitted when the connection is re-established."""
+    """Event emitted when the client connection is re-established."""
 
 
 @dataclass

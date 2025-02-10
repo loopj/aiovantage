@@ -7,15 +7,24 @@ Some controllers manage a single type of object, while others handle multiple ty
 In controllers where multiple object types are managed, they are typically conceptually
 related through shared behavior rather than a strict class hierarchy. These types of
 controllers typically hold objects which implement one or more common interfaces. For
-examples, objects in the [BlindsController][aiovantage.controllers.BlindsController]
-all implement the [BlindInterface][aiovantage.object_interfaces.BlindInterface].
+examples, objects in the [`BlindsController`][aiovantage.controllers.BlindsController]
+all implement the [`BlindInterface`][aiovantage.object_interfaces.BlindInterface].
 
-Since filtering and finding specific objects in a controller is a common operation, all
-controllers all inherit from [QuerySet][aiovantage.controllers.QuerySet], which
-provides a number of methods for filtering and finding objects.
+Controllers implement [`QuerySet`][aiovantage.controllers.QuerySet], which
+provides a number of methods for filtering and finding objects, such as
+[`filter`][aiovantage.controllers.QuerySet.filter] and
+[`get`][aiovantage.controllers.QuerySet.get].
 
-An instance of every controller type is made available through the main [Vantage]
-object.
+Controllers also implement [`EventDispatcher`][aiovantage.events.EventDispatcher],
+which allows you to subscribe to events related to the objects managed by the controller
+with [`subscribe`][aiovantage.events.EventDispatcher.subscribe]. The following
+events are emitted by controllers:
+[`ObjectAdded`][aiovantage.events.ObjectAdded],
+[`ObjectUpdated`][aiovantage.events.ObjectUpdated],
+[`ObjectDeleted`][aiovantage.events.ObjectDeleted]
+
+An instance of every controller type is made available through the main
+[Vantage][aiovantage.Vantage] object.
 """
 
 from ._controllers.anemo_sensors import AnemoSensorsController
