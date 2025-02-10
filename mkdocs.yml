@@ -4,6 +4,7 @@ site_name: aiovantage
 site_url: https://aiovantage.readthedocs.io
 repo_url: https://github.com/loopj/aiovantage
 repo_name: "loopj/aiovantage"
+edit_uri: "blob/main/docs"
 watch: [mkdocs.yml, README.md, CONTRIBUTING.md, src/aiovantage]
 
 nav:

@@ -8,7 +8,6 @@ from typing import Any, TypeVar, cast
 
 from typing_extensions import Self
 
-from ._controllers.events import EventCallback, VantageEvent
 from ._logger import logger
 from .command_client import CommandClient, EventStream
 from .config_client import ConfigClient
@@ -38,8 +37,12 @@ from .controllers import (
 )
 from .objects import SystemObject
 
-__all__ = ["Vantage", "VantageEvent", "logger"]
+__all__ = [
+    "Vantage",
+    "logger",
+]
 
+T = TypeVar("T")
 ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
 
 
@@ -67,8 +70,8 @@ class Vantage:
             host: The hostname or IP address of the Vantage controller.
             username: The username to use for authentication.
             password: The password to use for authentication.
-            ssl: The SSL context to use. True will use a default context, False will disable SSL.
-            ssl_context_factory: A factory function to use when creating default SSL contexts.
+            ssl: The SSL context to use. True will use the default context, False will disable SSL.
+            ssl_context_factory: A factory function to create an SSL context.
             config_port: The port to use for the config client.
             command_port: The port to use for the command client.
         """
@@ -326,17 +329,21 @@ class Vantage:
             ]
         )
 
-    def subscribe(self, callback: EventCallback[SystemObject]) -> Callable[[], None]:
+    def subscribe(
+        self, event_type: type[T], callback: Callable[[T], None]
+    ) -> Callable[[], None]:
         """Subscribe to state changes for every controller.
 
         Args:
-            callback: The callback to call when an object changes.
+            event_type: The type of event to subscribe to.
+            callback: The callback to call when the event is emitted.
 
         Returns:
             A function to unsubscribe.
         """
         unsubscribes = [
-            controller.subscribe(callback) for controller in self._controllers
+            controller.subscribe(event_type, callback)
+            for controller in self._controllers
         ]
 
         def unsubscribe() -> None:

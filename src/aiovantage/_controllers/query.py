@@ -1,10 +1,9 @@
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterable, Iterator
-from typing import Any, TypeVar, cast, overload
+from typing import Any, TypeVar, overload
 
 from typing_extensions import Self
 
 T = TypeVar("T")
-U = TypeVar("U")
 
 
 class QuerySet(Iterable[T], AsyncIterator[T]):
@@ -86,13 +85,6 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
             raise TypeError("filter() and get() expect either a callable or **kwargs")
 
         return queryset
-
-    def filter_by_type(self, sensor_type: type[U]) -> "QuerySet[U]":
-        """Return a queryset of objects filtered by the given type."""
-        return cast(
-            QuerySet[U],
-            self.filter(lambda obj: isinstance(obj, sensor_type)),
-        )
 
     @overload
     def get(self, key: int) -> T | None: ...

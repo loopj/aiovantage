@@ -150,9 +150,10 @@ class ConfigClient:
         # Build a method instance with the given parameters
         method = method_cls()
         method.call = params
+        method_attr = snake_case(method_cls.__name__)
 
         # Build an interface instance with the method
-        request = interface_cls(**{snake_case(method_cls.__name__): method})
+        request = interface_cls(**{method_attr: method})
 
         # Build the request
         request_str = self._serializer.render(request)  # type: ignore
@@ -165,7 +166,7 @@ class ConfigClient:
 
         # Extract the method response
         method_response: Method[Call, Return] | None = getattr(
-            response, snake_case(method_cls.__name__), None
+            response, method_attr, None
         )
 
         # Validate the response

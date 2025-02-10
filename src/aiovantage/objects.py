@@ -1,4 +1,17 @@
-"""Vantage object types."""
+"""Vantage object definitions.
+
+This module provides a (non-exhaustive) collection of classes that represent the
+various object types that are managed by a Vantage system.
+
+Vantage objects define *configuration* properties, which are properties that are
+set during system programming, through Design Center.
+
+Objects are hierarchical, with all objects ultimately deriving from
+[`SystemObject`][aiovantage.objects.SystemObject].
+
+Each object implements one or more [object interfaces][aiovantage.object_interfaces],
+which provide *state* properties and methods for interacting with the object.
+"""
 
 from ._objects.anemo_sensor import AnemoSensor
 from ._objects.area import Area

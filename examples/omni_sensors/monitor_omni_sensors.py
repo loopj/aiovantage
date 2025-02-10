@@ -4,9 +4,9 @@ import argparse
 import asyncio
 import contextlib
 import logging
-from typing import Any
 
-from aiovantage import Vantage, VantageEvent
+from aiovantage import Vantage
+from aiovantage.events import ObjectUpdated
 from aiovantage.objects import OmniSensor
 
 # Grab connection info from command line arguments
@@ -18,15 +18,11 @@ parser.add_argument("--debug", help="enable debug logging", action="store_true")
 args = parser.parse_args()
 
 
-def callback(event: VantageEvent, obj: OmniSensor, data: dict[str, Any]) -> None:
+def on_object_updated(event: ObjectUpdated[OmniSensor]) -> None:
     """Print out any state changes."""
-    if event == VantageEvent.OBJECT_ADDED:
-        print(f"[Sensor added] '{obj.name}' ({obj.id})")
-
-    elif event == VantageEvent.OBJECT_UPDATED:
-        print(f"[Sensor updated] '{obj.name}' ({obj.id})")
-        for attr in data.get("attrs_changed", []):
-            print(f"    {attr} = {getattr(obj, attr)}")
+    print(f"[OmniSensor updated] '{event.obj.name}' ({event.obj.id})")
+    for attr in event.attrs_changed:
+        print(f"    {attr} = {getattr(event.obj, attr)}")
 
 
 async def main() -> None:
@@ -36,11 +32,11 @@ async def main() -> None:
 
     # Connect to the Vantage controller
     async with Vantage(args.host, args.username, args.password) as vantage:
-        # Subscribe to updates for all sensors
-        vantage.omni_sensors.subscribe(callback)
-
         # Fetch all known sensors from the controller
         await vantage.omni_sensors.initialize()
+
+        # Subscribe to updates for all sensors
+        vantage.omni_sensors.subscribe(ObjectUpdated, on_object_updated)
 
         # Keep running for a while
         await asyncio.sleep(3600)
