@@ -1,4 +1,5 @@
 import asyncio
+from collections.abc import Callable
 from dataclasses import fields
 from typing import TYPE_CHECKING, TypeVar, cast
 
@@ -41,8 +42,9 @@ class BaseController(QuerySet[T], EventDispatcher):
         """
         self._vantage = vantage
         self._objects: dict[int, T] = {}
-        self._subscribed_to_state_changes = False
         self._initialized = False
+        self._state_monitoring_enabled = False
+        self._state_monitoring_unsubs: list[Callable[[], None]] = []
         self._lock = asyncio.Lock()
 
         QuerySet[T].__init__(self, self._objects, self._lazy_initialize)
@@ -56,19 +58,14 @@ class BaseController(QuerySet[T], EventDispatcher):
         """Return True if the object with the given Vantage ID exists."""
         return vid in self._objects
 
-    @property
-    def initialized(self) -> bool:
-        """Return True if this controller has been initialized."""
-        return self._initialized
-
     async def initialize(
-        self, *, fetch_state: bool = True, monitor_state: bool = True
+        self, *, fetch_state: bool = True, enable_state_monitoring: bool = True
     ) -> None:
         """Populate the controller, and optionally fetch object state.
 
         Args:
-            fetch_state: Whether to fetch the state of stateful objects.
-            monitor_state: Whether to keep the state of stateful objects up-to-date.
+            fetch_state: Whether to fetch the state properties of objects.
+            enable_state_monitoring: Whether to monitor for state changes on objects.
         """
         # Prevent concurrent controller initialization from multiple tasks, since we
         # are batch-modifying the _items dict.
@@ -129,8 +126,8 @@ class BaseController(QuerySet[T], EventDispatcher):
             if fetch_state:
                 await self.fetch_state()
 
-            if monitor_state:
-                await self.monitor_state()
+            if enable_state_monitoring:
+                await self.enable_state_monitoring()
 
     async def fetch_state(self) -> None:
         """Fetch the state properties of all objects managed by this controller."""
@@ -142,9 +139,9 @@ class BaseController(QuerySet[T], EventDispatcher):
 
         logger.info("%s fetched state", type(self).__name__)
 
-    async def monitor_state(self) -> None:
-        """Monitor for state changes for objects managed by this controller."""
-        if self._subscribed_to_state_changes:
+    async def enable_state_monitoring(self) -> None:
+        """Monitor for state changes on objects managed by this controller."""
+        if self._state_monitoring_enabled:
             return
 
         # Start the event stream if it isn't already running
@@ -157,18 +154,39 @@ class BaseController(QuerySet[T], EventDispatcher):
         # "category" status events.
         if event_conn.supports_enhanced_log and not self.category_status:
             # Subscribe to "object status" events from the Enhanced Log.
-            self._vantage.event_stream.subscribe_enhanced_log(
+            status_unsub = self._vantage.event_stream.subscribe_enhanced_log(
                 self._handle_enhanced_log_event, "STATUS", "STATUSEX"
             )
         else:
             # Subscribe to "STATUS {category}" updates
-            self._vantage.event_stream.subscribe_status(self._handle_status_event)
+            status_unsub = self._vantage.event_stream.subscribe_status(
+                self._handle_status_event
+            )
 
         # Subscribe to reconnect events from the event stream
-        self._vantage.event_stream.subscribe(Reconnected, self._handle_reconnect_event)
+        reconnect_unsub = self._vantage.event_stream.subscribe(
+            Reconnected, self._handle_reconnect_event
+        )
 
-        self._subscribed_to_state_changes = True
+        # Keep track of the subscriptions so we can unsubscribe later
+        self._state_monitoring_unsubs.extend([status_unsub, reconnect_unsub])
+        self._state_monitoring_enabled = True
+
         logger.info("%s subscribed to state changes", type(self).__name__)
+
+    async def disable_state_monitoring(self) -> None:
+        """Stop monitoring for state changes on objects managed by this controller."""
+        if not self._state_monitoring_enabled:
+            return
+
+        # Unsubscribe status and reconnect events
+        while self._state_monitoring_unsubs:
+            unsub = self._state_monitoring_unsubs.pop()
+            unsub()
+
+        self._state_monitoring_enabled = False
+
+        logger.info("%s unsubscribed from state changes", type(self).__name__)
 
     def _handle_status_event(self, event: StatusReceived) -> None:
         # Look up the object that this event is for

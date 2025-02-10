@@ -310,29 +310,46 @@ class Vantage:
         self.event_stream.stop()
 
     async def initialize(
-        self, *, fetch_state: bool = True, monitor_state: bool = True
+        self, *, fetch_state: bool = True, enable_state_monitoring: bool = True
     ) -> None:
         """Initialize all controllers.
 
         Args:
-            fetch_state: Whether to fetch the state of stateful objects.
-            monitor_state: Whether to keep the state of stateful objects up-to-date.
+            fetch_state: Whether to fetch the state properties of objects.
+            enable_state_monitoring: Whether to monitor for state changes on objects.
         """
-        # Initialize all controllers
         await asyncio.gather(
             *[
                 controller.initialize(
                     fetch_state=fetch_state,
-                    monitor_state=monitor_state,
+                    enable_state_monitoring=enable_state_monitoring,
                 )
                 for controller in self._controllers
             ]
         )
 
+    async def fetch_state(self) -> None:
+        """Fetch the state properties of all objects."""
+        await asyncio.gather(
+            *[controller.fetch_state() for controller in self._controllers]
+        )
+
+    async def enable_state_monitoring(self) -> None:
+        """Monitor for state changes on all objects."""
+        await asyncio.gather(
+            *[controller.enable_state_monitoring() for controller in self._controllers]
+        )
+
+    async def disable_state_monitoring(self) -> None:
+        """Stop monitoring for state changes on all objects."""
+        await asyncio.gather(
+            *[controller.disable_state_monitoring() for controller in self._controllers]
+        )
+
     def subscribe(
         self, event_type: type[T], callback: Callable[[T], None]
     ) -> Callable[[], None]:
-        """Subscribe to state changes for every controller.
+        """Subscribe to events from every controller.
 
         Args:
             event_type: The type of event to subscribe to.
