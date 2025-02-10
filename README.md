@@ -1,7 +1,7 @@
 # aiovantage
 
-[![Documentation](https://img.shields.io/badge/Read%20the%20Docs-8CA1AF?style=for-the-badge&logo=readthedocs&logoColor=fff)](https://aiovantage.readthedocs.io)
-[![GitHub release](https://img.shields.io/github/v/release/loopj/aiovantage?style=for-the-badge)](http://github.com/loopj/aiovantage/releases/latest)
+[![Documentation](https://img.shields.io/badge/Documentation-8CA1AF?style=for-the-badge&logo=readthedocs&logoColor=fff)](https://aiovantage.readthedocs.io)
+[![PyPI - Version](https://img.shields.io/pypi/v/aiovantage?style=for-the-badge)](https://pypi.org/project/aiovantage/)
 [![Discord](https://img.shields.io/discord/1120862286576353370?style=for-the-badge)](https://discord.gg/psU7PxDyNQ)
 
 Python library for interacting with and controlling Vantage InFusion home automation controllers.
