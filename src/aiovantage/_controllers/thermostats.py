@@ -1,5 +1,4 @@
-from aiovantage._controllers.query import QuerySet
-from aiovantage.objects import Temperature, Thermostat
+from aiovantage.objects import Thermostat
 
 from .base import BaseController
 
@@ -13,25 +12,3 @@ class ThermostatsController(BaseController[Thermostat]):
     """
 
     vantage_types = ("Thermostat",)
-
-    def sensors(self, vid: int) -> QuerySet[Temperature]:
-        """Return all sensors associated with this thermostat."""
-        return self._vantage.temperature_sensors.filter(
-            lambda obj: obj.parent.id == vid
-        )
-
-    def indoor_sensor(self, vid: int) -> QuerySet[Temperature]:
-        """Return a queryset to fetch the indoor temperature sensor for this thermostat."""
-        return self.sensors(vid).filter(lambda obj: obj.parent.position == 1)
-
-    def outdoor_sensor(self, vid: int) -> QuerySet[Temperature]:
-        """Return a queryset to fetch the outdoor temperature sensor for this thermostat."""
-        return self.sensors(vid).filter(lambda obj: obj.parent.position == 2)
-
-    def cool_setpoint(self, vid: int) -> QuerySet[Temperature]:
-        """Return a queryset to fetch the cool setpoint sensor for this thermostat."""
-        return self.sensors(vid).filter(lambda obj: obj.parent.position == 3)
-
-    def heat_setpoint(self, vid: int) -> QuerySet[Temperature]:
-        """Return a queryset to fetch the heat setpoint sensor for this thermostat."""
-        return self.sensors(vid).filter(lambda obj: obj.parent.position == 4)
