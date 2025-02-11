@@ -16,13 +16,11 @@ from .controllers import (
     AreasController,
     BackBoxesController,
     BaseController,
-    BlindGroupsController,
     BlindsController,
     ButtonsController,
     DryContactsController,
     GMemController,
     LightSensorsController,
-    LoadGroupsController,
     LoadsController,
     MastersController,
     ModulesController,
@@ -114,13 +112,11 @@ class Vantage:
         self._anemo_sensors = add_controller(AnemoSensorsController)
         self._areas = add_controller(AreasController)
         self._back_boxes = add_controller(BackBoxesController)
-        self._blind_groups = add_controller(BlindGroupsController)
         self._blinds = add_controller(BlindsController)
         self._buttons = add_controller(ButtonsController)
         self._dry_contacts = add_controller(DryContactsController)
         self._gmem = add_controller(GMemController)
         self._light_sensors = add_controller(LightSensorsController)
-        self._load_groups = add_controller(LoadGroupsController)
         self._loads = add_controller(LoadsController)
         self._masters = add_controller(MastersController)
         self._modules = add_controller(ModulesController)
@@ -205,11 +201,6 @@ class Vantage:
         return self._blinds
 
     @property
-    def blind_groups(self) -> BlindGroupsController:
-        """Controller for interacting with groups of blinds."""
-        return self._blind_groups
-
-    @property
     def buttons(self) -> ButtonsController:
         """Controller for interacting with keypad buttons."""
         return self._buttons
@@ -233,11 +224,6 @@ class Vantage:
     def loads(self) -> LoadsController:
         """Controller for interacting with loads (lights, fans, etc)."""
         return self._loads
-
-    @property
-    def load_groups(self) -> LoadGroupsController:
-        """Controller for interacting with groups of loads."""
-        return self._load_groups
 
     @property
     def masters(self) -> MastersController:

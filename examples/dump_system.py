@@ -6,7 +6,8 @@ import contextlib
 import logging
 
 from aiovantage import Vantage
-from aiovantage.objects import Area, Load
+from aiovantage.controllers import LoadTypes
+from aiovantage.objects import Area
 
 # Grab connection info from command line arguments
 parser = argparse.ArgumentParser(description="aiovantage example")
@@ -36,7 +37,7 @@ def print_indented(text: str, indent_level: int) -> None:
     print(f"{indent}{text}")
 
 
-def load_state(load: Load) -> str:
+def load_state(load: LoadTypes) -> str:
     """Return a string describing the state of a load."""
     if load.level is None:
         return ""
