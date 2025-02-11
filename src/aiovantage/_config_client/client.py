@@ -131,7 +131,7 @@ class ConfigClient:
 
         return response
 
-    async def rpc_call(
+    async def rpc(
         self,
         interface_cls: type[Interface],
         method_cls: type[Method[Call, Return]],

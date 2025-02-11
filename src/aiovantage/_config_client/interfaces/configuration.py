@@ -1,5 +1,3 @@
-"""IConfiguration interfaces."""
-
 from collections.abc import AsyncIterator
 from contextlib import suppress
 from dataclasses import dataclass, field
@@ -13,13 +11,16 @@ T = TypeVar("T")
 
 
 @dataclass
-class OpenFilter:
-    """IConfiguration.OpenFilter method definition."""
+class WrappedObject:
+    # Wildcard type that can be used to represent any object.
+    vid: int = field(metadata={"name": "VID", "type": "Attribute"})
+    obj: object = field(metadata={"type": "Wildcard"})
 
+
+@dataclass
+class OpenFilter:
     @dataclass
     class Params:
-        """Method parameters."""
-
         object_types: list[str] | None = field(
             default=None,
             metadata={"wrapper": "Objects", "name": "ObjectType", "type": "Element"},
@@ -32,25 +33,14 @@ class OpenFilter:
 
 @dataclass
 class GetFilterResults:
-    """IConfiguration.GetFilterResults method definition."""
-
     @dataclass
     class Params:
-        """Method parameters."""
-
         h_filter: int = field(metadata={"name": "hFilter"})
         count: int = 50
         whole_object: bool = True
 
-    @dataclass
-    class Object:
-        """Wildcard type that can be used to represent any object."""
-
-        vid: int = field(metadata={"name": "VID", "type": "Attribute"})
-        obj: object = field(metadata={"type": "Wildcard"})
-
     call: Params | None = field(default=None, metadata={"name": "call"})
-    result: list[Object] | None = field(
+    result: list[WrappedObject] | None = field(
         default_factory=list,
         metadata={"wrapper": "return", "name": "Object", "type": "Element"},
     )
@@ -58,29 +48,18 @@ class GetFilterResults:
 
 @dataclass
 class CloseFilter:
-    """IConfiguration.CloseFilter method definition."""
-
     call: int | None = field(default=None, metadata={"name": "call"})
     result: bool | None = field(default=None, metadata={"name": "return"})
 
 
 @dataclass
 class GetObject:
-    """IConfiguration.GetObject method definition."""
-
-    @dataclass
-    class Object:
-        """Wildcard type that can be used to represent any object."""
-
-        vid: int = field(metadata={"name": "VID", "type": "Attribute"})
-        obj: object = field(metadata={"type": "Wildcard"})
-
     call: list[int] | None = field(
         default_factory=list,
         metadata={"wrapper": "call", "name": "VID", "type": "Element"},
     )
 
-    result: list[Object] | None = field(
+    result: list[WrappedObject] | None = field(
         default_factory=list,
         metadata={"wrapper": "return", "name": "Object", "type": "Element"},
     )
@@ -88,8 +67,6 @@ class GetObject:
 
 @dataclass(kw_only=True)
 class IConfiguration:
-    """IConfiguration interface."""
-
     open_filter: OpenFilter | None = None
     get_filter_results: GetFilterResults | None = None
     close_filter: CloseFilter | None = None
@@ -113,7 +90,7 @@ class ConfigurationInterface:
         Returns:
             The handle of the opened filter
         """
-        return await client.rpc_call(
+        return await client.rpc(
             IConfiguration,
             OpenFilter,
             OpenFilter.Params(object_types=list(object_types), xpath=xpath),
@@ -122,7 +99,7 @@ class ConfigurationInterface:
     @staticmethod
     async def get_filter_results(
         client: ConfigClient, h_filter: int, count: int = 50, whole_object: bool = True
-    ) -> list[GetFilterResults.Object]:
+    ) -> list[WrappedObject]:
         """Get results from a filter handle previously opened with open_filter.
 
         Args:
@@ -134,7 +111,7 @@ class ConfigurationInterface:
         Returns:
             A list of Vantage objects
         """
-        return await client.rpc_call(
+        return await client.rpc(
             IConfiguration, GetFilterResults, GetFilterResults.Params(h_filter)
         )
 
@@ -149,10 +126,10 @@ class ConfigurationInterface:
         Returns:
             True if the filter was closed successfully, False otherwise
         """
-        return await client.rpc_call(IConfiguration, CloseFilter, h_filter)
+        return await client.rpc(IConfiguration, CloseFilter, h_filter)
 
     @staticmethod
-    async def get_object(client: ConfigClient, *vids: int) -> list[GetObject.Object]:
+    async def get_object(client: ConfigClient, *vids: int) -> list[WrappedObject]:
         """Get one or more Vantage objects by their VIDs.
 
         Args:
@@ -162,7 +139,7 @@ class ConfigurationInterface:
         Returns:
             A list of Vantage objects
         """
-        return await client.rpc_call(IConfiguration, GetObject, list(vids))
+        return await client.rpc(IConfiguration, GetObject, list(vids))
 
     # Convenience functions, not part of the interface
     @overload
