@@ -441,29 +441,35 @@ class RGBLoadInterface(Interface):
         return await self.invoke("RGBLoad.GetTransitionLevel")
 
     # Convenience functions, not part of the interface
-    async def get_rgb_color(self) -> tuple[int, ...]:
+    async def get_rgb_color(self) -> tuple[int, int, int]:
         """Get the RGB color of a load from the controller.
 
         Returns:
             The value of the RGB color as a tuple of (red, green, blue).
         """
-        return tuple([await self.get_rgb(chan) for chan in islice(self.RGBChannel, 3)])
+        return tuple[int, int, int](
+            [await self.get_rgb(chan) for chan in islice(self.RGBChannel, 3)]
+        )
 
-    async def get_rgbw_color(self) -> tuple[int, ...]:
+    async def get_rgbw_color(self) -> tuple[int, int, int, int]:
         """Get the RGBW color of a load from the controller.
 
         Returns:
             The value of the RGBW color as a tuple of (red, green, blue, white).
         """
-        return tuple([await self.get_rgbw(chan) for chan in self.RGBChannel])
+        return tuple[int, int, int, int](
+            [await self.get_rgbw(chan) for chan in self.RGBChannel]
+        )
 
-    async def get_hsl_color(self) -> tuple[int, ...]:
+    async def get_hsl_color(self) -> tuple[int, int, int]:
         """Get the HSL color of a load from the controller.
 
         Returns:
             The value of the HSL color as a tuple of (hue, saturation, lightness).
         """
-        return tuple([await self.get_hsl(attr) for attr in self.HSLAttribute])
+        return tuple[int, int, int](
+            [await self.get_hsl(attr) for attr in self.HSLAttribute]
+        )
 
     # Status updates for GetRGB, GetRGBW, and GetHSL arrive on multiple lines,
     # one line per channel/attribute. We always want to fetch a complete set of

@@ -31,7 +31,7 @@ from ._controllers.anemo_sensors import AnemoSensorsController
 from ._controllers.areas import AreasController
 from ._controllers.back_boxes import BackBoxesController
 from ._controllers.base import BaseController
-from ._controllers.blind_groups import BlindGroupsController
+from ._controllers.blind_groups import BlindGroupsController, BlindGroupTypes
 from ._controllers.blinds import BlindsController, BlindTypes
 from ._controllers.buttons import ButtonsController
 from ._controllers.dry_contacts import DryContactsController
@@ -57,6 +57,7 @@ __all__ = [
     "BackBoxesController",
     "BaseController",
     "BlindGroupsController",
+    "BlindGroupTypes",
     "BlindsController",
     "BlindTypes",
     "ButtonsController",
