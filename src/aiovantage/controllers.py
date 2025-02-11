@@ -29,7 +29,7 @@ An instance of every controller type is made available through the main
 
 from ._controllers.anemo_sensors import AnemoSensorsController
 from ._controllers.areas import AreasController
-from ._controllers.back_box import BackBoxesController
+from ._controllers.back_boxes import BackBoxesController
 from ._controllers.base import BaseController
 from ._controllers.blind_groups import BlindGroupsController
 from ._controllers.blinds import BlindsController, BlindTypes
@@ -48,7 +48,7 @@ from ._controllers.query import QuerySet
 from ._controllers.rgb_loads import RGBLoadsController, RGBLoadTypes
 from ._controllers.stations import StationsController
 from ._controllers.tasks import TasksController
-from ._controllers.temperature_sensors import TemperatureSensorsController
+from ._controllers.temperatures import TemperaturesController
 from ._controllers.thermostats import ThermostatsController
 
 __all__ = [
@@ -75,6 +75,6 @@ __all__ = [
     "RGBLoadTypes",
     "StationsController",
     "TasksController",
-    "TemperatureSensorsController",
+    "TemperaturesController",
     "ThermostatsController",
 ]

@@ -32,7 +32,7 @@ from .controllers import (
     RGBLoadsController,
     StationsController,
     TasksController,
-    TemperatureSensorsController,
+    TemperaturesController,
     ThermostatsController,
 )
 from .objects import SystemObject
@@ -130,7 +130,7 @@ class Vantage:
         self._power_profiles = add_controller(PowerProfilesController)
         self._stations = add_controller(StationsController)
         self._tasks = add_controller(TasksController)
-        self._temperature_sensors = add_controller(TemperatureSensorsController)
+        self._temperatures = add_controller(TemperaturesController)
         self._thermostats = add_controller(ThermostatsController)
 
     def __getitem__(self, vid: int) -> SystemObject:
@@ -280,9 +280,9 @@ class Vantage:
         return self._tasks
 
     @property
-    def temperature_sensors(self) -> TemperatureSensorsController:
+    def temperatures(self) -> TemperaturesController:
         """Controller for interacting with temperature sensors."""
-        return self._temperature_sensors
+        return self._temperatures
 
     @property
     def thermostats(self) -> ThermostatsController:

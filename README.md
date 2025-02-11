@@ -45,7 +45,7 @@ The following interfaces/controllers are currently supported.
 | ------------- | --------------------- | ----------------------------- |
 | AnemoSensor   | Wind speed sensors    | `vantage.anemo_sensors`       |
 | Area          | Rooms, etc            | `vantage.areas`               |
-| BackBox       | Backboxes             | `vantage.backboxes`           |
+| BackBox       | Backboxes             | `vantage.back_boxes`          |
 | Blind         | Shades, blinds        | `vantage.blinds`              |
 | BlindGroups   | Groups of blinds      | `vantage.blind_groups`        |
 | Buttons       | Keypad buttons        | `vantage.buttons`             |
@@ -62,7 +62,7 @@ The following interfaces/controllers are currently supported.
 | RGBLoad       | RGB lights            | `vantage.rgb_loads`           |
 | Stations      | Keypads, etc          | `vantage.stations`            |
 | Tasks         | Vantage tasks         | `vantage.tasks`               |
-| Temperature   | Temperature sensors   | `vantage.temperature_sensors` |
+| Temperature   | Temperature sensors   | `vantage.temperatures`        |
 | Thermostat    | Thermostats           | `vantage.thermostats`         |
 
 If you have an object that you expect to show up in one of these controllers but is missing, please [create an issue](https://github.com/loopj/aiovantage/issues) or [submit a pull request](https://github.com/loopj/aiovantage/pulls).
