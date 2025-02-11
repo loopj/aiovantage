@@ -1,5 +1,3 @@
-"""ILogin.Login method definition."""
-
 from dataclasses import dataclass, field
 
 from ..client import ConfigClient
@@ -7,12 +5,8 @@ from ..client import ConfigClient
 
 @dataclass
 class Login:
-    """ILogin.Login method definition."""
-
     @dataclass
     class Params:
-        """Method parameters."""
-
         user: str
         password: str
 
@@ -22,8 +16,6 @@ class Login:
 
 @dataclass(kw_only=True)
 class ILogin:
-    """ILogin interface."""
-
     login: Login | None = None
 
 
@@ -42,6 +34,6 @@ class LoginInterface:
         Returns:
             True if the login was successful, False otherwise
         """
-        return await client.rpc_call(
+        return await client.rpc(
             ILogin, Login, Login.Params(user=user, password=password)
         )

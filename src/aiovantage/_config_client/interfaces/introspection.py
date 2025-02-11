@@ -1,5 +1,3 @@
-"""IIntrospection interface."""
-
 from dataclasses import dataclass, field
 
 from ..client import ConfigClient
@@ -7,12 +5,8 @@ from ..client import ConfigClient
 
 @dataclass
 class GetInterfaces:
-    """IIntrospection.GetInterfaces method definition."""
-
     @dataclass
     class Interface:
-        """Object interface definition."""
-
         name: str
         version: str
         iid: int = field(metadata={"name": "IID"})
@@ -26,12 +20,8 @@ class GetInterfaces:
 
 @dataclass
 class GetSysInfo:
-    """IIntrospection.GetSysInfo method definition."""
-
     @dataclass
     class SysInfo:
-        """SysInfo class."""
-
         master_number: int
         serial_number: int
 
@@ -43,12 +33,8 @@ class GetSysInfo:
 
 @dataclass
 class GetTypes:
-    """IIntrospection.GetTypes method definition."""
-
     @dataclass
     class Type:
-        """Object type definition."""
-
         name: str
         version: str
 
@@ -60,12 +46,8 @@ class GetTypes:
 
 @dataclass
 class GetVersion:
-    """IIntrospection.GetVersion method definition."""
-
     @dataclass
     class Version:
-        """Method return value."""
-
         kernel: str | None = field(default=None, metadata={"name": "kernel"})
         rootfs: str | None = field(default=None, metadata={"name": "rootfs"})
         app: str | None = field(default=None, metadata={"name": "app"})
@@ -76,8 +58,6 @@ class GetVersion:
 
 @dataclass(kw_only=True)
 class IIntrospection:
-    """IIntrospection interface."""
-
     get_interfaces: GetInterfaces | None = None
     get_sys_info: GetSysInfo | None = None
     get_types: GetTypes | None = None
@@ -97,7 +77,7 @@ class IntrospectionInterface:
         Returns:
             A list of interfaces.
         """
-        return await client.rpc_call(IIntrospection, GetInterfaces)
+        return await client.rpc(IIntrospection, GetInterfaces)
 
     @staticmethod
     async def get_sys_info(client: ConfigClient) -> GetSysInfo.SysInfo:
@@ -109,7 +89,7 @@ class IntrospectionInterface:
         Returns:
             A system information object.
         """
-        return await client.rpc_call(IIntrospection, GetSysInfo)
+        return await client.rpc(IIntrospection, GetSysInfo)
 
     @staticmethod
     async def get_types(client: ConfigClient) -> list[GetTypes.Type]:
@@ -121,7 +101,7 @@ class IntrospectionInterface:
         Returns:
             A list of object types.
         """
-        return await client.rpc_call(IIntrospection, GetTypes)
+        return await client.rpc(IIntrospection, GetTypes)
 
     @staticmethod
     async def get_version(client: ConfigClient) -> GetVersion.Version:
@@ -133,4 +113,4 @@ class IntrospectionInterface:
         Returns:
             A version information object.
         """
-        return await client.rpc_call(IIntrospection, GetVersion)
+        return await client.rpc(IIntrospection, GetVersion)
