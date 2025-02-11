@@ -1,7 +1,7 @@
-from aiovantage._controllers.query import QuerySet
-from aiovantage.objects import Load
+from aiovantage.objects import Load, LoadGroup
 
 from .base import BaseController
+from .query import QuerySet
 
 
 class LoadsController(BaseController[Load]):
@@ -33,3 +33,7 @@ class LoadsController(BaseController[Load]):
     def lights(self) -> QuerySet[Load]:
         """Return a queryset of all loads that are lights."""
         return self.filter(lambda load: load.is_light)
+
+    def in_load_group(self, load_group: LoadGroup) -> QuerySet[Load]:
+        """Return a queryset of all loads in the given load group."""
+        return self.filter(lambda load: load.vid in load_group.load_table)
