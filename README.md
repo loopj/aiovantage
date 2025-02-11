@@ -47,7 +47,6 @@ The following interfaces/controllers are currently supported.
 | Area          | Rooms, etc            | `vantage.areas`               |
 | BackBox       | Backboxes             | `vantage.back_boxes`          |
 | Blind         | Shades, blinds        | `vantage.blinds`              |
-| BlindGroups   | Groups of blinds      | `vantage.blind_groups`        |
 | Buttons       | Keypad buttons        | `vantage.buttons`             |
 | DryContacts   | Motion sensors, etc   | `vantage.dry_contacts`        |
 | GMem          | Vantage variables     | `vantage.gmem`                |

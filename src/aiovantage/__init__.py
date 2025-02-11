@@ -16,7 +16,6 @@ from .controllers import (
     AreasController,
     BackBoxesController,
     BaseController,
-    BlindGroupsController,
     BlindsController,
     ButtonsController,
     DryContactsController,
@@ -114,7 +113,6 @@ class Vantage:
         self._anemo_sensors = add_controller(AnemoSensorsController)
         self._areas = add_controller(AreasController)
         self._back_boxes = add_controller(BackBoxesController)
-        self._blind_groups = add_controller(BlindGroupsController)
         self._blinds = add_controller(BlindsController)
         self._buttons = add_controller(ButtonsController)
         self._dry_contacts = add_controller(DryContactsController)
@@ -203,11 +201,6 @@ class Vantage:
     def blinds(self) -> BlindsController:
         """Controller for interacting with blinds."""
         return self._blinds
-
-    @property
-    def blind_groups(self) -> BlindGroupsController:
-        """Controller for interacting with groups of blinds."""
-        return self._blind_groups
 
     @property
     def buttons(self) -> ButtonsController:

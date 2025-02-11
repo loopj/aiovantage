@@ -126,3 +126,12 @@ class QuerySet(Iterable[T], AsyncIterator[T]):
         """Asynchronously return the first object in the queryset."""
         await self._populate()
         return self.first()
+
+    def __add__(self, other: "QuerySet[T]") -> "QuerySet[T]":
+        """Combine two querysets by narrowing the filters."""
+        combined_filters = self.__filters + other.__filters
+        return QuerySet(self._data, self._populate, combined_filters)
+
+    def matches_filters(self, obj: T) -> bool:
+        """Return True if the object matches all filters in the queryset."""
+        return all(filter_fn(obj) for filter_fn in self.__filters)
