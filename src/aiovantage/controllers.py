@@ -49,7 +49,7 @@ from ._controllers.rgb_loads import RGBLoadsController, RGBLoadTypes
 from ._controllers.stations import StationsController
 from ._controllers.tasks import TasksController
 from ._controllers.temperatures import TemperaturesController
-from ._controllers.thermostats import ThermostatsController
+from ._controllers.thermostats import ThermostatsController, ThermostatTypes
 
 __all__ = [
     "AnemoSensorsController",
@@ -78,4 +78,5 @@ __all__ = [
     "TasksController",
     "TemperaturesController",
     "ThermostatsController",
+    "ThermostatTypes",
 ]
