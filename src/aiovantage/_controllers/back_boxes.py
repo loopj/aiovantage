@@ -1,9 +1,9 @@
 from aiovantage.objects import BackBox
 
-from .base import BaseController
+from .base import Controller
 
 
-class BackBoxesController(BaseController[BackBox]):
+class BackBoxesController(Controller[BackBox]):
     """Back boxes controller.
 
     Back boxes typically represent a "gang box" in a wall which may contain

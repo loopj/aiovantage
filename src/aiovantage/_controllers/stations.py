@@ -1,9 +1,9 @@
 from aiovantage.objects import StationObject
 
-from .base import BaseController
+from .base import Controller
 
 
-class StationsController(BaseController[StationObject]):
+class StationsController(Controller[StationObject]):
     """Stations controller.
 
     Stations typically represent keypads or remote relays. It is mostly useful

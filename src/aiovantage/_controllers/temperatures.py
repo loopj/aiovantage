@@ -1,9 +1,9 @@
 from aiovantage.objects import Temperature
 
-from .base import BaseController
+from .base import Controller
 
 
-class TemperaturesController(BaseController[Temperature]):
+class TemperaturesController(Controller[Temperature]):
     """Temperature device controller.
 
     Temperature devices are device that measure or control temperature.

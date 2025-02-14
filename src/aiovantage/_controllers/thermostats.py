@@ -6,7 +6,7 @@ from aiovantage.objects import (
     VantageVirtualThermostatPort,
 )
 
-from .base import BaseController
+from .base import Controller
 
 ThermostatTypes = (
     Thermostat
@@ -18,7 +18,7 @@ ThermostatTypes = (
 """Types managed by the thermostats controller."""
 
 
-class ThermostatsController(BaseController[ThermostatTypes]):
+class ThermostatsController(Controller[ThermostatTypes]):
     """Thermostats controller."""
 
     vantage_types = (

@@ -1,9 +1,9 @@
 from aiovantage.objects import PortDevice
 
-from .base import BaseController
+from .base import Controller
 
 
-class PortDevicesController(BaseController[PortDevice]):
+class PortDevicesController(Controller[PortDevice]):
     """Port devices controller.
 
     Port devices are typically "hubs" that communicate with other devices such

@@ -1,9 +1,9 @@
 from aiovantage.objects import DryContact
 
-from .base import BaseController
+from .base import Controller
 
 
-class DryContactsController(BaseController[DryContact]):
+class DryContactsController(Controller[DryContact]):
     """Dry contacts controller."""
 
     vantage_types = ("DryContact",)

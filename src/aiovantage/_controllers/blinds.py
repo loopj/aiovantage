@@ -7,7 +7,7 @@ from aiovantage.objects import (
     SomfyURTSI2ShadeChild,
 )
 
-from .base import BaseController
+from .base import Controller
 from .query import QuerySet
 
 BlindTypes = (
@@ -16,7 +16,7 @@ BlindTypes = (
 """Types managed by the blinds controller."""
 
 
-class BlindsController(BaseController[BlindTypes]):
+class BlindsController(Controller[BlindTypes]):
     """Blinds controller."""
 
     vantage_types = (

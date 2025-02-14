@@ -1,9 +1,9 @@
 from aiovantage.objects import OmniSensor
 
-from .base import BaseController
+from .base import Controller
 
 
-class OmniSensorsController(BaseController[OmniSensor]):
+class OmniSensorsController(Controller[OmniSensor]):
     """Omni sensors controller.
 
     Omni sensors are generic sensors objects which specify which methods to use

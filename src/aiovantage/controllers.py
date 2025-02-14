@@ -30,7 +30,7 @@ An instance of every controller type is made available through the main
 from ._controllers.anemo_sensors import AnemoSensorsController
 from ._controllers.areas import AreasController
 from ._controllers.back_boxes import BackBoxesController
-from ._controllers.base import BaseController
+from ._controllers.base import Controller
 from ._controllers.blind_groups import BlindGroupsController, BlindGroupTypes
 from ._controllers.blinds import BlindsController, BlindTypes
 from ._controllers.buttons import ButtonsController
@@ -55,7 +55,7 @@ __all__ = [
     "AnemoSensorsController",
     "AreasController",
     "BackBoxesController",
-    "BaseController",
+    "Controller",
     "BlindGroupsController",
     "BlindGroupTypes",
     "BlindsController",

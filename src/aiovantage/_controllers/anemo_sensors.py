@@ -1,9 +1,9 @@
 from aiovantage.objects import AnemoSensor
 
-from .base import BaseController
+from .base import Controller
 
 
-class AnemoSensorsController(BaseController[AnemoSensor]):
+class AnemoSensorsController(Controller[AnemoSensor]):
     """Anemo sensors (wind speed sensors) controller."""
 
     vantage_types = ("AnemoSensor",)

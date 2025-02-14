@@ -1,9 +1,9 @@
 from aiovantage.objects import Master
 
-from .base import BaseController
+from .base import Controller
 
 
-class MastersController(BaseController[Master]):
+class MastersController(Controller[Master]):
     """Masters (InFusion Controllers) controller."""
 
     vantage_types = ("Master",)

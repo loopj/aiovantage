@@ -1,9 +1,9 @@
 from aiovantage.objects import LightSensor
 
-from .base import BaseController
+from .base import Controller
 
 
-class LightSensorsController(BaseController[LightSensor]):
+class LightSensorsController(Controller[LightSensor]):
     """Light sensors controller."""
 
     vantage_types = ("LightSensor",)

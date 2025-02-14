@@ -1,12 +1,12 @@
 from aiovantage.objects import BlindGroup, SomfyRS485GroupChild, SomfyURTSI2GroupChild
 
-from .base import BaseController
+from .base import Controller
 
 BlindGroupTypes = BlindGroup | SomfyRS485GroupChild | SomfyURTSI2GroupChild
 """Types managed by the blind groups controller."""
 
 
-class BlindGroupsController(BaseController[BlindGroupTypes]):
+class BlindGroupsController(Controller[BlindGroupTypes]):
     """Blind groups controller."""
 
     vantage_types = (

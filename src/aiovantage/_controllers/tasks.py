@@ -1,9 +1,9 @@
 from aiovantage.objects import Task
 
-from .base import BaseController
+from .base import Controller
 
 
-class TasksController(BaseController[Task]):
+class TasksController(Controller[Task]):
     """Tasks controller."""
 
     vantage_types = ("Task",)
