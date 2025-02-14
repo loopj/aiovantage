@@ -1,10 +1,10 @@
 from aiovantage.objects import Load, LoadGroup
 
-from .base import BaseController
+from .base import Controller
 from .query import QuerySet
 
 
-class LoadsController(BaseController[Load]):
+class LoadsController(Controller[Load]):
     """Loads controller."""
 
     vantage_types = ("Load",)

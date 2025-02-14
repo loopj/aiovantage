@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound=SystemObject)
 
 
-class BaseController(QuerySet[T], EventDispatcher):
+class Controller(QuerySet[T], EventDispatcher):
     """Base controller for managing collections of Vantage objects."""
 
     vantage_types: tuple[str, ...]

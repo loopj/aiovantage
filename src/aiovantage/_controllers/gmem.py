@@ -1,9 +1,9 @@
 from aiovantage.objects import GMem
 
-from .base import BaseController
+from .base import Controller
 
 
-class GMemController(BaseController[GMem]):
+class GMemController(Controller[GMem]):
     """GMem (variables) controller."""
 
     vantage_types = ("GMem",)

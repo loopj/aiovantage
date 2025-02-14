@@ -15,10 +15,10 @@ from .controllers import (
     AnemoSensorsController,
     AreasController,
     BackBoxesController,
-    BaseController,
     BlindGroupsController,
     BlindsController,
     ButtonsController,
+    Controller,
     DryContactsController,
     GMemController,
     LightSensorsController,
@@ -43,7 +43,7 @@ __all__ = [
 ]
 
 T = TypeVar("T")
-ControllerT = TypeVar("ControllerT", bound=BaseController[Any])
+ControllerT = TypeVar("ControllerT", bound=Controller[Any])
 
 
 class Vantage:
@@ -110,7 +110,7 @@ class Vantage:
             self._controllers.add(controller)
             return controller
 
-        self._controllers: set[BaseController[Any]] = set()
+        self._controllers: set[Controller[Any]] = set()
         self._anemo_sensors = add_controller(AnemoSensorsController)
         self._areas = add_controller(AreasController)
         self._back_boxes = add_controller(BackBoxesController)

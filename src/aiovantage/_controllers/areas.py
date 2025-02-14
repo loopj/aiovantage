@@ -1,9 +1,9 @@
 from aiovantage.objects import Area
 
-from .base import BaseController
+from .base import Controller
 
 
-class AreasController(BaseController[Area]):
+class AreasController(Controller[Area]):
     """Areas controller."""
 
     vantage_types = ("Area",)

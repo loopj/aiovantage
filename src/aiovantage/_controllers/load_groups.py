@@ -1,9 +1,9 @@
 from aiovantage.objects import LoadGroup
 
-from .base import BaseController
+from .base import Controller
 
 
-class LoadGroupsController(BaseController[LoadGroup]):
+class LoadGroupsController(Controller[LoadGroup]):
     """Load groups controller."""
 
     vantage_types = ("LoadGroup",)

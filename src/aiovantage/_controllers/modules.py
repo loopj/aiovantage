@@ -1,9 +1,9 @@
 from aiovantage.objects import SystemObject
 
-from .base import BaseController
+from .base import Controller
 
 
-class ModulesController(BaseController[SystemObject]):
+class ModulesController(Controller[SystemObject]):
     """Modules controller.
 
     Modules are relay or dimming modules connected to the Vantage system.
