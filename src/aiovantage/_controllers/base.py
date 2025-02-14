@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import Callable
 from dataclasses import fields
+from enum import Enum
 from typing import TYPE_CHECKING, TypeVar, cast
 
 from aiovantage._logger import logger
@@ -25,13 +26,23 @@ if TYPE_CHECKING:
 T = TypeVar("T", bound=SystemObject)
 
 
+class StatusType(Enum):
+    """The type of status that the controller is using for state monitoring."""
+
+    OBJECT = 1
+    """Object status events from the Enhanced Log."""
+
+    CATEGORY = 2
+    """Category status events, eg: S:LOAD, S:BLIND, etc."""
+
+
 class Controller(QuerySet[T], EventDispatcher):
     """Base controller for managing collections of Vantage objects."""
 
     vantage_types: tuple[str, ...]
     """The Vantage object types that this controller will fetch."""
 
-    category_status: bool = False
+    force_category_status: bool = False
     """Whether to force the controller to handle 'STATUS' categories."""
 
     def __init__(self, vantage: "Vantage") -> None:
@@ -43,8 +54,8 @@ class Controller(QuerySet[T], EventDispatcher):
         self._vantage = vantage
         self._objects: dict[int, T] = {}
         self._initialized = False
-        self._state_monitoring_enabled = False
-        self._state_monitoring_unsubs: list[Callable[[], None]] = []
+        self._status_type: StatusType | None = None
+        self._status_unsubs: list[Callable[[], None]] = []
         self._lock = asyncio.Lock()
 
         QuerySet[T].__init__(self, self._objects, self._lazy_initialize)
@@ -57,6 +68,11 @@ class Controller(QuerySet[T], EventDispatcher):
     def __contains__(self, vid: int) -> bool:
         """Return True if the object with the given Vantage ID exists."""
         return vid in self._objects
+
+    @property
+    def status_type(self) -> StatusType | None:
+        """Return the type of status event that the controller is monitoring."""
+        return self._status_type
 
     async def initialize(
         self, *, fetch_state: bool = True, enable_state_monitoring: bool = True
@@ -141,7 +157,7 @@ class Controller(QuerySet[T], EventDispatcher):
 
     async def enable_state_monitoring(self) -> None:
         """Monitor for state changes on objects managed by this controller."""
-        if self._state_monitoring_enabled:
+        if self._status_type is not None:
             return
 
         # Start the event stream if it isn't already running
@@ -152,16 +168,20 @@ class Controller(QuerySet[T], EventDispatcher):
         # If these are not supported—either due to older firmware, or if the
         # controller explicitly requesting category statuses, we'll fall back to
         # "category" status events.
-        if event_conn.supports_enhanced_log and not self.category_status:
+        if event_conn.supports_enhanced_log and not self.force_category_status:
             # Subscribe to "object status" events from the Enhanced Log.
             status_unsub = self._vantage.event_stream.subscribe_enhanced_log(
                 self._handle_enhanced_log_event, "STATUS", "STATUSEX"
             )
+
+            self._status_type = StatusType.OBJECT
         else:
             # Subscribe to "STATUS {category}" updates
             status_unsub = self._vantage.event_stream.subscribe_status(
                 self._handle_status_event
             )
+
+            self._status_type = StatusType.CATEGORY
 
         # Subscribe to reconnect events from the event stream
         reconnect_unsub = self._vantage.event_stream.subscribe(
@@ -169,22 +189,21 @@ class Controller(QuerySet[T], EventDispatcher):
         )
 
         # Keep track of the subscriptions so we can unsubscribe later
-        self._state_monitoring_unsubs.extend([status_unsub, reconnect_unsub])
-        self._state_monitoring_enabled = True
+        self._status_unsubs.extend([status_unsub, reconnect_unsub])
 
         logger.info("%s subscribed to state changes", type(self).__name__)
 
     async def disable_state_monitoring(self) -> None:
         """Stop monitoring for state changes on objects managed by this controller."""
-        if not self._state_monitoring_enabled:
+        if self._status_type is None:
             return
 
         # Unsubscribe status and reconnect events
-        while self._state_monitoring_unsubs:
-            unsub = self._state_monitoring_unsubs.pop()
+        while self._status_unsubs:
+            unsub = self._status_unsubs.pop()
             unsub()
 
-        self._state_monitoring_enabled = False
+        self._status_type = None
 
         logger.info("%s unsubscribed from state changes", type(self).__name__)
 
