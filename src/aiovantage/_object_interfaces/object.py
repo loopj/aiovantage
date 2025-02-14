@@ -1,6 +1,10 @@
 import datetime as dt
+from enum import IntEnum
+from typing import TypeVar
 
 from .base import Interface, method
+
+IntEnumT = TypeVar("IntEnumT", bound=IntEnum)
 
 
 class ObjectInterface(Interface):
@@ -181,6 +185,29 @@ class ObjectInterface(Interface):
         # -> R:INVOKE <id> <rcode> Object.SetPropertyEx <property> <value>
         await self.invoke("Object.SetPropertyEx", property, value)
 
+    @method("IsEnumeratorSupported")
+    async def is_enumerator_supported(
+        self, interface_name: str, enumeration_name: str, enumerator_name: str
+    ) -> bool:
+        """Check if an enumerator is supported by an object.
+
+        Args:
+            interface_name: The name of the interface to check.
+            enumeration_name: The name of the enumeration to check.
+            enumerator_name: The name of the enumerator to check.
+
+        Returns:
+            True if the enumerator is supported, False otherwise.
+        """
+        # INVOKE <id> Object.IsEnumeratorSupported <interfaceName> <enumerationName> <enumeratorName>
+        # -> R:INVOKE <id> <supported (0/1)> Object.IsEnumeratorSupported <interfaceName> <enumerationName> <enumeratorName>
+        return await self.invoke(
+            "Object.IsEnumeratorSupported",
+            interface_name,
+            enumeration_name,
+            enumerator_name,
+        )
+
     @method("GetMTime")
     async def get_m_time(self) -> dt.datetime:
         """Get the modification time of an object.
@@ -213,3 +240,16 @@ class ObjectInterface(Interface):
         # INVOKE <id> Object.GetArea
         # -> R:INVOKE <id> <area> Object.GetArea
         return await self.invoke("Object.GetArea")
+
+    # Convenience functions, not part of the interface
+    async def get_supported_enum_values(
+        self, interface: type[Interface], enum: type[IntEnumT]
+    ) -> list[IntEnumT]:
+        """Get all supported enum values of an object."""
+        return [
+            val
+            for val in enum
+            if await self.is_enumerator_supported(
+                interface.interface_name, enum.__name__, val.name
+            )
+        ]
