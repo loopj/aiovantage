@@ -8,7 +8,7 @@ from decimal import Decimal
 class Parent:
     """Vantage parent type."""
 
-    id: int
+    vid: int
     position: int = field(metadata={"type": "Attribute"})
 
 

@@ -14,12 +14,15 @@ class FanInterface(Interface):
         Off = 0
         Low = 1
         Medium = 2
-        Hight = 3
+        High = 3
         Max = 4
         Auto = 5
 
+    # Properties
+    speed: FanSpeed | None = None
+
     # Methods
-    @method("GetSpeed", "GetSpeedHW")
+    @method("GetSpeed", "GetSpeedHW", property="speed")
     async def get_speed(self, *, hw: bool = False) -> FanSpeed:
         """Get the speed of a fan.
 

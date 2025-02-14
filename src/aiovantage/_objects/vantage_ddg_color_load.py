@@ -28,7 +28,6 @@ class VantageDDGColorLoad(
         HSL = "HSL"
         HSIC = "HSIC"
         CCT = "CCT"
-        COLOR_CHANNEL = "Color Channel"
 
     parent: Parent
     color_type: ColorType

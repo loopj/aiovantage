@@ -75,6 +75,19 @@ from ._objects.vantage_ddg_color_load import VantageDDGColorLoad
 from ._objects.vantage_dg_color_load import VantageDGColorLoad
 from ._objects.vantage_dmx_dali_gateway import VantageDmxDaliGateway
 from ._objects.vantage_dmx_gateway import VantageDmxGateway
+from ._objects.vantage_generic_hvac_rs485 import (
+    VantageGenericHVACRS485CompoundChild,
+    VantageGenericHVACRS485Port,
+    VantageGenericHVACRS485TechContactsChild,
+    VantageGenericHVACRS485ZoneChild,
+    VantageGenericHVACRS485ZoneWithoutFanSpeedChild,
+)
+from ._objects.vantage_hvac_iu import (
+    VantageHVACIULineChild,
+    VantageHVACIUPort,
+    VantageHVACIUZoneChild,
+)
+from ._objects.vantage_virtual_thermostat import VantageVirtualThermostatPort
 
 __all__ = [
     "AnemoSensor",
@@ -135,4 +148,13 @@ __all__ = [
     "VantageDGColorLoad",
     "VantageDmxDaliGateway",
     "VantageDmxGateway",
+    "VantageGenericHVACRS485CompoundChild",
+    "VantageGenericHVACRS485Port",
+    "VantageGenericHVACRS485TechContactsChild",
+    "VantageGenericHVACRS485ZoneChild",
+    "VantageGenericHVACRS485ZoneWithoutFanSpeedChild",
+    "VantageHVACIULineChild",
+    "VantageHVACIUPort",
+    "VantageHVACIUZoneChild",
+    "VantageVirtualThermostatPort",
 ]

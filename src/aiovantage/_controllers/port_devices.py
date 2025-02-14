@@ -15,4 +15,6 @@ class PortDevicesController(BaseController[PortDevice]):
         "Somfy.RS-485_SDN_2_x2E_0_PORT",
         "Somfy.URTSI_2_PORT",
         "Vantage.DmxGateway",
+        "Vantage.Generic_HVAC_RS485_PORT",
+        "Vantage.HVAC-IU_PORT",
     )
