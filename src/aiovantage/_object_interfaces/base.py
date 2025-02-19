@@ -22,13 +22,16 @@ class _AsyncCallable(Protocol):
 
 @runtime_checkable
 class _MethodCallable(Protocol):
-    method_metadata: list[tuple[str, str | None, str | None]]
+    method_metadata: list[tuple[str, str | None, str | None, bool]]
 
     async def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
 
 
 def method(
-    *methods: str, out: str | None = None, property: str | None = None
+    *methods: str,
+    out: str | None = None,
+    property: str | None = None,
+    fetch: bool = True,
 ) -> Callable[[T], T]:
     """Decorator to annotate a function as a Vantage method.
 
@@ -44,16 +47,17 @@ def method(
         methods: The vantage method name(s) to associate with the function.
         out: Optional source of the return value, either "return" or "argN".
         property: Optional property name to associate with the function.
+        fetch: Whether to fetch the property when fetching state.
     """
 
     def decorator(func: T) -> T:
         # Attach metadata to the function
-        metadata: list[tuple[str, str | None, str | None]] = getattr(
+        metadata: list[tuple[str, str | None, str | None, bool]] = getattr(
             func, "method_metadata", []
         )
 
         for method in methods:
-            metadata.append((method, out, property))
+            metadata.append((method, out, property, fetch))
 
         func.method_metadata = metadata  # type: ignore
 
@@ -90,7 +94,7 @@ class _InterfaceMeta(type):
             if not isinstance(attr, _MethodCallable):
                 continue
 
-            for method, output, property in attr.method_metadata:
+            for method, output, property, fetch in attr.method_metadata:
                 # Get the return type of the method
                 type_hints = get_type_hints(attr)
                 if "return" not in type_hints:
@@ -99,16 +103,23 @@ class _InterfaceMeta(type):
                 # Get the fully-qualified method name
                 fq_method = f"{dct['interface_name']}.{method}"
 
-                # Attach the method signature to the class
+                # Save mapping between method name and return type
+                # Used for parsing responses
                 method_signatures[fq_method] = type_hints["return"]
 
-                # Attach output argument index to the class
+                # Save mapping between method name and output argument
+                # Used for parsing responses
                 if output:
                     method_output[fq_method] = output
 
-                # Attach the property information to the class
+                # Save mapping between method name and property name
+                # Used to update properties when receiving status messages
                 if property:
                     method_properties[fq_method] = property
+
+                # Save mapping between property name and getter function
+                # Used to fetch state properties
+                if property and fetch:
                     property_getters[property] = attr
 
         # Attach the method metadata to the class
@@ -193,33 +204,21 @@ class Interface(metaclass=_InterfaceMeta):
 
         return changed
 
-    async def fetch_state(self, *properties: str) -> list[str]:
+    async def fetch_state(self) -> list[str]:
         """Fetch state properties provided by the interface(s) this object implements.
-
-        Args:
-            *properties: A list of properties to fetch, omit to fetch all properties.
 
         Returns:
             A list of property names that were updated.
         """
-        cls = type(self)
-
-        # Determine which properties to fetch
-        props_to_fetch = (
-            [p for p in properties if p in cls._property_getters.keys()]
-            if properties
-            else cls._property_getters.keys()
-        )
+        # cls = type(self)
 
         # Fetch each state property
         fetched_properties: dict[str, Any] = {}
-        for prop in props_to_fetch:
-            if getter := cls._property_getters.get(prop):
-                # Call the getter function
-                try:
-                    fetched_properties[prop] = await getter(self)
-                except (NotImplementedError, NotSupportedError):
-                    continue
+        for prop, getter in self._property_getters.items():
+            try:
+                fetched_properties[prop] = await getter(self)
+            except (NotImplementedError, NotSupportedError):
+                continue
 
         return self.update_properties(fetched_properties)
 

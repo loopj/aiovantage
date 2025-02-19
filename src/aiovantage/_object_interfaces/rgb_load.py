@@ -471,25 +471,26 @@ class RGBLoadInterface(Interface):
             [await self.get_hsl(attr) for attr in self.HSLAttribute]
         )
 
-    # Status updates for GetRGB, GetRGBW, and GetHSL arrive on multiple lines,
-    # one line per channel/attribute. We always want to fetch a complete set of
-    # color channels/attributes before updating the properties.
+    # The rgb, hsl, and rgbw properties are "virtual" properties that are populated
+    # by fetching the individual color channels/attributes.
+    # For status updates, we need to wait for all channels/attributes to be received
+    # before updating the property.
 
     @override
-    async def fetch_state(self, *properties: str) -> list[str]:
-        # Fetch state from other interfaces
-        props_changed = await super().fetch_state(*properties)
+    async def fetch_state(self) -> list[str]:
+        # Fetch state from other interfaces first
+        props_changed = await super().fetch_state()
 
-        # Fetch RGB, HSL, and RGBW colors
-        props_changed.extend(
-            self.update_properties(
-                {
-                    "rgb": await self.get_rgb_color(),
-                    "hsl": await self.get_hsl_color(),
-                    "rgbw": await self.get_rgbw_color(),
-                }
-            )
-        )
+        # Define the getters for our "virtual" properties
+        getters = {
+            "rgb": self.get_rgb_color,
+            "hsl": self.get_hsl_color,
+            "rgbw": self.get_rgbw_color,
+        }
+
+        # Fetch the properties
+        for prop, getter in getters.items():
+            props_changed.extend(self.update_properties({prop: await getter()}))
 
         return props_changed
 

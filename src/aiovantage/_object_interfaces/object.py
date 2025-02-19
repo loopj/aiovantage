@@ -12,6 +12,9 @@ class ObjectInterface(Interface):
 
     interface_name = "Object"
 
+    # Properties
+    m_time: dt.datetime | None = None
+
     # Methods
     @method("GetVID")
     async def get_vid(self) -> int:
@@ -208,7 +211,7 @@ class ObjectInterface(Interface):
             enumerator_name,
         )
 
-    @method("GetMTime")
+    @method("GetMTime", property="m_time", fetch=False)
     async def get_m_time(self) -> dt.datetime:
         """Get the modification time of an object.
 
