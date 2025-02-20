@@ -109,7 +109,7 @@ class OmniSensor(Sensor, SensorInterface):
     # OmniSensors do additional conversion behind the scenes.
 
     @override
-    async def fetch_state(self, *properties: str) -> list[str]:
+    async def fetch_state(self) -> list[str]:
         return self.update_properties({"level": await self.get_level(hw=True)})
 
     @override

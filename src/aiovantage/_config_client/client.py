@@ -1,10 +1,12 @@
 import asyncio
+import datetime as dt
 from collections.abc import Callable
 from ssl import SSLContext
 from types import TracebackType
-from typing import Protocol, TypeVar
+from typing import Any, Protocol, TypeVar
 
-from typing_extensions import Self
+from typing_extensions import Self, override
+from xsdata.formats.converter import BoolConverter, DateTimeConverter, converter
 from xsdata.formats.dataclass.context import XmlContext
 from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
@@ -214,3 +216,31 @@ def _pascal_case_preserve(name: str) -> str:
         return pascal_case(name)
     else:
         return name
+
+
+# Vantage ACI service DateTime converter.
+# Truncates microseconds and sets the timezone to UTC, to ensure consistency with
+# datetimes from the HC service.
+class _DateTimeConverter(DateTimeConverter):
+    @override
+    def deserialize(self, value: Any, **kwargs: Any) -> dt.datetime:
+        out = super().deserialize(value, **kwargs)
+        return out.replace(microsecond=0, tzinfo=dt.timezone.utc)
+
+
+# Vantage ACI service bool converter.
+# Adds support for mixed-case boolean values, in addition to standard xs:boolean values.
+# This is required for attributes like "ExcludeFromWidgets" which have values like
+# "True" and "False".
+class _BoolConverter(BoolConverter):
+    @override
+    def deserialize(self, value: Any, **kwargs: Any) -> bool:
+        if isinstance(value, str):
+            value = value.lower()
+
+        return super().deserialize(value, **kwargs)
+
+
+# Register custom converters
+converter.register_converter(dt.datetime, _DateTimeConverter())  # type: ignore
+converter.register_converter(bool, _BoolConverter())  # type: ignore
