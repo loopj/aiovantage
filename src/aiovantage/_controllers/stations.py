@@ -20,6 +20,7 @@ class StationsController(Controller[StationObject]):
         "EqCtrl",
         "EqUX",
         "HighVoltageRelayStation",
+        "IRX2",
         "Keypad",
         "LowVoltageRelayStation",
         "RS232Station",
