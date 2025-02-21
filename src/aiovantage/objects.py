@@ -33,6 +33,7 @@ from ._objects.eq_ctrl import EqCtrl
 from ._objects.eq_ux import EqUX
 from ._objects.gmem import GMem
 from ._objects.high_voltage_relay_station import HighVoltageRelayStation
+from ._objects.irx2 import IRX2
 from ._objects.keypad import Keypad
 from ._objects.light_sensor import LightSensor
 from ._objects.load import Load
@@ -110,6 +111,7 @@ __all__ = [
     "EqUX",
     "GMem",
     "HighVoltageRelayStation",
+    "IRX2",
     "Keypad",
     "LightSensor",
     "Load",
