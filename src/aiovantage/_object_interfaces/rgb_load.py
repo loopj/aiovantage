@@ -47,9 +47,15 @@ class RGBLoadInterface(Interface):
     hsl: tuple[int, int, int] | None = None
 
     # Methods
-    @method("SetRGB", "SetRGBSW")
+    @method("SetRGB", "SetRGBSW", "SetRGBFollowLevel")
     async def set_rgb(
-        self, red: int = 255, green: int = 255, blue: int = 255, *, sw: bool = False
+        self,
+        red: int = 255,
+        green: int = 255,
+        blue: int = 255,
+        *,
+        sw: bool = False,
+        follow_level: bool = False,
     ) -> None:
         """Set the color of an RGB load.
 
@@ -58,12 +64,21 @@ class RGBLoadInterface(Interface):
             green: The green value of the color, (0-255)
             blue: The blue value of the color, (0-255)
             sw: Set the cached value instead of the hardware value.
+            follow_level: Follow the level of the load.
         """
         # INVOKE <id> RGBLoad.SetRGB <red> <green> <blue>
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGB <red> <green> <blue>
-        await self.invoke(
-            "RGBLoad.SetRGBSW" if sw else "RGBLoad.SetRGB", red, green, blue
-        )
+        if follow_level and sw:
+            raise ValueError("Cannot set both follow_level and sw")
+
+        if follow_level:
+            method = "RGBLoad.SetRGBFollowLevel"
+        elif sw:
+            method = "RGBLoad.SetRGBSW"
+        else:
+            method = "RGBLoad.SetRGB"
+
+        await self.invoke(method, red, green, blue)
 
     @method("GetRGB", "GetRGBHW")
     async def get_rgb(self, channel: RGBChannel, *, hw: bool = False) -> int:
@@ -123,9 +138,15 @@ class RGBLoadInterface(Interface):
             "RGBLoad.GetHSLHW" if hw else "RGBLoad.GetHSL", attribute
         )
 
-    @method("DissolveRGB")
+    @method("DissolveRGB", "DissolveRGBFollowLevel")
     async def dissolve_rgb(
-        self, red: int, green: int, blue: int, rate: float | Decimal
+        self,
+        red: int,
+        green: int,
+        blue: int,
+        rate: float | Decimal,
+        *,
+        follow_level: bool = False,
     ) -> None:
         """Transition the color of an RGB load over a number of seconds.
 
@@ -134,10 +155,16 @@ class RGBLoadInterface(Interface):
             green: The new green value of the color, (0-255)
             blue: The new blue value of the color, (0-255)
             rate: The number of seconds the transition should take.
+            follow_level: Follow the level of the load.
         """
         # INVOKE <id> RGBLoad.DissolveRGB <red> <green> <blue> <rate>
         # -> R:INVOKE <id> <rcode> RGBLoad.DissolveRGB <red> <green> <blue> <rate>
-        await self.invoke("RGBLoad.DissolveRGB", red, green, blue, rate)
+        if follow_level:
+            method = "RGBLoad.DissolveRGBFollowLevel"
+        else:
+            method = "RGBLoad.DissolveRGB"
+
+        await self.invoke(method, red, green, blue, rate)
 
     @method("DissolveHSL")
     async def dissolve_hsl(
@@ -387,7 +414,7 @@ class RGBLoadInterface(Interface):
         # -> R:INVOKE <id> <color> RGBLoad.GetColor
         return await self.invoke("RGBLoad.GetColorHW" if hw else "RGBLoad.GetColor")
 
-    @method("SetRGBW", "SetRGBWSW")
+    @method("SetRGBW", "SetRGBWSW", "SetRGBWFollowLevel")
     async def set_rgbw(
         self,
         red: int = 255,
@@ -396,6 +423,7 @@ class RGBLoadInterface(Interface):
         white: int = 255,
         *,
         sw: bool = False,
+        follow_level: bool = False,
     ) -> None:
         """Set the color of an RGBW load.
 
@@ -405,12 +433,21 @@ class RGBLoadInterface(Interface):
             blue: The blue value of the color, (0-255)
             white: The white value of the color, (0-255)
             sw: Set the cached value instead of the hardware value.
+            follow_level: Follow the level of the load.
         """
         # INVOKE <id> RGBLoad.SetRGBW <red> <green> <blue> <white>
         # -> R:INVOKE <id> <rcode> RGBLoad.SetRGBW <red> <green> <blue> <white>
-        await self.invoke(
-            "RGBLoad.SetRGBWSW" if sw else "RGBLoad.SetRGBW", red, green, blue, white
-        )
+        if follow_level and sw:
+            raise ValueError("Cannot set both follow_level and sw")
+
+        if follow_level:
+            method = "RGBLoad.SetRGBWFollowLevel"
+        elif sw:
+            method = "RGBLoad.SetRGBWSW"
+        else:
+            method = "RGBLoad.SetRGBW"
+
+        await self.invoke(method, red, green, blue, white)
 
     @method("GetRGBW", "GetRGBWHW")
     async def get_rgbw(self, channel: int, *, hw: bool = False) -> int:
@@ -439,6 +476,36 @@ class RGBLoadInterface(Interface):
         # INVOKE <id> RGBLoad.GetTransitionLevel
         # -> R:INVOKE <id> <level> RGBLoad.GetTransitionLevel
         return await self.invoke("RGBLoad.GetTransitionLevel")
+
+    @method("DissolveRGBW", "DissolveRGBWFollowLevel")
+    async def dissolve_rgbw(
+        self,
+        red: int,
+        green: int,
+        blue: int,
+        white: int,
+        rate: float | Decimal,
+        *,
+        follow_level: bool = False,
+    ) -> None:
+        """Transition the color of an RGBW load over a number of seconds.
+
+        Args:
+            red: The new red value of the color, (0-255)
+            green: The new green value of the color, (0-255)
+            blue: The new blue value of the color, (0-255)
+            white: The new white value of the color, (0-255)
+            rate: The number of seconds the transition should take.
+            follow_level: Follow the level of the load.
+        """
+        # INVOKE <id> RGBLoad.DissolveRGBW <red> <green> <blue> <white> <rate>
+        # -> R:INVOKE <id> <rcode> RGBLoad.DissolveRGBW <red> <green> <blue> <white> <rate>
+        if follow_level:
+            method = "RGBLoad.DissolveRGBWFollowLevel"
+        else:
+            method = "RGBLoad.DissolveRGBW"
+
+        await self.invoke(method, red, green, blue, white, rate)
 
     # Convenience functions, not part of the interface
     async def get_rgb_color(self) -> tuple[int, int, int]:
