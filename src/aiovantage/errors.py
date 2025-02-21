@@ -47,6 +47,14 @@ class FailedError(CommandError):
     """The requested command failed."""
 
 
+class NotConfiguredError(CommandError):
+    """The requested object is not configured."""
+
+
+class NotInitializedError(CommandError):
+    """The requested object is not initialized."""
+
+
 class NotSupportedError(CommandError):
     """The requested command is not supported."""
 
@@ -70,6 +78,8 @@ COMMAND_ERROR_CODES = {
     7: InvalidObjectError,
     8: NotImplementedError,
     12: FailedError,
+    14: NotConfiguredError,
+    16: NotInitializedError,
     17: NotSupportedError,
     20: ObjectOfflineError,
     21: LoginRequiredError,
