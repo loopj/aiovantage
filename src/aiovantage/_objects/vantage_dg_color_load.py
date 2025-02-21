@@ -1,7 +1,7 @@
 """DMX Gateway color load object."""
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from aiovantage.object_interfaces import (
     ColorTemperatureInterface,
@@ -22,7 +22,7 @@ class VantageDGColorLoad(
     class Meta:
         name = "Vantage.DGColorLoad"
 
-    class ColorType(Enum):
+    class ColorType(StrEnum):
         RGB = "RGB"
         RGBW = "RGBW"
         HSL = "HSL"
