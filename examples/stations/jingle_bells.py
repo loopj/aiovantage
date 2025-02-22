@@ -52,12 +52,15 @@ parser.add_argument("id", help="keypad id to play sound on")
 parser.add_argument("--username", help="username for Vantage controller")
 parser.add_argument("--password", help="password for Vantage controller")
 parser.add_argument("--debug", help="enable debug logging", action="store_true")
+parser.add_argument("--ssl", action=argparse.BooleanOptionalAction, default=True)
 args = parser.parse_args()
 
 
 async def main() -> None:
     """Play Jingle Bells on the sounder of a Vantage keypad."""
-    async with Vantage(args.host, args.username, args.password) as vantage:
+    async with Vantage(
+        args.host, args.username, args.password, ssl=args.ssl
+    ) as vantage:
         # Grab the keypad object
         keypad = await vantage.stations.aget(args.id)
 
