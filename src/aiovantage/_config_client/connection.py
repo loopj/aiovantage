@@ -36,6 +36,9 @@ class ConfigConnection(BaseConnection):
             username: The username to use for authentication.
             password: The password to use for authentication.
         """
+        if self.closed:
+            raise ClientConnectionError("Client not connected")
+
         # Call the ILogin.Login method
         await self.write(
             f"<ILogin><Login><call><User>{username}</User>"
@@ -46,7 +49,7 @@ class ConfigConnection(BaseConnection):
         response = await self.readuntil(b"</ILogin>\n")
 
         # Parse the response
-        match = re.match(
+        match = re.search(
             r"<ILogin>\s*<Login>\s*<return>\s*"
             r"(true|false)\s*"
             r"</return>\s*</Login>\s*</ILogin>",
@@ -79,14 +82,16 @@ class ConfigConnection(BaseConnection):
             return False
 
         # Call the IIntrospection.GetSysInfo method
-        await self.write("<IIntrospection><GetSysInfo></GetSysInfo></IIntrospection>")
+        await self.write(
+            "<IIntrospection><GetSysInfo><call></call></GetSysInfo></IIntrospection>\n"
+        )
 
         # Fetch the response
         response = await self.readuntil(b"</IIntrospection>\n")
 
         # Responses containing the SysInfo element indicate a successful request
         # and therefore no authentication is required
-        if re.match(
+        if re.search(
             r"<IIntrospection>\s*<GetSysInfo>\s*<return>\s*"
             r"<SysInfo>.*</SysInfo>\s*"
             r"</return>\s*</GetSysInfo>\s*</IIntrospection>",

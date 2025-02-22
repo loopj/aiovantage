@@ -3,7 +3,9 @@ import re
 from typing_extensions import override
 
 from aiovantage._connection import BaseConnection
-from aiovantage.errors import LoginFailedError
+from aiovantage.errors import ClientConnectionError, LoginFailedError
+
+from .converter import Converter
 
 
 class CommandConnection(BaseConnection):
@@ -15,16 +17,25 @@ class CommandConnection(BaseConnection):
     @property
     def authenticated(self) -> bool:
         """Check if the connection is authenticated."""
+        if self.closed:
+            raise ClientConnectionError("Client not connected")
+
         return self._authenticated
 
     @property
     def requires_authentication(self) -> bool:
         """Check if the connection requires authentication."""
+        if self.closed:
+            raise ClientConnectionError("Client not connected")
+
         return self._requires_authentication
 
     @property
     def supports_enhanced_log(self) -> bool:
         """Check if the connection supports enhanced log commands."""
+        if self.closed:
+            raise ClientConnectionError("Client not connected")
+
         return self._supports_enhanced_log
 
     async def authenticate(self, username: str, password: str) -> None:
@@ -34,8 +45,13 @@ class CommandConnection(BaseConnection):
             username: The username to use for authentication.
             password: The password to use for authentication.
         """
+        if self.closed:
+            raise ClientConnectionError("Client not connected")
+
         # Send the login command
-        await self.write(f"LOGIN {username} {password}\n")
+        await self.write(
+            f"LOGIN {Converter.serialize(username)} {Converter.serialize(password)}\n"
+        )
 
         # Check for errors
         response = await self.readuntil(b"\r\n")
