@@ -43,7 +43,9 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     # Create an EventStream client
-    async with EventStream(args.host, args.username, args.password) as events:
+    async with EventStream(
+        args.host, args.username, args.password, ssl=args.ssl
+    ) as events:
         # Subscribe to connection events
         events.subscribe(Connected, on_connected)
         events.subscribe(Disconnected, on_disconnected)

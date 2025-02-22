@@ -15,6 +15,7 @@ parser.add_argument("value", help="value to set GMem to")
 parser.add_argument("--username", help="username for Vantage controller")
 parser.add_argument("--password", help="password for Vantage controller")
 parser.add_argument("--debug", help="enable debug logging", action="store_true")
+parser.add_argument("--ssl", action=argparse.BooleanOptionalAction, default=True)
 args = parser.parse_args()
 
 
@@ -24,7 +25,9 @@ async def main() -> None:
         logging.basicConfig(level=logging.DEBUG)
 
     # Connect to the Vantage controller
-    async with Vantage(args.host, args.username, args.password) as vantage:
+    async with Vantage(
+        args.host, args.username, args.password, ssl=args.ssl
+    ) as vantage:
         # Look up the object by id
         try:
             gmem_id = int(args.id)

@@ -210,8 +210,6 @@ class Interface(metaclass=_InterfaceMeta):
         Returns:
             A list of property names that were updated.
         """
-        # cls = type(self)
-
         # Fetch each state property
         fetched_properties: dict[str, Any] = {}
         for prop, getter in self._property_getters.items():
