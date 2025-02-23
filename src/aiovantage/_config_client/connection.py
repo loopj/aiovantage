@@ -92,8 +92,8 @@ class ConfigConnection(BaseConnection):
         # Responses containing the SysInfo element indicate a successful request
         # and therefore no authentication is required
         if re.search(
-            r"<IIntrospection>\s*<GetSysInfo>\s*<return>\s*"
-            r"<SysInfo>.*</SysInfo>\s*"
+            r"(?s)<IIntrospection>\s*<GetSysInfo>\s*<return>\s*"
+            r"<SysInfo>.*?</SysInfo>\s*"
             r"</return>\s*</GetSysInfo>\s*</IIntrospection>",
             response,
         ):
