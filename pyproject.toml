@@ -30,7 +30,7 @@ dev = ["pyright==1.1.394", "ruff==0.9.7", "bumpver==2024.1130"]
 
 docs = [
     "mkdocstrings==0.28.2",
-    "mkdocstrings-python==1.16.1",
+    "mkdocstrings-python==1.16.2",
     "mkdocs==1.6.1",
     "mkdocs-material==9.6.5",
     "mkdocs-api-autonav==0.1.2",
