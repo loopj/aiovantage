@@ -11,7 +11,7 @@ from typing import (
 )
 
 from aiovantage.command_client import CommandClient, Converter
-from aiovantage.errors import NotImplementedError, NotSupportedError
+from aiovantage.errors import CommandError
 
 T = TypeVar("T")
 
@@ -215,7 +215,7 @@ class Interface(metaclass=_InterfaceMeta):
         for prop, getter in self._property_getters.items():
             try:
                 fetched_properties[prop] = await getter(self)
-            except (NotImplementedError, NotSupportedError):
+            except CommandError:
                 continue
 
         return self.update_properties(fetched_properties)
