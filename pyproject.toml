@@ -29,7 +29,7 @@ Source = "https://github.com/loopj/aiovantage"
 dev = ["pyright==1.1.396", "ruff==0.9.9", "bumpver==2024.1130"]
 
 docs = [
-    "mkdocstrings==0.28.2",
+    "mkdocstrings==0.29.0",
     "mkdocstrings-python==1.16.2",
     "mkdocs==1.6.1",
     "mkdocs-material==9.6.7",
