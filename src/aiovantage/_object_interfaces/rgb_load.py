@@ -5,6 +5,7 @@ from itertools import islice
 from typing_extensions import override
 
 from aiovantage.command_client import Converter
+from aiovantage.errors import CommandError
 
 from .base import Interface, method
 
@@ -557,7 +558,10 @@ class RGBLoadInterface(Interface):
 
         # Fetch the properties
         for prop, getter in getters.items():
-            props_changed.extend(self.update_properties({prop: await getter()}))
+            try:
+                props_changed.extend(self.update_properties({prop: await getter()}))
+            except CommandError:
+                continue
 
         return props_changed
 
