@@ -11,7 +11,7 @@ class EqUX(StationObject):
 
     style: int
     profile_table: list[int] = field(
-        default_factory=list,
+        default_factory=list[int],
         metadata={
             "name": "Profile",
             "wrapper": "ProfileTable",

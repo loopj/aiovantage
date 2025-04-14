@@ -68,10 +68,10 @@ class VantageHVACIUZoneChild(ChildDevice, ThermostatInterface, FanInterface):
     )
 
     grouped_zones: list[str] = field(
-        default_factory=list,
+        default_factory=list[str],
         metadata={"name": "ZoneNumberChild", "wrapper": "bGroupZonePlaceHolder"},
     )
 
     indoor_sensors: list[IndoorSensor] = field(
-        default_factory=list, metadata={"name": "cIndoorSensors"}
+        default_factory=list[IndoorSensor], metadata={"name": "cIndoorSensors"}
     )

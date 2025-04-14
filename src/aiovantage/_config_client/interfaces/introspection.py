@@ -13,7 +13,7 @@ class GetInterfaces:
 
     call = None
     result: list[Interface] | None = field(
-        default_factory=list,
+        default_factory=list[Interface],
         metadata={"wrapper": "return", "name": "Interface", "type": "Element"},
     )
 

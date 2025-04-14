@@ -19,7 +19,7 @@ class Module(SystemObject):
 
     parent: Parent
     line_feed_table: list[LineFeed] = field(
-        default_factory=list,
+        default_factory=list[LineFeed],
         metadata={
             "name": "LineFeed",
             "wrapper": "LineFeedTable",

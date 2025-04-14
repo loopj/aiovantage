@@ -22,7 +22,7 @@ class EqCtrl(StationObject, SounderInterface):
     header: Header
     zone: int
     preset_table: list[int] = field(
-        default_factory=list,
+        default_factory=list[int],
         metadata={
             "name": "Preset",
             "wrapper": "PresetTable",

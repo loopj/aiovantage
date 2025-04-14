@@ -19,7 +19,7 @@ class Button(SystemObject, ButtonInterface):
     text1: str
     text2: str
     placement_table: list[int] = field(
-        default_factory=list,
+        default_factory=list[int],
         metadata={
             "name": "Place",
             "wrapper": "PlacementTable",
