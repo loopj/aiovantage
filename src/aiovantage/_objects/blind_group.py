@@ -13,7 +13,7 @@ class BlindGroup(LocationObject, BlindInterface):
 
     category: int
     blind_table: list[int] = field(
-        default_factory=list,
+        default_factory=list[int],
         metadata={
             "name": "Blind",
             "wrapper": "BlindTable",

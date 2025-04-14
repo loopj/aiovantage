@@ -45,7 +45,7 @@ class VantageVirtualThermostatPort(PortDevice, ThermostatInterface, FanInterface
     @dataclass(kw_only=True)
     class IndoorSensorHolder:
         indoor_sensor: list[int] = field(
-            default_factory=list, metadata={"name": "indoorSensor"}
+            default_factory=list[int], metadata={"name": "indoorSensor"}
         )
         indoor_temp_offset: str = field(
             default="0", metadata={"name": "indoorTempOffset"}

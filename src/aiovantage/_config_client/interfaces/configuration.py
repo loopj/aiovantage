@@ -41,7 +41,7 @@ class GetFilterResults:
 
     call: Params | None = field(default=None, metadata={"name": "call"})
     result: list[WrappedObject] | None = field(
-        default_factory=list,
+        default_factory=list[WrappedObject],
         metadata={"wrapper": "return", "name": "Object", "type": "Element"},
     )
 
@@ -55,12 +55,12 @@ class CloseFilter:
 @dataclass
 class GetObject:
     call: list[int] | None = field(
-        default_factory=list,
+        default_factory=list[int],
         metadata={"wrapper": "call", "name": "VID", "type": "Element"},
     )
 
     result: list[WrappedObject] | None = field(
-        default_factory=list,
+        default_factory=list[WrappedObject],
         metadata={"wrapper": "return", "name": "Object", "type": "Element"},
     )
 
