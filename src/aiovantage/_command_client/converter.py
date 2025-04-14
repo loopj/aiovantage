@@ -8,6 +8,8 @@ from typing import Any
 
 from typing_extensions import override
 
+from aiovantage.errors import ConversionError
+
 
 class BaseConverter(ABC):
     """Abstract base class for Host Command service data converters."""
@@ -227,7 +229,7 @@ def _get_converter(data_type: type) -> type[BaseConverter]:
         if mro in CONVERTER_MAP:
             return CONVERTER_MAP[mro]
 
-    raise ValueError(f"No converter found for {data_type}")
+    raise ConversionError(f"No converter found for {data_type}")
 
 
 # Token splitting regular expression
@@ -250,7 +252,13 @@ class Converter:
             The deserialized object.
         """
         converter = _get_converter(data_type)
-        return converter.deserialize(value, data_type=data_type, **kwargs)
+
+        try:
+            return converter.deserialize(value, data_type=data_type, **kwargs)
+        except Exception as ex:
+            raise ConversionError(
+                f"Failed to deserialize value '{value}' of type {data_type}"
+            ) from ex
 
     @staticmethod
     def serialize(value: Any, **kwargs: Any) -> str:
@@ -264,7 +272,13 @@ class Converter:
             A string representation of the object.
         """
         converter = _get_converter(value.__class__)
-        return converter.serialize(value, **kwargs)
+
+        try:
+            return converter.serialize(value, **kwargs)
+        except Exception as ex:
+            raise ConversionError(
+                f"Failed to serialize value '{value}' of type {value.__class__}"
+            ) from ex
 
     @staticmethod
     def tokenize(string: str) -> list[str]:
