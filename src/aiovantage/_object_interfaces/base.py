@@ -10,8 +10,9 @@ from typing import (
     runtime_checkable,
 )
 
+from aiovantage import logger
 from aiovantage.command_client import CommandClient, Converter
-from aiovantage.errors import CommandError
+from aiovantage.errors import CommandError, ConversionError
 
 T = TypeVar("T")
 
@@ -215,7 +216,13 @@ class Interface(metaclass=_InterfaceMeta):
         for prop, getter in self._property_getters.items():
             try:
                 fetched_properties[prop] = await getter(self)
-            except CommandError:
+            except (CommandError, ConversionError) as ex:
+                logger.warning(
+                    "Failed to fetch property %s from %s: %s",
+                    prop,
+                    self.interface_name,
+                    ex,
+                )
                 continue
 
         return self.update_properties(fetched_properties)

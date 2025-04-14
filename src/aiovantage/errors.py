@@ -71,6 +71,10 @@ class LoginFailedError(CommandError):
     """Login failed."""
 
 
+class ConversionError(Exception):
+    """Error during data serialization/deserialization."""
+
+
 COMMAND_ERROR_CODES = {
     4: InvalidParameterError,
     5: WrongNumberOfParametersError,
