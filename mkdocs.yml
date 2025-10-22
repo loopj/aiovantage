@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 
 site_name: aiovantage
-site_url: https://aiovantage.readthedocs.io
+site_url: https://loopj.com/aiovantage
 repo_url: https://github.com/loopj/aiovantage
 repo_name: "loopj/aiovantage"
 edit_uri: "blob/main/docs"
