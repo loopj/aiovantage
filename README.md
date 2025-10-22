@@ -1,6 +1,6 @@
 # aiovantage
 
-[![Documentation](https://img.shields.io/badge/Documentation-8CA1AF?style=for-the-badge&logo=readthedocs&logoColor=fff)](https://aiovantage.readthedocs.io)
+[![Documentation](https://img.shields.io/badge/Documentation-8CA1AF?style=for-the-badge&logo=readthedocs&logoColor=fff)](https://loopj.com/aiovantage)
 [![PyPI - Version](https://img.shields.io/pypi/v/aiovantage?style=for-the-badge)](https://pypi.org/project/aiovantage/)
 [![Discord](https://img.shields.io/discord/1120862286576353370?style=for-the-badge)](https://discord.gg/psU7PxDyNQ)
 
@@ -41,29 +41,29 @@ pip install aiovantage
 
 The following interfaces/controllers are currently supported.
 
-| Type          | Description           | Controller                    |
-| ------------- | --------------------- | ----------------------------- |
-| AnemoSensor   | Wind speed sensors    | `vantage.anemo_sensors`       |
-| Area          | Rooms, etc            | `vantage.areas`               |
-| BackBox       | Backboxes             | `vantage.back_boxes`          |
-| Blind         | Shades, blinds        | `vantage.blinds`              |
-| BlindGroups   | Groups of blinds      | `vantage.blind_groups`        |
-| Buttons       | Keypad buttons        | `vantage.buttons`             |
-| DryContacts   | Motion sensors, etc   | `vantage.dry_contacts`        |
-| GMem          | Vantage variables     | `vantage.gmem`                |
-| LightSensor   | Light sensors         | `vantage.light_sensors`       |
-| Load          | Lights, relays, etc   | `vantage.loads`               |
-| LoadGroup     | Groups of loads       | `vantage.load_groups`         |
-| Master        | Vantage controllers   | `vantage.masters`             |
-| Module        | Dimmer modules        | `vantage.modules`             |
-| OmniSensor    | Power, current, etc   | `vantage.omni_sensors`        |
-| PortDevice    | Port devices (hubs)   | `vantage.port_devices`        |
-| PowerProfile  | Load power profiles   | `vantage.power_profiles`      |
-| RGBLoad       | RGB lights            | `vantage.rgb_loads`           |
-| Stations      | Keypads, etc          | `vantage.stations`            |
-| Tasks         | Vantage tasks         | `vantage.tasks`               |
-| Temperature   | Temperature sensors   | `vantage.temperatures`        |
-| Thermostat    | Thermostats           | `vantage.thermostats`         |
+| Type         | Description         | Controller               |
+| ------------ | ------------------- | ------------------------ |
+| AnemoSensor  | Wind speed sensors  | `vantage.anemo_sensors`  |
+| Area         | Rooms, etc          | `vantage.areas`          |
+| BackBox      | Backboxes           | `vantage.back_boxes`     |
+| Blind        | Shades, blinds      | `vantage.blinds`         |
+| BlindGroups  | Groups of blinds    | `vantage.blind_groups`   |
+| Buttons      | Keypad buttons      | `vantage.buttons`        |
+| DryContacts  | Motion sensors, etc | `vantage.dry_contacts`   |
+| GMem         | Vantage variables   | `vantage.gmem`           |
+| LightSensor  | Light sensors       | `vantage.light_sensors`  |
+| Load         | Lights, relays, etc | `vantage.loads`          |
+| LoadGroup    | Groups of loads     | `vantage.load_groups`    |
+| Master       | Vantage controllers | `vantage.masters`        |
+| Module       | Dimmer modules      | `vantage.modules`        |
+| OmniSensor   | Power, current, etc | `vantage.omni_sensors`   |
+| PortDevice   | Port devices (hubs) | `vantage.port_devices`   |
+| PowerProfile | Load power profiles | `vantage.power_profiles` |
+| RGBLoad      | RGB lights          | `vantage.rgb_loads`      |
+| Stations     | Keypads, etc        | `vantage.stations`       |
+| Tasks        | Vantage tasks       | `vantage.tasks`          |
+| Temperature  | Temperature sensors | `vantage.temperatures`   |
+| Thermostat   | Thermostats         | `vantage.thermostats`    |
 
 If you have an object that you expect to show up in one of these controllers but is missing, please [create an issue](https://github.com/loopj/aiovantage/issues) or [submit a pull request](https://github.com/loopj/aiovantage/pulls).
 
