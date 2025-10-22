@@ -1,0 +1,4747 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://loopj.com/aiovantage/reference/aiovantage/controllers/">
+      
+      
+        <link rel="prev" href="../config_client/">
+      
+      
+        <link rel="next" href="../discovery/">
+      
+      
+      <link rel="icon" href="../../../images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+    
+    
+      
+        <title>aiovantage.controllers - aiovantage</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.2afb09e1.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../../stylesheets/mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="lime">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#aiovantage.controllers" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="aiovantage" class="md-header__button md-logo" aria-label="aiovantage" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 7h2l1 5 1-5h2l-2 10h-2zM5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2m0 2v14h14V5z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            aiovantage
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              aiovantage.controllers
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="lime"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="lime"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/loopj/aiovantage" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    loopj/aiovantage
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../contributing/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Contributing
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  License
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="aiovantage" class="md-nav__button md-logo" aria-label="aiovantage" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 7h2l1 5 1-5h2l-2 10h-2zM5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2m0 2v14h14V5z"/></svg>
+
+    </a>
+    aiovantage
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/loopj/aiovantage" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    loopj/aiovantage
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>aiovantage
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_1" id="__nav_2_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>aiovantage
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../command_client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>command_client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config_client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>config_client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>controllers
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>controllers
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindGroupTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;BlindGroupTypes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;BlindTypes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.RGBLoadTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;RGBLoadTypes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.ThermostatTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;ThermostatTypes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.AnemoSensorsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;AnemoSensorsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.AreasController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;AreasController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BackBoxesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BackBoxesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Controller
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" Controller">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.vantage_types" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;vantage_types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.force_category_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;force_category_status
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.status_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;status_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.initialize" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;initialize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.fetch_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;fetch_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.enable_state_monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;enable_state_monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.disable_state_monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;disable_state_monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.StatusType" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;StatusType
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" StatusType">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.StatusType.OBJECT" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;OBJECT
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.StatusType.CATEGORY" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;CATEGORY
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindGroupsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BlindGroupsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BlindsController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" BlindsController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindsController.in_blind_group" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;in_blind_group
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.ButtonsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ButtonsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.DryContactsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;DryContactsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.GMemController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;GMemController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LightSensorsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LightSensorsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadGroupsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LoadGroupsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LoadsController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" LoadsController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.on" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;on
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.off" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;off
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.relays" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;relays
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.motors" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;motors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;lights
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.in_load_group" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;in_load_group
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.MastersController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;MastersController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.ModulesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ModulesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.OmniSensorsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;OmniSensorsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.PortDevicesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;PortDevicesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.PowerProfilesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;PowerProfilesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;QuerySet
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" QuerySet">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;filter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.get" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.aget" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;aget
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.first" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;first
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.afirst" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;afirst
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.RGBLoadsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;RGBLoadsController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" RGBLoadsController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.RGBLoadsController.on" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;on
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.RGBLoadsController.off" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;off
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.StationsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;StationsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.TasksController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;TasksController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.TemperaturesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;TemperaturesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.ThermostatsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ThermostatsController
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../discovery/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>discovery
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>errors
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../events/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>events
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../object_interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>object_interfaces
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>objects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    License
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindGroupTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;BlindGroupTypes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;BlindTypes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.RGBLoadTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;RGBLoadTypes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.ThermostatTypes" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;ThermostatTypes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.AnemoSensorsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;AnemoSensorsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.AreasController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;AreasController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BackBoxesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BackBoxesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;Controller
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" Controller">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.vantage_types" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;vantage_types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.force_category_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;force_category_status
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.status_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;status_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.initialize" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;initialize
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.fetch_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;fetch_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.enable_state_monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;enable_state_monitoring
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.Controller.disable_state_monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;disable_state_monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.StatusType" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;StatusType
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" StatusType">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.StatusType.OBJECT" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;OBJECT
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.StatusType.CATEGORY" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;CATEGORY
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindGroupsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BlindGroupsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;BlindsController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" BlindsController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.BlindsController.in_blind_group" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;in_blind_group
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.ButtonsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ButtonsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.DryContactsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;DryContactsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.GMemController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;GMemController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LightSensorsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LightSensorsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadGroupsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LoadGroupsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;LoadsController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" LoadsController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.on" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;on
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.off" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;off
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.relays" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;relays
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.motors" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;motors
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;lights
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.LoadsController.in_load_group" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;in_load_group
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.MastersController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;MastersController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.ModulesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ModulesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.OmniSensorsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;OmniSensorsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.PortDevicesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;PortDevicesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.PowerProfilesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;PowerProfilesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;QuerySet
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" QuerySet">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.filter" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;filter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.get" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;get
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.aget" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;aget
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.first" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;first
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.QuerySet.afirst" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-method"></code>&nbsp;afirst
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.RGBLoadsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;RGBLoadsController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label=" RGBLoadsController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.RGBLoadsController.on" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;on
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aiovantage.controllers.RGBLoadsController.off" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;off
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.StationsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;StationsController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.TasksController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;TasksController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.TemperaturesController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;TemperaturesController
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aiovantage.controllers.ThermostatsController" class="md-nav__link">
+    <span class="md-ellipsis">
+      <code class="doc-symbol doc-symbol-toc doc-symbol-class"></code>&nbsp;ThermostatsController
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h1 id="aiovantage.controllers" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-module"></code>            <span class="doc doc-object-name doc-module-name">aiovantage.controllers</span>
+
+
+<a href="#aiovantage.controllers" class="headerlink" title="Permanent link">&para;</a></h1>
+
+    <div class="doc doc-contents first">
+
+        <p>Controllers for managing collections of objects from the Vantage system.</p>
+<p>Controllers are responsible for fetching objects, fetching their state, and
+keeping the state up to date.</p>
+<p>Some controllers manage a single type of object, while others handle multiple types.
+In controllers where multiple object types are managed, they are typically conceptually
+related through shared behavior rather than a strict class hierarchy. These types of
+controllers typically hold objects which implement one or more common interfaces. For
+examples, objects in the <a class="autorefs autorefs-internal" title="            BlindsController" href="#aiovantage.controllers.BlindsController"><code>BlindsController</code></a>
+all implement the <a class="autorefs autorefs-internal" title="            BlindInterface
+
+
+  
+      dataclass
+  " href="../object_interfaces/#aiovantage.object_interfaces.BlindInterface"><code>BlindInterface</code></a>.</p>
+<p>Controllers implement <a class="autorefs autorefs-internal" title="            QuerySet" href="#aiovantage.controllers.QuerySet"><code>QuerySet</code></a>, which
+provides a number of methods for filtering and finding objects, such as
+<a class="autorefs autorefs-internal" title="            filter" href="#aiovantage.controllers.QuerySet.filter"><code>filter</code></a> and
+<a class="autorefs autorefs-internal" title="            get" href="#aiovantage.controllers.QuerySet.get"><code>get</code></a>.</p>
+<p>Controllers also implement <a class="autorefs autorefs-internal" title="            EventDispatcher" href="../events/#aiovantage.events.EventDispatcher"><code>EventDispatcher</code></a>,
+which allows you to subscribe to events related to the objects managed by the controller
+with <a class="autorefs autorefs-internal" title="            subscribe" href="../events/#aiovantage.events.EventDispatcher.subscribe"><code>subscribe</code></a>. The following
+events are emitted by controllers:
+<a class="autorefs autorefs-internal" title="            ObjectAdded
+
+
+  
+      dataclass
+  " href="../events/#aiovantage.events.ObjectAdded"><code>ObjectAdded</code></a>,
+<a class="autorefs autorefs-internal" title="            ObjectUpdated
+
+
+  
+      dataclass
+  " href="../events/#aiovantage.events.ObjectUpdated"><code>ObjectUpdated</code></a>,
+<a class="autorefs autorefs-internal" title="            ObjectDeleted
+
+
+  
+      dataclass
+  " href="../events/#aiovantage.events.ObjectDeleted"><code>ObjectDeleted</code></a></p>
+<p>An instance of every controller type is made available through the main
+<a class="autorefs autorefs-internal" title="            Vantage" href="../#aiovantage.Vantage">Vantage</a> object.</p>
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Classes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            AnemoSensorsController (aiovantage.controllers.AnemoSensorsController)" href="#aiovantage.controllers.AnemoSensorsController">AnemoSensorsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Anemo sensors (wind speed sensors) controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            AreasController (aiovantage.controllers.AreasController)" href="#aiovantage.controllers.AreasController">AreasController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Areas controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            BackBoxesController (aiovantage.controllers.BackBoxesController)" href="#aiovantage.controllers.BackBoxesController">BackBoxesController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Back boxes controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            Controller (aiovantage.controllers.Controller)" href="#aiovantage.controllers.Controller">Controller</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Base controller for managing collections of Vantage objects.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            StatusType (aiovantage.controllers.StatusType)" href="#aiovantage.controllers.StatusType">StatusType</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>The type of status that the controller is using for state monitoring.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            BlindGroupsController (aiovantage.controllers.BlindGroupsController)" href="#aiovantage.controllers.BlindGroupsController">BlindGroupsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Blind groups controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            BlindsController (aiovantage.controllers.BlindsController)" href="#aiovantage.controllers.BlindsController">BlindsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Blinds controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            ButtonsController (aiovantage.controllers.ButtonsController)" href="#aiovantage.controllers.ButtonsController">ButtonsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Buttons controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            DryContactsController (aiovantage.controllers.DryContactsController)" href="#aiovantage.controllers.DryContactsController">DryContactsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Dry contacts controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            GMemController (aiovantage.controllers.GMemController)" href="#aiovantage.controllers.GMemController">GMemController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>GMem (variables) controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            LightSensorsController (aiovantage.controllers.LightSensorsController)" href="#aiovantage.controllers.LightSensorsController">LightSensorsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Light sensors controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            LoadGroupsController (aiovantage.controllers.LoadGroupsController)" href="#aiovantage.controllers.LoadGroupsController">LoadGroupsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Load groups controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            LoadsController (aiovantage.controllers.LoadsController)" href="#aiovantage.controllers.LoadsController">LoadsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Loads controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            MastersController (aiovantage.controllers.MastersController)" href="#aiovantage.controllers.MastersController">MastersController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Masters (InFusion Controllers) controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            ModulesController (aiovantage.controllers.ModulesController)" href="#aiovantage.controllers.ModulesController">ModulesController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Modules controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            OmniSensorsController (aiovantage.controllers.OmniSensorsController)" href="#aiovantage.controllers.OmniSensorsController">OmniSensorsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Omni sensors controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            PortDevicesController (aiovantage.controllers.PortDevicesController)" href="#aiovantage.controllers.PortDevicesController">PortDevicesController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Port devices controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            PowerProfilesController (aiovantage.controllers.PowerProfilesController)" href="#aiovantage.controllers.PowerProfilesController">PowerProfilesController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Power profiles controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage.controllers.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Queryset class for querying objects from a dictionary.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            RGBLoadsController (aiovantage.controllers.RGBLoadsController)" href="#aiovantage.controllers.RGBLoadsController">RGBLoadsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>RGB loads controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            StationsController (aiovantage.controllers.StationsController)" href="#aiovantage.controllers.StationsController">StationsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Stations controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            TasksController (aiovantage.controllers.TasksController)" href="#aiovantage.controllers.TasksController">TasksController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Tasks controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            TemperaturesController (aiovantage.controllers.TemperaturesController)" href="#aiovantage.controllers.TemperaturesController">TemperaturesController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Temperature device controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            ThermostatsController (aiovantage.controllers.ThermostatsController)" href="#aiovantage.controllers.ThermostatsController">ThermostatsController</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Thermostats controller.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            BlindGroupTypes
+
+
+  
+      module-attribute
+   (aiovantage.controllers.BlindGroupTypes)" href="#aiovantage.controllers.BlindGroupTypes">BlindGroupTypes</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Types managed by the blind groups controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            BlindTypes
+
+
+  
+      module-attribute
+   (aiovantage.controllers.BlindTypes)" href="#aiovantage.controllers.BlindTypes">BlindTypes</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Types managed by the blinds controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            RGBLoadTypes
+
+
+  
+      module-attribute
+   (aiovantage.controllers.RGBLoadTypes)" href="#aiovantage.controllers.RGBLoadTypes">RGBLoadTypes</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Types managed by the RGB loads controller.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            ThermostatTypes
+
+
+  
+      module-attribute
+   (aiovantage.controllers.ThermostatTypes)" href="#aiovantage.controllers.ThermostatTypes">ThermostatTypes</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Types managed by the thermostats controller.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="aiovantage.controllers.BlindGroupTypes" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">BlindGroupTypes</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.BlindGroupTypes" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">BlindGroupTypes</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            BlindGroup
+
+
+  
+      dataclass
+   (aiovantage.objects.BlindGroup)" href="../objects/#aiovantage.objects.BlindGroup">BlindGroup</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            SomfyRS485GroupChild
+
+
+  
+      dataclass
+   (aiovantage.objects.SomfyRS485GroupChild)" href="../objects/#aiovantage.objects.SomfyRS485GroupChild">SomfyRS485GroupChild</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            SomfyURTSI2GroupChild
+
+
+  
+      dataclass
+   (aiovantage.objects.SomfyURTSI2GroupChild)" href="../objects/#aiovantage.objects.SomfyURTSI2GroupChild">SomfyURTSI2GroupChild</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Types managed by the blind groups controller.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="aiovantage.controllers.BlindTypes" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">BlindTypes</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.BlindTypes" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">BlindTypes</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            QISBlind
+
+
+  
+      dataclass
+   (aiovantage.objects.QISBlind)" href="../objects/#aiovantage.objects.QISBlind">QISBlind</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            QubeBlind
+
+
+  
+      dataclass
+   (aiovantage.objects.QubeBlind)" href="../objects/#aiovantage.objects.QubeBlind">QubeBlind</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            RelayBlind
+
+
+  
+      dataclass
+   (aiovantage.objects.RelayBlind)" href="../objects/#aiovantage.objects.RelayBlind">RelayBlind</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            SomfyRS485ShadeChild
+
+
+  
+      dataclass
+   (aiovantage.objects.SomfyRS485ShadeChild)" href="../objects/#aiovantage.objects.SomfyRS485ShadeChild">SomfyRS485ShadeChild</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            SomfyURTSI2ShadeChild
+
+
+  
+      dataclass
+   (aiovantage.objects.SomfyURTSI2ShadeChild)" href="../objects/#aiovantage.objects.SomfyURTSI2ShadeChild">SomfyURTSI2ShadeChild</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Types managed by the blinds controller.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="aiovantage.controllers.RGBLoadTypes" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">RGBLoadTypes</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.RGBLoadTypes" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">RGBLoadTypes</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            VantageDDGColorLoad
+
+
+  
+      dataclass
+   (aiovantage.objects.VantageDDGColorLoad)" href="../objects/#aiovantage.objects.VantageDDGColorLoad">VantageDDGColorLoad</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            VantageDGColorLoad
+
+
+  
+      dataclass
+   (aiovantage.objects.VantageDGColorLoad)" href="../objects/#aiovantage.objects.VantageDGColorLoad">VantageDGColorLoad</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Types managed by the RGB loads controller.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h2 id="aiovantage.controllers.ThermostatTypes" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">ThermostatTypes</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-module-attribute"><code>module-attribute</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.ThermostatTypes" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">ThermostatTypes</span> <span class="o">=</span> <span class="n"><a class="autorefs autorefs-internal" title="            Thermostat
+
+
+  
+      dataclass
+   (aiovantage.objects.Thermostat)" href="../objects/#aiovantage.objects.Thermostat">Thermostat</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            VantageGenericHVACRS485ZoneChild
+
+
+  
+      dataclass
+   (aiovantage.objects.VantageGenericHVACRS485ZoneChild)" href="../objects/#aiovantage.objects.VantageGenericHVACRS485ZoneChild">VantageGenericHVACRS485ZoneChild</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            VantageGenericHVACRS485ZoneWithoutFanSpeedChild
+
+
+  
+      dataclass
+   (aiovantage.objects.VantageGenericHVACRS485ZoneWithoutFanSpeedChild)" href="../objects/#aiovantage.objects.VantageGenericHVACRS485ZoneWithoutFanSpeedChild">VantageGenericHVACRS485ZoneWithoutFanSpeedChild</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            VantageHVACIUZoneChild
+
+
+  
+      dataclass
+   (aiovantage.objects.VantageHVACIUZoneChild)" href="../objects/#aiovantage.objects.VantageHVACIUZoneChild">VantageHVACIUZoneChild</a></span> <span class="o">|</span> <span class="n"><a class="autorefs autorefs-internal" title="            VantageVirtualThermostatPort
+
+
+  
+      dataclass
+   (aiovantage.objects.VantageVirtualThermostatPort)" href="../objects/#aiovantage.objects.VantageVirtualThermostatPort">VantageVirtualThermostatPort</a></span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Types managed by the thermostats controller.</p>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.AnemoSensorsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">AnemoSensorsController</span>
+
+
+<a href="#aiovantage.controllers.AnemoSensorsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">AnemoSensorsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            AnemoSensor
+
+
+  
+      dataclass
+   (aiovantage.objects.AnemoSensor)" href="../objects/#aiovantage.objects.AnemoSensor">AnemoSensor</a>]</code></p>
+
+
+        <p>Anemo sensors (wind speed sensors) controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.AreasController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">AreasController</span>
+
+
+<a href="#aiovantage.controllers.AreasController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">AreasController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            Area
+
+
+  
+      dataclass
+   (aiovantage.objects.Area)" href="../objects/#aiovantage.objects.Area">Area</a>]</code></p>
+
+
+        <p>Areas controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.BackBoxesController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">BackBoxesController</span>
+
+
+<a href="#aiovantage.controllers.BackBoxesController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">BackBoxesController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            BackBox
+
+
+  
+      dataclass
+   (aiovantage.objects.BackBox)" href="../objects/#aiovantage.objects.BackBox">BackBox</a>]</code></p>
+
+
+        <p>Back boxes controller.</p>
+<p>Back boxes typically represent a "gang box" in a wall which may contain
+multiple stations, dimmers, etc. It is mostly useful to know about these
+devices so we can set up a proper device hierarchy.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.Controller" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">Controller</span>
+
+
+<a href="#aiovantage.controllers.Controller" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">Controller</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a>[<span title="aiovantage._controllers.base.T">T</span>]</code>, <code><a class="autorefs autorefs-internal" title="            EventDispatcher (aiovantage.events.EventDispatcher)" href="../events/#aiovantage.events.EventDispatcher">EventDispatcher</a></code></p>
+
+
+        <p>Base controller for managing collections of Vantage objects.</p>
+
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+            <b><code>vantage</code></b>
+              (<code><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>The Vantage instance.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Methods:</span></p>
+    <ul>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            initialize
+
+
+  
+      async
+   (aiovantage.controllers.Controller.initialize)" href="#aiovantage.controllers.Controller.initialize">initialize</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Populate the controller, and optionally fetch object state.</p>
+            </div>
+          </li>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            fetch_state
+
+
+  
+      async
+   (aiovantage.controllers.Controller.fetch_state)" href="#aiovantage.controllers.Controller.fetch_state">fetch_state</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Fetch the state properties of all objects managed by this controller.</p>
+            </div>
+          </li>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            enable_state_monitoring
+
+
+  
+      async
+   (aiovantage.controllers.Controller.enable_state_monitoring)" href="#aiovantage.controllers.Controller.enable_state_monitoring">enable_state_monitoring</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Monitor for state changes on objects managed by this controller.</p>
+            </div>
+          </li>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            disable_state_monitoring
+
+
+  
+      async
+   (aiovantage.controllers.Controller.disable_state_monitoring)" href="#aiovantage.controllers.Controller.disable_state_monitoring">disable_state_monitoring</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Stop monitoring for state changes on objects managed by this controller.</p>
+            </div>
+          </li>
+    </ul>
+
+
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            vantage_types
+
+
+  
+      instance-attribute
+   (aiovantage.controllers.Controller.vantage_types)" href="#aiovantage.controllers.Controller.vantage_types">vantage_types</a></code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a>, ...]</code>)
+          –
+          <div class="doc-md-description">
+            <p>The Vantage object types that this controller will fetch.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            force_category_status
+
+
+  
+      class-attribute
+      instance-attribute
+   (aiovantage.controllers.Controller.force_category_status)" href="#aiovantage.controllers.Controller.force_category_status">force_category_status</a></code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>)
+          –
+          <div class="doc-md-description">
+            <p>Whether to force the controller to handle 'STATUS' categories.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            status_type
+
+
+  
+      property
+   (aiovantage.controllers.Controller.status_type)" href="#aiovantage.controllers.Controller.status_type">status_type</a></code></b>
+              (<code><a class="autorefs autorefs-internal" title="            StatusType (aiovantage._controllers.base.StatusType)" href="#aiovantage.controllers.StatusType">StatusType</a> | None</code>)
+          –
+          <div class="doc-md-description">
+            <p>Return the type of status event that the controller is monitoring.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.Controller.vantage_types" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">vantage_types</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.Controller.vantage_types" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">vantage_types</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#tuple">tuple</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/stdtypes.html#str">str</a></span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>The Vantage object types that this controller will fetch.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.Controller.force_category_status" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">force_category_status</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.Controller.force_category_status" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">force_category_status</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">False</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Whether to force the controller to handle 'STATUS' categories.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.Controller.status_type" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">status_type</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.Controller.status_type" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">status_type</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            StatusType (aiovantage._controllers.base.StatusType)" href="#aiovantage.controllers.StatusType">StatusType</a></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return the type of status event that the controller is monitoring.</p>
+
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.Controller.initialize" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">initialize</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.Controller.initialize" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">initialize</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">fetch_state</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">enable_state_monitoring</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Populate the controller, and optionally fetch object state.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+            <b><code>fetch_state</code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>, default:
+                  <code>True</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>Whether to fetch the state properties of objects.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+            <b><code>enable_state_monitoring</code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#bool">bool</a></code>, default:
+                  <code>True</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>Whether to monitor for state changes on objects.</p>
+          </div>
+        </li>
+    </ul>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.Controller.fetch_state" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">fetch_state</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.Controller.fetch_state" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">fetch_state</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Fetch the state properties of all objects managed by this controller.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.Controller.enable_state_monitoring" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">enable_state_monitoring</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.Controller.enable_state_monitoring" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">enable_state_monitoring</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Monitor for state changes on objects managed by this controller.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.Controller.disable_state_monitoring" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">disable_state_monitoring</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.Controller.disable_state_monitoring" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">disable_state_monitoring</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Stop monitoring for state changes on objects managed by this controller.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.StatusType" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">StatusType</span>
+
+
+<a href="#aiovantage.controllers.StatusType" class="headerlink" title="Permanent link">&para;</a></h2>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-external" title="enum.Enum" href="https://docs.python.org/3/library/enum.html#enum.Enum">Enum</a></code></p>
+
+
+        <p>The type of status that the controller is using for state monitoring.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            OBJECT
+
+
+  
+      class-attribute
+      instance-attribute
+   (aiovantage.controllers.StatusType.OBJECT)" href="#aiovantage.controllers.StatusType.OBJECT">OBJECT</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Object status events from the Enhanced Log.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            CATEGORY
+
+
+  
+      class-attribute
+      instance-attribute
+   (aiovantage.controllers.StatusType.CATEGORY)" href="#aiovantage.controllers.StatusType.CATEGORY">CATEGORY</a></code></b>
+          –
+          <div class="doc-md-description">
+            <p>Category status events, eg: S:LOAD, S:BLIND, etc.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.StatusType.OBJECT" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">OBJECT</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.StatusType.OBJECT" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">OBJECT</span> <span class="o">=</span> <span class="mi">1</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Object status events from the Enhanced Log.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.StatusType.CATEGORY" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">CATEGORY</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-class-attribute"><code>class-attribute</code></small>
+      <small class="doc doc-label doc-label-instance-attribute"><code>instance-attribute</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.StatusType.CATEGORY" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">CATEGORY</span> <span class="o">=</span> <span class="mi">2</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Category status events, eg: S:LOAD, S:BLIND, etc.</p>
+
+    </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.BlindGroupsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">BlindGroupsController</span>
+
+
+<a href="#aiovantage.controllers.BlindGroupsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">BlindGroupsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            BlindGroupTypes
+
+
+  
+      module-attribute
+   (aiovantage._controllers.blind_groups.BlindGroupTypes)" href="#aiovantage.controllers.BlindGroupTypes">BlindGroupTypes</a>]</code></p>
+
+
+        <p>Blind groups controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.BlindsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">BlindsController</span>
+
+
+<a href="#aiovantage.controllers.BlindsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">BlindsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            BlindTypes
+
+
+  
+      module-attribute
+   (aiovantage._controllers.blinds.BlindTypes)" href="#aiovantage.controllers.BlindTypes">BlindTypes</a>]</code></p>
+
+
+        <p>Blinds controller.</p>
+
+
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Methods:</span></p>
+    <ul>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            in_blind_group (aiovantage.controllers.BlindsController.in_blind_group)" href="#aiovantage.controllers.BlindsController.in_blind_group">in_blind_group</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Return a queryset of all loads in the given blind group.</p>
+            </div>
+          </li>
+    </ul>
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.BlindsController.in_blind_group" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">in_blind_group</span>
+
+
+<a href="#aiovantage.controllers.BlindsController.in_blind_group" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">in_blind_group</span><span class="p">(</span><span class="n">blind_group</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            BlindGroup
+
+
+  
+      dataclass
+   (aiovantage.objects.BlindGroup)" href="../objects/#aiovantage.objects.BlindGroup">BlindGroup</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            BlindTypes
+
+
+  
+      module-attribute
+   (aiovantage._controllers.blinds.BlindTypes)" href="#aiovantage.controllers.BlindTypes">BlindTypes</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of all loads in the given blind group.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.ButtonsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">ButtonsController</span>
+
+
+<a href="#aiovantage.controllers.ButtonsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">ButtonsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            Button
+
+
+  
+      dataclass
+   (aiovantage.objects.Button)" href="../objects/#aiovantage.objects.Button">Button</a>]</code></p>
+
+
+        <p>Buttons controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.DryContactsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">DryContactsController</span>
+
+
+<a href="#aiovantage.controllers.DryContactsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">DryContactsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            DryContact
+
+
+  
+      dataclass
+   (aiovantage.objects.DryContact)" href="../objects/#aiovantage.objects.DryContact">DryContact</a>]</code></p>
+
+
+        <p>Dry contacts controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.GMemController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">GMemController</span>
+
+
+<a href="#aiovantage.controllers.GMemController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">GMemController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            GMem
+
+
+  
+      dataclass
+   (aiovantage.objects.GMem)" href="../objects/#aiovantage.objects.GMem">GMem</a>]</code></p>
+
+
+        <p>GMem (variables) controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.LightSensorsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">LightSensorsController</span>
+
+
+<a href="#aiovantage.controllers.LightSensorsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">LightSensorsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            LightSensor
+
+
+  
+      dataclass
+   (aiovantage.objects.LightSensor)" href="../objects/#aiovantage.objects.LightSensor">LightSensor</a>]</code></p>
+
+
+        <p>Light sensors controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.LoadGroupsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">LoadGroupsController</span>
+
+
+<a href="#aiovantage.controllers.LoadGroupsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">LoadGroupsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            LoadGroup
+
+
+  
+      dataclass
+   (aiovantage.objects.LoadGroup)" href="../objects/#aiovantage.objects.LoadGroup">LoadGroup</a>]</code></p>
+
+
+        <p>Load groups controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.LoadsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">LoadsController</span>
+
+
+<a href="#aiovantage.controllers.LoadsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">LoadsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a>]</code></p>
+
+
+        <p>Loads controller.</p>
+
+
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Methods:</span></p>
+    <ul>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            in_load_group (aiovantage.controllers.LoadsController.in_load_group)" href="#aiovantage.controllers.LoadsController.in_load_group">in_load_group</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Return a queryset of all loads in the given load group.</p>
+            </div>
+          </li>
+    </ul>
+
+
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            on
+
+
+  
+      property
+   (aiovantage.controllers.LoadsController.on)" href="#aiovantage.controllers.LoadsController.on">on</a></code></b>
+              (<code><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a>[<a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Return a queryset of all loads that are turned on.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            off
+
+
+  
+      property
+   (aiovantage.controllers.LoadsController.off)" href="#aiovantage.controllers.LoadsController.off">off</a></code></b>
+              (<code><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a>[<a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Return a queryset of all loads that are turned off.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            relays
+
+
+  
+      property
+   (aiovantage.controllers.LoadsController.relays)" href="#aiovantage.controllers.LoadsController.relays">relays</a></code></b>
+              (<code><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a>[<a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Return a queryset of all loads that are relays.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            motors
+
+
+  
+      property
+   (aiovantage.controllers.LoadsController.motors)" href="#aiovantage.controllers.LoadsController.motors">motors</a></code></b>
+              (<code><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a>[<a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Return a queryset of all loads that are motors.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            lights
+
+
+  
+      property
+   (aiovantage.controllers.LoadsController.lights)" href="#aiovantage.controllers.LoadsController.lights">lights</a></code></b>
+              (<code><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a>[<a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Return a queryset of all loads that are lights.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.LoadsController.on" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">on</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.LoadsController.on" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">on</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of all loads that are turned on.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.LoadsController.off" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">off</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.LoadsController.off" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">off</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of all loads that are turned off.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.LoadsController.relays" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">relays</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.LoadsController.relays" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">relays</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of all loads that are relays.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.LoadsController.motors" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">motors</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.LoadsController.motors" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">motors</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of all loads that are motors.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.LoadsController.lights" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">lights</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.LoadsController.lights" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">lights</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of all loads that are lights.</p>
+
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.LoadsController.in_load_group" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">in_load_group</span>
+
+
+<a href="#aiovantage.controllers.LoadsController.in_load_group" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">in_load_group</span><span class="p">(</span><span class="n">load_group</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            LoadGroup
+
+
+  
+      dataclass
+   (aiovantage.objects.LoadGroup)" href="../objects/#aiovantage.objects.LoadGroup">LoadGroup</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            Load
+
+
+  
+      dataclass
+   (aiovantage.objects.Load)" href="../objects/#aiovantage.objects.Load">Load</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of all loads in the given load group.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.MastersController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">MastersController</span>
+
+
+<a href="#aiovantage.controllers.MastersController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">MastersController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            Master
+
+
+  
+      dataclass
+   (aiovantage.objects.Master)" href="../objects/#aiovantage.objects.Master">Master</a>]</code></p>
+
+
+        <p>Masters (InFusion Controllers) controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.ModulesController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">ModulesController</span>
+
+
+<a href="#aiovantage.controllers.ModulesController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">ModulesController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            SystemObject
+
+
+  
+      dataclass
+   (aiovantage.objects.SystemObject)" href="../objects/#aiovantage.objects.SystemObject">SystemObject</a>]</code></p>
+
+
+        <p>Modules controller.</p>
+<p>Modules are relay or dimming modules connected to the Vantage system.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.OmniSensorsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">OmniSensorsController</span>
+
+
+<a href="#aiovantage.controllers.OmniSensorsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">OmniSensorsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            OmniSensor
+
+
+  
+      dataclass
+   (aiovantage.objects.OmniSensor)" href="../objects/#aiovantage.objects.OmniSensor">OmniSensor</a>]</code></p>
+
+
+        <p>Omni sensors controller.</p>
+<p>Omni sensors are generic sensors objects which specify which methods to use
+when getting or setting data in their object definition, as well as the
+type of data and a conversion formula.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.PortDevicesController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">PortDevicesController</span>
+
+
+<a href="#aiovantage.controllers.PortDevicesController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">PortDevicesController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            PortDevice
+
+
+  
+      dataclass
+   (aiovantage.objects.PortDevice)" href="../objects/#aiovantage.objects.PortDevice">PortDevice</a>]</code></p>
+
+
+        <p>Port devices controller.</p>
+<p>Port devices are typically "hubs" that communicate with other devices such
+as blinds or lighting systems. It is mostly useful to know about these
+devices so we can set up a proper device hierarchy.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.PowerProfilesController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">PowerProfilesController</span>
+
+
+<a href="#aiovantage.controllers.PowerProfilesController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">PowerProfilesController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            PowerProfile
+
+
+  
+      dataclass
+   (aiovantage.objects.PowerProfile)" href="../objects/#aiovantage.objects.PowerProfile">PowerProfile</a>]</code></p>
+
+
+        <p>Power profiles controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.QuerySet" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">QuerySet</span>
+
+
+<a href="#aiovantage.controllers.QuerySet" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">QuerySet</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">,</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span><span class="p">],</span> <span class="n">populate</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[],</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Awaitable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable">Awaitable</a></span><span class="p">[</span><span class="kc">None</span><span class="p">]],</span> <span class="n">filters</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/glossary.html#term-list">list</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><span title="aiovantage._controllers.query.T">T</span></span><span class="p">],</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-external" title="collections.abc.Iterable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable">Iterable</a>[<span title="aiovantage._controllers.query.T">T</span>]</code>, <code><a class="autorefs autorefs-external" title="collections.abc.AsyncIterator" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.AsyncIterator">AsyncIterator</a>[<span title="aiovantage._controllers.query.T">T</span>]</code></p>
+
+
+        <p>Queryset class for querying objects from a dictionary.</p>
+<p>Querysets are iterable and async iterable, and can be chained together to
+filter objects.</p>
+
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+            <b><code>data</code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/reference/expressions.html#dict">dict</a>[<a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a>, <span title="aiovantage._controllers.query.T">T</span>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>The data dictionary to query.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+            <b><code>populate</code></b>
+              (<code><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a>[[], <a class="autorefs autorefs-external" title="collections.abc.Awaitable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Awaitable">Awaitable</a>[None]]</code>)
+          –
+          <div class="doc-md-description">
+            <p>A coroutine to populate the data so we don't have a complete
+      dataset before using "async for" loops.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+            <b><code>filters</code></b>
+              (<code><a class="autorefs autorefs-external" href="https://docs.python.org/3/glossary.html#term-list">list</a>[<a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a>[[<span title="aiovantage._controllers.query.T">T</span>], <a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a>]] | None</code>, default:
+                  <code>None</code>
+)
+          –
+          <div class="doc-md-description">
+            <p>A list of filters to apply to the queryset.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Methods:</span></p>
+    <ul>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            filter (aiovantage.controllers.QuerySet.filter)" href="#aiovantage.controllers.QuerySet.filter">filter</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Return a queryset of objects that match the given filter.</p>
+            </div>
+          </li>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            get (aiovantage.controllers.QuerySet.get)" href="#aiovantage.controllers.QuerySet.get">get</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Get the first object that matches the given filter.</p>
+            </div>
+          </li>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            aget
+
+
+  
+      async
+   (aiovantage.controllers.QuerySet.aget)" href="#aiovantage.controllers.QuerySet.aget">aget</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Asynchronously get the first object that matches the given filter.</p>
+            </div>
+          </li>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            first (aiovantage.controllers.QuerySet.first)" href="#aiovantage.controllers.QuerySet.first">first</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Return the first object in the queryset.</p>
+            </div>
+          </li>
+          <li class="doc-section-item field-body">
+            <b><code><a class="autorefs autorefs-internal" title="            afirst
+
+
+  
+      async
+   (aiovantage.controllers.QuerySet.afirst)" href="#aiovantage.controllers.QuerySet.afirst">afirst</a></code></b>
+            –
+            <div class="doc-md-description">
+              <p>Asynchronously return the first object in the queryset.</p>
+            </div>
+          </li>
+    </ul>
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.QuerySet.filter" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">filter</span>
+
+
+<a href="#aiovantage.controllers.QuerySet.filter" class="headerlink" title="Permanent link">&para;</a></h3>
+          <div class="doc-overloads">
+<div class="doc-signature highlight"><pre><span></span><code><span class="nb">filter</span><span class="p">(</span><span class="nf">match</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><span title="aiovantage._controllers.query.T">T</span></span><span class="p">],</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><span title="aiovantage._controllers.query.T">T</span></span><span class="p">]</span>
+</code></pre></div><div class="doc-signature highlight"><pre><span></span><code><span class="nb">filter</span><span class="p">(</span><span class="o">**</span><span class="nf">kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><span title="aiovantage._controllers.query.T">T</span></span><span class="p">]</span>
+</code></pre></div>          </div>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nb">filter</span><span class="p">(</span><span class="o">*</span><span class="nf">args</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><span title="aiovantage._controllers.query.T">T</span></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of objects that match the given filter.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.QuerySet.get" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">get</span>
+
+
+<a href="#aiovantage.controllers.QuerySet.get" class="headerlink" title="Permanent link">&para;</a></h3>
+          <div class="doc-overloads">
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">get</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div><div class="doc-signature highlight"><pre><span></span><code><span class="nf">get</span><span class="p">(</span><span class="n">match</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><span title="aiovantage._controllers.query.T">T</span></span><span class="p">],</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div><div class="doc-signature highlight"><pre><span></span><code><span class="nf">get</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>          </div>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">get</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the first object that matches the given filter.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.QuerySet.aget" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">aget</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.QuerySet.aget" class="headerlink" title="Permanent link">&para;</a></h3>
+          <div class="doc-overloads">
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">aget</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" href="https://docs.python.org/3/library/functions.html#int">int</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div><div class="doc-signature highlight"><pre><span></span><code><span class="nf">aget</span><span class="p">(</span><span class="n">match</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="collections.abc.Callable" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable">Callable</a></span><span class="p">[[</span><span class="n"><span title="aiovantage._controllers.query.T">T</span></span><span class="p">],</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div><div class="doc-signature highlight"><pre><span></span><code><span class="nf">aget</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>          </div>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">aget</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-external" title="typing.Any" href="https://docs.python.org/3/library/typing.html#typing.Any">Any</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Asynchronously get the first object that matches the given filter.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.QuerySet.first" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">first</span>
+
+
+<a href="#aiovantage.controllers.QuerySet.first" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">first</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return the first object in the queryset.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="aiovantage.controllers.QuerySet.afirst" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <span class="doc doc-object-name doc-function-name">afirst</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.QuerySet.afirst" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">afirst</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n"><span title="aiovantage._controllers.query.T">T</span></span> <span class="o">|</span> <span class="kc">None</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Asynchronously return the first object in the queryset.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.RGBLoadsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">RGBLoadsController</span>
+
+
+<a href="#aiovantage.controllers.RGBLoadsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">RGBLoadsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            RGBLoadTypes
+
+
+  
+      module-attribute
+   (aiovantage._controllers.rgb_loads.RGBLoadTypes)" href="#aiovantage.controllers.RGBLoadTypes">RGBLoadTypes</a>]</code></p>
+
+
+        <p>RGB loads controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <ul>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            on
+
+
+  
+      property
+   (aiovantage.controllers.RGBLoadsController.on)" href="#aiovantage.controllers.RGBLoadsController.on">on</a></code></b>
+              (<code><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a>[<a class="autorefs autorefs-internal" title="            RGBLoadTypes
+
+
+  
+      module-attribute
+   (aiovantage._controllers.rgb_loads.RGBLoadTypes)" href="#aiovantage.controllers.RGBLoadTypes">RGBLoadTypes</a>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Return a queryset of all RGB loads that are turned on.</p>
+          </div>
+        </li>
+        <li class="doc-section-item field-body">
+          <b><code><a class="autorefs autorefs-internal" title="            off
+
+
+  
+      property
+   (aiovantage.controllers.RGBLoadsController.off)" href="#aiovantage.controllers.RGBLoadsController.off">off</a></code></b>
+              (<code><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a>[<a class="autorefs autorefs-internal" title="            RGBLoadTypes
+
+
+  
+      module-attribute
+   (aiovantage._controllers.rgb_loads.RGBLoadTypes)" href="#aiovantage.controllers.RGBLoadTypes">RGBLoadTypes</a>]</code>)
+          –
+          <div class="doc-md-description">
+            <p>Return a queryset of all RGB loads that are turned off.</p>
+          </div>
+        </li>
+    </ul>
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.RGBLoadsController.on" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">on</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.RGBLoadsController.on" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">on</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            RGBLoadTypes
+
+
+  
+      module-attribute
+   (aiovantage._controllers.rgb_loads.RGBLoadTypes)" href="#aiovantage.controllers.RGBLoadTypes">RGBLoadTypes</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of all RGB loads that are turned on.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="aiovantage.controllers.RGBLoadsController.off" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">off</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#aiovantage.controllers.RGBLoadsController.off" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="doc-signature highlight"><pre><span></span><code><span class="n">off</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            QuerySet (aiovantage._controllers.query.QuerySet)" href="#aiovantage.controllers.QuerySet">QuerySet</a></span><span class="p">[</span><span class="n"><a class="autorefs autorefs-internal" title="            RGBLoadTypes
+
+
+  
+      module-attribute
+   (aiovantage._controllers.rgb_loads.RGBLoadTypes)" href="#aiovantage.controllers.RGBLoadTypes">RGBLoadTypes</a></span><span class="p">]</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Return a queryset of all RGB loads that are turned off.</p>
+
+    </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.StationsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">StationsController</span>
+
+
+<a href="#aiovantage.controllers.StationsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">StationsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            StationObject
+
+
+  
+      dataclass
+   (aiovantage.objects.StationObject)" href="../objects/#aiovantage.objects.StationObject">StationObject</a>]</code></p>
+
+
+        <p>Stations controller.</p>
+<p>Stations typically represent keypads or remote relays. It is mostly useful
+to know about these devices so we can set up a proper device hierarchy.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.TasksController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">TasksController</span>
+
+
+<a href="#aiovantage.controllers.TasksController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">TasksController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            Task
+
+
+  
+      dataclass
+   (aiovantage.objects.Task)" href="../objects/#aiovantage.objects.Task">Task</a>]</code></p>
+
+
+        <p>Tasks controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.TemperaturesController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">TemperaturesController</span>
+
+
+<a href="#aiovantage.controllers.TemperaturesController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">TemperaturesController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            Temperature
+
+
+  
+      dataclass
+   (aiovantage.objects.Temperature)" href="../objects/#aiovantage.objects.Temperature">Temperature</a>]</code></p>
+
+
+        <p>Temperature device controller.</p>
+<p>Temperature devices are device that measure or control temperature.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="aiovantage.controllers.ThermostatsController" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-class"></code>            <span class="doc doc-object-name doc-class-name">ThermostatsController</span>
+
+
+<a href="#aiovantage.controllers.ThermostatsController" class="headerlink" title="Permanent link">&para;</a></h2>
+<div class="doc-signature highlight"><pre><span></span><code><span class="nf">ThermostatsController</span><span class="p">(</span><span class="n">vantage</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            Vantage (aiovantage.Vantage)" href="../#aiovantage.Vantage">Vantage</a></span><span class="p">)</span>
+</code></pre></div>
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="            Controller (aiovantage._controllers.base.Controller)" href="#aiovantage.controllers.Controller">Controller</a>[<a class="autorefs autorefs-internal" title="            ThermostatTypes
+
+
+  
+      module-attribute
+   (aiovantage._controllers.thermostats.ThermostatTypes)" href="#aiovantage.controllers.ThermostatTypes">ThermostatTypes</a>]</code></p>
+
+
+        <p>Thermostats controller.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../config_client/" class="md-footer__link md-footer__link--prev" aria-label="Previous: &lt;code class=&#34;doc-symbol doc-symbol-nav doc-symbol-module&#34;&gt;&lt;/code&gt;config_client">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>config_client
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../discovery/" class="md-footer__link md-footer__link--next" aria-label="Next: &lt;code class=&#34;doc-symbol doc-symbol-nav doc-symbol-module&#34;&gt;&lt;/code&gt;discovery">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                <code class="doc-symbol doc-symbol-nav doc-symbol-module"></code>discovery
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../../..", "features": ["content.action.edit", "content.action.view", "content.code.copy", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "toc.follow"], "search": "../../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
