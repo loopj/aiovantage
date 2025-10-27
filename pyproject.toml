@@ -26,7 +26,7 @@ Issues = "https://github.com/loopj/aiovantage/issues"
 Source = "https://github.com/loopj/aiovantage"
 
 [project.optional-dependencies]
-dev = ["pyright==1.1.400", "ruff==0.11.8", "bumpver==2024.1130"]
+dev = ["pyright==1.1.407", "ruff==0.11.8", "bumpver==2024.1130"]
 
 docs = [
     "mkdocstrings==0.29.1",
