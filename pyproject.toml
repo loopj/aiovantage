@@ -32,7 +32,7 @@ docs = [
     "mkdocstrings==0.29.1",
     "mkdocstrings-python==1.16.10",
     "mkdocs==1.6.1",
-    "mkdocs-material==9.6.12",
+    "mkdocs-material==9.7.1",
     "mkdocs-api-autonav==0.4.0",
 ]
 
