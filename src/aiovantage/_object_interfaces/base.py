@@ -183,10 +183,11 @@ class Interface(metaclass=_InterfaceMeta):
 
         # Break the response into tokens
         return_line = response[-1]
-        _command, _vid, result, _method, *args = Converter.tokenize(return_line)
+        _command, _vid, result, *args = Converter.tokenize(return_line)
 
-        # Parse the response
-        return self._parse_object_response(method, result, *args, as_type=as_type)
+        # Skip the echoed method name if present; legacy firmware (2.x)
+        # omits it, while modern firmware includes it as the first arg.
+        return self._parse_object_response(method, result, *args[1:], as_type=as_type)
 
     def update_properties(self, properties: dict[str, Any]) -> list[str]:
         """Update object properties.
