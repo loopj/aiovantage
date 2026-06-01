@@ -9,7 +9,11 @@ from typing import Any
 from typing_extensions import Self
 
 from aiovantage._logger import logger
-from aiovantage.errors import CommandError, raise_command_error
+from aiovantage.errors import (
+    ClientConnectionError,
+    CommandError,
+    raise_command_error,
+)
 
 from .connection import CommandConnection
 from .converter import Converter
@@ -139,34 +143,42 @@ class CommandClient:
 
         # Send the command
         async with self._command_lock:
-            logger.debug("Sending command: %s", request)
-            await conn.write(f"{request}\n")
+            try:
+                logger.debug("Sending command: %s", request)
+                await conn.write(f"{request}\n")
 
-            # Read all lines of the response
-            response_lines: list[str] = []
-            while True:
-                response_line = await conn.readuntil(b"\r\n", self._read_timeout)
-                response_line = response_line.rstrip()
+                # Read all lines of the response
+                response_lines: list[str] = []
+                while True:
+                    response_line = await conn.readuntil(b"\r\n", self._read_timeout)
+                    response_line = response_line.rstrip()
 
-                # Handle command errors
-                if response_line.startswith("R:ERROR"):
-                    # Parse a command error from a message.
-                    match = re.match(r"R:ERROR:(\d+) (.+)", response_line)
-                    if not match:
-                        raise CommandError(response_line)
+                    # Handle command errors
+                    if response_line.startswith("R:ERROR"):
+                        # Parse a command error from a message.
+                        match = re.match(r"R:ERROR:(\d+) (.+)", response_line)
+                        if not match:
+                            raise CommandError(response_line)
 
-                    # Convert the error code to a specific exception, if possible
-                    raise_command_error(int(match.group(1)), match.group(2))
+                        # Convert the error code to a specific exception, if possible
+                        raise_command_error(int(match.group(1)), match.group(2))
 
-                # Ignore potentially interleaved "event" messages
-                if response_line.startswith(("S:", "L:", "EL:")):
-                    logger.debug("Ignoring event message: %s", response_line)
-                    continue
+                    # Ignore potentially interleaved "event" messages
+                    if response_line.startswith(("S:", "L:", "EL:")):
+                        logger.debug("Ignoring event message: %s", response_line)
+                        continue
 
-                # Return the response once we see the response line
-                response_lines.append(response_line)
-                if response_line.startswith("R:"):
-                    break
+                    # Return the response once we see the response line
+                    response_lines.append(response_line)
+                    if response_line.startswith("R:"):
+                        break
+            except ClientConnectionError:
+                # A read timeout or connection error leaves the socket in an unknown
+                # state; close it so the next request reconnects with a fresh socket
+                # instead of reusing a dead one (which would keep timing out until the
+                # OS finally gives up on the TCP connection, ~15 min later).
+                self._connection.close()
+                raise
 
         logger.debug("Received response: %s", "\n".join(response_lines))
 
