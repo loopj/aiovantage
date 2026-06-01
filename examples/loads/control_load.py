@@ -6,7 +6,7 @@ import logging
 import sys
 import termios
 import tty
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager, suppress
 
 from aiovantage import Vantage
@@ -36,7 +36,7 @@ async def parse_keypress() -> str | None:
 
 
 @contextmanager
-def cbreak_mode(descriptor: int) -> Iterator[None]:
+def cbreak_mode(descriptor: int) -> Generator[None]:
     """Context manager to read terminal input character by character."""
     old_attrs = termios.tcgetattr(descriptor)
     try:
