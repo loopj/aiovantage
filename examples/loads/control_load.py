@@ -36,7 +36,7 @@ async def parse_keypress() -> str | None:
 
 
 @contextmanager
-def cbreak_mode(descriptor: int) -> Generator[None]:
+def cbreak_mode(descriptor: int) -> Generator[None, None, None]:
     """Context manager to read terminal input character by character."""
     old_attrs = termios.tcgetattr(descriptor)
     try:

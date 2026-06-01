@@ -32,7 +32,8 @@ KEEPALIVE_INTERVAL = 60
 # keepalive produces traffic that resets this timeout, while on a dead connection no
 # data arrives and the read times out, surfacing the disconnect promptly. Without a
 # timeout, a hard power-off (no TCP RST) leaves the read blocked until the OS gives up
-# on the keepalive writes (~15 min), so Disconnected/reconnect never fire in time.
+# on the keepalive writes (~15 min), so the Disconnected event never fires and the
+# stream never reconnects in time.
 READ_TIMEOUT = 2 * KEEPALIVE_INTERVAL
 
 
