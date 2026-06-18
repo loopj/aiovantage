@@ -27,6 +27,15 @@ T = TypeVar("T")
 # The interval between keepalive messages, in seconds.
 KEEPALIVE_INTERVAL = 60
 
+# The maximum time to wait for a message before assuming the connection is dead.
+# Must be greater than KEEPALIVE_INTERVAL: on a healthy connection the periodic ECHO
+# keepalive produces traffic that resets this timeout, while on a dead connection no
+# data arrives and the read times out, surfacing the disconnect promptly. Without a
+# timeout, a hard power-off (no TCP RST) leaves the read blocked until the OS gives up
+# on the keepalive writes (~15 min), so the Disconnected event never fires and the
+# stream never reconnects in time.
+READ_TIMEOUT = 2 * KEEPALIVE_INTERVAL
+
 
 class EventStream(EventDispatcher):
     """Client to subscribe to events from the Vantage Host Command (HC) service.
@@ -216,15 +225,24 @@ class EventStream(EventDispatcher):
                     self._resubscribe()
                 connect_attempts = 1
 
-                # Wait for new messages
+                # Wait for new messages. A read timeout (longer than the keepalive
+                # interval) ensures a dead connection is detected promptly: the ECHO
+                # keepalive keeps a healthy link's read fed, so a timeout means the
+                # connection is gone. ClientTimeoutError is a ClientConnectionError,
+                # so it falls through to the reconnect logic below.
                 while True:
-                    message = await conn.readuntil(b"\r\n")
+                    message = await conn.readuntil(b"\r\n", READ_TIMEOUT)
                     message = message.rstrip()
                     logger.debug("Received message: %s", message)
                     self._parse_message(message)
 
             except ClientConnectionError:
-                pass  # Pass through to retry logic below
+                # The connection was lost, or a read timed out (ClientTimeoutError is a
+                # ClientConnectionError) indicating a dead link. A timeout does not close
+                # the socket, so close it explicitly here - otherwise _get_connection would
+                # reuse the stale connection on the next iteration, re-emitting Reconnected
+                # on a dead socket and flapping every READ_TIMEOUT instead of recovering.
+                self._connection.close()
 
             # If we get here, the connection was lost
             if connect_attempts == 1:
