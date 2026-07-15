@@ -182,8 +182,15 @@ class Interface(metaclass=_InterfaceMeta):
         response = await self.command_client.raw_request(request)
 
         # Break the response into tokens
-        return_line = response[-1]
-        _command, _vid, result, _method, *args = Converter.tokenize(return_line)
+        tokens = Converter.tokenize(response[-1])
+        # Handle legacy short-form responses like R:GETLOAD <vid> <result>
+        # which lack the method name and args present in modern R:INVOKE format
+        if len(tokens) == 3:
+            _command, _vid, result = tokens
+            _method = method  # Use the original request method name
+            args: list[str] = []
+        else:
+            _command, _vid, result, _method, *args = tokens
 
         # Parse the response
         return self._parse_object_response(method, result, *args, as_type=as_type)
