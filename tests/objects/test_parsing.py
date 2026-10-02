@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import TypeVar
 
 from aiovantage.config_client import ConfigClient
-from aiovantage.objects import DryContact, Load, Parent
+from aiovantage.objects import DryContact, Load, Parent, VantageDmxDaliGateway
 
 T = TypeVar("T")
 
@@ -99,3 +99,24 @@ def test_mixed_case_bool_parses() -> None:
     """
 
     assert parse(xml, DryContact).reverse_polarity is True
+
+
+def test_dmx_dali_gateway_parses_without_mode() -> None:
+    # Some controllers omit the Mode element for this station, see #383
+    xml = """
+    <Vantage.DmxDaliGateway VID="654" Master="1">
+      <Name>DMX Gateway</Name>
+      <Model>DmxDaliGateway</Model>
+      <Note></Note>
+      <Area>45</Area>
+      <Location>Cinema</Location>
+      <SerialNumber>12345</SerialNumber>
+      <Bus>1</Bus>
+      <IPAddress>192.168.1.50</IPAddress>
+    </Vantage.DmxDaliGateway>
+    """
+
+    gateway = parse(xml, VantageDmxDaliGateway)
+
+    assert gateway.ip_address == "192.168.1.50"
+    assert gateway.mode is None
