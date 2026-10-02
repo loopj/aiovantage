@@ -171,15 +171,19 @@ async with Vantage("hostname", "username", "password") as vantage:
 
 ### Subscribing to state changes
 
-You can subscribe to state changes by using the `controller.subscribe()` method:
+You can subscribe to state changes by using the `controller.subscribe()` method. The callback receives a typed event, with the updated object available as `event.obj`:
 
 ```python
-def on_load_state_change(event, load, data):
-    print(f"{load.name} is at {load.level}%")
+from aiovantage.events import ObjectUpdated
+
+
+def on_load_state_change(event: ObjectUpdated):
+    print(f"{event.obj.name} is at {event.obj.level}%")
+
 
 async with Vantage("hostname", "username", "password") as vantage:
-    vantage.loads.subscribe(on_load_state_change)
     await vantage.loads.initialize()
+    vantage.loads.subscribe(ObjectUpdated, on_load_state_change)
 ```
 
 Note that a subscription will only receive state changes for objects that have populated into the controller.
