@@ -26,7 +26,13 @@ Issues = "https://github.com/loopj/aiovantage/issues"
 Source = "https://github.com/loopj/aiovantage"
 
 [project.optional-dependencies]
-dev = ["pyright==1.1.408", "ruff==0.15.4", "bumpver==2025.1131"]
+dev = [
+    "pyright==1.1.408",
+    "ruff==0.15.4",
+    "bumpver==2025.1131",
+    "pytest==9.1.1",
+    "pytest-asyncio==1.4.0",
+]
 
 docs = [
     "mkdocstrings==1.0.3",
@@ -58,9 +64,12 @@ ignore = [
 "src/aiovantage/objects/**/*.py" = [
     "D106", # Missing docstring in public nested class
 ]
+"tests/**/*.py" = [
+    "D103", # Missing docstring in public function
+]
 
 [tool.ruff.lint.isort]
-known-first-party = ["aiovantage"]
+known-first-party = ["aiovantage", "tests"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 15
@@ -70,6 +79,10 @@ convention = "google"
 
 [tool.pyright]
 typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
 
 [tool.bumpver]
 current_version = "0.22.8"
