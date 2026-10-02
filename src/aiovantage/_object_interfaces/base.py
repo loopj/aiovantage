@@ -16,6 +16,14 @@ from aiovantage.errors import CommandError, ConversionError
 
 T = TypeVar("T")
 
+# Legacy command replies that some older firmware sends in place of R:INVOKE,
+# keyed by the invoked method. These omit the method name from the reply.
+_LEGACY_REPLIES = {
+    "Load.GetLevel": "R:GETLOAD",
+    "Load.SetLevel": "R:LOAD",
+    "Task.GetState": "R:GETTASK",
+}
+
 
 class _AsyncCallable(Protocol):
     async def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
@@ -183,7 +191,19 @@ class Interface(metaclass=_InterfaceMeta):
 
         # Break the response into tokens
         return_line = response[-1]
-        _command, _vid, result, _method, *args = Converter.tokenize(return_line)
+        tokens = Converter.tokenize(return_line)
+        if len(tokens) >= 4 and tokens[0] == "R:INVOKE":
+            # R:INVOKE <vid> <result> <method> <arg1> <arg2> ...
+            _command, reply_vid, result, _method, *args = tokens
+        elif len(tokens) >= 3 and tokens[0] == _LEGACY_REPLIES.get(method):
+            # R:GETLOAD <vid> <result> <arg1> <arg2> ...
+            _command, reply_vid, result, *args = tokens
+        else:
+            raise CommandError(f"Unexpected response to '{request}': {return_line}")
+
+        # Make sure the reply is for the object we asked about
+        if reply_vid != str(self.vid):
+            raise CommandError(f"Unexpected response to '{request}': {return_line}")
 
         # Parse the response
         return self._parse_object_response(method, result, *args, as_type=as_type)

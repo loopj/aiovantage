@@ -3,6 +3,9 @@
 from decimal import Decimal
 from typing import TypeVar
 
+import pytest
+
+from aiovantage.errors import CommandError
 from aiovantage.object_interfaces import (
     BlindInterface,
     ButtonInterface,
@@ -135,3 +138,55 @@ async def test_fetch_state_updates_properties() -> None:
 
     assert await load.fetch_state() == ["level"]
     assert load.level == Decimal("75")
+
+
+@pytest.mark.parametrize(
+    ("reply", "expected"),
+    [
+        pytest.param(
+            "R:INVOKE 448 100.000 Load.GetLevel", Decimal("100.000"), id="modern"
+        ),
+        # Older firmware answers INVOKE with the legacy GETLOAD reply, see #379
+        pytest.param("R:GETLOAD 448 100.000", Decimal("100.000"), id="legacy"),
+    ],
+)
+async def test_get_level_parses_reply(reply: str, expected: Decimal) -> None:
+    load = make(LoadInterface, 448, "INVOKE 448 Load.GetLevel", reply)
+
+    assert await load.get_level() == expected
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        pytest.param("R:INVOKE 141 0 Load.SetLevel 100.000", id="modern"),
+        # Older firmware answers INVOKE with the legacy LOAD reply, see #313
+        pytest.param("R:LOAD 141 100.000", id="legacy"),
+    ],
+)
+async def test_set_level_accepts_reply(reply: str) -> None:
+    load = make(LoadInterface, 141, "INVOKE 141 Load.SetLevel 100", reply)
+
+    await load.set_level(100)
+
+
+@pytest.mark.parametrize(
+    "reply",
+    [
+        pytest.param("R:INVOKE 448", id="too-short"),
+        pytest.param("R:GETLOAD 999 100.000", id="wrong-vid"),
+        pytest.param("R:GETTASK 448 1", id="wrong-legacy-command"),
+    ],
+)
+async def test_invoke_rejects_unexpected_reply(reply: str) -> None:
+    load = make(LoadInterface, 448, "INVOKE 448 Load.GetLevel", reply)
+
+    with pytest.raises(CommandError):
+        await load.get_level()
+
+
+async def test_fetch_state_skips_property_with_unexpected_reply() -> None:
+    load = make(LoadInterface, 448, "INVOKE 448 Load.GetLevel", "R:INVOKE 448")
+
+    assert await load.fetch_state() == []
+    assert load.level is None
