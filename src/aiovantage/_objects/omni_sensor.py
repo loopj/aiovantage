@@ -112,12 +112,13 @@ class OmniSensor(Sensor, SensorInterface):
 
     @override
     async def fetch_state(self) -> list[str]:
-        # This override bypasses Interface.fetch_state(), which catches
-        # errors per property. Apply the same error handling here.
+        # Mirror the per-property error handling in Interface.fetch_state()
         try:
             level = await self.get_level(hw=True)
         except (CommandError, ConversionError) as ex:
-            logger.warning("Failed to fetch OmniSensor level: %s", ex)
+            logger.warning(
+                "Failed to fetch property level from OmniSensor %s: %s", self.name, ex
+            )
             return []
 
         return self.update_properties({"level": level})

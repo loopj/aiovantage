@@ -5,10 +5,11 @@ class FakeCommandClient:
     """Stand-in for CommandClient that answers requests from a script.
 
     Args:
-        replies: Maps each request string to the reply lines the controller sends.
+        replies: Maps each request string to the reply lines the controller sends,
+            or to an exception to raise in place of a reply.
     """
 
-    def __init__(self, replies: dict[str, list[str]]) -> None:
+    def __init__(self, replies: dict[str, list[str] | Exception]) -> None:
         """Initialize the fake with scripted replies."""
         self.replies = replies
         self.sent: list[str] = []
@@ -16,7 +17,10 @@ class FakeCommandClient:
     async def raw_request(self, request: str) -> list[str]:
         """Record the request and return its scripted reply lines."""
         self.sent.append(request)
-        return self.replies[request]
+        reply = self.replies[request]
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
 
 
 class FakeConnection:
