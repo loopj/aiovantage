@@ -7,7 +7,9 @@ from types import NoneType
 
 from typing_extensions import override
 
+from aiovantage import logger
 from aiovantage.command_client import Converter
+from aiovantage.errors import CommandError, ConversionError
 from aiovantage.object_interfaces import SensorInterface
 
 from .sensor import Sensor
@@ -110,7 +112,16 @@ class OmniSensor(Sensor, SensorInterface):
 
     @override
     async def fetch_state(self) -> list[str]:
-        return self.update_properties({"level": await self.get_level(hw=True)})
+        # Mirror the per-property error handling in Interface.fetch_state()
+        try:
+            level = await self.get_level(hw=True)
+        except (CommandError, ConversionError) as ex:
+            logger.warning(
+                "Failed to fetch property level from OmniSensor %s: %s", self.name, ex
+            )
+            return []
+
+        return self.update_properties({"level": level})
 
     @override
     def handle_object_status(self, method: str, result: str, *args: str) -> list[str]:
