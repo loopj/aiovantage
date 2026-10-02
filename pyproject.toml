@@ -29,7 +29,7 @@ Source = "https://github.com/loopj/aiovantage"
 dev = [
     "pyright==1.1.414",
     "ruff==0.16.9",
-    "bumpver==2025.1131",
+    "bumpver==2026.1132",
     "pytest==9.1.1",
     "pytest-asyncio==1.4.0",
 ]
