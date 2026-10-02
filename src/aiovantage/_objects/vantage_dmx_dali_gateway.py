@@ -13,4 +13,4 @@ class VantageDmxDaliGateway(StationObject):
         name = "Vantage.DmxDaliGateway"
 
     ip_address: str = field(metadata={"name": "IPAddress"})
-    mode: str
+    mode: str | None = None
