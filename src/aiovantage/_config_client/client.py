@@ -75,6 +75,9 @@ class ConfigClient:
         self._connection_lock = asyncio.Lock()
         self._request_lock = asyncio.Lock()
 
+        self.other_masters: list[int] = []
+        """Numbers of the other masters in the system, beyond the one connected to."""
+
         # Default to pascal case for element and attribute names
         xml_context = XmlContext(
             element_name_generator=_pascal_case_preserve,
@@ -138,6 +141,8 @@ class ConfigClient:
         interface_cls: type[Interface],
         method_cls: type[Method[Call, Return]],
         params: Call | None = None,
+        *,
+        master: int | None = None,
     ) -> Return:
         """Call a remote procedure on the ACI service.
 
@@ -145,6 +150,7 @@ class ConfigClient:
             interface_cls: The interface class.
             method_cls: The method class to call.
             params: The parameters to pass to the method.
+            master: The number of the master to address, defaults to the connected one.
 
         Returns:
             The result of the method call.
@@ -157,8 +163,11 @@ class ConfigClient:
         # Build an interface instance with the method
         request = interface_cls(**{method_attr: method})
 
-        # Build the request
+        # Build the request, addressed to another master if asked
         request_str = self._serializer.render(request)  # type: ignore
+        if master is not None:
+            request_str = f"<?Master {master}?>{request_str}"
+
         response_str = await self.raw_request(
             request_str, f"</{type(request).__name__}>\n"
         )

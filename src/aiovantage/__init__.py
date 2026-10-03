@@ -10,7 +10,7 @@ from typing_extensions import Self
 
 from ._logger import logger
 from .command_client import CommandClient, EventStream
-from .config_client import ConfigClient
+from .config_client import ConfigClient, IntrospectionInterface
 from .controllers import (
     AnemoSensorsController,
     AreasController,
@@ -318,6 +318,8 @@ class Vantage:
             fetch_state: Whether to fetch the state properties of objects.
             enable_state_monitoring: Whether to monitor for state changes on objects.
         """
+        await self.discover_masters()
+
         await asyncio.gather(
             *[
                 controller.initialize(
@@ -327,6 +329,17 @@ class Vantage:
                 for controller in self._controllers
             ]
         )
+
+    async def discover_masters(self) -> None:
+        """Find the other masters in the system, so their objects are fetched too."""
+        # The connected master lists its running peers in its system info
+        sys_info = await IntrospectionInterface.get_sys_info(self.config_client)
+        self.config_client.other_masters = sys_info.peers.app if sys_info.peers else []
+
+        if self.config_client.other_masters:
+            logger.info(
+                "Found additional masters: %s", self.config_client.other_masters
+            )
 
     async def fetch_state(self) -> None:
         """Fetch the state properties of all objects."""

@@ -23,7 +23,7 @@ class FakeCommandClient:
         return reply
 
 
-class FakeConnection:
+class FakeCommandConnection:
     """Stand-in for CommandConnection that reads lines from a script.
 
     Args:
@@ -57,3 +57,40 @@ class FakeConnection:
     async def readuntil(self, separator: bytes, timeout: float | None = None) -> str:
         """Return the next scripted line, terminated the way the controller sends it."""
         return self.lines.pop(0) + "\r\n"
+
+
+class FakeConfigConnection:
+    """Stand-in for ConfigConnection that answers requests from a script.
+
+    Args:
+        replies: The inbound XML documents, each returned by one readuntil() call.
+    """
+
+    host = "fake"
+    port = 2001
+    requires_authentication = False
+
+    def __init__(self, replies: list[str]) -> None:
+        """Initialize the fake with scripted replies."""
+        self.replies = list(replies)
+        self.written: list[str] = []
+        self.closed = True
+
+    async def open(self) -> None:
+        """Mark the connection open."""
+        self.closed = False
+
+    def close(self) -> None:
+        """Mark the connection closed."""
+        self.closed = True
+
+    async def authenticate(self, username: str, password: str) -> None:
+        """Accept any credentials."""
+
+    async def write(self, message: str) -> None:
+        """Record an outbound request."""
+        self.written.append(message)
+
+    async def readuntil(self, separator: bytes, timeout: float | None = None) -> str:
+        """Return the next scripted reply."""
+        return self.replies.pop(0)

@@ -78,7 +78,10 @@ class ConfigurationInterface:
 
     @staticmethod
     async def open_filter(
-        client: ConfigClient, *object_types: str, xpath: str | None = None
+        client: ConfigClient,
+        *object_types: str,
+        xpath: str | None = None,
+        master: int | None = None,
     ) -> int:
         """Open a filter for fetching Vantage objects.
 
@@ -86,6 +89,7 @@ class ConfigurationInterface:
             client: A config client instance
             *object_types: The type names of the objects to fetch, eg. "Area", "Load", "Keypad"
             xpath: An optional xpath to filter the results by, eg. "/Load", "/*[@VID='12']"
+            master: The number of the master to address, defaults to the connected one
 
         Returns:
             The handle of the opened filter
@@ -94,11 +98,16 @@ class ConfigurationInterface:
             IConfiguration,
             OpenFilter,
             OpenFilter.Params(object_types=list(object_types), xpath=xpath),
+            master=master,
         )
 
     @staticmethod
     async def get_filter_results(
-        client: ConfigClient, h_filter: int, count: int = 50, whole_object: bool = True
+        client: ConfigClient,
+        h_filter: int,
+        count: int = 50,
+        whole_object: bool = True,
+        master: int | None = None,
     ) -> list[WrappedObject]:
         """Get results from a filter handle previously opened with open_filter.
 
@@ -107,26 +116,33 @@ class ConfigurationInterface:
             h_filter: The handle of the filter to fetch results for
             count: The maximum number of results to fetch
             whole_object: Whether to fetch the whole object or a compact representation
+            master: The number of the master the filter was opened on
 
         Returns:
             A list of Vantage objects
         """
         return await client.rpc(
-            IConfiguration, GetFilterResults, GetFilterResults.Params(h_filter)
+            IConfiguration,
+            GetFilterResults,
+            GetFilterResults.Params(h_filter),
+            master=master,
         )
 
     @staticmethod
-    async def close_filter(client: ConfigClient, h_filter: int) -> bool:
+    async def close_filter(
+        client: ConfigClient, h_filter: int, master: int | None = None
+    ) -> bool:
         """Close a filter handle previously opened with open_filter.
 
         Args:
             client: A config client instance
             h_filter: The handle of the filter to close
+            master: The number of the master the filter was opened on
 
         Returns:
             True if the filter was closed successfully, False otherwise
         """
-        return await client.rpc(IConfiguration, CloseFilter, h_filter)
+        return await client.rpc(IConfiguration, CloseFilter, h_filter, master=master)
 
     @staticmethod
     async def get_object(client: ConfigClient, *vids: int) -> list[WrappedObject]:
@@ -175,18 +191,28 @@ class ConfigurationInterface:
         Yields:
             A stream of Vantage objects
         """
-        # Open the filter
-        handle = await ConfigurationInterface.open_filter(client, *types, xpath=xpath)
+        # Each master only returns its own objects, so query every known master
+        seen: set[int] = set()
+        for master in (None, *client.other_masters):
+            # Open the filter
+            handle = await ConfigurationInterface.open_filter(
+                client, *types, xpath=xpath, master=master
+            )
 
-        try:
-            # Fetch the results
-            while objects := await ConfigurationInterface.get_filter_results(
-                client, handle
-            ):
-                for obj in objects:
-                    if as_type is None or isinstance(obj.obj, as_type):
-                        yield obj.obj
-        finally:
-            # Close the filter
-            with suppress(ClientError):
-                await ConfigurationInterface.close_filter(client, handle)
+            try:
+                # Fetch the results
+                while objects := await ConfigurationInterface.get_filter_results(
+                    client, handle, master=master
+                ):
+                    for obj in objects:
+                        if obj.vid in seen:
+                            continue
+                        seen.add(obj.vid)
+                        if as_type is None or isinstance(obj.obj, as_type):
+                            yield obj.obj
+            finally:
+                # Close the filter
+                with suppress(ClientError):
+                    await ConfigurationInterface.close_filter(
+                        client, handle, master=master
+                    )

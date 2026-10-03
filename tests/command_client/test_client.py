@@ -4,13 +4,13 @@ import pytest
 
 from aiovantage.command_client import CommandClient, CommandResponse
 from aiovantage.errors import CommandError, FailedError, NotInitializedError
-from tests.fakes import FakeConnection
+from tests.fakes import FakeCommandConnection
 
 
-def make_client(*lines: str) -> tuple[CommandClient, FakeConnection]:
+def make_client(*lines: str) -> tuple[CommandClient, FakeCommandConnection]:
     """Build a client whose connection answers with the given inbound lines."""
     client = CommandClient("fake")
-    conn = FakeConnection(list(lines))
+    conn = FakeCommandConnection(list(lines))
     client._connection = conn  # type: ignore[assignment]
     return client, conn
 
