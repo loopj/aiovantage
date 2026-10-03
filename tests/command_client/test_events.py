@@ -1,7 +1,17 @@
 """Tests for parsing and routing event stream messages in EventStream."""
 
+import asyncio
+
+from aiovantage._command_client.events import KEEPALIVE_INTERVAL, READ_TIMEOUT
 from aiovantage.command_client import EventStream
-from aiovantage.events import EnhancedLogReceived, StatusReceived
+from aiovantage.errors import ClientTimeoutError
+from aiovantage.events import (
+    Connected,
+    Disconnected,
+    EnhancedLogReceived,
+    StatusReceived,
+)
+from tests.fakes import FakeCommandConnection
 
 
 def feed(stream: EventStream, line: str) -> None:
@@ -64,3 +74,23 @@ async def test_subscribe_status_queues_controller_commands_once() -> None:
 
     unsubscribe_second()
     assert queued(stream) == ["STATUS NONE"]
+
+
+async def test_message_handler_reads_with_a_timeout_and_drops_a_dead_link() -> None:
+    stream = EventStream("fake")
+    conn = FakeCommandConnection(["S:LOAD 5 50.000", ClientTimeoutError()])
+    stream._connection = conn  # type: ignore[assignment]
+    events: list[object] = []
+    stream.subscribe(Connected, events.append)
+    stream.subscribe(Disconnected, events.append)
+
+    task = asyncio.create_task(stream._message_handler())  # type: ignore[reportPrivateUsage]
+    await asyncio.sleep(0.05)
+    task.cancel()
+
+    # Silence on the link for longer than the keepalive interval means it is dead
+    assert conn.timeouts == [READ_TIMEOUT, READ_TIMEOUT]
+    assert READ_TIMEOUT > KEEPALIVE_INTERVAL
+    # The socket is closed so the retry opens a fresh one rather than flapping
+    assert conn.closed
+    assert [type(event) for event in events] == [Connected, Disconnected]

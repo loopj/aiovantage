@@ -27,6 +27,10 @@ T = TypeVar("T")
 # The interval between keepalive messages, in seconds.
 KEEPALIVE_INTERVAL = 60
 
+# How long to wait for a message before treating the connection as dead, in seconds.
+# A healthy connection carries a keepalive reply every KEEPALIVE_INTERVAL.
+READ_TIMEOUT = 2 * KEEPALIVE_INTERVAL
+
 
 class EventStream(EventDispatcher):
     """Client to subscribe to events from the Vantage Host Command (HC) service.
@@ -216,15 +220,16 @@ class EventStream(EventDispatcher):
                     self._resubscribe()
                 connect_attempts = 1
 
-                # Wait for new messages
+                # Wait for new messages, giving up if the connection falls silent
                 while True:
-                    message = await conn.readuntil(b"\r\n")
+                    message = await conn.readuntil(b"\r\n", READ_TIMEOUT)
                     message = message.rstrip()
                     logger.debug("Received message: %s", message)
                     self._parse_message(message)
 
             except ClientConnectionError:
-                pass  # Pass through to retry logic below
+                # Close the socket so the retry opens a fresh one rather than reusing it
+                self._connection.close()
 
             # If we get here, the connection was lost
             if connect_attempts == 1:
