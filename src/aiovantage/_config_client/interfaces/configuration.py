@@ -1,4 +1,4 @@
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterable
 from contextlib import suppress
 from dataclasses import dataclass, field
 from typing import Any, TypeVar, overload
@@ -161,13 +161,20 @@ class ConfigurationInterface:
     @overload
     @staticmethod
     def get_objects(
-        client: ConfigClient, *types: str, xpath: str | None = None, as_type: type[T]
+        client: ConfigClient,
+        *types: str,
+        xpath: str | None = None,
+        masters: Iterable[int] = (),
+        as_type: type[T],
     ) -> AsyncIterator[T]: ...
 
     @overload
     @staticmethod
     def get_objects(
-        client: ConfigClient, *types: str, xpath: str | None = None
+        client: ConfigClient,
+        *types: str,
+        xpath: str | None = None,
+        masters: Iterable[int] = (),
     ) -> AsyncIterator[Any]: ...
 
     @staticmethod
@@ -175,6 +182,7 @@ class ConfigurationInterface:
         client: ConfigClient,
         *types: str,
         xpath: str | None = None,
+        masters: Iterable[int] = (),
         as_type: type[T] | None = None,
     ) -> AsyncIterator[T | Any]:
         """Get Vantage objects, optionally filtered by a type and/or an XPath.
@@ -186,14 +194,15 @@ class ConfigurationInterface:
             client: A config client instance
             *types: The type names of the objects to fetch, eg. "Area", "Load", "Keypad"
             xpath: An optional xpath to filter the results by, eg. "/Load", "/*[@VID='12']"
+            masters: The numbers of other masters to fetch objects from as well
             as_type: The type to verify the objects as
 
         Yields:
             A stream of Vantage objects
         """
-        # Each master only returns its own objects, so query every known master
+        # Each master only returns its own objects, so query every master given
         seen: set[int] = set()
-        for master in (None, *client.other_masters):
+        for master in (None, *masters):
             # Open the filter
             handle = await ConfigurationInterface.open_filter(
                 client, *types, xpath=xpath, master=master

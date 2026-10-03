@@ -29,7 +29,6 @@ CLOSE_FILTER_REPLY = "<IConfiguration><CloseFilter><return>true</return></CloseF
 
 async def test_get_objects_queries_each_master_and_skips_duplicates() -> None:
     client = ConfigClient("fake")
-    client.other_masters = [2]
     conn = FakeConfigConnection(
         [
             # The connected master
@@ -49,7 +48,7 @@ async def test_get_objects_queries_each_master_and_skips_duplicates() -> None:
     areas = [
         area
         async for area in ConfigurationInterface.get_objects(
-            client, "Area", as_type=Area
+            client, "Area", masters=[2], as_type=Area
         )
     ]
 

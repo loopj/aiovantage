@@ -20,4 +20,4 @@ async def test_discover_masters_addresses_running_peers() -> None:
     await vantage.discover_masters()
 
     # A peer still in its bootloader cannot answer config requests
-    assert vantage.config_client.other_masters == [2]
+    assert vantage.other_masters == [2]

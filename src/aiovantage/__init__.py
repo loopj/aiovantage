@@ -77,6 +77,7 @@ class Vantage:
         """
         # Set up clients
         self._host = host
+        self._other_masters: list[int] = []
         self._config_client = ConfigClient(
             host,
             username,
@@ -183,6 +184,11 @@ class Vantage:
     def event_stream(self) -> EventStream:
         """The event stream instance."""
         return self._event_stream
+
+    @property
+    def other_masters(self) -> list[int]:
+        """The numbers of the other masters in the system."""
+        return self._other_masters
 
     @property
     def anemo_sensors(self) -> AnemoSensorsController:
@@ -334,12 +340,10 @@ class Vantage:
         """Find the other masters in the system, so their objects are fetched too."""
         # The connected master lists its running peers in its system info
         sys_info = await IntrospectionInterface.get_sys_info(self.config_client)
-        self.config_client.other_masters = sys_info.peers.app if sys_info.peers else []
+        self._other_masters = sys_info.peers.app if sys_info.peers else []
 
-        if self.config_client.other_masters:
-            logger.info(
-                "Found additional masters: %s", self.config_client.other_masters
-            )
+        if self._other_masters:
+            logger.info("Found additional masters: %s", self._other_masters)
 
     async def fetch_state(self) -> None:
         """Fetch the state properties of all objects."""

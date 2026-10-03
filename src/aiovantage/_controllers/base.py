@@ -91,7 +91,10 @@ class Controller(QuerySet[T], EventDispatcher):
 
             # Fetch all objects managed by this controller
             async for obj in ConfigurationInterface.get_objects(
-                self._vantage.config_client, *self.vantage_types, as_type=SystemObject
+                self._vantage.config_client,
+                *self.vantage_types,
+                masters=self._vantage.other_masters,
+                as_type=SystemObject,
             ):
                 obj = cast(T, obj)
 
@@ -161,7 +164,7 @@ class Controller(QuerySet[T], EventDispatcher):
             return
 
         # Start the event stream if it isn't already running
-        event_conn = await self._vantage.event_stream.start()
+        event_conn = await self._vantage.event_stream.start(self._vantage.other_masters)
 
         # When available, we'll use "object" status events (subscribed via
         # the Enhanced Log) because they support a richer set of status properties.

@@ -1,6 +1,6 @@
 import asyncio
 from collections import Counter
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from contextlib import suppress
 from ssl import SSLContext
 from types import TracebackType
@@ -72,6 +72,7 @@ class EventStream(EventDispatcher):
         self._started = False
         self._connection_lock = asyncio.Lock()
         self._command_queue: asyncio.Queue[str] = asyncio.Queue()
+        self._other_masters: list[int] = []
 
         self._status_counts: StatusCounter[str] = StatusCounter(
             on_first_add=self._enable_status,
@@ -101,14 +102,20 @@ class EventStream(EventDispatcher):
         if exc_val:
             raise exc_val
 
-    async def start(self) -> CommandConnection:
-        """Initialize the event stream."""
+    async def start(self, other_masters: Iterable[int] = ()) -> CommandConnection:
+        """Initialize the event stream.
+
+        Args:
+            other_masters: The numbers of other masters in the system, so their
+                objects are included when subscribing to the enhanced log.
+        """
         async with self._start_lock:
             # Get the connection to the Host Command service
             conn = await self._get_connection()
 
             # Start the event stream tasks
             if not self._started:
+                self._other_masters = list(other_masters)
                 self._tasks.append(asyncio.create_task(self._message_handler()))
                 self._tasks.append(asyncio.create_task(self._command_handler()))
                 self._tasks.append(asyncio.create_task(self._keepalive()))
@@ -318,14 +325,19 @@ class EventStream(EventDispatcher):
                 self._enable_status(category)
 
     def _enable_enhanced_log(self, log_type: str) -> None:
-        # Enable enhanced logging on the controller for a particular log type.
-        self._queue_command("ELAGG 1 ON")
-        self._queue_command(f"ELENABLE 1 {log_type} ON")
+        # Have the connected master collect the log, and every master write to it.
+        # A master number defaults to the connected one when left out.
+        self._queue_command("ELAGG ON")
+        self._queue_command(f"ELENABLE {log_type} ON")
+        for master in self._other_masters:
+            self._queue_command(f"ELENABLE {master} {log_type} ON")
         self._queue_command(f"ELLOG {log_type} ON")
 
     def _disable_enhanced_log(self, log_type: str) -> None:
-        # Disable enhanced logging on the controller for a particular log type.
-        self._queue_command(f"ELENABLE 1 {log_type} OFF")
+        # Stop every master writing to the log for a particular log type.
+        self._queue_command(f"ELENABLE {log_type} OFF")
+        for master in self._other_masters:
+            self._queue_command(f"ELENABLE {master} {log_type} OFF")
         self._queue_command(f"ELLOG {log_type} OFF")
 
     def _resubscribe(self) -> None:

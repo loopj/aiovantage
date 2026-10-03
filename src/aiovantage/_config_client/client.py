@@ -75,9 +75,6 @@ class ConfigClient:
         self._connection_lock = asyncio.Lock()
         self._request_lock = asyncio.Lock()
 
-        self.other_masters: list[int] = []
-        """Numbers of the other masters in the system, beyond the one connected to."""
-
         # Default to pascal case for element and attribute names
         xml_context = XmlContext(
             element_name_generator=_pascal_case_preserve,

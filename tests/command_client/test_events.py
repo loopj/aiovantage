@@ -94,3 +94,40 @@ async def test_message_handler_reads_with_a_timeout_and_drops_a_dead_link() -> N
     # The socket is closed so the retry opens a fresh one rather than flapping
     assert conn.closed
     assert [type(event) for event in events] == [Connected, Disconnected]
+
+
+async def test_subscribe_enhanced_log_queues_commands_for_the_connected_master() -> (
+    None
+):
+    stream = EventStream("fake")
+
+    stream.subscribe_enhanced_log(lambda _: None, "STATUS")
+
+    # Left unnumbered, the commands apply to the master we are connected to
+    assert queued(stream) == ["ELAGG ON", "ELENABLE STATUS ON", "ELLOG STATUS ON"]
+
+
+async def test_subscribe_enhanced_log_enables_logging_on_every_master() -> None:
+    stream = EventStream("fake")
+    stream._connection = FakeCommandConnection([])  # type: ignore[assignment]
+    await stream.start(other_masters=[2, 3])
+
+    unsubscribe = stream.subscribe_enhanced_log(lambda _: None, "STATUS")
+    enabled = queued(stream)
+    unsubscribe()
+    stream.stop()
+
+    # Only the connected master collects the log, but every master writes to it
+    assert enabled == [
+        "ELAGG ON",
+        "ELENABLE STATUS ON",
+        "ELENABLE 2 STATUS ON",
+        "ELENABLE 3 STATUS ON",
+        "ELLOG STATUS ON",
+    ]
+    assert queued(stream) == [
+        "ELENABLE STATUS OFF",
+        "ELENABLE 2 STATUS OFF",
+        "ELENABLE 3 STATUS OFF",
+        "ELLOG STATUS OFF",
+    ]
