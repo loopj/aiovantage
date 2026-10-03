@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aiovantage"
-version = "0.22.8"
+version = "0.23.0"
 description = "Interact with and control Vantage InFusion home automation controllers."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -85,7 +85,7 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.bumpver]
-current_version = "0.22.8"
+current_version = "0.23.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "Bump version {old_version} -> {new_version}"
 commit = true
