@@ -173,10 +173,7 @@ class CommandClient:
                     if response_line.startswith("R:"):
                         break
             except ClientConnectionError:
-                # A read timeout or connection error leaves the socket in an unknown
-                # state; close it so the next request reconnects with a fresh socket
-                # instead of reusing a dead one (which would keep timing out until the
-                # OS finally gives up on the TCP connection, ~15 min later).
+                # Close the socket so the next request opens a fresh one rather than reusing it
                 self._connection.close()
                 raise
 

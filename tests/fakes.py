@@ -27,20 +27,24 @@ class FakeCommandConnection:
     """Stand-in for CommandConnection that reads lines from a script.
 
     Args:
-        lines: The inbound lines, each returned by one readuntil() call.
+        lines: The inbound lines, each returned by one readuntil() call, or an
+            exception to raise in place of a line.
     """
 
     host = "fake"
     port = 3001
 
-    def __init__(self, lines: list[str]) -> None:
+    def __init__(self, lines: list[str | Exception]) -> None:
         """Initialize the fake with scripted inbound lines."""
         self.lines = list(lines)
         self.written: list[str] = []
+        self.timeouts: list[float | None] = []
+        self.opens = 0
         self.closed = True
 
     async def open(self) -> None:
         """Mark the connection open."""
+        self.opens += 1
         self.closed = False
 
     def close(self) -> None:
@@ -56,7 +60,11 @@ class FakeCommandConnection:
 
     async def readuntil(self, separator: bytes, timeout: float | None = None) -> str:
         """Return the next scripted line, terminated the way the controller sends it."""
-        return self.lines.pop(0) + "\r\n"
+        self.timeouts.append(timeout)
+        line = self.lines.pop(0)
+        if isinstance(line, Exception):
+            raise line
+        return line + "\r\n"
 
 
 class FakeConfigConnection:
