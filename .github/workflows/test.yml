@@ -1,4 +1,4 @@
-name: Lint
+name: Test
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 jobs:
-  pre-commit:
+  pytest:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -15,7 +15,6 @@ jobs:
           - "3.11"
           - "3.12"
           - "3.13"
-          - "3.14"
 
     steps:
       - uses: actions/checkout@v7
@@ -29,18 +28,5 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras --dev
 
-      - name: Add venv to PATH
-        run: echo "$PWD/.venv/bin" >> $GITHUB_PATH
-
-      - name: Run ruff linter
-        uses: astral-sh/ruff-action@v3
-        with:
-          args: check
-
-      - name: Run ruff formatter
-        uses: astral-sh/ruff-action@v3
-        with:
-          args: format --check
-
-      - name: Run pyright
-        run: uv run pyright
+      - name: Run tests
+        run: uv run pytest

@@ -22,8 +22,19 @@ class GetInterfaces:
 class GetSysInfo:
     @dataclass
     class SysInfo:
+        @dataclass
+        class Peers:
+            # Other master numbers, running the application or still in the bootloader
+            app: list[int] = field(
+                default_factory=list[int], metadata={"name": "App", "type": "Element"}
+            )
+            boot: list[int] = field(
+                default_factory=list[int], metadata={"name": "Boot", "type": "Element"}
+            )
+
         master_number: int
         serial_number: int
+        peers: Peers | None = None
 
     call = None
     result: SysInfo | None = field(
