@@ -77,6 +77,10 @@ class Vantage:
         """
         # Set up clients
         self._host = host
+        self._master_number: int | None = None
+        self._peers: list[int] = []
+        self._discovery_lock = asyncio.Lock()
+        self._discovered = False
         self._config_client = ConfigClient(
             host,
             username,
@@ -183,6 +187,16 @@ class Vantage:
     def event_stream(self) -> EventStream:
         """The event stream instance."""
         return self._event_stream
+
+    @property
+    def master_number(self) -> int | None:
+        """Master number of the master the clients connect to, None before discover_masters."""
+        return self._master_number
+
+    @property
+    def peers(self) -> list[int]:
+        """Master numbers of the other running masters, known after discover_masters."""
+        return self._peers
 
     @property
     def anemo_sensors(self) -> AnemoSensorsController:
@@ -331,15 +345,19 @@ class Vantage:
         )
 
     async def discover_masters(self) -> None:
-        """Find the other masters in the system, so their objects are fetched too."""
-        # The connected master lists its running peers in its system info
-        sys_info = await IntrospectionInterface.get_sys_info(self.config_client)
-        self.config_client.other_masters = sys_info.peers.app if sys_info.peers else []
+        """Find the masters in the system. Later calls return at once."""
+        async with self._discovery_lock:
+            if self._discovered:
+                return
 
-        if self.config_client.other_masters:
-            logger.info(
-                "Found additional masters: %s", self.config_client.other_masters
-            )
+            # Ask the introspection interface for system information
+            sys_info = await IntrospectionInterface.get_sys_info(self.config_client)
+            self._master_number = sys_info.master_number
+            self._peers = sys_info.peers.app if sys_info.peers else []
+            self._discovered = True
+
+            if self._peers:
+                logger.info("Found additional masters: %s", self._peers)
 
     async def fetch_state(self) -> None:
         """Fetch the state properties of all objects."""

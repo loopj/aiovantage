@@ -102,3 +102,34 @@ class FakeConfigConnection:
     async def readuntil(self, separator: bytes, timeout: float | None = None) -> str:
         """Return the next scripted reply."""
         return self.replies.pop(0)
+
+
+SYS_INFO_REPLY = (
+    "<IIntrospection><GetSysInfo><return><SysInfo>"
+    "<MasterNumber>1</MasterNumber><SerialNumber>5607848</SerialNumber>"
+    "<Peers><App>2</App><Boot>3</Boot></Peers>"
+    "</SysInfo></return></GetSysInfo></IIntrospection>\n"
+)
+"""A GetSysInfo reply from master 1, with master 2 running and master 3 booting."""
+
+CLOSE_FILTER_REPLY = "<IConfiguration><CloseFilter><return>true</return></CloseFilter></IConfiguration>\n"
+"""A CloseFilter reply."""
+
+
+def open_filter_reply(handle: int) -> str:
+    """Build an OpenFilter reply for the given handle."""
+    return f"<IConfiguration><OpenFilter><return>{handle}</return></OpenFilter></IConfiguration>\n"
+
+
+def results_reply(*vids: int) -> str:
+    """Build a GetFilterResults reply holding one Area per vid, or an empty page."""
+    objects = "".join(
+        f'<Object VID="{vid}"><Area VID="{vid}" Master="1"><Name>Area {vid}</Name>'
+        f"<Model/><Note/><AreaType>Room</AreaType></Area></Object>"
+        for vid in vids
+    )
+    return (
+        "<IConfiguration><GetFilterResults><return>"
+        f"{objects}"
+        "</return></GetFilterResults></IConfiguration>\n"
+    )

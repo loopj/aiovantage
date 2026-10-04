@@ -89,7 +89,7 @@ class ConfigurationInterface:
             client: A config client instance
             *object_types: The type names of the objects to fetch, eg. "Area", "Load", "Keypad"
             xpath: An optional xpath to filter the results by, eg. "/Load", "/*[@VID='12']"
-            master: The number of the master to address, defaults to the connected one
+            master: The master number to address, defaults to the connected master
 
         Returns:
             The handle of the opened filter
@@ -116,7 +116,7 @@ class ConfigurationInterface:
             h_filter: The handle of the filter to fetch results for
             count: The maximum number of results to fetch
             whole_object: Whether to fetch the whole object or a compact representation
-            master: The number of the master the filter was opened on
+            master: The master number the filter was opened on
 
         Returns:
             A list of Vantage objects
@@ -137,7 +137,7 @@ class ConfigurationInterface:
         Args:
             client: A config client instance
             h_filter: The handle of the filter to close
-            master: The number of the master the filter was opened on
+            master: The master number the filter was opened on
 
         Returns:
             True if the filter was closed successfully, False otherwise
@@ -161,13 +161,20 @@ class ConfigurationInterface:
     @overload
     @staticmethod
     def get_objects(
-        client: ConfigClient, *types: str, xpath: str | None = None, as_type: type[T]
+        client: ConfigClient,
+        *types: str,
+        xpath: str | None = None,
+        master: int | None = None,
+        as_type: type[T],
     ) -> AsyncIterator[T]: ...
 
     @overload
     @staticmethod
     def get_objects(
-        client: ConfigClient, *types: str, xpath: str | None = None
+        client: ConfigClient,
+        *types: str,
+        xpath: str | None = None,
+        master: int | None = None,
     ) -> AsyncIterator[Any]: ...
 
     @staticmethod
@@ -175,6 +182,7 @@ class ConfigurationInterface:
         client: ConfigClient,
         *types: str,
         xpath: str | None = None,
+        master: int | None = None,
         as_type: type[T] | None = None,
     ) -> AsyncIterator[T | Any]:
         """Get Vantage objects, optionally filtered by a type and/or an XPath.
@@ -186,33 +194,26 @@ class ConfigurationInterface:
             client: A config client instance
             *types: The type names of the objects to fetch, eg. "Area", "Load", "Keypad"
             xpath: An optional xpath to filter the results by, eg. "/Load", "/*[@VID='12']"
+            master: The master number to fetch from, defaults to the connected master
             as_type: The type to verify the objects as
 
         Yields:
             A stream of Vantage objects
         """
-        # Each master only returns its own objects, so query every known master
-        seen: set[int] = set()
-        for master in (None, *client.other_masters):
-            # Open the filter
-            handle = await ConfigurationInterface.open_filter(
-                client, *types, xpath=xpath, master=master
-            )
+        # Open the filter
+        handle = await ConfigurationInterface.open_filter(
+            client, *types, xpath=xpath, master=master
+        )
 
-            try:
-                # Fetch the results
-                while objects := await ConfigurationInterface.get_filter_results(
-                    client, handle, master=master
-                ):
-                    for obj in objects:
-                        if obj.vid in seen:
-                            continue
-                        seen.add(obj.vid)
-                        if as_type is None or isinstance(obj.obj, as_type):
-                            yield obj.obj
-            finally:
-                # Close the filter
-                with suppress(ClientError):
-                    await ConfigurationInterface.close_filter(
-                        client, handle, master=master
-                    )
+        try:
+            # Fetch the results
+            while objects := await ConfigurationInterface.get_filter_results(
+                client, handle, master=master
+            ):
+                for obj in objects:
+                    if as_type is None or isinstance(obj.obj, as_type):
+                        yield obj.obj
+        finally:
+            # Close the filter
+            with suppress(ClientError):
+                await ConfigurationInterface.close_filter(client, handle, master=master)

@@ -1,6 +1,6 @@
 import asyncio
 from collections import Counter
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from contextlib import suppress
 from ssl import SSLContext
 from types import TracebackType
@@ -78,9 +78,11 @@ class EventStream(EventDispatcher):
             on_last_remove=self._disable_status,
         )
 
-        self._enhanced_log_counts: StatusCounter[str] = StatusCounter(
-            on_first_add=self._enable_enhanced_log,
-            on_last_remove=self._disable_enhanced_log,
+        self._enhanced_log_counts: StatusCounter[tuple[str, int | None]] = (
+            StatusCounter(
+                on_first_add=self._enable_enhanced_log,
+                on_last_remove=self._disable_enhanced_log,
+            )
         )
 
         EventDispatcher.__init__(self)
@@ -180,25 +182,32 @@ class EventStream(EventDispatcher):
         return unsubscribe_status
 
     def subscribe_enhanced_log(
-        self, callback: Callable[[EnhancedLogReceived], None], *log_types: str
+        self,
+        callback: Callable[[EnhancedLogReceived], None],
+        *log_types: str,
+        peers: Iterable[int] = (),
     ) -> Callable[[], None]:
         """Subscribe to "Enhanced Log" events from the Host Command service.
 
         Args:
             callback: The callback to invoke when an event is received.
             log_types: The event log type or types to subscribe to.
+            peers: Master numbers of the peers whose objects should be logged too.
 
         Returns:
             A function that can be used to unsubscribe from log events.
         """
-        # Enable this log type if it's not already enabled
-        self._enhanced_log_counts.update(log_types)
+        # Enable each log type on the connected master first, then on each peer
+        keys = [
+            (log_type, master) for master in (None, *peers) for log_type in log_types
+        ]
+        self._enhanced_log_counts.update(keys)
 
         # Subscribe, and return a wrapped unsubscribe callback
         off = self.subscribe(EnhancedLogReceived, callback)
 
         def unsubscribe_enhanced_log() -> None:
-            self._enhanced_log_counts.subtract(log_types)
+            self._enhanced_log_counts.subtract(keys)
             off()
 
         return unsubscribe_enhanced_log
@@ -317,16 +326,22 @@ class EventStream(EventDispatcher):
             if count > 0:
                 self._enable_status(category)
 
-    def _enable_enhanced_log(self, log_type: str) -> None:
-        # Enable enhanced logging on the controller for a particular log type.
-        self._queue_command("ELAGG 1 ON")
-        self._queue_command(f"ELENABLE 1 {log_type} ON")
-        self._queue_command(f"ELLOG {log_type} ON")
+    def _enable_enhanced_log(self, key: tuple[str, int | None]) -> None:
+        # Have a master write a log type, which the connected master also collects.
+        log_type, master = key
+        if master is None:
+            # ELAGG and ELENABLE outlive the session, only ELLOG is ours to turn off
+            self._queue_command("ELAGG ON")
+            self._queue_command(f"ELENABLE {log_type} ON")
+            self._queue_command(f"ELLOG {log_type} ON")
+        else:
+            self._queue_command(f"ELENABLE {master} {log_type} ON")
 
-    def _disable_enhanced_log(self, log_type: str) -> None:
-        # Disable enhanced logging on the controller for a particular log type.
-        self._queue_command(f"ELENABLE 1 {log_type} OFF")
-        self._queue_command(f"ELLOG {log_type} OFF")
+    def _disable_enhanced_log(self, key: tuple[str, int | None]) -> None:
+        # Stop receiving a log type, leaving the masters writing it for other clients.
+        log_type, master = key
+        if master is None:
+            self._queue_command(f"ELLOG {log_type} OFF")
 
     def _resubscribe(self) -> None:
         # Re-subscribe to events after a reconnection.
@@ -334,9 +349,9 @@ class EventStream(EventDispatcher):
             if count > 0:
                 self._enable_status(category)
 
-        for log_type, count in self._enhanced_log_counts.items():
+        for key, count in self._enhanced_log_counts.items():
             if count > 0:
-                self._enable_enhanced_log(log_type)
+                self._enable_enhanced_log(key)
 
 
 class StatusCounter(Counter[T]):
