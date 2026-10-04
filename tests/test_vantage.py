@@ -1,23 +1,19 @@
 """Tests for system discovery in the Vantage client."""
 
 from aiovantage import Vantage
-from tests.fakes import FakeConfigConnection
-
-SYS_INFO_REPLY = (
-    "<IIntrospection><GetSysInfo><return><SysInfo>"
-    "<MasterNumber>1</MasterNumber><SerialNumber>5607848</SerialNumber>"
-    "<Peers><App>2</App><Boot>3</Boot></Peers>"
-    "</SysInfo></return></GetSysInfo></IIntrospection>\n"
-)
+from tests.fakes import SYS_INFO_REPLY, FakeConfigConnection
 
 
-async def test_discover_masters_addresses_running_peers() -> None:
+async def test_discover_masters_caches_the_system_shape() -> None:
     vantage = Vantage("fake")
-    vantage.config_client._connection = FakeConfigConnection(  # type: ignore[assignment]
-        [SYS_INFO_REPLY]
-    )
+    conn = FakeConfigConnection([SYS_INFO_REPLY])
+    vantage.config_client._connection = conn  # type: ignore[assignment]
 
     await vantage.discover_masters()
+    await vantage.discover_masters()
 
+    assert vantage.master_number == 1
     # A peer still in its bootloader cannot answer config requests
-    assert vantage.config_client.other_masters == [2]
+    assert vantage.peers == [2]
+    # Discovery happens once, later calls return at once
+    assert len(conn.written) == 1

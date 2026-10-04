@@ -89,40 +89,51 @@ class Controller(QuerySet[T], EventDispatcher):
             prev_ids = set(self._objects.keys())
             cur_ids: set[int] = set()
 
-            # Fetch all objects managed by this controller
-            async for obj in ConfigurationInterface.get_objects(
-                self._vantage.config_client, *self.vantage_types, as_type=SystemObject
-            ):
-                obj = cast(T, obj)
+            # Discover if this is a multi-master system
+            await self._vantage.discover_masters()
 
-                if obj.vid in prev_ids:
-                    # This is an existing object.
-                    existing_obj = self._objects[obj.vid]
+            # Fetch all objects managed by this controller, iterating over all masters
+            for master in (self._vantage.master_number, *self._vantage.peers):
+                async for obj in ConfigurationInterface.get_objects(
+                    self._vantage.config_client,
+                    *self.vantage_types,
+                    master=master,
+                    as_type=SystemObject,
+                ):
+                    obj = cast(T, obj)
 
-                    # Check if any attributes have changed and update them
-                    attrs_changed: list[str] = []
-                    for f in fields(type(obj)):
-                        if hasattr(existing_obj, f.name):
-                            new_value = getattr(obj, f.name)
-                            if getattr(existing_obj, f.name) != new_value:
-                                setattr(existing_obj, f.name, new_value)
-                                attrs_changed.append(f.name)
+                    # Shared objects come back from every master
+                    if obj.vid in cur_ids:
+                        continue
 
-                    # Notify subscribers if any attributes changed
-                    if attrs_changed:
-                        self.emit(ObjectUpdated(existing_obj, attrs_changed))
-                else:
-                    # This is a new object.
+                    if obj.vid in prev_ids:
+                        # This is an existing object.
+                        existing_obj = self._objects[obj.vid]
 
-                    # Attach the command client to the object
-                    obj.command_client = self._vantage.command_client
+                        # Check if any attributes have changed and update them
+                        attrs_changed: list[str] = []
+                        for f in fields(type(obj)):
+                            if hasattr(existing_obj, f.name):
+                                new_value = getattr(obj, f.name)
+                                if getattr(existing_obj, f.name) != new_value:
+                                    setattr(existing_obj, f.name, new_value)
+                                    attrs_changed.append(f.name)
 
-                    # Add it to the controller and notify subscribers
-                    self._objects[obj.vid] = obj
-                    self.emit(ObjectAdded(obj))
+                        # Notify subscribers if any attributes changed
+                        if attrs_changed:
+                            self.emit(ObjectUpdated(existing_obj, attrs_changed))
+                    else:
+                        # This is a new object.
 
-                # Keep track of which objects we've seen
-                cur_ids.add(obj.vid)
+                        # Attach the command client to the object
+                        obj.command_client = self._vantage.command_client
+
+                        # Add it to the controller and notify subscribers
+                        self._objects[obj.vid] = obj
+                        self.emit(ObjectAdded(obj))
+
+                    # Keep track of which objects we've seen
+                    cur_ids.add(obj.vid)
 
             # Handle objects that were removed
             for vid in prev_ids - cur_ids:
@@ -171,7 +182,10 @@ class Controller(QuerySet[T], EventDispatcher):
         if event_conn.supports_enhanced_log and not self.force_category_status:
             # Subscribe to "object status" events from the Enhanced Log.
             status_unsub = self._vantage.event_stream.subscribe_enhanced_log(
-                self._handle_enhanced_log_event, "STATUS", "STATUSEX"
+                self._handle_enhanced_log_event,
+                "STATUS",
+                "STATUSEX",
+                peers=self._vantage.peers,
             )
 
             self._status_type = StatusType.OBJECT

@@ -94,3 +94,47 @@ async def test_message_handler_reads_with_a_timeout_and_drops_a_dead_link() -> N
     # The socket is closed so the retry opens a fresh one rather than flapping
     assert conn.closed
     assert [type(event) for event in events] == [Connected, Disconnected]
+
+
+async def test_subscribe_enhanced_log_queues_commands_for_the_master_at_host() -> None:
+    stream = EventStream("fake")
+
+    unsubscribe = stream.subscribe_enhanced_log(lambda _: None, "STATUS")
+    enabled = queued(stream)
+    unsubscribe()
+
+    # Left unnumbered, the commands apply to the connected master
+    assert enabled == ["ELAGG ON", "ELENABLE STATUS ON", "ELLOG STATUS ON"]
+    # Collecting and writing outlive the session, only the registration is dropped
+    assert queued(stream) == ["ELLOG STATUS OFF"]
+
+
+async def test_subscribe_enhanced_log_enables_writing_on_each_peer() -> None:
+    stream = EventStream("fake")
+
+    stream.subscribe_enhanced_log(lambda _: None, "STATUS", peers=[2, 3])
+
+    # The connected master collects first, then every peer writes to it
+    assert queued(stream) == [
+        "ELAGG ON",
+        "ELENABLE STATUS ON",
+        "ELLOG STATUS ON",
+        "ELENABLE 2 STATUS ON",
+        "ELENABLE 3 STATUS ON",
+    ]
+
+
+async def test_subscribe_enhanced_log_queues_each_command_once() -> None:
+    stream = EventStream("fake")
+
+    stream.subscribe_enhanced_log(lambda _: None, "STATUS", peers=[2])
+    queued(stream)
+    stream.subscribe_enhanced_log(lambda _: None, "STATUS", "STATUSEX", peers=[2])
+
+    # Only the log type the second subscriber added is new
+    assert queued(stream) == [
+        "ELAGG ON",
+        "ELENABLE STATUSEX ON",
+        "ELLOG STATUSEX ON",
+        "ELENABLE 2 STATUSEX ON",
+    ]
