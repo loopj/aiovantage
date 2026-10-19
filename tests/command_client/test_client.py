@@ -1,5 +1,7 @@
 """Tests for sending commands and reading replies in CommandClient."""
 
+import asyncio
+
 import pytest
 
 from aiovantage.command_client import CommandClient, CommandResponse
@@ -12,7 +14,9 @@ from aiovantage.errors import (
 from tests.fakes import FakeCommandConnection
 
 
-def make_client(*lines: str | Exception) -> tuple[CommandClient, FakeCommandConnection]:
+def make_client(
+    *lines: str | BaseException,
+) -> tuple[CommandClient, FakeCommandConnection]:
     """Build a client whose connection answers with the given inbound lines."""
     client = CommandClient("fake")
     conn = FakeCommandConnection(list(lines))
@@ -74,5 +78,18 @@ async def test_raw_request_closes_connection_on_timeout_and_reopens() -> None:
     assert conn.closed
 
     # The next request opens a fresh connection instead of reusing the dead one
+    assert await client.raw_request("VERSION") == ["R:VERSION 4.9.0.2"]
+    assert conn.opens == 2
+
+
+async def test_raw_request_closes_connection_on_cancel_and_reopens() -> None:
+    client, conn = make_client(asyncio.CancelledError(), "R:VERSION 4.9.0.2")
+
+    # A canceled read leaves its reply on the socket, so it is dropped
+    with pytest.raises(asyncio.CancelledError):
+        await client.raw_request("VERSION")
+    assert conn.closed
+
+    # The next request opens a fresh connection instead of reading the stale reply
     assert await client.raw_request("VERSION") == ["R:VERSION 4.9.0.2"]
     assert conn.opens == 2

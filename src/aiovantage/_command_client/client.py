@@ -172,7 +172,7 @@ class CommandClient:
                     response_lines.append(response_line)
                     if response_line.startswith("R:"):
                         break
-            except ClientConnectionError:
+            except (ClientConnectionError, asyncio.CancelledError):
                 # Close the socket so the next request opens a fresh one rather than reusing it
                 self._connection.close()
                 raise
