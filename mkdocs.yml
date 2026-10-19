@@ -6,6 +6,7 @@ repo_url: https://github.com/loopj/aiovantage
 repo_name: "loopj/aiovantage"
 edit_uri: "blob/main/docs"
 watch: [mkdocs.yml, README.md, CONTRIBUTING.md, src/aiovantage]
+exclude_docs: requirements.txt
 
 nav:
   - Overview: index.md
