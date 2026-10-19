@@ -34,7 +34,7 @@ class FakeCommandConnection:
     host = "fake"
     port = 3001
 
-    def __init__(self, lines: list[str | Exception]) -> None:
+    def __init__(self, lines: list[str | BaseException]) -> None:
         """Initialize the fake with scripted inbound lines."""
         self.lines = list(lines)
         self.written: list[str] = []
@@ -62,7 +62,7 @@ class FakeCommandConnection:
         """Return the next scripted line, terminated the way the controller sends it."""
         self.timeouts.append(timeout)
         line = self.lines.pop(0)
-        if isinstance(line, Exception):
+        if isinstance(line, BaseException):
             raise line
         return line + "\r\n"
 
