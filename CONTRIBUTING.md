@@ -91,24 +91,14 @@ uv run ruff format
 
 ## Build a package
 
-To build the package, first update the version number:
-
-```bash
-bumpver update --patch # or --major --minor
-```
-
-Then build the package:
-
-```bash
-uv build
-```
+To build the package locally, run `uv build`.
 
 ## Publish a release
 
-To publish the package to PyPi:
+First, update the version number. This commits the new version, tags it and pushes both to GitHub.
 
 ```bash
-uv publish
+uv run bumpver update --patch # or --major --minor
 ```
 
-Don't forget to [create a release on GitHub](https://github.com/loopj/aiovantage/releases/new)!
+Then [create a release on GitHub](https://github.com/loopj/aiovantage/releases/new) for the new tag. Publishing the release builds the package and uploads it to PyPI automatically.
