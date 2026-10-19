@@ -1,4 +1,4 @@
-name: ci 
+name: docs
 on:
   push:
     branches:
@@ -7,7 +7,7 @@ on:
 permissions:
   contents: write
 jobs:
-  deploy:
+  deploy-docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
