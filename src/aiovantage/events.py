@@ -5,6 +5,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
+from aiovantage._log_types import TriggerType
+
 T = TypeVar("T")
 
 __all__ = [
@@ -13,6 +15,7 @@ __all__ = [
     "Reconnected",
     "StatusReceived",
     "EnhancedLogReceived",
+    "TriggerReceived",
     "ObjectAdded",
     "ObjectUpdated",
     "ObjectDeleted",
@@ -91,6 +94,56 @@ class EnhancedLogReceived:
 
     log: str
     """The enhanced log message."""
+
+
+@dataclass
+class TriggerReceived:
+    """An object triggering a task, from the "EVENT" enhanced log.
+
+    Passed to the callbacks of `EventStream.subscribe_triggers`, rather than emitted.
+    """
+
+    source: int
+    """The VID of the object that fired, eg. a button, timer or sensor."""
+
+    destination: int
+    """The VID of the task that was started."""
+
+    event: int
+    """The type of the trigger, see `aiovantage.config_client.TriggerType`."""
+
+    param1: int
+    """The first trigger parameter."""
+
+    param2: int
+    """The second trigger parameter."""
+
+    @classmethod
+    def parse(cls, log: str) -> "TriggerReceived | None":
+        """Parse an "EVENT" enhanced log of the form "<src> <dst> <event> <p1> <p2>".
+
+        Enhanced logs carry no type tag, so any five-integer log parses as a trigger.
+        Only pass it logs from a stream that writes no other all-numeric log type.
+
+        Returns:
+            The trigger, or None if the log is not a trigger log.
+        """
+        tokens = log.split()
+        if len(tokens) != 5:
+            return None
+
+        try:
+            return cls(*(int(token) for token in tokens))
+        except ValueError:
+            return None
+
+    @property
+    def trigger_type(self) -> TriggerType | None:
+        """The type of the trigger, if known."""
+        try:
+            return TriggerType(self.event)
+        except ValueError:
+            return None
 
 
 @dataclass
