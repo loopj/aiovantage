@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
-from aiovantage._log_types import TriggerType
+from aiovantage._log_types import SysLogType, TriggerType
 
 T = TypeVar("T")
 
@@ -16,6 +16,7 @@ __all__ = [
     "StatusReceived",
     "EnhancedLogReceived",
     "TriggerReceived",
+    "SystemLogReceived",
     "ObjectAdded",
     "ObjectUpdated",
     "ObjectDeleted",
@@ -147,6 +148,54 @@ class TriggerReceived:
 
 
 @dataclass
+class SystemLogReceived:
+    """A system log, from the "SYSTEM" enhanced log.
+
+    Passed to the callbacks of `EventStream.subscribe_system_log`, rather than emitted.
+    """
+
+    type: int
+    """The type of the log, see `aiovantage.config_client.SysLogType`."""
+
+    source: str
+    """The source of the log, eg. "Controller"."""
+
+    message: str
+    """The log message."""
+
+    @classmethod
+    def parse(cls, log: str) -> "SystemLogReceived | None":
+        """Parse a "SYSTEM" enhanced log of the form "<type> <source> <message>".
+
+        The source is taken to be one word, as the controller writes it, eg.
+        "Controller".
+
+        Returns:
+            The system log, or None if the log is not a system log.
+        """
+        tokens = log.split(maxsplit=2)
+        if len(tokens) != 3:
+            return None
+
+        log_type, source, message = tokens
+
+        # Enhanced logs carry no type tag, so tell them apart by shape: object
+        # status logs carry an "Interface.Method", and trigger logs are all numeric
+        if not log_type.isdecimal() or "." in source or _is_int(source):
+            return None
+
+        return cls(int(log_type), source, message.strip())
+
+    @property
+    def log_type(self) -> SysLogType | None:
+        """The type of the log, if known."""
+        try:
+            return SysLogType(self.type)
+        except ValueError:
+            return None
+
+
+@dataclass
 class ObjectAdded(Generic[T]):
     """Event emitted when an object is added to a controller."""
 
@@ -171,3 +220,11 @@ class ObjectDeleted(Generic[T]):
 
     obj: T
     """The object that the event is related to."""
+
+
+def _is_int(token: str) -> bool:
+    try:
+        int(token)
+    except ValueError:
+        return False
+    return True

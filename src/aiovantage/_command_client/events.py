@@ -17,6 +17,7 @@ from aiovantage.events import (
     EventDispatcher,
     Reconnected,
     StatusReceived,
+    SystemLogReceived,
     TriggerReceived,
 )
 
@@ -239,6 +240,32 @@ class EventStream(EventDispatcher):
                 callback(trigger)
 
         return self.subscribe_enhanced_log(on_enhanced_log, "EVENT", peers=peers)
+
+    def subscribe_system_log(
+        self,
+        callback: Callable[[SystemLogReceived], None],
+        *,
+        peers: Iterable[int] = (),
+    ) -> Callable[[], None]:
+        """Subscribe to the system log, eg. modules going offline or losing a line feed.
+
+        Subscribing turns on the controller's "SYSTEM" enhanced log, which stays
+        written after the client disconnects.
+
+        Args:
+            callback: The callback to invoke when a system log is received.
+            peers: Master numbers of the peers whose system logs should be sent too.
+
+        Returns:
+            A function that can be used to unsubscribe from the system log.
+        """
+
+        # Other enhanced log types share the stream, so only pass on system logs
+        def on_enhanced_log(event: EnhancedLogReceived) -> None:
+            if system_log := SystemLogReceived.parse(event.log):
+                callback(system_log)
+
+        return self.subscribe_enhanced_log(on_enhanced_log, "SYSTEM", peers=peers)
 
     async def _message_handler(self) -> None:
         # Handle incoming messages from the Host Command service.
