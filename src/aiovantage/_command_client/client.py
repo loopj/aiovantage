@@ -11,6 +11,8 @@ from typing_extensions import Self
 from aiovantage._logger import logger
 from aiovantage.errors import (
     ClientConnectionError,
+    ClientError,
+    ClientResponseError,
     CommandError,
     raise_command_error,
 )
@@ -139,10 +141,12 @@ class CommandClient:
         Returns:
             The response lines received from the server.
         """
-        conn = await self._get_connection()
-
-        # Send the command
         async with self._command_lock:
+            # Open the connection if it's closed, once any earlier command is done
+            # with it, since a failed command closes it
+            conn = await self._get_connection()
+
+            # Send the command
             try:
                 logger.debug("Sending command: %s", request)
                 await conn.write(f"{request}\n")
@@ -172,8 +176,9 @@ class CommandClient:
                     response_lines.append(response_line)
                     if response_line.startswith("R:"):
                         break
-            except (ClientConnectionError, asyncio.CancelledError):
-                # Close the socket so the next request opens a fresh one rather than reusing it
+            except (ClientConnectionError, ClientResponseError, asyncio.CancelledError):
+                # Close the socket so the next request opens a fresh one rather than reading
+                # what is left of this reply
                 self._connection.close()
                 raise
 
@@ -185,12 +190,20 @@ class CommandClient:
         """Get a connection to the Host Command service."""
         async with self._connection_lock:
             if self._connection.closed:
-                # Open a new connection
-                await self._connection.open()
+                try:
+                    # Open a new connection
+                    await self._connection.open()
 
-                # Authenticate the new connection if we have credentials
-                if self._username and self._password:
-                    await self._connection.authenticate(self._username, self._password)
+                    # Authenticate the new connection if we have credentials
+                    if self._username and self._password:
+                        await self._connection.authenticate(
+                            self._username, self._password
+                        )
+                except (ClientError, asyncio.CancelledError):
+                    # Close a connection that failed part way through setup, so the
+                    # next request starts over rather than using it unauthenticated
+                    self._connection.close()
+                    raise
 
                 logger.info(
                     "Connected to command client at %s:%d",

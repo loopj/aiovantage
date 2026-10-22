@@ -2,16 +2,18 @@
 
 import asyncio
 
+import pytest
+
 from aiovantage._command_client.events import KEEPALIVE_INTERVAL, READ_TIMEOUT
 from aiovantage.command_client import EventStream
-from aiovantage.errors import ClientTimeoutError
+from aiovantage.errors import ClientResponseError, ClientTimeoutError
 from aiovantage.events import (
     Connected,
     Disconnected,
     EnhancedLogReceived,
     StatusReceived,
 )
-from tests.fakes import FakeCommandConnection
+from tests.fakes import FakeCommandConnection, UnreadableLoginConnection
 
 
 def feed(stream: EventStream, line: str) -> None:
@@ -94,6 +96,53 @@ async def test_message_handler_reads_with_a_timeout_and_drops_a_dead_link() -> N
     # The socket is closed so the retry opens a fresh one rather than flapping
     assert conn.closed
     assert [type(event) for event in events] == [Connected, Disconnected]
+
+
+async def test_message_handler_skips_an_unreadable_line() -> None:
+    stream = EventStream("fake")
+    conn = FakeCommandConnection([ClientResponseError(), "S:LOAD 5 50.000"])
+    stream._connection = conn  # type: ignore[assignment]
+    events: list[object] = []
+    stream.subscribe(StatusReceived, events.append)
+    stream.subscribe(Disconnected, events.append)
+
+    task = asyncio.create_task(stream._message_handler())  # type: ignore[reportPrivateUsage]
+    await asyncio.sleep(0.05)
+
+    # The line after the unreadable one is still read, on the same connection, and
+    # the handler goes on waiting for more
+    assert not task.done()
+    task.cancel()
+    assert [type(event) for event in events] == [StatusReceived]
+    assert conn.opens == 1
+
+
+async def test_message_handler_reconnects_when_login_reply_is_unreadable() -> None:
+    stream = EventStream("fake", "user", "pass")
+    conn = UnreadableLoginConnection([])
+    stream._connection = conn  # type: ignore[assignment]
+    events: list[object] = []
+    stream.subscribe(Disconnected, events.append)
+
+    task = asyncio.create_task(stream._message_handler())  # type: ignore[reportPrivateUsage]
+    await asyncio.sleep(0.05)
+
+    # The handler drops the connection and waits to retry, rather than stopping
+    assert not task.done()
+    assert conn.closed
+    assert [type(event) for event in events] == [Disconnected]
+    task.cancel()
+
+
+async def test_start_closes_connection_when_login_reply_is_unreadable() -> None:
+    stream = EventStream("fake", "user", "pass")
+    conn = UnreadableLoginConnection([])
+    stream._connection = conn  # type: ignore[assignment]
+
+    # The connection is dropped rather than left open with an unknown login result
+    with pytest.raises(ClientResponseError):
+        await stream.start()
+    assert conn.closed
 
 
 async def test_subscribe_enhanced_log_queues_commands_for_the_master_at_host() -> None:

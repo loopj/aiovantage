@@ -4,7 +4,7 @@ import asyncio
 from collections.abc import Callable
 from ssl import CERT_NONE, SSLContext, create_default_context
 
-from .errors import ClientConnectionError, ClientTimeoutError
+from .errors import ClientConnectionError, ClientResponseError, ClientTimeoutError
 
 
 def get_default_context() -> SSLContext:
@@ -139,5 +139,13 @@ class BaseConnection:
             raise ClientTimeoutError from err
         except (OSError, asyncio.IncompleteReadError) as err:
             raise ClientConnectionError from err
+        except asyncio.LimitOverrunError as err:
+            # The rest of the oversized reply is still on the socket, so the
+            # connection can't be read from again
+            self.close()
+            raise ClientConnectionError("Reply exceeds the read buffer limit") from err
 
-        return data.decode()
+        try:
+            return data.decode()
+        except UnicodeDecodeError as err:
+            raise ClientResponseError("Reply is not valid UTF-8") from err

@@ -1,5 +1,9 @@
 """Fakes shared across tests."""
 
+import asyncio
+
+from aiovantage.errors import ClientConnectionError, ClientResponseError
+
 
 class FakeCommandClient:
     """Stand-in for CommandClient that answers requests from a script.
@@ -55,38 +59,71 @@ class FakeCommandConnection:
         """Accept any credentials."""
 
     async def write(self, message: str) -> None:
-        """Record an outbound message."""
+        """Record an outbound message, failing like the real connection once closed."""
+        if self.closed:
+            raise ClientConnectionError("Client not connected.")
         self.written.append(message)
 
     async def readuntil(self, separator: bytes, timeout: float | None = None) -> str:
-        """Return the next scripted line, terminated the way the controller sends it."""
+        """Return the next scripted line, letting other tasks run first like a real read.
+
+        Once the script runs out, wait like a quiet connection until canceled.
+        """
+        await asyncio.sleep(0)
         self.timeouts.append(timeout)
+        if not self.lines:
+            await asyncio.Event().wait()
         line = self.lines.pop(0)
         if isinstance(line, BaseException):
             raise line
         return line + "\r\n"
 
 
+class UnreadableLoginConnection(FakeCommandConnection):
+    """A connection whose first login reply cannot be read."""
+
+    def __init__(self, lines: list[str | BaseException]) -> None:
+        """Initialize the fake, counting this connection's logins from zero."""
+        super().__init__(lines)
+        self.logins = 0
+
+    async def authenticate(self, username: str, password: str) -> None:
+        """Fail the first login with an unreadable reply."""
+        self.logins += 1
+        if self.logins == 1:
+            raise ClientResponseError
+
+
 class FakeConfigConnection:
     """Stand-in for ConfigConnection that answers requests from a script.
 
     Args:
-        replies: The inbound XML documents, each returned by one readuntil() call.
+        replies: The inbound XML documents, each returned by one readuntil() call,
+            or an exception to raise in place of a reply.
     """
 
     host = "fake"
     port = 2001
     requires_authentication = False
 
-    def __init__(self, replies: list[str]) -> None:
-        """Initialize the fake with scripted replies."""
+    def __init__(
+        self,
+        replies: list[str | BaseException],
+        open_errors: list[BaseException] | None = None,
+    ) -> None:
+        """Initialize the fake with scripted replies, and errors to raise on open."""
         self.replies = list(replies)
+        self.open_errors = list(open_errors or [])
         self.written: list[str] = []
+        self.opens = 0
         self.closed = True
 
     async def open(self) -> None:
-        """Mark the connection open."""
+        """Mark the connection open, then raise the next scripted open error."""
+        self.opens += 1
         self.closed = False
+        if self.open_errors:
+            raise self.open_errors.pop(0)
 
     def close(self) -> None:
         """Mark the connection closed."""
@@ -96,12 +133,18 @@ class FakeConfigConnection:
         """Accept any credentials."""
 
     async def write(self, message: str) -> None:
-        """Record an outbound request."""
+        """Record an outbound request, failing like the real connection once closed."""
+        if self.closed:
+            raise ClientConnectionError("Client not connected.")
         self.written.append(message)
 
     async def readuntil(self, separator: bytes, timeout: float | None = None) -> str:
-        """Return the next scripted reply."""
-        return self.replies.pop(0)
+        """Return the next scripted reply, letting other tasks run first like a real read."""
+        await asyncio.sleep(0)
+        reply = self.replies.pop(0)
+        if isinstance(reply, BaseException):
+            raise reply
+        return reply
 
 
 SYS_INFO_REPLY = (

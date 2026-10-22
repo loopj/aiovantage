@@ -6,6 +6,7 @@ from types import TracebackType
 from typing import Any, Protocol, TypeVar
 
 from typing_extensions import Self, override
+from xsdata.exceptions import ParserError
 from xsdata.formats.converter import BoolConverter, DateTimeConverter, converter
 from xsdata.formats.dataclass.context import XmlContext
 from xsdata.formats.dataclass.parsers import XmlParser
@@ -16,7 +17,12 @@ from xsdata.formats.dataclass.serializers.config import SerializerConfig
 from xsdata.utils.text import pascal_case, snake_case
 
 from aiovantage._logger import logger
-from aiovantage.errors import ClientResponseError, LoginRequiredError
+from aiovantage.errors import (
+    ClientConnectionError,
+    ClientError,
+    ClientResponseError,
+    LoginRequiredError,
+)
 
 from .connection import ConfigConnection
 
@@ -120,14 +126,21 @@ class ConfigClient:
         Returns:
             The raw XML response.
         """
-        # Open the connection if it's closed
-        conn = await self._get_connection()
-
-        # Send the request and read the response
         logger.debug("Sending request: %s", request)
         async with self._request_lock:
-            await conn.write(request)
-            response = await conn.readuntil(separator.encode(), self._read_timeout)
+            # Open the connection if it's closed, once any earlier request is done
+            # with it, since a failed request closes it
+            conn = await self._get_connection()
+
+            # Send the request and read the response
+            try:
+                await conn.write(request)
+                response = await conn.readuntil(separator.encode(), self._read_timeout)
+            except (ClientConnectionError, asyncio.CancelledError):
+                # Close the socket so the next request opens a fresh one rather than
+                # reading this request's late reply
+                self._connection.close()
+                raise
 
         logger.debug("Received response: %s", response)
 
@@ -170,7 +183,10 @@ class ConfigClient:
         )
 
         # Parse the response
-        response = self._parser.from_string(response_str, type(request))
+        try:
+            response = self._parser.from_string(response_str, type(request))
+        except ParserError as err:
+            raise ClientResponseError("Failed to parse response") from err
 
         # Extract the method response
         method_response: Method[Call, Return] | None = getattr(
@@ -194,16 +210,24 @@ class ConfigClient:
         """Get a connection to the ACI service."""
         async with self._connection_lock:
             if self._connection.closed:
-                # Open a new connection
-                await self._connection.open()
+                try:
+                    # Open a new connection
+                    await self._connection.open()
 
-                # Authenticate the new connection if we have credentials
-                if self._username and self._password:
-                    await self._connection.authenticate(self._username, self._password)
-                elif self._connection.requires_authentication:
-                    raise LoginRequiredError(
-                        "Login required, but no credentials were provided"
-                    )
+                    # Authenticate the new connection if we have credentials
+                    if self._username and self._password:
+                        await self._connection.authenticate(
+                            self._username, self._password
+                        )
+                    elif self._connection.requires_authentication:
+                        raise LoginRequiredError(
+                            "Login required, but no credentials were provided"
+                        )
+                except (ClientError, asyncio.CancelledError):
+                    # Close a connection that failed part way through setup, so the
+                    # next request starts over rather than reusing it
+                    self._connection.close()
+                    raise
 
                 logger.info(
                     "Connected to config client at %s:%d",

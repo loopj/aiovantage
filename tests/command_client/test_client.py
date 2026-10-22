@@ -6,12 +6,14 @@ import pytest
 
 from aiovantage.command_client import CommandClient, CommandResponse
 from aiovantage.errors import (
+    ClientResponseError,
     ClientTimeoutError,
     CommandError,
     FailedError,
+    LoginFailedError,
     NotInitializedError,
 )
-from tests.fakes import FakeCommandConnection
+from tests.fakes import FakeCommandConnection, UnreadableLoginConnection
 
 
 def make_client(
@@ -93,3 +95,63 @@ async def test_raw_request_closes_connection_on_cancel_and_reopens() -> None:
     # The next request opens a fresh connection instead of reading the stale reply
     assert await client.raw_request("VERSION") == ["R:VERSION 4.9.0.2"]
     assert conn.opens == 2
+
+
+async def test_raw_request_closes_connection_on_unreadable_reply_and_reopens() -> None:
+    client, conn = make_client(ClientResponseError(), "R:VERSION 4.9.0.2")
+
+    # The rest of an unreadable reply may still be on the socket, so it is dropped
+    with pytest.raises(ClientResponseError):
+        await client.raw_request("VERSION")
+    assert conn.closed
+
+    # The next request opens a fresh connection instead of reading the leftover reply
+    assert await client.raw_request("VERSION") == ["R:VERSION 4.9.0.2"]
+    assert conn.opens == 2
+
+
+async def test_raw_request_closes_connection_when_login_fails_and_reopens() -> None:
+    client = CommandClient("fake", "user", "pass")
+    conn = UnreadableLoginConnection(["R:VERSION 4.9.0.2"])
+    client._connection = conn  # type: ignore[assignment]
+
+    # The connection is dropped rather than used unauthenticated
+    with pytest.raises(ClientResponseError):
+        await client.raw_request("VERSION")
+    assert conn.closed
+
+    # The next request opens a fresh connection and logs in again
+    assert await client.raw_request("VERSION") == ["R:VERSION 4.9.0.2"]
+    assert (conn.opens, conn.logins) == (2, 2)
+
+
+async def test_raw_request_queued_behind_a_timeout_uses_a_fresh_connection() -> None:
+    client, conn = make_client(ClientTimeoutError(), "R:VERSION 4.9.0.2")
+
+    # The second request waits for the first, which times out and closes the socket
+    first, second = await asyncio.gather(
+        client.raw_request("VERSION"),
+        client.raw_request("VERSION"),
+        return_exceptions=True,
+    )
+
+    assert isinstance(first, ClientTimeoutError)
+    assert second == ["R:VERSION 4.9.0.2"]
+    assert conn.opens == 2
+
+
+async def test_raw_request_closes_connection_when_login_is_rejected() -> None:
+    client = CommandClient("fake", "user", "wrong")
+    conn = FakeCommandConnection([])
+    client._connection = conn  # type: ignore[assignment]
+
+    async def reject(username: str, password: str) -> None:
+        raise LoginFailedError("Invalid username or password")
+
+    conn.authenticate = reject  # type: ignore[method-assign]
+
+    # LoginFailedError is a CommandError, and so a ClientError, so setup closes the
+    # connection rather than leaving it open for the next request to use unauthenticated
+    with pytest.raises(LoginFailedError):
+        await client.raw_request("VERSION")
+    assert conn.closed
