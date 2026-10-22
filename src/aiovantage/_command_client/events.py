@@ -17,6 +17,7 @@ from aiovantage.events import (
     EventDispatcher,
     Reconnected,
     StatusReceived,
+    TriggerReceived,
 )
 
 from .connection import CommandConnection
@@ -211,6 +212,33 @@ class EventStream(EventDispatcher):
             off()
 
         return unsubscribe_enhanced_log
+
+    def subscribe_triggers(
+        self,
+        callback: Callable[[TriggerReceived], None],
+        *,
+        peers: Iterable[int] = (),
+    ) -> Callable[[], None]:
+        """Subscribe to objects triggering tasks, eg. a button press starting a task.
+
+        These are the live counterpart of the controller's trigger history, and name
+        the object that started each task. Subscribing turns on the controller's
+        "EVENT" enhanced log, which stays written after the client disconnects.
+
+        Args:
+            callback: The callback to invoke when a trigger is received.
+            peers: Master numbers of the peers whose triggers should be logged too.
+
+        Returns:
+            A function that can be used to unsubscribe from triggers.
+        """
+
+        # Other enhanced log types share the stream, so only pass on trigger logs
+        def on_enhanced_log(event: EnhancedLogReceived) -> None:
+            if trigger := TriggerReceived.parse(event.log):
+                callback(trigger)
+
+        return self.subscribe_enhanced_log(on_enhanced_log, "EVENT", peers=peers)
 
     async def _message_handler(self) -> None:
         # Handle incoming messages from the Host Command service.
