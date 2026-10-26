@@ -245,7 +245,12 @@ class Controller(QuerySet[T], EventDispatcher):
         # Tokenize STATUS/STATUSEX logs from the enhanced log.
         # These are "object interface" status messages, of the form:
         # -> EL: <vid> <method> <result> <arg1> <arg2> ...
-        vid_str, method, result, *args = Converter.tokenize(event.log)
+        # Other log types, eg. EVENT and SYSTEM, can share the stream, so skip them.
+        tokens = Converter.tokenize(event.log)
+        if len(tokens) < 3 or not tokens[0].isdecimal() or "." not in tokens[1]:
+            return
+
+        vid_str, method, result, *args = tokens
 
         # Pass the event to the controller, if this object is managed by it
         obj = self._objects.get(int(vid_str))
