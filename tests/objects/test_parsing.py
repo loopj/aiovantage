@@ -5,7 +5,13 @@ from decimal import Decimal
 from typing import TypeVar
 
 from aiovantage.config_client import ConfigClient
-from aiovantage.objects import DryContact, Load, Parent, VantageDmxDaliGateway
+from aiovantage.objects import (
+    DryContact,
+    Load,
+    Parent,
+    VantageDmxDaliGateway,
+    VantageVirtualThermostatPort,
+)
 
 T = TypeVar("T")
 
@@ -120,3 +126,40 @@ def test_dmx_dali_gateway_parses_without_mode() -> None:
 
     assert gateway.ip_address == "192.168.1.50"
     assert gateway.mode is None
+
+
+def test_virtual_thermostat_parses_heating_only() -> None:
+    # Heating-only thermostats have no COOL or FAN element, see #414
+    xml = """
+    <Vantage.VirtualThermostat_PORT VID="987" Master="1">
+      <Name>Bathroom</Name>
+      <Model></Model>
+      <Note></Note>
+      <Area>45</Area>
+      <Location>Bathroom</Location>
+      <changeOverValve>0</changeOverValve>
+      <FrostMailFrom></FrostMailFrom>
+      <FrostMailTo></FrostMailTo>
+      <HEAT>
+        <heatStage1Load>100</heatStage1Load>
+        <heatStage1Task>0</heatStage1Task>
+        <heatStage2Load>0</heatStage2Load>
+        <heatStage2Task>0</heatStage2Task>
+      </HEAT>
+      <indoorSensorHolder>
+        <indoorSensor>200</indoorSensor>
+        <indoorTempOffset>0</indoorTempOffset>
+      </indoorSensorHolder>
+      <outdoorSensorHolder>
+        <outdoorSensor>0</outdoorSensor>
+        <outdoorTempOffset>0</outdoorTempOffset>
+      </outdoorSensorHolder>
+    </Vantage.VirtualThermostat_PORT>
+    """
+
+    thermostat = parse(xml, VantageVirtualThermostatPort)
+
+    assert thermostat.heat is not None
+    assert thermostat.heat.heat_stage_1_load == 100
+    assert thermostat.cool is None
+    assert thermostat.fan is None
