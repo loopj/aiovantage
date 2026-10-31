@@ -59,11 +59,11 @@ class VantageVirtualThermostatPort(PortDevice, ThermostatInterface, FanInterface
         )
 
     change_over_valve: int = field(metadata={"name": "changeOverValve"})
-    cool: Cool = field(metadata={"name": "COOL"})
-    fan: Fan = field(metadata={"name": "FAN"})
+    cool: Cool | None = field(default=None, metadata={"name": "COOL"})
+    fan: Fan | None = field(default=None, metadata={"name": "FAN"})
     frost_mail_from: str
     frost_mail_to: str
-    heat: Heat = field(metadata={"name": "HEAT"})
+    heat: Heat | None = field(default=None, metadata={"name": "HEAT"})
     indoor_sensor_holder: IndoorSensorHolder = field(
         metadata={"name": "indoorSensorHolder"}
     )
