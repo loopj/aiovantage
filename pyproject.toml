@@ -31,7 +31,7 @@ dev = [
     "ruff==0.17.2",
     "bumpver==2026.1132",
     "pytest==9.1.1",
-    "pytest-asyncio==1.4.0",
+    "pytest-asyncio==1.4.1",
 ]
 
 [tool.ruff.lint]
