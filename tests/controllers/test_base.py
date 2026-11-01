@@ -1,6 +1,8 @@
 """Tests for populating a controller across masters."""
 
 from aiovantage import Vantage
+from aiovantage.events import EnhancedLogReceived, ObjectUpdated
+from aiovantage.objects import Load, Parent
 from tests.fakes import (
     CLOSE_FILTER_REPLY,
     SYS_INFO_REPLY,
@@ -35,3 +37,36 @@ async def test_fetch_objects_queries_each_master_and_skips_duplicates() -> None:
     # Discovery first, then each master is addressed explicitly in turn
     masters = [req.partition("?>")[0] for req in conn.written[1:]]
     assert masters == ["<?Master 1"] * 4 + ["<?Master 2"] * 4
+
+
+async def test_enhanced_log_handler_skips_logs_that_are_not_object_status() -> None:
+    vantage = Vantage("fake")
+    load = Load(
+        vid=100,
+        master=1,
+        name="Load 100",
+        model="",
+        note="",
+        parent=Parent(vid=10, position=1),
+        contractor_number="",
+        power_profile=0,
+    )
+    vantage.loads._objects[load.vid] = load  # type: ignore[reportPrivateUsage]
+    handler = vantage.loads._handle_enhanced_log_event  # type: ignore[reportPrivateUsage]
+    updated: list[ObjectUpdated[Load]] = []
+    vantage.loads.subscribe(ObjectUpdated, updated.append)
+
+    # Trigger and system logs share the stream with object status logs, even
+    # when they lead with the VID of an object the controller manages
+    for log in (
+        "100 200 7 0 0",
+        "100 Controller Module Offline",
+        "100",
+        "\u00b2 X.Y 1",
+    ):
+        handler(EnhancedLogReceived(log))
+    assert updated == []
+
+    # Object status logs still reach the object
+    handler(EnhancedLogReceived("100 Load.GetLevel 75000"))
+    assert [event.attrs_changed for event in updated] == [["level"]]
